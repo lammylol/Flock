@@ -9,8 +9,6 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 
-//Test
-
 enum AuthError: Error {
     case networkError
     case invalidPassword

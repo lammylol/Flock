@@ -32,40 +32,54 @@ class PrayerFeedHelper {
         }
     }
     
-    func getPrayerRequests(querySnapshot: QuerySnapshot) -> ([PrayerRequest], DocumentSnapshot?) {
-        var prayerRequests = [PrayerRequest]()
+    func getPosts(querySnapshot: QuerySnapshot) -> ([Post], DocumentSnapshot?) {
+        var posts = [Post]()
         var lastDocument: DocumentSnapshot? = nil
         
         for document in querySnapshot.documents {
             let timestamp = document.data()["datePosted"] as? Timestamp ?? Timestamp()
             let datePosted = timestamp.dateValue()
-            
             let firstName = document.data()["firstName"] as? String ?? ""
             let lastName = document.data()["lastName"] as? String ?? ""
-            let prayerRequestText = document.data()["prayerRequestText"] as? String ?? ""
             let status = document.data()["status"] as? String ?? ""
             let userID = document.data()["userID"] as? String ?? ""
             let username = document.data()["username"] as? String ?? ""
             let privacy = document.data()["privacy"] as? String ?? "private"
             let isPinned = document.data()["isPinned"] as? Bool ?? false
-            let prayerRequestTitle = document.data()["prayerRequestTitle"] as? String ?? ""
+            let postTitle = document.data()["prayerRequestTitle"] as? String ?? ""
+            let postText = document.data()["prayerRequestText"] as? String ?? ""
+            let postType = document.data()["postTitle"] as? String ?? ""
             let documentID = document.documentID as String
             let latestUpdateText = document.data()["latestUpdateText"] as? String ?? ""
             let latestUpdateType = document.data()["latestUpdateType"] as? String ?? ""
-            
             let updateTimestamp = document.data()["latestUpdateDatePosted"] as? Timestamp ?? timestamp
             let latestUpdateDatePosted = updateTimestamp.dateValue()
             
-            let prayerRequest = PrayerRequest(id: documentID, userID: userID, username: username, date: datePosted, prayerRequestText: prayerRequestText, status: status, firstName: firstName, lastName: lastName, privacy: privacy, isPinned: isPinned, prayerRequestTitle: prayerRequestTitle, latestUpdateText: latestUpdateText, latestUpdateDatePosted: latestUpdateDatePosted, latestUpdateType: latestUpdateType)
+            let post = Post(
+                id: documentID,
+                date: datePosted,
+                userID: userID,
+                username: username,
+                firstName: firstName,
+                lastName: lastName,
+                postTitle: postTitle,
+                postText: postText,
+                postType: postType,
+                status: status,
+                latestUpdateText: latestUpdateText,
+                latestUpdateDatePosted: latestUpdateDatePosted,
+                latestUpdateType: latestUpdateType,
+                privacy: privacy,
+                isPinned: isPinned)
             
-            prayerRequests.append(prayerRequest)
-            print("prayerRequest: "+prayerRequest.id+"lastDocument: "+(querySnapshot.documents.last?.documentID ?? ""))
+            posts.append(post)
+            print("post: "+post.id+"lastDocument: "+(querySnapshot.documents.last?.documentID ?? ""))
             lastDocument = querySnapshot.documents.last
         }
-        return (prayerRequests, lastDocument)
+        return (posts, lastDocument)
     }
     
-    func getPrayerRequestFeed(user: Person, person: Person, answeredFilter: String, count: Int, lastDocument: DocumentSnapshot?, profileOrFeed: String) async throws -> ([PrayerRequest], DocumentSnapshot?) {
+    func getPrayerRequestFeed(user: Person, person: Person, answeredFilter: String, count: Int, lastDocument: DocumentSnapshot?, profileOrFeed: String) async throws -> ([Post], DocumentSnapshot?) {
         
         guard person.userID != "" else {
             throw PrayerRequestRetrievalError.noUserID
@@ -106,6 +120,6 @@ class PrayerFeedHelper {
         
         print(querySnapshot.count)
         
-        return getPrayerRequests(querySnapshot: querySnapshot)
+        return getPosts(querySnapshot: querySnapshot)
     }
 }

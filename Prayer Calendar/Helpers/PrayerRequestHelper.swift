@@ -21,8 +21,8 @@ class PrayerRequestHelper {
     let db = Firestore.firestore()
 
     //Retrieve prayer requests from Firestore
-    func getPrayerRequests(userID: String, person: Person, status: String?) async throws -> [PrayerRequest] {
-        var prayerRequests = [PrayerRequest]()
+    func getPrayerRequests(userID: String, person: Person, status: String?) async throws -> [Post] {
+        var prayerRequests = [Post]()
         
         guard userID != "" else {
             throw PrayerRequestRetrievalError.noUserID
@@ -49,18 +49,33 @@ class PrayerRequestHelper {
                 
                 let firstName = document.data()["firstName"] as? String ?? ""
                 let lastName = document.data()["lastName"] as? String ?? ""
-                let prayerRequestText = document.data()["prayerRequestText"] as? String ?? ""
+                let postTitle = document.data()["prayerRequestTitle"] as? String ?? ""
+                let postText = document.data()["prayerRequestText"] as? String ?? ""
+                let postType = document.data()["postType"] as? String ?? ""
                 let status = document.data()["status"] as? String ?? ""
                 let userID = document.data()["userID"] as? String ?? ""
                 let username = document.data()["username"] as? String ?? ""
                 let privacy = document.data()["privacy"] as? String ?? "private"
                 let isPinned = document.data()["isPinned"] as? Bool ?? false
                 let documentID = document.documentID as String
-                let prayerRequestTitle = document.data()["prayerRequestTitle"] as? String ?? ""
                 let latestUpdateText = document.data()["latestUpdateText"] as? String ?? ""
                 let latestUpdateType = document.data()["latestUpdateType"] as? String ?? ""
                 
-                let prayerRequest = PrayerRequest(id: documentID, userID: userID, username: username, date: datePosted, prayerRequestText: prayerRequestText, status: status, firstName: firstName, lastName: lastName, privacy: privacy, isPinned: isPinned, prayerRequestTitle: prayerRequestTitle, latestUpdateText: latestUpdateText, latestUpdateDatePosted: latestUpdateDatePosted, latestUpdateType: latestUpdateType)
+                let prayerRequest = Post(id: documentID, 
+                                         date: datePosted,
+                                         userID: userID,
+                                         username: username,
+                                         firstName: firstName,
+                                         lastName: lastName,
+                                         postTitle: postTitle,
+                                         postText: postText,
+                                         postType: postType,
+                                         status: status,
+                                         latestUpdateText: latestUpdateText,
+                                         latestUpdateDatePosted: latestUpdateDatePosted,
+                                         latestUpdateType: latestUpdateType,
+                                         privacy: privacy,
+                                         isPinned: isPinned)
                 
                 prayerRequests.append(prayerRequest)
             }
@@ -70,14 +85,14 @@ class PrayerRequestHelper {
         return prayerRequests
     }
     
-    func getPrayerRequest(prayerRequest: PrayerRequest) async throws -> PrayerRequest {
+    func getPrayerRequest(prayerRequest: Post) async throws -> Post {
         guard prayerRequest.id != "" else {
             throw PrayerRequestRetrievalError.noPrayerRequestID
         }
         
         let ref = db.collection("prayerRequests").document(prayerRequest.id)
         let isPinned = prayerRequest.isPinned // Need to save separately because isPinned is not stored in larger 'prayer requests' collection. Only within a user's feed.
-        var prayerRequest = PrayerRequest.blank
+        var prayerRequest = Post.blank
         
         do {
             let document = try await ref.getDocument()
@@ -95,17 +110,32 @@ class PrayerRequestHelper {
                 
                 let firstName = document.data()?["firstName"] as? String ?? ""
                 let lastName = document.data()?["lastName"] as? String ?? ""
-                let prayerRequestText = document.data()?["prayerRequestText"] as? String ?? ""
+                let postTitle = document.data()?["prayerRequestTitle"] as? String ?? ""
+                let postText = document.data()?["prayerRequestText"] as? String ?? ""
+                let postType = document.data()?["postType"] as? String ?? ""
                 let status = document.data()?["status"] as? String ?? ""
                 let userID = document.data()?["userID"] as? String ?? ""
                 let username = document.data()?["username"] as? String ?? ""
                 let privacy = document.data()?["privacy"] as? String ?? "private"
                 let documentID = document.documentID as String
-                let prayerRequestTitle = document.data()?["prayerRequestTitle"] as? String ?? ""
                 let latestUpdateText = document.data()?["latestUpdateText"] as? String ?? ""
                 let latestUpdateType = document.data()?["latestUpdateType"] as? String ?? ""
             
-                prayerRequest = PrayerRequest(id: documentID, userID: userID, username: username, date: datePosted, prayerRequestText: prayerRequestText, status: status, firstName: firstName, lastName: lastName, privacy: privacy, isPinned: isPinned, prayerRequestTitle: prayerRequestTitle, latestUpdateText: latestUpdateText, latestUpdateDatePosted: latestUpdateDatePosted, latestUpdateType: latestUpdateType)
+                prayerRequest = Post(id: documentID, 
+                                     date: datePosted,
+                                     userID: userID,
+                                     username: username,
+                                     firstName: firstName,
+                                     lastName: lastName,
+                                     postTitle: postTitle,
+                                     postText: postText,
+                                     postType: postType,
+                                     status: status,
+                                     latestUpdateText: latestUpdateText,
+                                     latestUpdateDatePosted: latestUpdateDatePosted,
+                                     latestUpdateType: latestUpdateType,
+                                     privacy: privacy,
+                                     isPinned: isPinned)
             }
         } catch {
             throw error
@@ -115,7 +145,7 @@ class PrayerRequestHelper {
     }
         
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
-    func createPrayerRequest(userID: String, datePosted: Date, person: Person, prayerRequestText: String, prayerRequestTitle: String, privacy: String, friendsList: [String]) {
+    func createPrayerRequest(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [String]) {
         
         var isMyProfile: Bool
         if person.username != "" && person.userID == userID {
@@ -132,11 +162,12 @@ class PrayerRequestHelper {
             "firstName": person.firstName,
             "lastName": person.lastName,
             "status": "Current",
-            "prayerRequestText": prayerRequestText,
+            "prayerRequestText": postText,
+            "postType": postType,
             "userID": userID,
             "username": person.username,
             "privacy": privacy,
-            "prayerRequestTitle": prayerRequestTitle,
+            "prayerRequestTitle": postTitle,
             "latestUpdateText": "",
             "latestUpdateDatePosted": datePosted,
             "latestUpdateType": ""
@@ -154,11 +185,12 @@ class PrayerRequestHelper {
                     "firstName": person.firstName,
                     "lastName": person.lastName,
                     "status": "Current",
-                    "prayerRequestText": prayerRequestText,
+                    "prayerRequestText": postText,
+                    "postType": postType,
                     "userID": userID,
                     "username": person.username,
                     "privacy": privacy,
-                    "prayerRequestTitle": prayerRequestTitle,
+                    "prayerRequestTitle": postTitle,
                     "latestUpdateText": "",
                     "latestUpdateDatePosted": datePosted,
                     "latestUpdateType": ""
@@ -171,11 +203,12 @@ class PrayerRequestHelper {
                     "firstName": person.firstName,
                     "lastName": person.lastName,
                     "status": "Current",
-                    "prayerRequestText": prayerRequestText,
+                    "prayerRequestText": postText,
+                    "postType": postType,
                     "userID": userID,
                     "username": person.username,
                     "privacy": privacy,
-                    "prayerRequestTitle": prayerRequestTitle,
+                    "prayerRequestTitle": postTitle,
                     "latestUpdateText": "",
                     "latestUpdateDatePosted": datePosted,
                     "latestUpdateType": ""
@@ -191,11 +224,12 @@ class PrayerRequestHelper {
             "firstName": person.firstName,
             "lastName": person.lastName,
             "status": "Current",
-            "prayerRequestText": prayerRequestText,
+            "prayerRequestText": postText,
+            "postType": postType,
             "userID": userID,
             "username": person.username,
             "privacy": privacy,
-            "prayerRequestTitle": prayerRequestTitle,
+            "prayerRequestTitle": postTitle,
             "latestUpdateText": "",
             "latestUpdateDatePosted": datePosted,
             "latestUpdateType": ""
@@ -203,7 +237,7 @@ class PrayerRequestHelper {
     }
     
     // This function enables an edit to a prayer requests off of a selected prayer request.
-    func editPrayerRequest(prayerRequest: PrayerRequest, person: Person, friendsList: [String]) {
+    func editPrayerRequest(prayerRequest: Post, person: Person, friendsList: [String]) {
         
         var isMyProfile: Bool
         if person.username != "" && person.userID == prayerRequest.userID {
@@ -217,9 +251,10 @@ class PrayerRequestHelper {
         ref.updateData([
             "datePosted": prayerRequest.date,
             "status": prayerRequest.status,
-            "prayerRequestText": prayerRequest.prayerRequestText,
+            "postType": prayerRequest.postType,
+            "prayerRequestText": prayerRequest.postText,
             "privacy": prayerRequest.privacy,
-            "prayerRequestTitle": prayerRequest.prayerRequestTitle
+            "prayerRequestTitle": prayerRequest.postTitle
         ])
         
         // Add PrayerRequestID to prayerFeed/{userID}
@@ -237,12 +272,12 @@ class PrayerRequestHelper {
             
             // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
             updatePrayerRequestsDataCollection(prayerRequest: prayerRequest, person: person)
-            print(prayerRequest.prayerRequestText)
+            print(prayerRequest.postText)
         }
     }
     
     // This function updates the prayer feed of all users who are friends of the person.
-    func updatePrayerFeed(prayerRequest: PrayerRequest, person: Person, friendID: String, updateFriend: Bool) {
+    func updatePrayerFeed(prayerRequest: Post, person: Person, friendID: String, updateFriend: Bool) {
         if updateFriend == true {
             let ref = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
             ref.setData([
@@ -250,11 +285,12 @@ class PrayerRequestHelper {
                 "firstName": prayerRequest.firstName,
                 "lastName": prayerRequest.lastName,
                 "status": prayerRequest.status,
-                "prayerRequestText": prayerRequest.prayerRequestText,
+                "prayerRequestText": prayerRequest.postText,
+                "postType": prayerRequest.postType,
                 "userID": person.userID,
                 "username": person.username,
                 "privacy": prayerRequest.privacy,
-                "prayerRequestTitle": prayerRequest.prayerRequestTitle,
+                "prayerRequestTitle": prayerRequest.postTitle,
                 "latestUpdateText": prayerRequest.latestUpdateText,
                 "latestUpdateDatePosted": prayerRequest.latestUpdateDatePosted,
                 "latestUpdateType": prayerRequest.latestUpdateType
@@ -268,11 +304,12 @@ class PrayerRequestHelper {
                 "firstName": prayerRequest.firstName,
                 "lastName": prayerRequest.lastName,
                 "status": prayerRequest.status,
-                "prayerRequestText": prayerRequest.prayerRequestText,
+                "prayerRequestText": prayerRequest.postText,
+                "postType": prayerRequest.postType,
                 "userID": person.userID,
                 "username": person.username,
                 "privacy": prayerRequest.privacy,
-                "prayerRequestTitle": prayerRequest.prayerRequestTitle,
+                "prayerRequestTitle": prayerRequest.postTitle,
                 "latestUpdateText": prayerRequest.latestUpdateText,
                 "latestUpdateDatePosted": prayerRequest.latestUpdateDatePosted,
                 "latestUpdateType": prayerRequest.latestUpdateType,
@@ -282,7 +319,7 @@ class PrayerRequestHelper {
     }
     
     // this function updates the prayer requests collection carrying all prayer requests. Takes in the prayer request being updated, and the person who is being updated for.
-    func updatePrayerRequestsDataCollection(prayerRequest: PrayerRequest, person: Person) {
+    func updatePrayerRequestsDataCollection(prayerRequest: Post, person: Person) {
         let ref =
         db.collection("prayerRequests").document(prayerRequest.id)
         
@@ -291,16 +328,17 @@ class PrayerRequestHelper {
             "firstName": prayerRequest.firstName,
             "lastName": prayerRequest.lastName,
             "status": prayerRequest.status,
-            "prayerRequestText": prayerRequest.prayerRequestText,
+            "postType": prayerRequest.postType,
+            "prayerRequestText": prayerRequest.postText,
             "userID": person.userID,
             "username": person.username,
             "privacy": prayerRequest.privacy,
-            "prayerRequestTitle": prayerRequest.prayerRequestTitle
+            "prayerRequestTitle": prayerRequest.postTitle
         ])
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
-    func deletePrayerRequest(prayerRequest: PrayerRequest, person: Person, friendsList: [String]) {
+    func deletePrayerRequest(prayerRequest: Post, person: Person, friendsList: [String]) {
         let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(prayerRequest.firstName.lowercased())_\(prayerRequest.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
         
         ref.delete() { err in
@@ -309,7 +347,7 @@ class PrayerRequestHelper {
             } else {
                 print("Document successfully deleted")
                 print(prayerRequest.id)
-                print(prayerRequest.prayerRequestText)
+                print(prayerRequest.postText)
             }
         }
         
@@ -324,7 +362,7 @@ class PrayerRequestHelper {
     }
     
     // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
-    func deleteRequestFromFeed(prayerRequest: PrayerRequest, person: Person, friendsList: [String]) {
+    func deleteRequestFromFeed(prayerRequest: Post, person: Person, friendsList: [String]) {
         var isMyProfile: Bool
         if person.username != "" && person.userID == prayerRequest.userID {
             isMyProfile = true
@@ -343,7 +381,7 @@ class PrayerRequestHelper {
                     } else {
                         print("Document successfully deleted")
                         print(prayerRequest.id)
-                        print(prayerRequest.prayerRequestText)
+                        print(prayerRequest.postText)
                     }
                 }
             }
@@ -355,20 +393,20 @@ class PrayerRequestHelper {
                 } else {
                     print("Document successfully deleted")
                     print(prayerRequest.id)
-                    print(prayerRequest.prayerRequestText)
+                    print(prayerRequest.postText)
                 }
             }
         }
     }
     
-    func togglePinned(person: Person, prayerRequest: PrayerRequest, toggle: Bool) {
+    func togglePinned(person: Person, prayerRequest: Post, toggle: Bool) {
         let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
         ref.updateData([
             "isPinned": toggle
         ])
     }
     
-    func publicToPrivate(prayerRequest: PrayerRequest, friendsList: [String]) {
+    func publicToPrivate(prayerRequest: Post, friendsList: [String]) {
         if friendsList.isEmpty == false {
             for friendID in friendsList {
                 let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
@@ -378,7 +416,7 @@ class PrayerRequestHelper {
                     } else {
                         print("Document successfully deleted")
                         print(prayerRequest.id)
-                        print(prayerRequest.prayerRequestText)
+                        print(prayerRequest.postText)
                     }
                 }
             }

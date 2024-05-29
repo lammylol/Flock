@@ -10,9 +10,9 @@ import SwiftUI
 struct CustomTabBarNew: View {
     
     @Binding var selectedTab: Int
-    @State var pinned: [PrayerRequest]
+    @State var pinned: [Post]
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(PrayerRequestViewModel.self) var viewModel
+    @Environment(FeedViewModel.self) var viewModel
     
     var body: some View {
         HStack(alignment: .center) {

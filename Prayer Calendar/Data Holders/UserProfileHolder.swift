@@ -15,7 +15,7 @@ import FirebaseFirestore
     var person: Person = Person(username: "")
     var friendsList: [String] = []
     var userPassword: String = ""
-    var pinnedPrayerRequests: [PrayerRequest] = []
+    var pinnedPrayerRequests: [Post] = []
     var refresh: Bool = false
     var viewState: ViewState?
     var prayerList: String = ""

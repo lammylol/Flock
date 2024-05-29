@@ -10,8 +10,8 @@ import FirebaseFirestore
 
 class PrayerUpdateHelper {
     // this function gets all the prayer request updates from a specific prayer request passed through.
-    func getPrayerRequestUpdates(prayerRequest: PrayerRequest, person: Person) async throws -> [PrayerRequestUpdate] {
-        var updates = [PrayerRequestUpdate]()
+    func getPrayerRequestUpdates(prayerRequest: Post, person: Person) async throws -> [PostUpdate] {
+        var updates = [PostUpdate]()
         let db = Firestore.firestore()
         
         guard prayerRequest.id != "" else {
@@ -34,7 +34,7 @@ class PrayerUpdateHelper {
                 let documentID = document.documentID as String
                 let updateType = document.data()["updateType"] as? String ?? ""
                 
-                let prayerRequestUpdate = PrayerRequestUpdate(id: documentID, prayerRequestID: prayerRequestID, datePosted: datePosted, prayerUpdateText: prayerUpdateText, updateType: updateType)
+                let prayerRequestUpdate = PostUpdate(id: documentID, postID: prayerRequestID, datePosted: datePosted, prayerUpdateText: prayerUpdateText, updateType: updateType)
                 
                 updates.append(prayerRequestUpdate)
             }
@@ -45,7 +45,7 @@ class PrayerUpdateHelper {
     }
     
     // this function enables the creation of an 'update' for an existing prayer request.
-    func addPrayerRequestUpdate(datePosted: Date, prayerRequest: PrayerRequest, prayerRequestUpdate: PrayerRequestUpdate, person: Person, friendsList: [String] /*friendID: String, updateFriend: Bool*/){
+    func addPrayerRequestUpdate(datePosted: Date, prayerRequest: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [String] /*friendID: String, updateFriend: Bool*/){
         let db = Firestore.firestore()
         
         var isMyProfile: Bool
@@ -117,7 +117,7 @@ class PrayerUpdateHelper {
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
-    func deletePrayerUpdate(prayerRequest: PrayerRequest, prayerRequestUpdate: PrayerRequestUpdate, updatesArray: [PrayerRequestUpdate], person: Person, friendsList: [String]) {
+    func deletePrayerUpdate(prayerRequest: Post, prayerRequestUpdate: PostUpdate, updatesArray: [PostUpdate], person: Person, friendsList: [String]) {
         let db = Firestore.firestore()
         
         var isMyProfile: Bool
@@ -183,7 +183,7 @@ class PrayerUpdateHelper {
     }
     
     // A function to always find the latest update datePosted. Particularly if an update is deleted, the function needs to find what the latest date was to repost to.
-    func getLatestUpdateDate(prayerRequest: PrayerRequest, updates: [PrayerRequestUpdate]) -> Date {
+    func getLatestUpdateDate(prayerRequest: Post, updates: [PostUpdate]) -> Date {
         var latestUpdateDatePosted = Date()
         
         if updates.count >= 1 {
@@ -198,7 +198,7 @@ class PrayerUpdateHelper {
         return latestUpdateDatePosted
     }
     
-    func getLatestUpdateText(prayerRequest: PrayerRequest, updates: [PrayerRequestUpdate]) -> String {
+    func getLatestUpdateText(prayerRequest: Post, updates: [PostUpdate]) -> String {
         var latestUpdateText = ""
         
         if updates.count >= 1 {
@@ -213,7 +213,7 @@ class PrayerUpdateHelper {
         return latestUpdateText
     }
     
-    func getLatestUpdateType(prayerRequest: PrayerRequest, updates: [PrayerRequestUpdate]) -> String {
+    func getLatestUpdateType(prayerRequest: Post, updates: [PostUpdate]) -> String {
         var latestUpdateType = ""
         
         if updates.count >= 1 {
@@ -229,7 +229,7 @@ class PrayerUpdateHelper {
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
-    func editPrayerUpdate(prayerRequest: PrayerRequest, prayerRequestUpdate: PrayerRequestUpdate, person: Person, friendsList: [String], updatesArray: [PrayerRequestUpdate]) {
+    func editPrayerUpdate(prayerRequest: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [String], updatesArray: [PostUpdate]) {
         let db = Firestore.firestore()
         
         var isMyProfile: Bool

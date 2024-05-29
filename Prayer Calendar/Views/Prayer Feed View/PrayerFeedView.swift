@@ -16,10 +16,10 @@ struct PrayerFeedView: View {
     @State private var tabProgress: CGFloat = 0
     @State private var height: CGFloat = 0
     @State private var sizeArray: [CGFloat] = [.zero, .zero, .zero]
-    @State var prayerRequestVar: PrayerRequest = PrayerRequest.blank
+    @State var prayerRequestVar: Post = Post.blank
     
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(PrayerRequestViewModel.self) var viewModel
+    @Environment(FeedViewModel.self) var viewModel
     @Environment(\.colorScheme) private var scheme
     
     
@@ -171,7 +171,7 @@ struct PrayerFeedAnsweredView: View {
     var person: Person
     @Environment(UserProfileHolder.self) var userHolder
     @Binding var height: CGFloat
-    @State var viewModel: PrayerRequestViewModel = PrayerRequestViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel()
     
     var body: some View {
         FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
@@ -189,7 +189,7 @@ struct PrayerFeedCurrentView: View {
     
 //    @Binding var selectedPage: Int
     @Environment(UserProfileHolder.self) var userHolder
-    @State var viewModel: PrayerRequestViewModel = PrayerRequestViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel()
 //
     var body: some View {
         FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
@@ -204,7 +204,7 @@ struct PrayerFeedPinnedView: View {
     // view to only see 'pinned' prayers
     var person: Person
     @Binding var height: CGFloat
-    @State var viewModel: PrayerRequestViewModel = PrayerRequestViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel()
     
 //    @Binding var selectedPage: Int
     @Environment(UserProfileHolder.self) var userHolder

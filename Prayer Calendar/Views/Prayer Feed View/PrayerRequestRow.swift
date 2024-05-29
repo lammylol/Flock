@@ -10,12 +10,12 @@ import SwiftUI
 
 
 struct PrayerRequestRow: View {
-    @State var prayerRequest: PrayerRequest
+    @State var prayerRequest: Post
     let profileOrPrayerFeed: String
     @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
-        NavigationLink(destination: PrayerRequestFormView(person: Person(userID: prayerRequest.userID, username: prayerRequest.username, firstName: prayerRequest.firstName, lastName: prayerRequest.lastName), prayerRequest: $prayerRequest)) {
+        NavigationLink(destination: PostView(person: Person(userID: prayerRequest.userID, username: prayerRequest.username, firstName: prayerRequest.firstName, lastName: prayerRequest.lastName), post: $prayerRequest)) {
             VStack{
                 HStack {
                     if profileOrPrayerFeed == "feed" { //feed used in the feed view
@@ -70,8 +70,8 @@ struct PrayerRequestRow: View {
                             Spacer()
                         }
                         
-                        if prayerRequest.prayerRequestTitle != "" {
-                            Text(prayerRequest.prayerRequestTitle)
+                        if prayerRequest.postTitle != "" {
+                            Text(prayerRequest.postTitle)
                                 .font(.system(size: 18))
                                 .bold()
                                 .multilineTextAlignment(.leading)
@@ -85,12 +85,10 @@ struct PrayerRequestRow: View {
                                     Text("**Latest \(prayerRequest.latestUpdateType)**: \(prayerRequest.latestUpdateDatePosted.formatted(date: .abbreviated, time: .omitted)), \(prayerRequest.latestUpdateText)")
                                         .multilineTextAlignment(.leading)
                                         .font(.system(size: 16))
-//                                        .italic()
                                         .padding(.bottom, 0)
                                 }
-                                
                                 HStack {
-                                    Text("\(prayerRequest.prayerRequestText)")
+                                    Text("\(prayerRequest.postText)")
                                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                                         .lineLimit(15)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -101,7 +99,7 @@ struct PrayerRequestRow: View {
                             .padding(.top, 7)
                         } else {
                             VStack {
-                                Text(prayerRequest.prayerRequestText)
+                                Text(prayerRequest.postText)
                                     .font(.system(size: 16))
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .multilineTextAlignment(/*@START_MENU_TOKEN@*/.leading/*@END_MENU_TOKEN@*/)
@@ -122,7 +120,6 @@ struct PrayerRequestRow: View {
             }
         }
     }
-    
     func pinPrayerRequest(){
         var isPinnedToggle = prayerRequest.isPinned
         isPinnedToggle.toggle()
@@ -144,7 +141,7 @@ struct PrayerRequestRow: View {
 }
 
 struct LatestUpdate: View {
-    var prayerRequest: PrayerRequest
+    var prayerRequest: Post
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -182,7 +179,23 @@ extension Color {
 }
 
 #Preview {
-    PrayerRequestRow(prayerRequest: PrayerRequest(userID: "", username: "lammylol", date: Date(), prayerRequestText: "Prayers for this text to look beautiful. Prayers for this text to look beautiful.", status: "Current", firstName: "Matt", lastName: "Lam", privacy: "private", isPinned: true, prayerRequestTitle: "Prayers for Text", latestUpdateText: "Prayers for this text to look beautiful. Prayers for this text to look beautiful.", latestUpdateDatePosted: Date(), latestUpdateType: "Testimony"), profileOrPrayerFeed: "feed")
+    PrayerRequestRow(prayerRequest: 
+                        Post(
+                        date: Date(),
+                        userID: "",
+                        username: "lammylol",
+                        firstName: "Matt",
+                        lastName: "Lam",
+                        postTitle: "Prayers for Text",
+                        postText: "Prayers for this text to look beautiful. Prayers for this text to look beautiful.",
+                        postType: "testimony",
+                        status: "Current",
+                        latestUpdateText: "Prayers for this text to look beautiful. Prayers for this text to look beautiful.",
+                        latestUpdateDatePosted: Date(),
+                        latestUpdateType: "Testimony",
+                        privacy: "private",
+                        isPinned: true),
+         profileOrPrayerFeed: "feed")
         .frame(maxHeight: 300)
         .environment(UserProfileHolder())
 }

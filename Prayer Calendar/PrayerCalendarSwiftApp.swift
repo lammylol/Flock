@@ -23,7 +23,7 @@ struct PrayerCalendarSwiftApp: App {
                 .environment(UserProfileHolder())
                 .environment(UserProfileHolder())
                 .environment(DateHolder())
-                .environment(PrayerRequestViewModel())
+                .environment(FeedViewModel())
         }
     }
 }

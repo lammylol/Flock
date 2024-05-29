@@ -10,9 +10,9 @@ import SwiftUI
 struct FeedRequestsRowView: View {
     @State private var showEdit: Bool = false
 //    @State var prayerRequests: [PrayerRequest] = []
-    @State var prayerRequestVar: PrayerRequest = PrayerRequest.blank
+    @State var prayerRequestVar: Post = Post.blank
     
-    @State var viewModel: PrayerRequestViewModel
+    @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
     @Binding var height: CGFloat
     
@@ -92,7 +92,7 @@ struct FeedRequestsRowView: View {
                 }
             }
         }, content: {
-            PrayerRequestFormView(person: userHolder.person, prayerRequest: $prayerRequestVar)
+            PostView(person: userHolder.person, post: $prayerRequestVar)
         })
         
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

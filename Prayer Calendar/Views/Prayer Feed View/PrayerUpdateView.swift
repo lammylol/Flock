@@ -12,9 +12,9 @@ struct PrayerUpdateView: View {
     @Environment(\.dismiss) var dismiss
     
     var person: Person
-    @State var prayerRequest: PrayerRequest
-    @State var prayerRequestUpdates: [PrayerRequestUpdate] = []
-    @State var update: PrayerRequestUpdate
+    @State var prayerRequest: Post
+    @State var prayerRequestUpdates: [PostUpdate] = []
+    @State var update: PostUpdate
     
     var body: some View {
         NavigationView {
@@ -102,13 +102,13 @@ struct AddPrayerUpdateView: View {
     @Environment(\.dismiss) var dismiss
     
     var person: Person
-    @State var prayerRequest: PrayerRequest
-    @State var update: PrayerRequestUpdate = PrayerRequestUpdate(datePosted: Date(), prayerUpdateText: "", updateType: "Testimony")
+    @State var prayerRequest: Post
+    @State var update: PostUpdate = PostUpdate(datePosted: Date(), prayerUpdateText: "", updateType: "Testimony")
     
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Add Update to Prayer Request")) {
+                Section(header: Text("Add Update to Post")) {
                     ZStack(alignment: .topLeading) {
                         if update.prayerUpdateText == "" {
                             Text("Text")
@@ -150,7 +150,7 @@ struct AddPrayerUpdateView: View {
                     .foregroundStyle(.white)
                 }
             }
-            .navigationTitle("Prayer Update")
+            .navigationTitle("Add Update")
             .navigationBarTitleDisplayMode(.inline)
         }
     }

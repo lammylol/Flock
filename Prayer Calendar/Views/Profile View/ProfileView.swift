@@ -15,7 +15,7 @@ struct ProfileView: View {
     @State private var showSubmit: Bool = false
     @State private var showEditView: Bool = false
     @State var person: Person
-    @State var viewModel: PrayerRequestViewModel = PrayerRequestViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel()
     
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(UserProfileHolder.self) var dataHolder
@@ -55,11 +55,11 @@ struct ProfileView: View {
                     Spacer()
                     
                     if userHolder.person.username == person.username {
-                        ProfilePrayerRequestsView(viewModel: viewModel, person: userHolder.person) // Leaving as a separate view for now in case need to implement tab view.
+                        ProfileFeed(viewModel: viewModel, person: userHolder.person) // Leaving as a separate view for now in case need to implement tab view.
                             .frame(maxHeight: .infinity)
                             .padding(.top, 20)
                     } else {
-                        ProfilePrayerRequestsView(viewModel: viewModel, person: person) // Leaving as a separate view for now in case need to implement tab view.
+                        ProfileFeed(viewModel: viewModel, person: person) // Leaving as a separate view for now in case need to implement tab view.
                             .frame(maxHeight: .infinity)
                             .padding(.top, 20)
                     }
@@ -88,7 +88,7 @@ struct ProfileView: View {
                     }
                 }
             }, content: {
-                SubmitPrayerRequestForm(person: person)
+                SubmitPostForm(person: person)
             })
         }
     }

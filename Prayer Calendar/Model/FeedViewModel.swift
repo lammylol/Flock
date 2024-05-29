@@ -9,8 +9,8 @@ import Foundation
 import SwiftUI
 import FirebaseFirestore
 
-@Observable final class PrayerRequestViewModel {
-    var prayerRequests: [PrayerRequest] = []
+@Observable final class FeedViewModel {
+    var prayerRequests: [Post] = []
     var lastDocument: DocumentSnapshot? = nil
     var selectedStatus: statusFilter = .current
     var person: Person = Person()
@@ -99,12 +99,12 @@ import FirebaseFirestore
 
     }
     
-    func hasReachedEnd(of prayerRequest: PrayerRequest) -> Bool {
+    func hasReachedEnd(of prayerRequest: Post) -> Bool {
         prayerRequests.last?.id == prayerRequest.id
     }
 }
 
-extension PrayerRequestViewModel {
+extension FeedViewModel {
     enum ViewState {
         case fetching
         case loading

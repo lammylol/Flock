@@ -10,9 +10,9 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct ProfilePrayerRequestsView: View {
+struct ProfileFeed: View {
     @Environment(UserProfileHolder.self) var userHolder
-    @State var viewModel: PrayerRequestViewModel
+    @State var viewModel: FeedViewModel
     
     @State var person: Person
     @State private var showSubmit: Bool = false
@@ -103,15 +103,14 @@ struct ProfilePrayerRequestsView: View {
                 }
             }
         }, content: {
-            SubmitPrayerRequestForm(person: person)
+            SubmitPostForm(person: person)
         })
-        
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 struct StatusPicker: View {
-    @State var viewModel: PrayerRequestViewModel
+    @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.colorScheme) var colorScheme
     
