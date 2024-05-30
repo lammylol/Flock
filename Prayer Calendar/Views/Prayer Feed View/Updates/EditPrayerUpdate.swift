@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PrayerUpdateView: View {
+struct EditPrayerUpdate: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.dismiss) var dismiss
     

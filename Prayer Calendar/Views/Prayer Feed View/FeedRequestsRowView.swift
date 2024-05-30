@@ -23,23 +23,6 @@ struct FeedRequestsRowView: View {
         ZStack {
             if viewModel.isLoading && !userHolder.refresh {
                 ProgressView()
-//            if viewModel.isLoading || userHolder.refresh {
-//                if userHolder.refresh == true { // only if refreshable is activated, then task must run, but progress is hidden
-//                    Text("")
-//                        .task {
-//                            if userHolder.refresh == true {
-//                                do {
-//                                    self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-//                                    await viewModel.getPrayerRequests(user: userHolder.person, person: person, profileOrFeed: profileOrFeed) // activate on refreshable
-//                                    userHolder.refresh = false
-//                                } catch {
-//                                    print(error.localizedDescription)
-//                                }
-//                            }
-//                        }
-//                } else {
-//                    ProgressView()
-//                }
             } else {
                 LazyVStack {
                     ForEach(viewModel.prayerRequests) { prayerRequest in
