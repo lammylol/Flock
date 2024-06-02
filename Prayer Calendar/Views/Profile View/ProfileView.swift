@@ -85,7 +85,8 @@ struct ProfileView: View {
             }
         }
         .task {
-            do { self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+            do { 
+                self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
             } catch {
                 print(error)
             }

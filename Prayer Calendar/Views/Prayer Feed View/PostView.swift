@@ -163,13 +163,15 @@ struct PostView: View {
                                 .opacity(0.06)
                         )
                         .foregroundStyle(Color.primary)
-                        .padding(.bottom, 7)
+                        .padding(.bottom, 8)
                     }
                     
                     // Content of Post
                     VStack(alignment: .leading) {
                         Text("Status: **\(post.status.capitalized)**")
                         Divider()
+                            .padding(.top, 5)
+                            .padding(.bottom, 5)
                         HStack {
                             if post.postTitle != "" {
                                 Text(post.postTitle)
@@ -182,7 +184,6 @@ struct PostView: View {
                         }
                         Text(post.date, style: .date)
                             .font(.system(size: 14))
-                            .padding(.top, -8)
                         Text(post.postText)
                             .font(.system(size: 16))
                             .frame(maxWidth: .infinity, alignment: .leading)

@@ -65,7 +65,7 @@ import FirebaseFirestore
         defer { viewState = .finished }
         
         do {
-            let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 6, lastDocument: nil, profileOrFeed: profileOrFeed)
+            let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: nil, profileOrFeed: profileOrFeed)
 
             self.prayerRequests = newPrayerRequests
             self.queryCount = newPrayerRequests.count
@@ -82,13 +82,13 @@ import FirebaseFirestore
     
     func getNextPrayerRequests(user: Person, person: Person, profileOrFeed: String) async {
         
-        guard queryCount == 6 else { return }
+        guard queryCount == 10 else { return }
             
         viewState = .fetching
         defer { viewState = .finished }
         
         do {
-            let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 6, lastDocument: lastDocument, profileOrFeed: profileOrFeed)
+            let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: lastDocument, profileOrFeed: profileOrFeed)
             
             self.queryCount = newPrayerRequests.count
             self.prayerRequests.append(contentsOf: newPrayerRequests)

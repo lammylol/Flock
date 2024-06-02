@@ -32,7 +32,7 @@ struct FeedRequestsRowView: View {
                         .task {
                             //   print("prayerRequest ID: "+prayerRequest.id)
                             //   print("viewModel.lastDocument: "+String(viewModel.lastDocument?.documentID ?? ""))
-                            if viewModel.hasReachedEnd(of: prayerRequest) && !viewModel.isFetching && !viewModel.isLoading {
+                            if viewModel.hasReachedEnd(of: prayerRequest) && !viewModel.isFetching {
                                 await viewModel.getNextPrayerRequests(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
                             }
                         }

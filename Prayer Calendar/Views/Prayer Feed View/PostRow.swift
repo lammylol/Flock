@@ -37,17 +37,15 @@ struct PostRow: View {
                                     .buttonStyle(.plain)
                                     .foregroundStyle(Color.primary)
                             }.id(UUID())
-                            Spacer()
                         }
-                        .padding(.trailing, 10)
+                        .padding(.trailing, 8)
                     } else { //used in 'profile' view
                         VStack() {
                             ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
                                 .buttonStyle(.plain)
                                 .foregroundStyle(Color.primary)
-                            Spacer()
                         }
-                        .padding(.trailing, 10)
+                        .padding(.trailing, 8)
                     }
                     
                     VStack(alignment: .leading) {
@@ -81,37 +79,41 @@ struct PostRow: View {
                                 .italic()
                             Spacer()
                         }
-                        Group {
-                            // Latest Update Banner.
-                            if post.latestUpdateText != "" {
-                                VStack (alignment: .leading) {
-                                    HStack {
-                                        Text("**Latest \(post.latestUpdateType)**:")
-                                            .padding(.bottom, -4)
-                                        Spacer()
-                                        Text("\(post.latestUpdateDatePosted.formatted(date: .abbreviated, time: .omitted))")
-                                            .font(.system(size: 14))
-                                    } // Latest Update, Date, + See All Updates
-                                    
-                                    Text("\(post.latestUpdateText)")
-                                        .font(.system(size: 16))
-                                        .padding(.top, 7)
-                                        .padding(.bottom, 10)
-                                        .multilineTextAlignment(.leading)
-                                        .lineLimit({
-                                            6
-                                        }())
-                                }
-                                .padding(.all, 10)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(.gray)
-                                        .opacity(0.06)
-                                )
-                                .foregroundStyle(Color.primary)
-                                .padding(.bottom, 7)// Group for latest banner with truncation methodology.
+                    }
+                }
+                VStack (alignment: .leading) {
+                    Group {
+                        // Latest Update Banner.
+                        if post.latestUpdateText != "" {
+                            VStack (alignment: .leading) {
+                                HStack {
+                                    Text("**Latest \(post.latestUpdateType)**:")
+                                        .padding(.bottom, -4)
+                                    Spacer()
+                                    Text("\(post.latestUpdateDatePosted.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.system(size: 14))
+                                } // Latest Update, Date, + See All Updates
+                                
+                                Text("\(post.latestUpdateText)")
+                                    .font(.system(size: 16))
+                                    .padding(.top, 7)
+                                    .padding(.bottom, 10)
+                                    .multilineTextAlignment(.leading)
+                                    .lineLimit({
+                                        6
+                                    }())
                             }
+                            .padding(.all, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(.gray)
+                                    .opacity(0.06)
+                            )
+                            .foregroundStyle(Color.primary)
+                            .padding(.vertical, 7)// Group for latest banner with truncation methodology.
                         }
+                    }
+                    VStack (alignment: .leading) {
                         HStack {
                             if post.postTitle != "" {
                                 Text(post.postTitle)
@@ -134,16 +136,17 @@ struct PostRow: View {
                             Text(post.date, style: .date)
                                 .font(.system(size: 12))
                                 .padding(.top, 7)
+                            Spacer()
                         }
                     }
-                    .foregroundStyle(Color.primary)
                 }
-                .padding([.leading, .trailing], 20)
-                .padding([.top, .bottom], 15)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .foregroundStyle(Color.primary)
         }
         .id(UUID())
+        .padding([.leading, .trailing], 30)
+        .padding([.top, .bottom], 15)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     func pinPrayerRequest(){
         var isPinnedToggle = post.isPinned
