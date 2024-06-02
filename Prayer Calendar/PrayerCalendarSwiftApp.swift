@@ -21,7 +21,6 @@ struct PrayerCalendarSwiftApp: App {
         WindowGroup {
             SignInView()
                 .environment(UserProfileHolder())
-                .environment(UserProfileHolder())
                 .environment(DateHolder())
                 .environment(FeedViewModel())
         }

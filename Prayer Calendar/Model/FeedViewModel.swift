@@ -16,8 +16,14 @@ import FirebaseFirestore
     var person: Person = Person()
     var scrollViewID = UUID()
     var progressStatus: Bool = false
+    var refresh: Bool = false
     var viewState: ViewState?
     var queryCount: Int = 0
+    var profileOrFeed: String = ""
+    
+    init(profileOrFeed: String = "") {
+        self.profileOrFeed = profileOrFeed
+    }
     
     var isLoading: Bool {
         viewState == .loading
@@ -48,19 +54,20 @@ import FirebaseFirestore
         self.lastDocument = nil
         self.prayerRequests = []
 //        if self.isFinished {
-        await self.getPrayerRequests(user: user, person: person, profileOrFeed: profileOrFeed)
+        await self.getPrayerRequests(user: user, person: person)
 //        }
 //        self.scrollViewID = UUID()
     }
     
-    func getPrayerRequests(user: Person, person: Person, profileOrFeed: String) async {
+    func getPrayerRequests(user: Person, person: Person) async {
+        
         viewState = .loading
         defer { viewState = .finished }
         
         do {
             let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 6, lastDocument: nil, profileOrFeed: profileOrFeed)
 
-            prayerRequests = newPrayerRequests
+            self.prayerRequests = newPrayerRequests
             self.queryCount = newPrayerRequests.count
             
             if lastDocument != nil {
@@ -84,8 +91,7 @@ import FirebaseFirestore
             let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 6, lastDocument: lastDocument, profileOrFeed: profileOrFeed)
             
             self.queryCount = newPrayerRequests.count
-            
-            prayerRequests.append(contentsOf: newPrayerRequests)
+            self.prayerRequests.append(contentsOf: newPrayerRequests)
             
             if lastDocument != nil {
                 self.lastDocument = lastDocument

@@ -19,7 +19,7 @@ class PrayerUpdateHelper {
         }
         
         do {
-            let prayerRequestUpdates = db.collection("prayerRequests").document(prayerRequest.id).collection("updates").order(by: "datePosted", descending: false)
+            let prayerRequestUpdates = db.collection("prayerRequests").document(prayerRequest.id).collection("updates").order(by: "datePosted", descending: true)
             
             let querySnapshot = try await prayerRequestUpdates.getDocuments()
             
@@ -48,13 +48,13 @@ class PrayerUpdateHelper {
     func addPrayerRequestUpdate(datePosted: Date, prayerRequest: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [String] /*friendID: String, updateFriend: Bool*/){
         let db = Firestore.firestore()
         
-        var isMyProfile: Bool
-        if person.username != "" && person.userID == prayerRequest.userID {
-            isMyProfile = true
-        } else {
-            isMyProfile = false
-        }
-         
+//        var isMyProfile: Bool
+//        if person.username != "" && person.userID == prayerRequest.userID {
+//            isMyProfile = true
+//        } else {
+//            isMyProfile = false
+//        }
+//         
         // Add prayer update within prayer request in user collection. Is this needed? No for now
 //        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(prayerRequest.firstName.lowercased())_\(prayerRequest.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id).collection("updates").document() // get user collection
 //        
@@ -95,38 +95,37 @@ class PrayerUpdateHelper {
         )
         
         // Add prayer request update to prayerFeed/{userID} main prayerRequest
-        if isMyProfile == true {
-            if friendsList.isEmpty == false {
-                for friendID in friendsList {
-                    let refFriend = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
-                    refFriend.updateData([
-                        "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
-                        "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
-                        "latestUpdateType": prayerRequestUpdate.updateType]
-                    )
-                }
+        if prayerRequest.privacy == "public" && friendsList.isEmpty == false {
+            for friendID in friendsList {
+                let refFriend = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
+                refFriend.updateData([
+                    "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
+                    "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
+                    "latestUpdateType": prayerRequestUpdate.updateType]
+                )
             }
-        } else {
-            let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
-            refProfile.updateData([
-                "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
-                "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
-                "latestUpdateType": prayerRequestUpdate.updateType]
-            )
         }
+        
+        // Add prayer Request to prayerFeed/{userID} for personal main user.
+        let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+        refProfile.updateData([
+            "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
+            "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
+            "latestUpdateType": prayerRequestUpdate.updateType]
+        )
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
     func deletePrayerUpdate(prayerRequest: Post, prayerRequestUpdate: PostUpdate, updatesArray: [PostUpdate], person: Person, friendsList: [String]) {
         let db = Firestore.firestore()
         
-        var isMyProfile: Bool
-        if person.username != "" && person.userID == prayerRequest.userID {
-            isMyProfile = true
-        } else {
-            isMyProfile = false
-        }
-        
+//        var isMyProfile: Bool
+//        if person.username != "" && person.userID == prayerRequest.userID {
+//            isMyProfile = true
+//        } else {
+//            isMyProfile = false
+//        }
+//        
         //----------------- latest update date and text reset for original prayer request ---------------------
         // For resetting latest date and latest text.
         let latestUpdateDatePosted = getLatestUpdateDate(prayerRequest: prayerRequest, updates: updatesArray)
@@ -152,26 +151,25 @@ class PrayerUpdateHelper {
             "latestUpdateType": latestUpdateType]
         )
         
-        // Delete PrayerRequestID from prayerFeed/{userID}
-        if isMyProfile == true {
-            if friendsList.isEmpty == false {
-                for friendID in friendsList {
-                    let refFriend = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
-                    refFriend.updateData([
-                        "latestUpdateDatePosted": latestUpdateDatePosted,
-                        "latestUpdateText": latestUpdateText,
-                        "latestUpdateType": latestUpdateType]
-                    )
-                }
+        // Update PrayerRequestID from prayerFeed/{userID}
+        if prayerRequest.privacy == "public" && friendsList.isEmpty == false {
+            for friendID in friendsList {
+                let refFriend = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
+                refFriend.updateData([
+                    "latestUpdateDatePosted": latestUpdateDatePosted,
+                    "latestUpdateText": latestUpdateText,
+                    "latestUpdateType": latestUpdateType]
+                )
             }
-        } else {
-            let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
-            refProfile.updateData([
-                "latestUpdateDatePosted": latestUpdateDatePosted,
-                "latestUpdateText": latestUpdateText,
-                "latestUpdateType": latestUpdateType]
-            )
         }
+        
+        // Update from personal feed.
+        let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+        refProfile.updateData([
+            "latestUpdateDatePosted": latestUpdateDatePosted,
+            "latestUpdateText": latestUpdateText,
+            "latestUpdateType": latestUpdateType]
+        )
         
         //----------------- delete prayer update from collection ---------------------
         
@@ -189,7 +187,7 @@ class PrayerUpdateHelper {
         if updates.count >= 1 {
             // if there are more than 1 updates, then get datePosted of the latest update.
             // assume the array is sorted already on getPrayerUpdates
-            latestUpdateDatePosted = updates.last?.datePosted ?? Date()
+            latestUpdateDatePosted = updates.first?.datePosted ?? Date() // first since it's the earliest date
         } else {
             // if either there are no updates, or there will be no updates after delete, then get datePosted of the original prayer request.
             latestUpdateDatePosted = prayerRequest.date
@@ -204,7 +202,7 @@ class PrayerUpdateHelper {
         if updates.count >= 1 {
             // if there are more than 1 updates, then get datePosted of the latest update.
             // assume the array is sorted already on getPrayerUpdates
-            latestUpdateText = updates.last?.prayerUpdateText ?? ""
+            latestUpdateText = updates.first?.prayerUpdateText ?? "" // first since it's the earliest date
         } else {
             // if either there are no updates, or there will be no updates after delete, then get datePosted of the original prayer request.
             latestUpdateText = ""
@@ -219,7 +217,7 @@ class PrayerUpdateHelper {
         if updates.count >= 1 {
             // if there are more than 1 updates, then get datePosted of the latest update.
             // assume the array is sorted already on getPrayerUpdates
-            latestUpdateType = updates.last?.updateType ?? ""
+            latestUpdateType = updates.first?.updateType ?? "" // first since it's the earliest date
         } else {
             // if either there are no updates, or there will be no updates after delete, then get datePosted of the original prayer request.
             latestUpdateType = ""
@@ -232,26 +230,23 @@ class PrayerUpdateHelper {
     func editPrayerUpdate(prayerRequest: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [String], updatesArray: [PostUpdate]) {
         let db = Firestore.firestore()
         
-        var isMyProfile: Bool
-        if person.username != "" && person.userID == prayerRequest.userID {
-            isMyProfile = true
-        } else {
-            isMyProfile = false
-        }
-        print(isMyProfile)
-        
         let latestUpdateDatePosted = getLatestUpdateDate(prayerRequest: prayerRequest, updates: updatesArray)
+        print(latestUpdateDatePosted)
+        print(prayerRequestUpdate.datePosted)
         
         if prayerRequestUpdate.datePosted == latestUpdateDatePosted  { // Only update latestUpdate to PrayerRequest if it is newer than the last.
             //      Reset latest update date and text for user id prayer list.
             let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(prayerRequest.firstName.lowercased())_\(prayerRequest.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
+            print(prayerRequest.firstName)
+            print(prayerRequest.lastName)
+            print(prayerRequest.id)
+            print(person.userID)
             
             ref.updateData([
                 "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
                 "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
                 "latestUpdateType": prayerRequestUpdate.updateType
-            ]
-            )
+            ])
             
             // update the latestUpdateDatePosted and latestUpdateText in prayer request collection.
             let refPrayerRequestCollection = db.collection("prayerRequests").document(prayerRequest.id)
@@ -263,25 +258,24 @@ class PrayerUpdateHelper {
             )
             
             // Update PrayerRequestID in prayerFeed/{userID}
-            if isMyProfile == true {
-                if friendsList.isEmpty == false {
-                    for friendID in friendsList {
-                        let refFriend = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
-                        refFriend.updateData([
-                            "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
-                            "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
-                            "latestUpdateType": prayerRequestUpdate.updateType]
-                        )
-                    }
+            if prayerRequest.privacy == "public" && friendsList.isEmpty == false {
+                for friendID in friendsList {
+                    let refFriend = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
+                    refFriend.updateData([
+                        "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
+                        "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
+                        "latestUpdateType": prayerRequestUpdate.updateType]
+                    )
                 }
-            } else {
-                let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
-                refProfile.updateData([
-                    "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
-                    "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
-                    "latestUpdateType": prayerRequestUpdate.updateType]
-                )
             }
+            
+            // Update your own feed.
+            let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+            refProfile.updateData([
+                "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
+                "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
+                "latestUpdateType": prayerRequestUpdate.updateType]
+            )
         }
         
         //----------------- Update prayer update in collection ---------------------

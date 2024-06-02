@@ -196,24 +196,23 @@ class PrayerRequestHelper {
                     "latestUpdateType": ""
                 ])
             } // If you have friends and have set privacy to public, this will update all friends feeds.
-        } else {
-                let ref2 = db.collection("prayerFeed").document(userID).collection("prayerRequests").document(prayerRequestID)
-                ref2.setData([
-                    "datePosted": datePosted,
-                    "firstName": person.firstName,
-                    "lastName": person.lastName,
-                    "status": "Current",
-                    "prayerRequestText": postText,
-                    "postType": postType,
-                    "userID": userID,
-                    "username": person.username,
-                    "privacy": privacy,
-                    "prayerRequestTitle": postTitle,
-                    "latestUpdateText": "",
-                    "latestUpdateDatePosted": datePosted,
-                    "latestUpdateType": ""
-                ])
-        } // if the prayer is for a local user, it will only update your own feed.
+        }
+        let ref2 = db.collection("prayerFeed").document(userID).collection("prayerRequests").document(prayerRequestID)
+        ref2.setData([
+            "datePosted": datePosted,
+            "firstName": person.firstName,
+            "lastName": person.lastName,
+            "status": "Current",
+            "prayerRequestText": postText,
+            "postType": postType,
+            "userID": userID,
+            "username": person.username,
+            "privacy": privacy,
+            "prayerRequestTitle": postTitle,
+            "latestUpdateText": "",
+            "latestUpdateDatePosted": datePosted,
+            "latestUpdateType": ""
+        ]) // if the prayer is for a local user, it will update your own feed.
         
         // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
         let ref3 =
@@ -261,14 +260,12 @@ class PrayerRequestHelper {
         if prayerRequest.status == "No Longer Needed" {
             deleteRequestFromFeed(prayerRequest: prayerRequest, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
         } else {
-//            if isMyProfile == true {
             if prayerRequest.privacy == "public" && friendsList.isEmpty == false {
                 for friendID in friendsList {
                     updatePrayerFeed(prayerRequest: prayerRequest, person: person, friendID: friendID, updateFriend: true)
                 }
-            } else {
-                updatePrayerFeed(prayerRequest: prayerRequest, person: person, friendID: "", updateFriend: false)
-            }
+            } 
+            updatePrayerFeed(prayerRequest: prayerRequest, person: person, friendID: "", updateFriend: false)
             
             // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
             updatePrayerRequestsDataCollection(prayerRequest: prayerRequest, person: person)
@@ -385,16 +382,17 @@ class PrayerRequestHelper {
                     }
                 }
             }
-        } else {
-            let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
-            ref2.delete() { err in
-                if let err = err {
-                    print("Error removing document: \(err)")
-                } else {
-                    print("Document successfully deleted")
-                    print(prayerRequest.id)
-                    print(prayerRequest.postText)
-                }
+        } // Delete from your friends' feeds.
+        
+        // Delete from your own user feed.
+        let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+        ref2.delete() { err in
+            if let err = err {
+                print("Error removing document: \(err)")
+            } else {
+                print("Document successfully deleted")
+                print(prayerRequest.id)
+                print(prayerRequest.postText)
             }
         }
     }

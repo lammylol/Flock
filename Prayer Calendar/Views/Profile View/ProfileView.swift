@@ -15,7 +15,7 @@ struct ProfileView: View {
     @State private var showSubmit: Bool = false
     @State private var showEditView: Bool = false
     @State var person: Person
-    @State var viewModel: FeedViewModel = FeedViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
     
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(UserProfileHolder.self) var dataHolder
@@ -29,19 +29,19 @@ struct ProfileView: View {
                             // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
                             if person.username == "" || person.userID == userHolder.person.userID {
                                 ToolbarItemGroup(placement: .topBarTrailing) {
-                                        NavigationLink(destination: ProfileSettingsView()) {
-                                            Image(systemName: "gear")
-                                                .resizable()
-                                        }
-                                        .padding(.trailing, -10)
-                                        .padding(.top, 2)
-                                        
-                                        Button(action: {
-                                            showSubmit.toggle()
-                                        }) {
-                                            Image(systemName: "square.and.pencil")
-                                        }
+                                    NavigationLink(destination: ProfileSettingsView()) {
+                                        Image(systemName: "gear")
+                                            .resizable()
                                     }
+                                    .padding(.trailing, -10)
+                                    .padding(.top, 2)
+                                    
+                                    Button(action: {
+                                        showSubmit.toggle()
+                                    }) {
+                                        Image(systemName: "square.and.pencil")
+                                    }
+                                }
                             }
                         }
                     
@@ -64,32 +64,38 @@ struct ProfileView: View {
                             .padding(.top, 20)
                     }
                 }
-            }
-            .navigationTitle(person.firstName + " " + person.lastName)
-            .navigationBarTitleDisplayMode(.automatic)
-            .refreshable {
-                Task {
-                    do {
-                        userHolder.refresh = true
-                    }
-                }
-            }
-            .sheet(isPresented: $showSubmit, onDismiss: {
-                Task {
-                    do {
-                        if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
-                            self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
-                            await viewModel.getPrayerRequests(user: userHolder.person, person: person, profileOrFeed: "profile")
-                        } else {
-                            self.viewModel.prayerRequests = viewModel.prayerRequests
-//                            self.height = height
+                .navigationTitle(person.firstName + " " + person.lastName)
+                .navigationBarTitleDisplayMode(.automatic)
+                .sheet(isPresented: $showSubmit, onDismiss: {
+                    Task {
+                        do {
+                            if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
+                                self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
+                                await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                            } else {
+                                self.viewModel.prayerRequests = viewModel.prayerRequests
+                                //                            self.height = height
+                            }
+                            print("Success retrieving prayer requests for \(person.userID)")
                         }
-                        print("Success retrieving prayer requests for \(person.userID)")
                     }
+                }, content: {
+                    SubmitPostForm(person: person)
+                })
+            }
+        }
+        .task {
+            do { self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+            } catch {
+                print(error)
+            }
+        }
+        .refreshable {
+            Task {
+                if viewModel.isFinished {
+                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                 }
-            }, content: {
-                SubmitPostForm(person: person)
-            })
+            }
         }
     }
     
@@ -104,6 +110,5 @@ struct ProfileView: View {
 
 #Preview {
     ProfileView(person: Person(userID: "aMq0YdteGEbYXWlSgxehVy7Fyrl2", username: "lammylol"))
-        .environment(UserProfileHolder())
         .environment(UserProfileHolder())
 }

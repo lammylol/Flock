@@ -94,7 +94,7 @@ struct ProfileFeed: View {
                 do {
                     if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
                         self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person, profileOrFeed: "profile")
+                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                     } else {
                         self.viewModel.prayerRequests = viewModel.prayerRequests
                         self.height = height
@@ -106,40 +106,6 @@ struct ProfileFeed: View {
             SubmitPostForm(person: person)
         })
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-struct StatusPicker: View {
-    @State var viewModel: FeedViewModel
-    @Environment(UserProfileHolder.self) var userHolder
-    @Environment(\.colorScheme) var colorScheme
-    
-    var body: some View {
-        Menu {
-            Button {
-                viewModel.selectedStatus = .current
-                userHolder.refresh = true
-            } label: {
-                Text("Current")
-            }
-            Button {
-                viewModel.selectedStatus = .answered
-                userHolder.refresh = true
-            } label: {
-                Text("Answered")
-            }
-            Button {
-                viewModel.selectedStatus = .noLongerNeeded
-                userHolder.refresh = true
-            } label: {
-                Text("No Longer Needed")
-            }
-        } label: {
-            Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                .resizable()
-                .frame(width: 20.0, height: 20.0)
-                .foregroundStyle(colorScheme == .dark ? .white : .black)
-        }
     }
 }
 

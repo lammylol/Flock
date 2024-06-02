@@ -19,79 +19,66 @@ struct PrayerFeedView: View {
     @State var prayerRequestVar: Post = Post.blank
     
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(FeedViewModel.self) var viewModel
+    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
     @Environment(\.colorScheme) private var scheme
-    
     
     var person: Person
     
     var body: some View {
         NavigationStack {
             ScrollView(.vertical) {
-            //             title hides when you scroll down
+                //             title hides when you scroll down
                 HStack {
                     Text("Feed")
                         .font(.title3)
                         .bold()
-//                        .padding(.leading, 20)
-//                    Spacer()
                 }
                 .offset(y: 10)
-
+                
                 LazyVStack(alignment: .leading, pinnedViews: [.sectionHeaders]) {
                     // Pinned section
                     Section (
                         header:
                             //Custom Tab Bar
-                        CustomTabBarNew(selectedTab: $selectedTab, pinned: userHolder.pinnedPrayerRequests)
+//                        CustomTabBarNew(selectedTab: $selectedTab, pinned: userHolder.pinnedPrayerRequests)
+//                            .background(
+//                                scheme == .dark ? .black : .white
+//                            )
+                            HStack {
+                                Text(viewModel.selectedStatus.statusKey.capitalized)
+                                    .font(.title3)
+                                StatusPicker(viewModel: viewModel)
+                                    .onChange(of: viewModel.selectedStatus, {
+                                        Task {
+                                            if viewModel.isFinished {
+                                                await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                                            }
+                                        }
+                                    })
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 5)
+                            .padding(.horizontal, 20)
                             .background(
                                 scheme == .dark ? .black : .white
                             )
                     ){
-                        GeometryReader { geo in
-                            TabView(selection: $selectedTab) {
-                                if userHolder.pinnedPrayerRequests.isEmpty == false {
-                                    PrayerFeedPinnedView(person: person, height: $height)
-                                        .getSizeOfView(completion: {
-                                            sizeArray[0] = $0
-                                        })
-                                        .frame(maxHeight: .infinity)
-                                        .containerRelativeFrame(.horizontal)
-                                        .tag(0)
-                                }
-                                PrayerFeedCurrentView(person: person, height: $height)
-                                    .getSizeOfView(completion: {
-                                        sizeArray[1] = $0
-                                    })
-                                    .frame(maxHeight: .infinity)
-                                    .containerRelativeFrame(.horizontal)
-                                    .tag(1)
-                                PrayerFeedAnsweredView(person: person, height: $height)
-                                    .getSizeOfView(completion: {
-                                        sizeArray[2] = $0
-                                    })
-                                    .frame(maxHeight: .infinity)
-                                    .containerRelativeFrame(.horizontal)
-                                    .tag(2)
-                            }
-                            .tabViewStyle(.page(indexDisplayMode: .never))
-                            .onPreferenceChange(HeightKey.self) { minHeight in
-                              sizeArray[selectedTab] = minHeight
-                            }
-                        }
-                        .frame(minHeight: sizeArray[selectedTab], alignment: .top)
+                        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
                     }
                 }
             }
-            .id(viewModel.scrollViewID)
-            .clipped()
+            .task {
+                viewModel.selectedStatus = .current
+            }
             .refreshable {
                 Task {
-                    do {
-                        userHolder.refresh = true
+                    if viewModel.isFinished {
+                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                     }
                 }
             }
+            .clipped()
         }
     }
 }
@@ -171,7 +158,7 @@ struct PrayerFeedAnsweredView: View {
     var person: Person
     @Environment(UserProfileHolder.self) var userHolder
     @Binding var height: CGFloat
-    @State var viewModel: FeedViewModel = FeedViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
     
     var body: some View {
         FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
@@ -189,7 +176,7 @@ struct PrayerFeedCurrentView: View {
     
 //    @Binding var selectedPage: Int
     @Environment(UserProfileHolder.self) var userHolder
-    @State var viewModel: FeedViewModel = FeedViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
 //
     var body: some View {
         FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
@@ -204,7 +191,7 @@ struct PrayerFeedPinnedView: View {
     // view to only see 'pinned' prayers
     var person: Person
     @Binding var height: CGFloat
-    @State var viewModel: FeedViewModel = FeedViewModel()
+    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
     
 //    @Binding var selectedPage: Int
     @Environment(UserProfileHolder.self) var userHolder

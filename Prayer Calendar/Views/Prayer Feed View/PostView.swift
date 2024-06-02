@@ -10,16 +10,16 @@ import SwiftUI
 
 struct PostView: View {
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(\.dismiss) var dismiss
-    
     @State var prayerRequestUpdates: [PostUpdate] = []
-    var person: Person
+    @State var person: Person
     @Binding var post: Post
     @State var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
+    @State private var truncatedTextSize: CGFloat = .zero
     @State private var expandTextSize: CGFloat = .zero
     @State private var isTruncated: Bool = false
+    @State var lineLimit: Int = 6 // This is to set default setting for max lines shown, set as a var so a user can pass in .max if they are calling directly from the feed.
     
     var body: some View {
         NavigationStack {
@@ -32,6 +32,7 @@ struct PostView: View {
                                 .foregroundStyle(Color.primary)
                         } // Profile Picture
                         .padding(.trailing, 10)
+                        .id(UUID())
                         
                         VStack() {
                             HStack {
@@ -54,7 +55,7 @@ struct PostView: View {
                         
                         Menu {
                             if person.userID == userHolder.person.userID {
-                                NavigationLink(destination: PostEditView(person: person, post: $post)){
+                                NavigationLink(destination: PostEditView(person: person, post: post)){
                                     Label("Edit Post", systemImage: "pencil")
                                 }
                             }
@@ -98,57 +99,61 @@ struct PostView: View {
                                         Spacer()
                                     }
                                 }
+                                .id(UUID())
                             } // Latest Update, Date, + See All Updates
                             Group {
-                                Text("\(post.latestUpdateText)")
-                                    .padding(.top, 7)
-                                    .padding(.bottom, 10)
-                                    .multilineTextAlignment(.leading)
-                                    .lineLimit({
-                                        if expandUpdate == false {
-                                            6
-                                        } else {
-                                            .max
-                                        }
-                                    }())
-//                                    .getSizeOfView(completion: {
-//                                        expandTextSize = $0
-//                                    })
-//                                    .background(
-//                                        Text("\(post.latestUpdateText)")
-//                                            .fixedSize(horizontal: false, vertical: true)
-//                                            .padding(.top, 7)
-//                                            .padding(.bottom, 10)
-//                                            .multilineTextAlignment(.leading)
-//                                            .getSizeOfView(completion: {
-//                                                if expandTextSize < $0 {
-//                                                    isTruncated = true
-//                                                }
-//                                            })
-//                                            .hidden()
-//                                    ) // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
-//                                
-//                                if isTruncated == true {
+                                ZStack {
+                                    Text("\(post.latestUpdateText)")
+                                        .font(.system(size: 16))
+                                        .padding(.top, 7)
+                                        .padding(.bottom, 10)
+                                        .multilineTextAlignment(.leading)
+                                        .lineLimit({
+                                            if expandUpdate == false {
+                                                lineLimit
+                                            } else {
+                                                .max
+                                            }
+                                        }())
+                                        .getSizeOfView(completion: {
+                                            truncatedTextSize = $0
+                                        })
+                                        .background(
+                                            Text("\(post.latestUpdateText)")
+                                                .fixedSize(horizontal: false, vertical: true)
+                                                .padding(.top, 7)
+                                                .padding(.bottom, 10)
+                                                .multilineTextAlignment(.leading)
+                                                .getSizeOfView(completion: {
+                                                    expandTextSize = $0
+                                                })
+                                                .hidden()
+                                        )
+                                } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
+                                
+                                if truncatedTextSize != expandTextSize && !expandUpdate { // only if text is truncated, and if expandUpdate hasn't been triggered to true already
                                     HStack {
                                         Button {
                                             self.expandLines()
                                         } label: {
-                                            if expandUpdate == false {
-                                                Text("Show More")
-                                                    .font(.system(size: 14))
-                                                    .italic()
-                                                    .foregroundStyle(Color.blue)
-                                            } else {
-                                                Text("Show Less")
-                                                    .font(.system(size: 14))
-                                                    .italic()
-                                                    .foregroundStyle(Color.blue)
-                                            }
+                                            Text("Show More")
+                                                .font(.system(size: 14))
+                                                .italic()
+                                                .foregroundStyle(Color.blue)
                                         }
                                         Spacer()
                                     }
                                     .padding(.top, -5)
-//                                }
+                                } else if expandUpdate == true { // if expandUpdate is true, you will always show 'show less'
+                                        Button {
+                                            self.expandLines()
+                                        } label: {
+                                            Text("Show Less")
+                                                .font(.system(size: 14))
+                                                .italic()
+                                                .foregroundStyle(Color.blue)
+                                        }
+                                    }
                             } // Group for truncation methodology.
                         }
                         .padding(.all, 10)
@@ -217,7 +222,7 @@ struct PostView: View {
             }
             .task {
                 do {
-                    post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
+//                    self.post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
                     print("isPinned: " + post.isPinned.description)
                     originalPrivacy = post.privacy // for catching public to private.
                 } catch PrayerRequestRetrievalError.noPrayerRequestID {
@@ -232,7 +237,6 @@ struct PostView: View {
             .navigationBarTitleDisplayMode(.inline)
             .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, maxHeight: .infinity)
         }
-//        .foregroundStyle(Color.primary)
     }
     
     func pinPrayerRequest(){
@@ -269,7 +273,7 @@ struct PostEditView: View {
     
     @State var prayerRequestUpdates: [PostUpdate] = []
     var person: Person
-    @Binding var post: Post
+    @State var post: Post
     @State var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
@@ -277,8 +281,8 @@ struct PostEditView: View {
     @State private var isTruncated: Bool = false
     
     var body: some View {
-        Form {
-            if person.userID == userHolder.person.userID { // only if you are the 'owner' of the profile.
+        NavigationStack {
+            Form {
                 Section(header: Text("Title")) {
                     ZStack(alignment: .topLeading) {
                         if post.postTitle.isEmpty {
@@ -286,10 +290,10 @@ struct PostEditView: View {
                                 .padding(.top, 8)
                                 .foregroundStyle(Color.gray)
                         }
-                        Text(post.postTitle).foregroundColor(Color.clear)//this is a swift workaround to dynamically expand textEditor.
+                        Text(post.postTitle)
+                            .foregroundStyle(Color.clear)//this is a swift workaround to dynamically expand textEditor.
                         TextEditor(text: $post.postTitle)
                             .offset(x: -5, y: -1)
-
                     }
                     .padding(.bottom, -4)
                     Picker("Status", selection: $post.status) {
@@ -309,18 +313,22 @@ struct PostEditView: View {
                     }
                 }
                 Section(header: Text("Edit Post")) {
-                    ZStack(alignment: .topLeading) {
+                    ZStack (alignment: .topLeading) {
                         if post.postText.isEmpty {
                             Text("Enter text")
-                                .padding(.leading, 0)
                                 .padding(.top, 8)
                                 .foregroundStyle(Color.gray)
                         }
-                        NavigationLink(destination: EditPrayerRequestTextView(person: person, prayerRequest: $post)) {
-                            // Navigation to edit text. Not binding because we want it to only update upon submission.
-                            Text(post.postText)
-                        }
+                        Text(post.postText)
+                            .foregroundStyle(Color.clear)//this is a swift workaround to dynamically expand textEditor.
+                        //                            .padding([.top, .bottom], 5)
+                        TextEditor(text: $post.postText)
+                            .offset(x: -5, y: -1)
                     }
+                    //                        NavigationLink(destination: EditPrayerRequestTextView(person: person, postText: $post.postText)) {
+                    //                            // Navigation to edit text. Not binding because we want it to only update upon submission.
+                    //                            Text(post.postText)
+                    //                        }
                 }
                 if prayerRequestUpdates.count > 0 {
                     ForEach(prayerRequestUpdates) { update in
@@ -351,85 +359,70 @@ struct PostEditView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
-            } else { // if you are not the owner, then you can't edit.
-                Section(header: Text("Title")) {
-                    VStack(alignment: .leading) {
-                        Text(post.postTitle)
-                    }
-                }
-                Section(header: Text("Post")) {
-                    VStack(alignment: .leading){
-                        Text(post.postText)
-                    }
-                    Text("Status: \(post.status)")
-                }
-                if prayerRequestUpdates.count > 0 {
-                    ForEach(prayerRequestUpdates) { update in
-                        Section(header: Text("\(update.updateType): \(update.datePosted, style: .date)")) {
-                            VStack(alignment: .leading){
-                                Text(update.prayerUpdateText)
-                            }
-                        }
-                    }
-                }
             }
-        }
-        .task {
-            do {
-                post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
-                prayerRequestUpdates = try await PrayerUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
-                print("isPinned: " + post.isPinned.description)
-                originalPrivacy = post.privacy // for catching public to private.
-            } catch PrayerRequestRetrievalError.noPrayerRequestID {
-                print("missing prayer request ID for update.")
-            } catch {
-                print("error retrieving")
-            }
-        }
-        .sheet(isPresented: $showAddUpdateView, onDismiss: {
-            Task {
+            .task {
                 do {
+                    self.post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
+                    self.post = post
                     prayerRequestUpdates = try await PrayerUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
-                    post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
+                    print("isPinned: " + post.isPinned.description)
+                    originalPrivacy = post.privacy // for catching public to private.
+                } catch PrayerRequestRetrievalError.noPrayerRequestID {
+                    print("missing prayer request ID for update.")
                 } catch {
-                    print("error retrieving updates.")
+                    print("error retrieving")
                 }
             }
-        }) {
-            AddPrayerUpdateView(person: person, prayerRequest: post)
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button(action: {
-                    updatePrayerRequest(prayerRequest: post)
-                }) {
-                    Text("Save")
-                        .offset(x: -4)
-                        .font(.system(size: 14))
-                        .padding([.leading, .trailing], 5)
-                        .bold()
+            .sheet(isPresented: $showAddUpdateView, onDismiss: {
+                Task {
+                    do {
+                        prayerRequestUpdates = try await PrayerUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
+                        post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
+                    } catch {
+                        print("error retrieving updates.")
+                    }
                 }
-                .background(
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(.blue)
-                )
-                .foregroundStyle(.white)
+            }) {
+                AddPrayerUpdateView(person: person, prayerRequest: post)
             }
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button(action: {
+                        updatePrayerRequest(post: post)
+                    }) {
+                        Text("Save")
+                            .offset(x: -4)
+                            .font(.system(size: 14))
+                            .padding([.leading, .trailing], 5)
+                            .bold()
+                            .foregroundStyle(.white)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(.blue)
+                    )
+                }
+            }
+//            .toolbarBackground(Color.clear, for: .tabBar)
         }
         .navigationTitle("Edit Post")
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    func updatePrayerRequest(prayerRequest: Post) {
-        // Function to catch if privacy was changed from public to private.
-        let newPrivacy = prayerRequest.privacy
+    func updatePrayerRequest(post: Post) {
+
+        let newPrivacy = post.privacy
         if originalPrivacy != "private" && newPrivacy == "private" {
-            PrayerRequestHelper().publicToPrivate(prayerRequest: prayerRequest, friendsList: userHolder.friendsList)
+            PrayerRequestHelper().publicToPrivate(prayerRequest: post, friendsList: userHolder.friendsList)
         } // if the privacy has changed from public to private, delete it from friends' feeds.
         
-        PrayerRequestHelper().editPrayerRequest(prayerRequest: prayerRequest, person: person, friendsList: userHolder.friendsList)
-        self.post = prayerRequest
+        // Function to catch if privacy was changed from public to private.
         
+        Task {
+            do {
+                PrayerRequestHelper().editPrayerRequest(prayerRequest: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
+            }
+        }
         print("Saved")
         dismiss()
     }
@@ -443,58 +436,71 @@ struct PostEditView: View {
     }
 }
 
-struct EditPrayerRequestTextView: View {
-    @Environment(UserProfileHolder.self) var userHolder
-    @Environment(\.dismiss) var dismiss
-    
-    var person: Person
-    @Binding var prayerRequest: Post
-    @State private var prayerRequestOriginalText: String = ""
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Edit Post")) {
-                    ZStack(alignment: .topLeading) {
-                        if prayerRequest.postText.isEmpty {
-                            Text("Enter text")
-                                .padding(.top, 8)
-                                .foregroundStyle(Color.gray)
-                        }
-                        Text(prayerRequest.postText).foregroundColor(Color.clear)//this is a swift workaround to dynamically expand textEditor.
-                            .padding([.top, .bottom], 5)
-                        TextEditor(text: $prayerRequest.postText)
-                            .offset(x: -5)
-                    }
-                }
-            }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button(action: {
+//
+//struct EditPrayerRequestTextView: View {
+//    @Environment(UserProfileHolder.self) var userHolder
+//    @Environment(\.dismiss) var dismiss
+//    
+//    var person: Person
+//    @Binding var postText: String
+//    @State private var prayerRequestOriginalText: String = ""
+//    
+//    var body: some View {
+//        NavigationView {
+//            Form {
+//                Section(header: Text("Edit Post")) {
+//                    ZStack(alignment: .topLeading) {
+//                        if postText.isEmpty {
+//                            Text("Enter text")
+//                                .padding(.top, 8)
+//                                .foregroundStyle(Color.gray)
+//                        }
+//                        Text(postText).foregroundColor(Color.clear)//this is a swift workaround to dynamically expand textEditor.
+//                            .padding([.top, .bottom], 5)
+//                        TextEditor(text: $postText)
+//                            .offset(x: -5)
+//                    }
+//                }
+//            }
+//        }
+//        .task {
+//            self.prayerRequestOriginalText = postText
+//        }
+//        .toolbar {
+//            ToolbarItemGroup(placement: .topBarTrailing) {
+//                Button(action: {
+////                    updatePrayerRequest(prayerRequest: post)
 //                    dismiss()
-                    updatePrayerRequest(prayerRequestVar: prayerRequest)
-                }) {
-                    Text("Update")
-                        .offset(x: -4)
-                        .font(.system(size: 14))
-                        .padding([.leading, .trailing], 5)
-                        .bold()
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 15)
-                        .fill(.blue)
-                )
-                .foregroundStyle(.white)
-            }
-        }
-        .navigationTitle("Edit Post")
-        .navigationBarTitleDisplayMode(.inline)
-    }
+//                }) {
+//                    Text("Update")
+//                        .offset(x: -4)
+//                        .font(.system(size: 14))
+//                        .padding([.leading, .trailing], 5)
+//                        .bold()
+//                }
+//                .background(
+//                    RoundedRectangle(cornerRadius: 15)
+//                        .fill(.blue)
+//                )
+//                .foregroundStyle(.white)
+//            }
+//            ToolbarItemGroup(placement: .topBarTrailing) {
+//                Button(action: {
+//                    self.postText = prayerRequestOriginalText
+//                    dismiss()
+//                }) {
+//                    Text("Edit Post")
+//                    
+//                }
+//            }
+//        }
+//        .navigationTitle("Edit Post")
+//        .navigationBarTitleDisplayMode(.inline)
+//    }
                 
-    func updatePrayerRequest(prayerRequestVar: Post) {
-        PrayerRequestHelper().editPrayerRequest(prayerRequest: prayerRequest, person: person, friendsList: userHolder.friendsList)
-        print("Saved")
-        dismiss()
-    }
-}
+//    func updatePrayerRequest(prayerRequest: Post) {
+//        PrayerRequestHelper().editPrayerRequest(prayerRequest: prayerRequest, person: person, friendsList: userHolder.friendsList)
+//        print("Saved")
+//        dismiss()
+//    }
+//}
