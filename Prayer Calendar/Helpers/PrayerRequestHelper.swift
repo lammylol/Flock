@@ -407,7 +407,7 @@ class PrayerRequestHelper {
         
         if person.userID == prayerRequest.userID {
             let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
-            ref.updateData([
+            ref2.updateData([
                 "isPinned": toggle
             ])
         } // update data to personal profile feed if this is under your profile as well.
