@@ -11,23 +11,24 @@ import SwiftUI
 
 struct PostRow: View {
     @State var viewModel: FeedViewModel
+    @Environment(\.colorScheme) private var scheme
     @Binding var post: Post
     @Environment(UserProfileHolder.self) var userHolder
     
     // For Update
     @State private var expandUpdate: Bool = false
-    @State private var truncatedTextSize: CGFloat = .zero
-    @State private var expandTextSize: CGFloat = .zero
+//    @State private var truncatedTextSize: CGFloat = .zero
+//    @State private var expandTextSize: CGFloat = .zero
     @State private var isTruncated: Bool = false
     
     // For Main Text
     @State private var postExpandUpdate: Bool = false
-    @State private var postTruncatedTextSize: CGFloat = .zero
-    @State private var postExpandTextSize: CGFloat = .zero
+//    @State private var postTruncatedTextSize: CGFloat = .zero
+//    @State private var postExpandTextSize: CGFloat = .zero
     @State private var postIsTruncated: Bool = false
     
     var body: some View {
-        NavigationLink(destination: PostView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), post: $post)) {
+        NavigationLink(destination: PostView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post)) {
             LazyVStack{
                 HStack {
                     if viewModel.profileOrFeed == "feed" { //feed used in the feed view
@@ -57,6 +58,11 @@ struct PostRow: View {
                             }
                             Privacy(rawValue: post.privacy)?.systemImage
                             Menu {
+                                if post.userID == userHolder.person.userID {
+                                    NavigationLink(destination: PostEditView(person: userHolder.person, post: post)){
+                                        Label("Edit Post", systemImage: "pencil")
+                                    } // can only edit if you are the owner of the post.
+                                }
                                 Button {
                                     self.pinPrayerRequest()
                                 } label: {
@@ -94,19 +100,45 @@ struct PostRow: View {
                                         .font(.system(size: 14))
                                 } // Latest Update, Date, + See All Updates
                                 
-                                Text("\(post.latestUpdateText)")
-                                    .font(.system(size: 16))
-                                    .padding(.top, 7)
-                                    .padding(.bottom, 10)
-                                    .multilineTextAlignment(.leading)
-                                    .lineLimit({
-                                        6
-                                    }())
+                                VStack {
+                                    Text("\(post.latestUpdateText)")
+                                        .lineLimit({
+                                            if expandUpdate == false {
+                                                6
+                                            } else {
+                                                .max
+                                            }
+                                        }())
+                                        .background {
+                                            ViewThatFits(in: .vertical) {
+                                                Text("\(post.latestUpdateText)")
+                                                    .hidden()
+                                                Color.clear
+                                                    .onAppear {
+                                                        isTruncated = true
+                                                    }
+                                            }
+                                        }
+                                }
+                                .font(.system(size: 16))
+                                .padding(.top, 7)
+                                .multilineTextAlignment(.leading)
+                                
+                                if isTruncated {
+                                    NavigationLink(destination: PostView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post, lineLimit: .max)) {
+                                        Text(expandUpdate ? "Show Less" : "Show More")
+                                            .italic()
+                                            .foregroundStyle(Color.blue)
+                                            .font(.system(size: 14))
+                                    }
+                                } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
+                                
                             }
                             .padding(.all, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(.gray)
+                                    .fill(scheme == .light ? .gray : .clear)
+                                    .stroke(scheme == .light ? .clear : .white, lineWidth: 2)
                                     .opacity(0.06)
                             )
                             .foregroundStyle(Color.primary)
@@ -124,14 +156,39 @@ struct PostRow: View {
                                 Spacer()
                             }
                         }
-                        Text("\(post.postText)")
-                            .font(.system(size: 16))
-                            .padding(.top, 7)
-                            .padding(.bottom, 10)
-                            .multilineTextAlignment(.leading)
-                            .lineLimit({
-                                20
-                            }())
+                        VStack {
+                            Text("\(post.postText)")
+                                .lineLimit({
+                                    if postExpandUpdate == false {
+                                        6
+                                    } else {
+                                        .max
+                                    }
+                                }())
+                                .background {
+                                    ViewThatFits(in: .vertical) {
+                                        Text("\(post.postText)")
+                                            .hidden()
+                                        Color.clear
+                                            .onAppear {
+                                                postIsTruncated = true
+                                            }
+                                    }
+                                }
+                        }
+                        .font(.system(size: 16))
+                        .padding(.top, 7)
+                        .padding(.bottom, 10)
+                        .multilineTextAlignment(.leading)
+                        
+                        if postIsTruncated {
+                            Text(postExpandUpdate ? "Show Less" : "Show More")
+                                .italic()
+                                .foregroundStyle(Color.blue)
+                                .font(.system(size: 14))
+                                // technically no need for navigation link since you just click to go to the next page anyways.
+                        } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
+                        
                         HStack {
                             Text(post.date, style: .date)
                                 .font(.system(size: 12))
@@ -148,16 +205,17 @@ struct PostRow: View {
         .padding([.top, .bottom], 15)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+    
     func pinPrayerRequest(){
         var isPinnedToggle = post.isPinned
         isPinnedToggle.toggle()
         self.post.isPinned = isPinnedToggle
-        
-        if isPinnedToggle == true {
-            userHolder.pinnedPrayerRequests.append(post)
-        } else {
-            userHolder.pinnedPrayerRequests.removeAll(where: { $0.id == post.id})
-        }
+//        
+//        if isPinnedToggle == true {
+//            userHolder.pinnedPrayerRequests.append(post)
+//        } else {
+//            userHolder.pinnedPrayerRequests.removeAll(where: { $0.id == post.id})
+//        }
         
         PrayerRequestHelper().togglePinned(person: userHolder.person, prayerRequest: post, toggle: isPinnedToggle)
 //        userHolder.refresh = true

@@ -52,6 +52,13 @@ struct ProfileFeed: View {
                     }
                     
                     StatusPicker(viewModel: viewModel)
+                        .onChange(of: viewModel.selectedStatus, {
+                            Task {
+                                if !viewModel.isFetching || !viewModel.isLoading {
+                                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                                }
+                            }
+                        })
                 }
                 .padding(.trailing, 20)
             }

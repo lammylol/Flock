@@ -27,7 +27,10 @@ struct EditPrayerUpdate: View {
                                 .padding(.top, 8)
                                 .foregroundStyle(Color.gray)
                         }
-                        Text(update.prayerUpdateText).foregroundColor(Color.clear)//this is a swift workaround to dynamically expand textEditor.
+                        Text(update.prayerUpdateText)
+                            .hidden() //this is a swift workaround to dynamically expand textEditor.
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.all, 8)//this is a swift workaround to dynamically expand textEditor.
                         TextEditor(text: $update.prayerUpdateText)
                             .offset(x: -5, y: -1)
                     }

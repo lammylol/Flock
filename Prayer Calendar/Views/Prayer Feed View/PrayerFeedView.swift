@@ -50,7 +50,7 @@ struct PrayerFeedView: View {
                                 StatusPicker(viewModel: viewModel)
                                     .onChange(of: viewModel.selectedStatus, {
                                         Task {
-                                            if viewModel.isFinished {
+                                            if !viewModel.isFetching || !viewModel.isLoading {
                                                 await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                                             }
                                         }

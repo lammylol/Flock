@@ -31,7 +31,9 @@ class PrayerRequestHelper {
         var profiles: Query
         
         do {
-            if status != nil { // if a status is passed, retrieve prayer list with status filtered.
+            if status == "isPinned" {
+                profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("isPinned", isEqualTo: true).order(by: "latestUpdateDatePosted", descending: true)
+            } else if status != nil { // if a status is passed, retrieve prayer list with status filtered.
                 profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("status", isEqualTo: status!).order(by: "latestUpdateDatePosted", descending: true)
             } else { // if a status is not passed, retrieve all prayers.
                 profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").order(by: "latestUpdateDatePosted", descending: true)
@@ -147,13 +149,13 @@ class PrayerRequestHelper {
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
     func createPrayerRequest(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [String]) {
         
-        var isMyProfile: Bool
-        if person.username != "" && person.userID == userID {
-            isMyProfile = true
-        } else {
-            isMyProfile = false
-        } // this checks whether the prayer request is for yourself, or for a local person that you are praying for.
-        
+//        var isMyProfile: Bool
+//        if person.username != "" && person.userID == userID {
+//            isMyProfile = true
+//        } else {
+//            isMyProfile = false
+//        } // this checks whether the prayer request is for yourself, or for a local person that you are praying for.
+//        
         // Create new PrayerRequestID to users/{userID}/prayerList/{person}/prayerRequests
         let ref = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document()
 
@@ -402,6 +404,13 @@ class PrayerRequestHelper {
         ref.updateData([
             "isPinned": toggle
         ])
+        
+        if person.userID == prayerRequest.userID {
+            let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
+            ref.updateData([
+                "isPinned": toggle
+            ])
+        } // update data to personal profile feed if this is under your profile as well.
     }
     
     func publicToPrivate(prayerRequest: Post, friendsList: [String]) {

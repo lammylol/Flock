@@ -102,7 +102,6 @@ import FirebaseFirestore
         } catch {
             print(error.localizedDescription)
         }
-
     }
     
     func hasReachedEnd(of prayerRequest: Post) -> Bool {

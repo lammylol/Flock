@@ -12,12 +12,13 @@ struct PostView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @State var prayerRequestUpdates: [PostUpdate] = []
     @State var person: Person
-    @Binding var post: Post
+    @State var post: Post = Post.blank
+    @Binding var oldPost: Post
     @State var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
-    @State private var truncatedTextSize: CGFloat = .zero
-    @State private var expandTextSize: CGFloat = .zero
+//    @State private var truncatedTextSize: CGFloat = .zero
+//    @State private var expandTextSize: CGFloat = .zero
     @State private var isTruncated: Bool = false
     @State var lineLimit: Int = 6 // This is to set default setting for max lines shown, set as a var so a user can pass in .max if they are calling directly from the feed.
     
@@ -101,60 +102,42 @@ struct PostView: View {
                                 }
                                 .id(UUID())
                             } // Latest Update, Date, + See All Updates
-                            Group {
-                                ZStack {
-                                    Text("\(post.latestUpdateText)")
-                                        .font(.system(size: 16))
-                                        .padding(.top, 7)
-                                        .padding(.bottom, 10)
-                                        .multilineTextAlignment(.leading)
-                                        .lineLimit({
-                                            if expandUpdate == false {
-                                                lineLimit
-                                            } else {
-                                                .max
-                                            }
-                                        }())
-                                        .getSizeOfView(completion: {
-                                            truncatedTextSize = $0
-                                        })
-                                        .background(
+                            
+                            VStack {
+                                Text("\(post.latestUpdateText)")
+                                    .lineLimit({
+                                        if expandUpdate == false {
+                                            lineLimit
+                                        } else {
+                                            .max
+                                        }
+                                    }())
+                                    .background {
+                                        ViewThatFits(in: .vertical) {
                                             Text("\(post.latestUpdateText)")
-                                                .fixedSize(horizontal: false, vertical: true)
-                                                .padding(.top, 7)
-                                                .padding(.bottom, 10)
-                                                .multilineTextAlignment(.leading)
-                                                .getSizeOfView(completion: {
-                                                    expandTextSize = $0
-                                                })
                                                 .hidden()
-                                        )
-                                } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
-                                
-                                if truncatedTextSize != expandTextSize && !expandUpdate { // only if text is truncated, and if expandUpdate hasn't been triggered to true already
-                                    HStack {
-                                        Button {
-                                            self.expandLines()
-                                        } label: {
-                                            Text("Show More")
-                                                .font(.system(size: 14))
-                                                .italic()
-                                                .foregroundStyle(Color.blue)
-                                        }
-                                        Spacer()
-                                    }
-                                    .padding(.top, -5)
-                                } else if expandUpdate == true { // if expandUpdate is true, you will always show 'show less'
-                                        Button {
-                                            self.expandLines()
-                                        } label: {
-                                            Text("Show Less")
-                                                .font(.system(size: 14))
-                                                .italic()
-                                                .foregroundStyle(Color.blue)
+                                            Color.clear
+                                                .onAppear {
+                                                    isTruncated = true
+                                                }
                                         }
                                     }
-                            } // Group for truncation methodology.
+                            }
+                            .font(.system(size: 16))
+                            .padding(.top, 7)
+                            .padding(.bottom, 10)
+                            .multilineTextAlignment(.leading)
+                            
+                            if isTruncated {
+                                Button {
+                                    self.expandLines()
+                                } label: {
+                                    Text(expandUpdate ? "Show Less" : "Show More")
+                                        .italic()
+                                        .foregroundStyle(Color.blue)
+                                        .font(.system(size: 14))
+                                }
+                            } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
                         }
                         .padding(.all, 10)
                         .background(
@@ -223,6 +206,7 @@ struct PostView: View {
             }
             .task {
                 do {
+                    self.post = oldPost
 //                    self.post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
                     print("isPinned: " + post.isPinned.description)
                     originalPrivacy = post.privacy // for catching public to private.
@@ -232,6 +216,17 @@ struct PostView: View {
                     print("error retrieving")
                 }
             }
+            .refreshable(action: {
+                Task {
+                    self.post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
+                    self.oldPost = self.post
+//                    print(newPost.id)
+//                    print(newPost.postText)
+//                    print(post.postText)
+//                    self.post = newPost
+                }
+            })
+            .scrollIndicators(.hidden)
             .padding([.leading, .trailing], 20)
             .padding([.top, .bottom], 15)
             .navigationTitle("Post")
@@ -320,16 +315,13 @@ struct PostEditView: View {
                                 .padding(.top, 8)
                                 .foregroundStyle(Color.gray)
                         }
-                        Text(post.postText)
-                            .foregroundStyle(Color.clear)//this is a swift workaround to dynamically expand textEditor.
-                        //                            .padding([.top, .bottom], 5)
                         TextEditor(text: $post.postText)
-                            .offset(x: -5, y: -1)
+                            .offset(y: 2)
+                        Text(post.postText)
+                            .hidden() //this is a swift workaround to dynamically expand textEditor.
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.all, 8)
                     }
-                    //                        NavigationLink(destination: EditPrayerRequestTextView(person: person, postText: $post.postText)) {
-                    //                            // Navigation to edit text. Not binding because we want it to only update upon submission.
-                    //                            Text(post.postText)
-                    //                        }
                 }
                 if prayerRequestUpdates.count > 0 {
                     ForEach(prayerRequestUpdates) { update in

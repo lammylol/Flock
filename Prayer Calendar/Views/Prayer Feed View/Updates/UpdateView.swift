@@ -61,6 +61,7 @@ struct UpdateView: View {
                     }
                 }
             }
+            .scrollIndicators(.hidden)
         }
         .task {
             do {

@@ -20,14 +20,16 @@ struct FeedRequestsRowView: View {
     
     var body: some View {
         ZStack {
-            if viewModel.isLoading && !userHolder.refresh {
+            if viewModel.isLoading/* && !userHolder.refresh*/ {
                 ProgressView()
             } else {
                 LazyVStack {
                     ForEach($viewModel.prayerRequests) { $prayerRequest in
                         VStack {
                             PostRow(viewModel: viewModel, post: $prayerRequest)
-                            Divider()
+                            Rectangle()
+                                .frame(height: 4)
+                                .foregroundStyle(.bar)
                         }
                         .task {
                             //   print("prayerRequest ID: "+prayerRequest.id)
@@ -49,7 +51,7 @@ struct FeedRequestsRowView: View {
                             self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                             await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                             self.viewModel.prayerRequests = viewModel.prayerRequests
-                            userHolder.refresh = false // if this was activated due to userHolder.refresh == true, return to false.
+//                            userHolder.refresh = false // if this was activated due to userHolder.refresh == true, return to false.
                             
                             print("refreshed")
                         } catch {
