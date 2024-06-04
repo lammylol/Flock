@@ -14,7 +14,6 @@ struct ProfileSettingsView: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
-        NavigationStack {
             Form {
                 Section {
                     HStack (alignment: .center) {
@@ -42,8 +41,7 @@ struct ProfileSettingsView: View {
                 }
                 .frame(alignment: .center)
             }
-        }
-        .navigationTitle("Settings")
+            .navigationTitle("Settings")
     }
     
     func signOut() {
@@ -105,17 +103,15 @@ struct AccountSettings: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    NavigationLink(destination: ProfileSettingsChangePasswordView()){
-                        Text("Change Password")
-                    }
-                    .id(UUID())
+        Form {
+            Section {
+                NavigationLink(destination: ProfileSettingsChangePasswordView()){
+                    Text("Change Password")
                 }
-                Section {
-                    DeleteButton()
-                }
+                .id(UUID())
+            }
+            Section {
+                DeleteButton()
             }
         }
         .navigationTitle("Account Settings")

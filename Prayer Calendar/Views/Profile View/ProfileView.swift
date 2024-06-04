@@ -16,11 +16,10 @@ struct ProfileView: View {
     @State private var showEditView: Bool = false
     @State var person: Person
     @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
-    
     @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
-        NavigationStack {
+        NavigationStack() {
             ScrollView {
                 VStack {
                     HStack {
@@ -68,27 +67,6 @@ struct ProfileView: View {
                 }, content: {
                     SubmitPostForm(person: person)
                 })
-                .toolbar {
-                    // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                    if person.username == "" || person.userID == userHolder.person.userID {
-                        ToolbarItemGroup(placement: .topBarTrailing) {
-                            HStack {
-                                NavigationLink(destination: ProfileSettingsView()) {
-                                    Image(systemName: "gear")
-                                }
-                                .id(UUID())
-                                .padding(.trailing, -10)
-                                .padding(.top, 2)
-                                
-                                Button(action: {
-                                    showSubmit.toggle()
-                                }) {
-                                    Image(systemName: "square.and.pencil")
-                                }
-                            }
-                        }
-                    }
-                }
                 .task {
                     do {
                         self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
@@ -102,6 +80,32 @@ struct ProfileView: View {
                             await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                         }
                     }
+                }
+            }
+            .toolbar {
+                // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
+                if person.username == "" || person.userID == userHolder.person.userID {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        HStack {
+                            NavigationLink(value: "Settings") {
+                                Image(systemName: "gear")
+                            }
+                            .id(UUID())
+                            .padding(.trailing, -10)
+                            .padding(.top, 2)
+                            
+                            Button(action: {
+                                showSubmit.toggle()
+                            }) {
+                                Image(systemName: "square.and.pencil")
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationDestination(for: String.self) { value in
+                if value == "Settings" {
+                    ProfileSettingsView()
                 }
             }
         }
