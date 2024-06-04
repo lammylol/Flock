@@ -14,7 +14,7 @@ struct FeedRequestsRowView: View {
     
     @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
-    @Binding var height: CGFloat
+//    @Binding var height: CGFloat
     @State var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false

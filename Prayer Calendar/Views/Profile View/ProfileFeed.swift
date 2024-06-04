@@ -64,7 +64,7 @@ struct ProfileFeed: View {
             }
             Divider()
             
-            FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "profile")
+            FeedRequestsRowView(viewModel: viewModel, person: person, profileOrFeed: "profile")
         }
         .task {
             do {

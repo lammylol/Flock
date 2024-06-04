@@ -37,7 +37,8 @@ struct PostRow: View {
                                 ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
                                     .buttonStyle(.plain)
                                     .foregroundStyle(Color.primary)
-                            }.id(UUID())
+                            }
+                            .id(UUID())
                         }
                         .padding(.trailing, 8)
                     } else { //used in 'profile' view
@@ -87,6 +88,7 @@ struct PostRow: View {
                         }
                     }
                 }
+                
                 VStack (alignment: .leading) {
                     Group {
                         // Latest Update Banner.
@@ -145,6 +147,7 @@ struct PostRow: View {
                             .padding(.vertical, 7)// Group for latest banner with truncation methodology.
                         }
                     }
+                    
                     VStack (alignment: .leading) {
                         HStack {
                             if post.postTitle != "" {
@@ -152,10 +155,10 @@ struct PostRow: View {
                                     .font(.system(size: 18))
                                     .bold()
                                     .multilineTextAlignment(.leading)
-                                    .padding(.top, 7)
                                 Spacer()
                             }
                         }
+                        
                         VStack {
                             Text("\(post.postText)")
                                 .lineLimit({
@@ -196,6 +199,7 @@ struct PostRow: View {
                             Spacer()
                         }
                     }
+                    .padding(.top, 7)
                 }
             }
             .foregroundStyle(Color.primary)

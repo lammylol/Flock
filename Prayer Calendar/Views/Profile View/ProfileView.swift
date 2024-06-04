@@ -39,61 +39,105 @@ struct ProfileView: View {
                     
                     Spacer()
                     
-                    if userHolder.person.username == person.username {
-                        ProfileFeed(viewModel: viewModel, person: userHolder.person) // Leaving as a separate view for now in case need to implement tab view.
-                            .frame(maxHeight: .infinity)
-                            .padding(.top, 20)
-                    } else {
-                        ProfileFeed(viewModel: viewModel, person: person) // Leaving as a separate view for now in case need to implement tab view.
-                            .frame(maxHeight: .infinity)
-                            .padding(.top, 20)
-                    }
-                }
-                .navigationTitle(person.firstName + " " + person.lastName)
-                .navigationBarTitleDisplayMode(.automatic)
-                .sheet(isPresented: $showSubmit, onDismiss: {
-                    Task {
-                        do {
-                            if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
-                                self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
-                                await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                    LazyVStack {
+                        HStack{
+                            // Only show this if you are the owner of profile.
+                            if person.username == userHolder.person.username {
+                                Text("My Posts")
+                                    .font(.title3)
+                                    .bold()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.leading, 20)
                             } else {
-                                self.viewModel.prayerRequests = viewModel.prayerRequests
-                                //                            self.height = height
+                                Text("\(person.firstName)'s Posts")
+                                    .font(.title3)
+                                    .bold()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.leading, 20)
                             }
-                            print("Success retrieving prayer requests for \(person.userID)")
+                            Spacer()
+                            
+                            HStack {
+                                if viewModel.selectedStatus == .noLongerNeeded {
+                                    Text("No Longer\nNeeded")
+                                        .font(.system(size: 14))
+                                        .multilineTextAlignment(.trailing)
+                                } else {
+                                    Text(viewModel.selectedStatus.rawValue.capitalized)
+                                        .font(.system(size: 16))
+                                        .multilineTextAlignment(.trailing)
+                                }
+                                
+                                StatusPicker(viewModel: viewModel)
+                                    .onChange(of: viewModel.selectedStatus, {
+                                        Task {
+                                            if !viewModel.isFetching || !viewModel.isLoading {
+                                                await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                                            }
+                                        }
+                                    })
+                            }
+                            .padding(.trailing, 20)
                         }
-                    }
-                }, content: {
-                    SubmitPostForm(person: person)
-                })
-                .task {
-                    do {
-                        self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-                    } catch {
-                        print(error)
-                    }
-                }
-                .refreshable {
-                    Task {
-                        if viewModel.isFinished {
-                            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-                        }
+                        Divider()
+                        
+                        FeedRequestsRowView(viewModel: viewModel, person: person, profileOrFeed: "profile")
+                        //                    if userHolder.person.username == person.username {
+                        //                        ProfileFeed(viewModel: viewModel, person: userHolder.person) // Leaving as a separate view for now in case need to implement tab view.
+                        //                            .frame(maxHeight: .infinity)
+                        //                            .padding(.top, 20)
+                        //                    } else {
+                        //                        ProfileFeed(viewModel: viewModel, person: person) // Leaving as a separate view for now in case need to implement tab view.
+                        //                            .frame(maxHeight: .infinity)
+                        //                            .padding(.top, 20)
+                        //                    }
                     }
                 }
             }
+            .task {
+                do {
+                    person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                } catch {
+                    print(error)
+                }
+            }
+            .refreshable {
+                Task {
+                    if viewModel.isFinished {
+                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                    }
+                }
+            }
+            .navigationTitle(person.firstName + " " + person.lastName)
+            .navigationBarTitleDisplayMode(.automatic)
+            .sheet(isPresented: $showSubmit, onDismiss: {
+                Task {
+                    do {
+                        if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
+                            self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
+                            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        } else {
+                            self.viewModel.prayerRequests = viewModel.prayerRequests
+                            //                            self.height = height
+                        }
+                        print("Success retrieving prayer requests for \(person.userID)")
+                    }
+                }
+            }, content: {
+                SubmitPostForm(person: person)
+            })
             .toolbar {
                 // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                if person.username == "" || person.userID == userHolder.person.userID {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         HStack {
-                            NavigationLink(value: "Settings") {
-                                Image(systemName: "gear")
+                            if person.username == userHolder.person.username {
+                                NavigationLink(value: "Settings") {
+                                    Image(systemName: "gear")
+                                }
+                                .id(UUID())
+                                .padding(.trailing, -10)
+                                .padding(.top, 2)
                             }
-                            .id(UUID())
-                            .padding(.trailing, -10)
-                            .padding(.top, 2)
-                            
                             Button(action: {
                                 showSubmit.toggle()
                             }) {
@@ -101,7 +145,6 @@ struct ProfileView: View {
                             }
                         }
                     }
-                }
             }
             .navigationDestination(for: String.self) { value in
                 if value == "Settings" {

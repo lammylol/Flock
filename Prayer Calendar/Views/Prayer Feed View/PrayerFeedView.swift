@@ -64,7 +64,7 @@ struct PrayerFeedView: View {
                                 scheme == .dark ? .black : .white
                             )
                     ){
-                        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
+                        FeedRequestsRowView(viewModel: viewModel, person: person, profileOrFeed: "feed")
                     }
                 }
             }
@@ -150,57 +150,57 @@ struct PrayerFeedView: View {
 //                        }
 //                    }
 
-struct PrayerFeedAnsweredView: View {
-    // view to only see 'answered' prayers
-    var person: Person
-    @Environment(UserProfileHolder.self) var userHolder
-    @Binding var height: CGFloat
-    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
-    
-    var body: some View {
-        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
-            .task {
-                viewModel.selectedStatus = .answered
-                self.height = height
-            }
-    }
-}
-
-struct PrayerFeedCurrentView: View {
-    // view to see 'current' prayers
-    var person: Person
-    @Binding var height: CGFloat
-    
-//    @Binding var selectedPage: Int
-    @Environment(UserProfileHolder.self) var userHolder
-    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
+//struct PrayerFeedAnsweredView: View {
+//    // view to only see 'answered' prayers
+//    var person: Person
+//    @Environment(UserProfileHolder.self) var userHolder
+//    @Binding var height: CGFloat
+//    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
+//    
+//    var body: some View {
+//        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
+//            .task {
+//                viewModel.selectedStatus = .answered
+//                self.height = height
+//            }
+//    }
+//}
 //
-    var body: some View {
-        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
-            .task {
-                viewModel.selectedStatus = .current
-                self.height = height
-            }
-    }
-}
-
-struct PrayerFeedPinnedView: View {
-    // view to only see 'pinned' prayers
-    var person: Person
-    @Binding var height: CGFloat
-    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
-    
-//    @Binding var selectedPage: Int
-    @Environment(UserProfileHolder.self) var userHolder
-    
-    var body: some View {
-        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
-            .task {
-                viewModel.selectedStatus = .pinned
-                self.height = height
-            }
-    }
-}
+//struct PrayerFeedCurrentView: View {
+//    // view to see 'current' prayers
+//    var person: Person
+//    @Binding var height: CGFloat
+//    
+////    @Binding var selectedPage: Int
+//    @Environment(UserProfileHolder.self) var userHolder
+//    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
+////
+//    var body: some View {
+//        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
+//            .task {
+//                viewModel.selectedStatus = .current
+//                self.height = height
+//            }
+//    }
+//}
+//
+//struct PrayerFeedPinnedView: View {
+//    // view to only see 'pinned' prayers
+//    var person: Person
+//    @Binding var height: CGFloat
+//    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
+//    
+////    @Binding var selectedPage: Int
+//    @Environment(UserProfileHolder.self) var userHolder
+//    
+//    var body: some View {
+//        FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "feed")
+//            .task {
+//                viewModel.selectedStatus = .pinned
+//                self.height = height
+//            }
+//    }
+//}
 
 struct OffsetKey: PreferenceKey {
     static let defaultValue: CGFloat = .zero
