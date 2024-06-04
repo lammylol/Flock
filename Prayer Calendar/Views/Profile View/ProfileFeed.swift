@@ -26,13 +26,13 @@ struct ProfileFeed: View {
             HStack{    
                 // Only show this if you are the owner of profile.
                 if person.username == userHolder.person.username {
-                    Text("My Prayer Requests")
+                    Text("My Posts")
                         .font(.title3)
                         .bold()
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading, 20)
                 } else {
-                    Text("\(person.firstName)'s Prayer Requests")
+                    Text("\(person.firstName)'s Posts")
                         .font(.title3)
                         .bold()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -43,11 +43,11 @@ struct ProfileFeed: View {
                 HStack {
                     if viewModel.selectedStatus == .noLongerNeeded {
                         Text("No Longer\nNeeded")
-                            .font(.system(size: 11))
+                            .font(.system(size: 14))
                             .multilineTextAlignment(.trailing)
                     } else {
                         Text(viewModel.selectedStatus.rawValue.capitalized)
-                            .font(.system(size: 14))
+                            .font(.system(size: 16))
                             .multilineTextAlignment(.trailing)
                     }
                     
@@ -65,28 +65,6 @@ struct ProfileFeed: View {
             Divider()
             
             FeedRequestsRowView(viewModel: viewModel, height: $height, person: person, profileOrFeed: "profile")
-        }
-        .overlay {
-            // Only show this if this account is saved under your userID.
-            if person.username == "" || person.userID == userHolder.person.userID {
-                if viewModel.prayerRequests.isEmpty && viewModel.selectedStatus == .current && viewModel.isFinished {
-                    VStack{
-                        ContentUnavailableView {
-                            Label("No Prayer Requests", systemImage: "list.bullet.rectangle.portrait")
-                        } description: {
-                            Text("Start adding prayer requests to your list")
-                        } actions: {
-                            Button(action: {showSubmit.toggle() })
-                            {
-                                Text("Add Prayer Request")
-                            }
-                        }
-                        .frame(height: 250)
-                        .offset(y: 120)
-                        Spacer()
-                    }
-                }
-            }
         }
         .task {
             do {

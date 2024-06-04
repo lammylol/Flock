@@ -36,45 +36,47 @@ class PrayerFeedHelper {
         var posts = [Post]()
         var lastDocument: DocumentSnapshot? = nil
         
-        for document in querySnapshot.documents {
-            let timestamp = document.data()["datePosted"] as? Timestamp ?? Timestamp()
-            let datePosted = timestamp.dateValue()
-            let firstName = document.data()["firstName"] as? String ?? ""
-            let lastName = document.data()["lastName"] as? String ?? ""
-            let status = document.data()["status"] as? String ?? ""
-            let userID = document.data()["userID"] as? String ?? ""
-            let username = document.data()["username"] as? String ?? ""
-            let privacy = document.data()["privacy"] as? String ?? "private"
-            let isPinned = document.data()["isPinned"] as? Bool ?? false
-            let postTitle = document.data()["prayerRequestTitle"] as? String ?? ""
-            let postText = document.data()["prayerRequestText"] as? String ?? ""
-            let postType = document.data()["postTitle"] as? String ?? ""
-            let documentID = document.documentID as String
-            let latestUpdateText = document.data()["latestUpdateText"] as? String ?? ""
-            let latestUpdateType = document.data()["latestUpdateType"] as? String ?? ""
-            let updateTimestamp = document.data()["latestUpdateDatePosted"] as? Timestamp ?? timestamp
-            let latestUpdateDatePosted = updateTimestamp.dateValue()
-            
-            let post = Post(
-                id: documentID,
-                date: datePosted,
-                userID: userID,
-                username: username,
-                firstName: firstName,
-                lastName: lastName,
-                postTitle: postTitle,
-                postText: postText,
-                postType: postType,
-                status: status,
-                latestUpdateText: latestUpdateText,
-                latestUpdateDatePosted: latestUpdateDatePosted,
-                latestUpdateType: latestUpdateType,
-                privacy: privacy,
-                isPinned: isPinned)
-            
-            posts.append(post)
-            print("post: "+post.id+"lastDocument: "+(querySnapshot.documents.last?.documentID ?? ""))
-            lastDocument = querySnapshot.documents.last
+        if !querySnapshot.isEmpty {
+            for document in querySnapshot.documents {
+                let timestamp = document.data()["datePosted"] as? Timestamp ?? Timestamp()
+                let datePosted = timestamp.dateValue()
+                let firstName = document.data()["firstName"] as? String ?? ""
+                let lastName = document.data()["lastName"] as? String ?? ""
+                let status = document.data()["status"] as? String ?? ""
+                let userID = document.data()["userID"] as? String ?? ""
+                let username = document.data()["username"] as? String ?? ""
+                let privacy = document.data()["privacy"] as? String ?? "private"
+                let isPinned = document.data()["isPinned"] as? Bool ?? false
+                let postTitle = document.data()["prayerRequestTitle"] as? String ?? ""
+                let postText = document.data()["prayerRequestText"] as? String ?? ""
+                let postType = document.data()["postTitle"] as? String ?? ""
+                let documentID = document.documentID as String
+                let latestUpdateText = document.data()["latestUpdateText"] as? String ?? ""
+                let latestUpdateType = document.data()["latestUpdateType"] as? String ?? ""
+                let updateTimestamp = document.data()["latestUpdateDatePosted"] as? Timestamp ?? timestamp
+                let latestUpdateDatePosted = updateTimestamp.dateValue()
+                
+                let post = Post(
+                    id: documentID,
+                    date: datePosted,
+                    userID: userID,
+                    username: username,
+                    firstName: firstName,
+                    lastName: lastName,
+                    postTitle: postTitle,
+                    postText: postText,
+                    postType: postType,
+                    status: status,
+                    latestUpdateText: latestUpdateText,
+                    latestUpdateDatePosted: latestUpdateDatePosted,
+                    latestUpdateType: latestUpdateType,
+                    privacy: privacy,
+                    isPinned: isPinned)
+                
+                posts.append(post)
+                print("post: "+post.id+"lastDocument: "+(querySnapshot.documents.last?.documentID ?? ""))
+                lastDocument = querySnapshot.documents.last
+            }
         }
         return (posts, lastDocument)
     }

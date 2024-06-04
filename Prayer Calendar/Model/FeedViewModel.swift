@@ -38,14 +38,14 @@ import FirebaseFirestore
     }
     
     enum statusFilter: String, CaseIterable {
-        case answered
-        case current
-        case noLongerNeeded
-        case pinned
+        case answered = "answered"
+        case current = "current"
+        case noLongerNeeded = "no longer needed"
+        case pinned = "pinned"
         case none
         
         var statusKey: String {
-            return self.rawValue
+            return self.rawValue.description
         }
     }
     
@@ -66,7 +66,7 @@ import FirebaseFirestore
         
         do {
             let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: nil, profileOrFeed: profileOrFeed)
-
+            
             self.prayerRequests = newPrayerRequests
             self.queryCount = newPrayerRequests.count
             

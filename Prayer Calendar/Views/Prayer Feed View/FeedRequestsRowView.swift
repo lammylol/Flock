@@ -17,6 +17,7 @@ struct FeedRequestsRowView: View {
     @Binding var height: CGFloat
     @State var person: Person
     @State var profileOrFeed: String = "feed"
+    @State private var showSubmit: Bool = false
     
     var body: some View {
         ZStack {
@@ -40,47 +41,95 @@ struct FeedRequestsRowView: View {
                         }
                     }
                 }
-                .scrollDismissesKeyboard(.immediately)
+//                .scrollDismissesKeyboard(.immediately)
                 .scrollContentBackground(.hidden)
-                .task {
-                    if viewModel.prayerRequests.isEmpty {
-                        do {
-                            viewModel.viewState = .loading
-                            defer { viewModel.viewState = .finished }
-                            
-                            self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-                            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-                            self.viewModel.prayerRequests = viewModel.prayerRequests
-//                            userHolder.refresh = false // if this was activated due to userHolder.refresh == true, return to false.
-                            
-                            print("refreshed")
-                        } catch {
-                            print(error.localizedDescription)
-                        }
-                    } else {
-                        self.viewModel.prayerRequests = viewModel.prayerRequests
-                        self.height = height
-                    }
-                }
-//                .sheet(isPresented: $showEdit, onDismiss: {
-//                    Task {
-//                        do {
-//                            if viewModel.prayerRequests.isEmpty {
-//                                //                        self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
-//                                await viewModel.getPrayerRequests(user: userHolder.person, person: person, profileOrFeed: "profile")
-//                            } else {
-//                                self.viewModel.prayerRequests = viewModel.prayerRequests
-//                                self.height = height
-//                            }
-//                            print("Success retrieving prayer requests for \(person.userID)")
-//                        }
-//                    }
-//                }, content: {
-//                    PostView(person: userHolder.person, post: $prayerRequestVar)
-//                })
             }
         }
+        .task {
+            if viewModel.prayerRequests.isEmpty {
+                do {
+                    self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    
+                    if !viewModel.isFetching || !viewModel.isLoading {
+                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        self.viewModel.prayerRequests = viewModel.prayerRequests
+                    }
+                } catch {
+                    print(error.localizedDescription)
+                }
+            }
+        }
+//            } else {
+//                self.viewModel.prayerRequests = viewModel.prayerRequests
+//            }
+//                    if viewModel.prayerRequests.isEmpty {
+//                        do {
+//                            viewModel.viewState = .loading
+//                            defer { viewModel.viewState = .finished }
+//
+//                            self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+//                            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+//                            self.viewModel.prayerRequests = viewModel.prayerRequests
+//
+//                            print("refreshed")
+//                        } catch {
+//                            print(error.localizedDescription)
+//                        }
+//                    } else {
+//                        self.viewModel.prayerRequests = viewModel.prayerRequests
+//                        self.height = height
+//                    }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .overlay {
+            // Only show this if this account is saved under your userID.
+            if person.username == "" || person.userID == userHolder.person.userID {
+                if viewModel.prayerRequests.isEmpty && viewModel.isFinished {
+                    VStack{
+                        ContentUnavailableView {
+                            Label("No Posts Available...Yet!", systemImage: "list.bullet.rectangle.portrait")
+                        } description: {
+                                if viewModel.selectedStatus == .pinned {
+                                    Text("You will need to pin an exisiting post to see posts here")
+                                } else if viewModel.selectedStatus == .answered {
+                                    Text("None of your posts have been 'answered' yet, but that's okay! They will be featured here once you change the status to answered.")
+                                } else {
+                                    if person.username == "" || person.userID == userHolder.person.userID {
+                                        Text("Start adding prayer requests to your list")
+                                    } else {
+                                        Text("Link friends to your calendar to start seeing prayer requests. Or, you can add prayers to your profile or to a private account and they'll also be featured here.")
+                                    }
+                                }
+                        } actions: {
+                            if person.username == "" || person.userID == userHolder.person.userID {
+                                Button(action: {showSubmit.toggle() })
+                                {
+                                    Text("Add Prayer Request")
+                                }
+                            }
+                        }
+                        .frame(height: 250)
+                        .offset(y: 120)
+                        Spacer()
+                    }
+                }
+            }
+        }
+//        .sheet(isPresented: $showSubmit, onDismiss: {
+//            Task {
+//                do {
+//                    self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+//                    
+//                    if !viewModel.isFetching || !viewModel.isLoading {
+//                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+//                        self.viewModel.prayerRequests = viewModel.prayerRequests
+//                    }
+//                } catch {
+//                    print(error.localizedDescription)
+//                }
+//            }
+//        }, content: {
+//            SubmitPostForm(person: person)
+//        })
     }
 }
 

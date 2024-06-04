@@ -18,35 +18,21 @@ struct ProfileView: View {
     @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
     
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(UserProfileHolder.self) var dataHolder
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack {
-                    Text("")
-                        .toolbar {
-                            // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                            if person.username == "" || person.userID == userHolder.person.userID {
-                                ToolbarItemGroup(placement: .topBarTrailing) {
-                                    NavigationLink(destination: ProfileSettingsView()) {
-                                        Image(systemName: "gear")
-                                            .resizable()
-                                    }
-                                    .padding(.trailing, -10)
-                                    .padding(.top, 2)
-                                    
-                                    Button(action: {
-                                        showSubmit.toggle()
-                                    }) {
-                                        Image(systemName: "square.and.pencil")
-                                    }
-                                }
+                    HStack {
+                        VStack (alignment: .leading) {
+                            if person.username == "" {
+                                Text("private profile")
+                                Text("@\(userHolder.person.username.capitalized)").bold()
+                            } else {
+                                Text("public profile")
+                                Text("@\(person.username.capitalized)").bold()
                             }
                         }
-                    
-                    HStack {
-                        Text(usernameDisplay())
                         Spacer()
                     }
                     .padding([.leading, .trailing], 20)
@@ -82,19 +68,40 @@ struct ProfileView: View {
                 }, content: {
                     SubmitPostForm(person: person)
                 })
-            }
-        }
-        .task {
-            do { 
-                self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-            } catch {
-                print(error)
-            }
-        }
-        .refreshable {
-            Task {
-                if viewModel.isFinished {
-                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                .toolbar {
+                    // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
+                    if person.username == "" || person.userID == userHolder.person.userID {
+                        ToolbarItemGroup(placement: .topBarTrailing) {
+                            HStack {
+                                NavigationLink(destination: ProfileSettingsView()) {
+                                    Image(systemName: "gear")
+                                }
+                                .id(UUID())
+                                .padding(.trailing, -10)
+                                .padding(.top, 2)
+                                
+                                Button(action: {
+                                    showSubmit.toggle()
+                                }) {
+                                    Image(systemName: "square.and.pencil")
+                                }
+                            }
+                        }
+                    }
+                }
+                .task {
+                    do {
+                        self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    } catch {
+                        print(error)
+                    }
+                }
+                .refreshable {
+                    Task {
+                        if viewModel.isFinished {
+                            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        }
+                    }
                 }
             }
         }
@@ -102,14 +109,13 @@ struct ProfileView: View {
     
     func usernameDisplay() -> String {
         if person.username == "" {
-            return "unlinked"
-        } else {
-            return "username: \(person.username.capitalized)"
+            return "private profile"
         }
+        return "@\(person.username.capitalized)"
     }
 }
 
-#Preview {
-    ProfileView(person: Person(userID: "aMq0YdteGEbYXWlSgxehVy7Fyrl2", username: "lammylol"))
-        .environment(UserProfileHolder())
-}
+//#Preview {
+//    ProfileView(person: Person(userID: "aMq0YdteGEbYXWlSgxehVy7Fyrl2", username: "lammylol"))
+//        .environment(UserProfileHolder())
+//}

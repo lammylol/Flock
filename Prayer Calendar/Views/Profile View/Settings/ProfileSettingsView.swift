@@ -12,9 +12,9 @@ import FirebaseAuth
 // Settings page for user to edit profile information.
 struct ProfileSettingsView: View {
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(UserProfileHolder.self) var prayerListHolder
     
     var body: some View {
+        NavigationStack {
             Form {
                 Section {
                     HStack (alignment: .center) {
@@ -27,11 +27,10 @@ struct ProfileSettingsView: View {
                     }
                     .alignmentGuide(.listRowSeparatorLeading) { _ in 0 } // extends automatic separator divider. If not, it looks weird.
                     
-                    NavigationStack {
-                        NavigationLink(destination: AccountSettings()){
-                            Text("Account Settings")
-                        }
+                    NavigationLink(destination: AccountSettings()){
+                        Text("Account Settings")
                     }
+                    .id(UUID())
                 }
                 Section{
                     Button(action: {
@@ -40,8 +39,11 @@ struct ProfileSettingsView: View {
                             .font(.system(size: 16))
                             .foregroundColor(.red)
                     }
-                }.frame(alignment: .center)
-        }.navigationTitle("Settings")
+                }
+                .frame(alignment: .center)
+            }
+        }
+        .navigationTitle("Settings")
     }
     
     func signOut() {
@@ -53,14 +55,13 @@ struct ProfileSettingsView: View {
     func resetInfo() {
         userHolder.friendsList = []
         userHolder.person.userID = ""
-        prayerListHolder.prayerList = ""
-        prayerListHolder.prayStartDate = Date()
+        userHolder.prayerList = ""
+        userHolder.prayStartDate = Date()
     }
 }
 
 struct DeleteButton: View {
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(UserProfileHolder.self) var prayerListHolder
     @State private var isPresentingConfirm: Bool = false
 
     var body: some View {
@@ -95,8 +96,8 @@ struct DeleteButton: View {
         userHolder.friendsList = []
 
 //        userHolder.person.userID = ""
-        prayerListHolder.prayerList = ""
-        prayerListHolder.prayStartDate = Date()
+        userHolder.prayerList = ""
+        userHolder.prayStartDate = Date()
     }
 }
 
@@ -104,16 +105,17 @@ struct AccountSettings: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
-        Form {
-            Section {
-                NavigationStack {
+        NavigationStack {
+            Form {
+                Section {
                     NavigationLink(destination: ProfileSettingsChangePasswordView()){
                         Text("Change Password")
                     }
+                    .id(UUID())
                 }
-            }
-            Section {
-                DeleteButton()
+                Section {
+                    DeleteButton()
+                }
             }
         }
         .navigationTitle("Account Settings")

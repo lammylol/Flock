@@ -68,9 +68,6 @@ struct PrayerFeedView: View {
                     }
                 }
             }
-            .task {
-                viewModel.selectedStatus = .current
-            }
             .refreshable {
                 Task {
                     if viewModel.isFinished {
