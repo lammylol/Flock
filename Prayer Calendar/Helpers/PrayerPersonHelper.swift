@@ -161,7 +161,7 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
         //In this scenario, userID is the userID of the person retrieving data from the 'person'.
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let prayerRequests = try await PrayerRequestHelper().getPrayerRequests(userID: person.userID, person: person, status: "Current")
+            let prayerRequests = try await PrayerRequestHelper().getPrayerRequests(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
             
             print(prayerRequests.description)
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
