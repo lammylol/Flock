@@ -20,7 +20,7 @@ struct SubmitPostForm: View {
     @State private var postTitle: String = ""
     @State private var postType: String = ""
 //    @State private var priority = "low"
-    @State private var privacy: String = "public"
+    @State private var privacy: String = "private"
     
     var body: some View {
         NavigationView{
@@ -59,6 +59,11 @@ struct SubmitPostForm: View {
                         Text("Privacy")
                         Spacer()
                         PrivacyView(person: person, privacySetting: $privacy)
+                            .task {
+                                if person.username == "" && person.userID == userHolder.person.userID {
+                                    privacy = "private"
+                                }
+                            }
                     }
                 }
             }

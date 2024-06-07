@@ -180,7 +180,6 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
             do {
                 // delete from prayer requests list.
                 let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: userID).getDocuments()
-                
                 for request in prayerRequests.documents {
                     try await request.reference.delete()
                 }
@@ -210,9 +209,11 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
                 
                 let userPrayerListRef = try await db.collection("users").document(userID).collection("prayerList").getDocuments()
                 for person in userPrayerListRef.documents {
-                    for request in try await person.reference.collection("prayerRequests").getDocuments().documents {
+                    let prayerRequests = try await person.reference.collection("prayerRequests").getDocuments()
+                    for request in prayerRequests.documents {
                         try await request.reference.delete()
                     }
+                    try await person.reference.delete()
                 }
                 
                 let ref = db.collection("users").document(userID)

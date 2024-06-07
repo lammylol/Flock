@@ -46,10 +46,16 @@ struct ProfileSettingsView: View {
     
     func signOut() {
         // Sign out from firebase and change loggedIn to return to SignInView.
-        try? Auth.auth().signOut()
-        resetInfo()
+        Task {
+            do {
+                resetInfo()
+                try Auth.auth().signOut()
+            } catch {
+                print(error)
+            }
+        }
     }
-
+    
     func resetInfo() {
         userHolder.friendsList = []
         userHolder.person.userID = ""
@@ -70,10 +76,11 @@ struct DeleteButton: View {
                             isPresented: $isPresentingConfirm) {
             Button("Delete Account and Sign Out", role: .destructive) {
                 Task {
-                    defer { signOut() }
+//                    defer { signOut() }
                     do {
                         print(Auth.auth().currentUser?.uid)
                         try await PrayerPersonHelper().deletePerson(userID: userHolder.person.userID, friendsList: userHolder.friendsList)
+//                        signOut()
                     } catch {
                         print(error)
                     }

@@ -156,15 +156,17 @@ struct SignInView: View {
                 let userID = Auth.auth().currentUser?.uid ?? ""
                 await PrayerPersonHelper().getUserInfo(person: Person(userID: userID), userHolder: userHolder)
                 await PrayerPersonHelper().getPrayerList(userHolder: userHolder)
+            } else {
+                resetInfo()
             }
         }
     }
     
     func signIn() {
         Task {
-//            userHolder.viewState = .loading
-//            defer { userHolder.viewState = .finished }
-//            
+            userHolder.viewState = .loading
+            defer { userHolder.viewState = .finished }
+            
             Auth.auth().signIn(withEmail: email, password: password) { result, error in
                 if let error = error {
                     let err = error as NSError
@@ -186,16 +188,18 @@ struct SignInView: View {
                     print(errorMessage)
                 } else {
                     Task {
-                        userHolder.viewState = .loading
-                        defer { userHolder.viewState = .finished }
-                        
-//                        let userID = Auth.auth().currentUser!.uid
+//                        userHolder.viewState = .loading
+//                        defer { userHolder.viewState = .finished }
+//                        
                         userHolder.email = email
                         userHolder.userPassword = password
                         
                         let userID = Auth.auth().currentUser?.uid ?? ""
                         await PrayerPersonHelper().getUserInfo(person: Person(userID: userID), userHolder: userHolder)
                         await PrayerPersonHelper().getPrayerList(userHolder: userHolder)
+                        
+                        self.userHolder.prayerList = userHolder.prayerList
+                        self.userHolder.person = userHolder.person
                         
                         email = ""
                         password = ""
@@ -205,6 +209,13 @@ struct SignInView: View {
                 }
             }
         }
+    }
+    
+    func resetInfo() {
+        userHolder.friendsList = []
+        userHolder.person.userID = ""
+        userHolder.prayerList = ""
+        userHolder.prayStartDate = Date()
     }
 }
 
