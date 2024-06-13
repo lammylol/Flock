@@ -25,9 +25,14 @@ class PrayerFeedHelper {
             db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
                 .whereField("status", isEqualTo: status)
                 .order(by: "latestUpdateDatePosted", descending: true)
+        } else if person.userID == user.userID {
+            db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests")
+                .whereField("status", isEqualTo: status)
+                .order(by: "latestUpdateDatePosted", descending: true)
         } else {
             db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests")
                 .whereField("status", isEqualTo: status)
+                .whereField("privacy", isEqualTo: "public")
                 .order(by: "latestUpdateDatePosted", descending: true)
         }
     }

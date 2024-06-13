@@ -114,22 +114,22 @@ struct FeedRequestsRowView: View {
                 }
             }
         }
-//        .sheet(isPresented: $showSubmit, onDismiss: {
-//            Task {
-//                do {
-//                    self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-//                    
-//                    if !viewModel.isFetching || !viewModel.isLoading {
-//                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-//                        self.viewModel.prayerRequests = viewModel.prayerRequests
-//                    }
-//                } catch {
-//                    print(error.localizedDescription)
-//                }
-//            }
-//        }, content: {
-//            SubmitPostForm(person: person)
-//        })
+        .sheet(isPresented: $showSubmit, onDismiss: {
+            Task {
+                do {
+                    self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    
+                    if !viewModel.isFetching || !viewModel.isLoading {
+                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        self.viewModel.prayerRequests = viewModel.prayerRequests
+                    }
+                } catch {
+                    print(error.localizedDescription)
+                }
+            }
+        }, content: {
+            SubmitPostForm(person: person)
+        })
     }
 }
 
