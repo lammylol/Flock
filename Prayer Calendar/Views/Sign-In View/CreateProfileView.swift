@@ -10,7 +10,7 @@ import FirebaseFirestore
 import FirebaseAuth
 
 struct CreateProfileView: View {
-    
+    @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.dismiss) var dismiss
     @State var email = ""
     @State var password = ""
@@ -136,6 +136,9 @@ struct CreateProfileView: View {
             
             // Task to set data.
             else {
+                userHolder.viewState = .loading
+                defer { userHolder.viewState = .finished }
+                
                 Auth.auth().createUser(withEmail: email, password: password) { result, error in
                     
                     if error != nil {
@@ -157,17 +160,16 @@ struct CreateProfileView: View {
                              "lastName": lastName.capitalized]
                         )
                         
-                        let ref2 = db.collection("usernames").document("\(username)")
-                        
-                        ref2.setData(
-                            ["username": username.lowercased(),
-                             "userID": userID ?? "",
-                             "firstName": firstName,
-                             "lastName": lastName]
-                        )
+//                        let ref2 = db.collection("usernames").document("\(username)")
+//                        
+//                        ref2.setData(
+//                            ["username": username.lowercased(),
+//                             "userID": userID ?? "",
+//                             "firstName": firstName,
+//                             "lastName": lastName]
+//                        )
                         
                         print("Account successfully created.")
-                        dismiss()
                         errorMessage = ""
                     }
                 }

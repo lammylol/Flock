@@ -153,12 +153,17 @@ struct SignInView: View {
             
             dateHolder.date = Date() // Resets the view to current month
             if userHolder.isLoggedIn == .authenticated {
-                let userID = Auth.auth().currentUser?.uid ?? ""
-                await PrayerPersonHelper().getUserInfo(person: Person(userID: userID), userHolder: userHolder)
-                await PrayerPersonHelper().getPrayerList(userHolder: userHolder)
+                do {
+                    let userID = Auth.auth().currentUser?.uid ?? ""
+                    await PrayerPersonHelper().getUserInfo(person: Person(userID: userID), userHolder: userHolder)
+                    await PrayerPersonHelper().getPrayerList(userHolder: userHolder)
+                } catch {
+                    print("Error")
+                }
             } else {
                 resetInfo()
             }
+            print(userHolder.person.userID)
         }
     }
     

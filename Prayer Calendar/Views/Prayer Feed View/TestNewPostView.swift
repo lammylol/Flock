@@ -222,12 +222,12 @@ struct PostViewTest: View {
         var isPinnedToggle = post.isPinned
         isPinnedToggle.toggle()
         self.post.isPinned = isPinnedToggle
-        
-        if isPinnedToggle == true {
-            userHolder.pinnedPrayerRequests.append(post)
-        } else {
-            userHolder.pinnedPrayerRequests.removeAll(where: { $0.id == post.id})
-        }
+//        
+//        if isPinnedToggle == true {
+//            userHolder.pinnedPrayerRequests.append(post)
+//        } else {
+//            userHolder.pinnedPrayerRequests.removeAll(where: { $0.id == post.id})
+//        }
         
         PrayerRequestHelper().togglePinned(person: userHolder.person, prayerRequest: post, toggle: isPinnedToggle)
 //        userHolder.refresh = true

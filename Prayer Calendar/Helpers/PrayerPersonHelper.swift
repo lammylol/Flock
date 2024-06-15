@@ -28,19 +28,19 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
             let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
             print("Document data: " + dataDescription)
             
-            let firstName = document.get("firstName") as! String
-            let lastName = document.get("lastName") as! String
-            let username = document.get("username") as! String
-            let userID = document.get("userID") as! String
+            let firstName = document.get("firstName") as? String ?? ""
+            let lastName = document.get("lastName") as? String ?? ""
+            let username = document.get("username") as? String ?? ""
+            let userID = document.get("userID") as? String ?? ""
             
             let prayerPerson = Person(userID: userID, username: username, email: userHolder.email, firstName: firstName, lastName: lastName)
             print("/username: " + prayerPerson.username)
             
             userHolder.person = prayerPerson // update userHolder with person information
             
-            let (pinnedPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: userHolder.person, person: person, answeredFilter: "pinned", count: 5, lastDocument: nil, profileOrFeed: "feed") // retrieve pinned prayer requests
-            
-            userHolder.pinnedPrayerRequests = pinnedPrayerRequests // set pinned prayer requests to userHolder.
+//            let (pinnedPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: userHolder.person, person: person, answeredFilter: "pinned", count: 5, lastDocument: nil, profileOrFeed: "feed") // retrieve pinned prayer requests
+//            
+//            userHolder.pinnedPrayerRequests = pinnedPrayerRequests // set pinned prayer requests to userHolder.
             print("//username: " + userHolder.person.username)
         } catch {
             print("Error retrieving user info.")
@@ -61,21 +61,24 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
     }
     
     func getPrayerList(userHolder: UserProfileHolder) async { // This function retrieves calendar prayer list data from Firestore.
-            let ref = db.collection("users").document(userHolder.person.userID)
         
-            do {
-                let document = try await ref.getDocument()
-                if document.exists { // Update userHolder with prayer list details from Firestore
-                    let startDateTimeStamp = document.get("prayStartDate") as? Timestamp ?? Timestamp(date: Date())
-                    userHolder.prayStartDate = startDateTimeStamp.dateValue()
-                    userHolder.prayerList = document.get("prayerList") as? String ?? ""
-                } else {
-                    print("Document does not exist")
-                    userHolder.prayerList = ""
-                }
-            } catch {
-                print(error.localizedDescription)
+        print(userHolder.person.userID)
+        
+        let ref = db.collection("users").document(userHolder.person.userID)
+    
+        do {
+            let document = try await ref.getDocument()
+            if document.exists { // Update userHolder with prayer list details from Firestore
+                let startDateTimeStamp = document.get("prayStartDate") as? Timestamp ?? Timestamp(date: Date())
+                userHolder.prayStartDate = startDateTimeStamp.dateValue()
+                userHolder.prayerList = document.get("prayerList") as? String ?? ""
+            } else {
+                print("Document does not exist")
+                userHolder.prayerList = ""
             }
+        } catch {
+            print(error.localizedDescription)
+        }
     }
     
     func retrievePrayerPersonArray(prayerList: String) -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may now.
