@@ -1,4 +1,4 @@
-# Prayer Calendar App
+# Flock
 
 >An application used to glorify God by encouraging the act of prayer across the globe. Our vision is to cultivate a culture of prayer across all communities, bring encouragement to all peoples by praying for one another, and see God’s captivating love for each person through his response to our prayers.
 ###
