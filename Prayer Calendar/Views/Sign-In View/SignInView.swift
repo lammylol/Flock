@@ -147,31 +147,23 @@ struct SignInView: View {
                 }.navigationViewStyle(.stack)
             }
         }
-        .task {
-            userHolder.viewState = .loading
-            defer { userHolder.viewState = .finished }
-            
-            dateHolder.date = Date() // Resets the view to current month
-            if userHolder.isLoggedIn == .authenticated {
-                do {
+        .task { // This task runs whenever 'SignInView' is opened.
+            do {
+                userHolder.viewState = .loading
+                defer { userHolder.viewState = .finished }
+                
+                if userHolder.isLoggedIn == .authenticated/* && userHolder.person.userID == ""*/ {
                     let userID = Auth.auth().currentUser?.uid ?? ""
-                    await PrayerPersonHelper().getUserInfo(person: Person(userID: userID), userHolder: userHolder)
-                    await PrayerPersonHelper().getPrayerList(userHolder: userHolder)
-                } catch {
-                    print("Error")
+                    print(userID)
+                    await setInfo()
+                } else {
+                    resetInfo()
                 }
-            } else {
-                resetInfo()
             }
-            print(userHolder.person.userID)
         }
     }
     
     func signIn() {
-        Task {
-            userHolder.viewState = .loading
-            defer { userHolder.viewState = .finished }
-            
             Auth.auth().signIn(withEmail: email, password: password) { result, error in
                 if let error = error {
                     let err = error as NSError
@@ -192,28 +184,24 @@ struct SignInView: View {
                     }
                     print(errorMessage)
                 } else {
-                    Task {
-//                        userHolder.viewState = .loading
-//                        defer { userHolder.viewState = .finished }
-//                        
-                        userHolder.email = email
-                        userHolder.userPassword = password
+                    Task {                             
                         
-                        let userID = Auth.auth().currentUser?.uid ?? ""
-                        await PrayerPersonHelper().getUserInfo(person: Person(userID: userID), userHolder: userHolder)
-                        await PrayerPersonHelper().getPrayerList(userHolder: userHolder)
+                        userHolder.viewState = .loading
+                        defer { userHolder.viewState = .finished }
                         
-                        self.userHolder.prayerList = userHolder.prayerList
-                        self.userHolder.person = userHolder.person
-                        
-                        email = ""
-                        password = ""
-                        username = ""
-                        errorMessage = ""
+                        do {
+
+                            userHolder.userPassword = password
+                            await setInfo()
+                            
+                            email = ""
+                            password = ""
+                            username = ""
+                            errorMessage = ""
+                        }
                     }
                 }
             }
-        }
     }
     
     func resetInfo() {
@@ -221,6 +209,48 @@ struct SignInView: View {
         userHolder.person.userID = ""
         userHolder.prayerList = ""
         userHolder.prayStartDate = Date()
+    }
+    
+    func setInfo() async {
+        let userID = Auth.auth().currentUser?.uid ?? ""
+        
+        do {
+            userHolder.person = try await PrayerPersonHelper().getUserInfo(userID: userID)
+            // This sets firstName, lastName, username, and userID for UserHolder
+            try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
+            
+            userHolder.prayStartDate = try await PrayerPersonHelper().getPrayerList(userID: userID).0 // set Start Date
+            userHolder.prayerList = try await PrayerPersonHelper().getPrayerList(userID: userID).1 // set Prayer List
+            
+            dateHolder.date = Date() // Resets the view to current month on current
+            
+            self.userHolder.person = userHolder.person
+        } catch {
+            resetInfo()
+            userHolder.isLoggedIn = .notAuthenticated
+        }
+    }
+    
+    func setFriendsList(userID: String) async throws {
+        let db = Firestore.firestore() // initiaties Firestore
+        
+        guard userID != "" else {
+            throw PrayerPersonRetrievalError.noUserID
+        }
+        
+        do {
+            let friendsListRef = db.collection("users").document(userID).collection("friendsList")
+            
+            let querySnapshot = try await friendsListRef.getDocuments()
+            
+            //append FriendsListArray in userHolder
+            for document in querySnapshot.documents {
+                print("\(document.documentID) => \(document.data())")
+                userHolder.friendsList.append(document.documentID)
+            }
+        } catch {
+          print("Error getting documents: \(error)")
+        } // get friends list and add that to userholder.friendslist
     }
 }
 

@@ -49,8 +49,8 @@ struct ProfileSettingsView: View {
         Task {
             if userHolder.isFinished {
                 do {
+                    try await Auth.auth().signOut()
                     resetInfo()
-                    try Auth.auth().signOut()
                 } catch {
                     print(error)
                 }
@@ -82,8 +82,7 @@ struct DeleteButton: View {
                     do {
                         if userHolder.isFinished {
                             print(Auth.auth().currentUser?.uid)
-                            try await PrayerPersonHelper().deletePerson(userID: userHolder.person.userID, friendsList: userHolder.friendsList)
-                            //                        signOut()
+                            try await PrayerPersonHelper().deletePerson(user: userHolder.person, friendsList: userHolder.friendsList)
                         }
                     } catch {
                         print(error)

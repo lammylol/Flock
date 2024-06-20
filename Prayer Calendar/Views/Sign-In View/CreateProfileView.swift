@@ -132,48 +132,68 @@ struct CreateProfileView: View {
             else if specialCharacterTest(username: username) {
                 errorMessage = "Username cannot contain special characters. Please enter a new username."
                 print("Username cannot contain special characters. Please submit a new username.")
-            } 
+            }
             
             // Task to set data.
             else {
-                userHolder.viewState = .loading
-                defer { userHolder.viewState = .finished }
-                
                 Auth.auth().createUser(withEmail: email, password: password) { result, error in
                     
                     if error != nil {
                         errorMessage = error!.localizedDescription
                         print(error!.localizedDescription.localizedLowercase)
                     } else {
+                        Task {
+                            userHolder.viewState = .loading
+                            defer { userHolder.viewState = .finished }
                             
-                        let userID = result?.user.uid
-                        print("userID: " + (userID ?? ""))
-                        
-                        let db = Firestore.firestore()
-                        let ref = db.collection("users").document("\(userID ?? "")")
-                        
-                        ref.setData(
-                            ["email": email,
-                             "userID": userID ?? "",
-                             "username": username.lowercased(),
-                             "firstName": firstName.capitalized,
-                             "lastName": lastName.capitalized]
-                        )
-                        
-//                        let ref2 = db.collection("usernames").document("\(username)")
-//                        
-//                        ref2.setData(
-//                            ["username": username.lowercased(),
-//                             "userID": userID ?? "",
-//                             "firstName": firstName,
-//                             "lastName": lastName]
-//                        )
-                        
-                        print("Account successfully created.")
-                        errorMessage = ""
+                            do {
+                                let userID = result?.user.uid
+                                print("userID: " + (userID ?? ""))
+                                
+                                let db = Firestore.firestore()
+                                let ref = db.collection("users").document("\(userID ?? "")")
+                                
+                                try await ref.setData(
+                                    ["email": email,
+                                     "userID": userID ?? "",
+                                     "username": username.lowercased(),
+                                     "firstName": firstName.capitalized,
+                                     "lastName": lastName.capitalized]
+                                )
+                                
+                                let refUsernames = db.collection("usernames").document("\(username)")
+                                try await refUsernames.setData(
+                                    ["userID": userID ?? "",
+                                     "username": username]
+                                )
+                                
+                                print("Account successfully created.")
+                                await setInfo()
+                                errorMessage = ""
+                                dismiss()
+                            } catch {
+                                print(error)
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+    
+    func setInfo() async {
+        let userID = Auth.auth().currentUser?.uid ?? ""
+        
+        do {
+            userHolder.person = try await PrayerPersonHelper().getUserInfo(userID: userID)
+            // This sets firstName, lastName, username, and userID for UserHolder
+            
+            userHolder.prayStartDate = try await PrayerPersonHelper().getPrayerList(userID: userID).0 // set Start Date
+            userHolder.prayerList = try await PrayerPersonHelper().getPrayerList(userID: userID).1 // set Prayer List
+            
+            self.userHolder.person = userHolder.person
+        } catch {
+            userHolder.isLoggedIn = .notAuthenticated
         }
     }
 }

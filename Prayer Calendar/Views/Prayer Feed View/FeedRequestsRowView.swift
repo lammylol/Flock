@@ -59,26 +59,6 @@ struct FeedRequestsRowView: View {
                 }
             }
         }
-//            } else {
-//                self.viewModel.prayerRequests = viewModel.prayerRequests
-//            }
-//                    if viewModel.prayerRequests.isEmpty {
-//                        do {
-//                            viewModel.viewState = .loading
-//                            defer { viewModel.viewState = .finished }
-//
-//                            self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-//                            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-//                            self.viewModel.prayerRequests = viewModel.prayerRequests
-//
-//                            print("refreshed")
-//                        } catch {
-//                            print(error.localizedDescription)
-//                        }
-//                    } else {
-//                        self.viewModel.prayerRequests = viewModel.prayerRequests
-//                        self.height = height
-//                    }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .overlay {
                 if viewModel.prayerRequests.isEmpty && viewModel.isFinished {
