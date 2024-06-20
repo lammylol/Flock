@@ -47,11 +47,13 @@ struct ProfileSettingsView: View {
     func signOut() {
         // Sign out from firebase and change loggedIn to return to SignInView.
         Task {
-            do {
-                resetInfo()
-                try Auth.auth().signOut()
-            } catch {
-                print(error)
+            if userHolder.isFinished {
+                do {
+                    try await Auth.auth().signOut()
+                    resetInfo()
+                } catch {
+                    print(error)
+                }
             }
         }
     }
@@ -78,9 +80,10 @@ struct DeleteButton: View {
                 Task {
 //                    defer { signOut() }
                     do {
-                        print(Auth.auth().currentUser?.uid)
-                        try await PrayerPersonHelper().deletePerson(userID: userHolder.person.userID, friendsList: userHolder.friendsList)
-//                        signOut()
+                        if userHolder.isFinished {
+                            print(Auth.auth().currentUser?.uid)
+                            try await PrayerPersonHelper().deletePerson(user: userHolder.person, friendsList: userHolder.friendsList)
+                        }
                     } catch {
                         print(error)
                     }
@@ -99,8 +102,7 @@ struct DeleteButton: View {
 
     func resetInfo() {
         userHolder.friendsList = []
-
-//        userHolder.person.userID = ""
+        userHolder.person.userID = ""
         userHolder.prayerList = ""
         userHolder.prayStartDate = Date()
     }

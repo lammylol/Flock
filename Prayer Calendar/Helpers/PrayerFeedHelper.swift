@@ -88,9 +88,9 @@ class PrayerFeedHelper {
     
     func getPrayerRequestFeed(user: Person, person: Person, answeredFilter: String, count: Int, lastDocument: DocumentSnapshot?, profileOrFeed: String) async throws -> ([Post], DocumentSnapshot?) {
         
-        guard person.userID != "" else {
-            throw PrayerRequestRetrievalError.noUserID
-        }
+//        guard user.userID != "" || person.userID != "" else {
+//            throw PrayerRequestRetrievalError.noUserID
+//        }
         
         var prayerFeed: Query
         

@@ -13,6 +13,7 @@ enum PrayerPersonRetrievalError: Error {
     case noUsername
     case incorrectUsername
     case errorRetrievingFromFirebase
+    case noUserID
 }
 
 class PrayerPersonHelper { // This class provides functions to retrieve, edit, and delete user profile data.
@@ -21,61 +22,55 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
     
     // Functions used at login: getPrayerList(), retrievePrayerPersonArray(), getUserInfo()
     
-    func getUserInfo(person: Person, userHolder: UserProfileHolder) async { // This function retrieves user info at login.
+    func getUserInfo(userID: String) async throws -> Person { // This function retrieves user info at login.
+        var person = Person()
+        
         do {
-            let ref = db.collection("users").document(person.userID)
+            let ref = db.collection("users").document(userID)
             let document = try await ref.getDocument()
             let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
             print("Document data: " + dataDescription)
             
-            let firstName = document.get("firstName") as! String
-            let lastName = document.get("lastName") as! String
-            let username = document.get("username") as! String
-            let userID = document.get("userID") as! String
+            let firstName = document.get("firstName") as? String ?? ""
+            let lastName = document.get("lastName") as? String ?? ""
+            let username = document.get("username") as? String ?? ""
+            let userID = document.get("userID") as? String ?? ""
+            let email = document.get("email") as? String ?? ""
             
-            let prayerPerson = Person(userID: userID, username: username, email: userHolder.email, firstName: firstName, lastName: lastName)
-            print("/username: " + prayerPerson.username)
-            
-            userHolder.person = prayerPerson // update userHolder with person information
-            
-            let (pinnedPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: userHolder.person, person: person, answeredFilter: "pinned", count: 5, lastDocument: nil, profileOrFeed: "feed") // retrieve pinned prayer requests
-            
-            userHolder.pinnedPrayerRequests = pinnedPrayerRequests // set pinned prayer requests to userHolder.
-            print("//username: " + userHolder.person.username)
+            person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+            print("/username: " + person.username)
         } catch {
             print("Error retrieving user info.")
         } // get user information and save it to userHolder.person
-                
-        do {
-            let friendsListRef = db.collection("users").document(person.userID).collection("friendsList")
-            let querySnapshot = try await friendsListRef.getDocuments()
-
-            //append FriendsListArray in userHolder
-            for document in querySnapshot.documents {
-                print("\(document.documentID) => \(document.data())")
-                userHolder.friendsList.append(document.documentID)
-            }
-        } catch {
-          print("Error getting documents: \(error)")
-        } // get friends list and add that to userholder.friendslist
+        
+        return person
     }
     
-    func getPrayerList(userHolder: UserProfileHolder) async { // This function retrieves calendar prayer list data from Firestore.
-            let ref = db.collection("users").document(userHolder.person.userID)
+    func getPrayerList(userID: String) async throws -> (Date, String) { // This function retrieves calendar prayer list data from Firestore.
+        var prayStartDate = Date()
+        var prayerList = String()
         
-            do {
-                let document = try await ref.getDocument()
-                if document.exists { // Update userHolder with prayer list details from Firestore
-                    let startDateTimeStamp = document.get("prayStartDate") as? Timestamp ?? Timestamp(date: Date())
-                    userHolder.prayStartDate = startDateTimeStamp.dateValue()
-                    userHolder.prayerList = document.get("prayerList") as? String ?? ""
-                } else {
-                    print("Document does not exist")
-                    userHolder.prayerList = ""
-                }
-            } catch {
-                print(error.localizedDescription)
+        guard userID != "" else {
+            throw PrayerPersonRetrievalError.noUserID
+        }
+            
+        let ref = db.collection("users").document(userID)
+    
+        do {
+            let document = try await ref.getDocument()
+            if document.exists { // Update userHolder with prayer list details from Firestore
+                let startDateTimeStamp = document.get("prayStartDate") as? Timestamp ?? Timestamp(date: Date())
+                prayStartDate = startDateTimeStamp.dateValue()
+                prayerList = document.get("prayerList") as? String ?? ""
+            } else {
+                print("Document does not exist")
+                prayerList = ""
             }
+        } catch {
+            print(error.localizedDescription)
+        }
+        
+        return (prayStartDate, prayerList)
     }
     
     func retrievePrayerPersonArray(prayerList: String) -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may now.
@@ -175,17 +170,17 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
     }
     
     // Account settings
-    func deletePerson(userID: String, friendsList: [String]) async throws {
+    func deletePerson(user: Person, friendsList: [String]) async throws {
         Task {
             do {
                 // delete from prayer requests list.
-                let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: userID).getDocuments()
+                let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
                 for request in prayerRequests.documents {
                     try await request.reference.delete()
                 }
                 
                 // delete user's feed
-                let prayerFeedRef = try await db.collection("prayerFeed").document(userID).collection("prayerRequests").getDocuments()
+                let prayerFeedRef = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").getDocuments()
                 for request in prayerFeedRef.documents {
                     try await request.reference.delete()
                 }
@@ -193,7 +188,7 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
                 // delete from friend's feed
                 if friendsList.isEmpty == false {
                     for friendID in friendsList {
-                        let prayerRequests = try await db.collection("prayerFeed").document(friendID).collection("prayerRequests").whereField("userID", isEqualTo: userID).getDocuments()
+                        let prayerRequests = try await db.collection("prayerFeed").document(friendID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
                         
                         for request in prayerRequests.documents {
                             try await request.reference.delete()
@@ -202,12 +197,12 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
                 }
                 
                 // delete user's info data.
-                let userFriendsListRef = try await db.collection("users").document(userID).collection("friendsList").getDocuments()
+                let userFriendsListRef = try await db.collection("users").document(user.userID).collection("friendsList").getDocuments()
                 for request in userFriendsListRef.documents {
                     try await request.reference.delete()
                 }
                 
-                let userPrayerListRef = try await db.collection("users").document(userID).collection("prayerList").getDocuments()
+                let userPrayerListRef = try await db.collection("users").document(user.userID).collection("prayerList").getDocuments()
                 for person in userPrayerListRef.documents {
                     let prayerRequests = try await person.reference.collection("prayerRequests").getDocuments()
                     for request in prayerRequests.documents {
@@ -216,8 +211,11 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
                     try await person.reference.delete()
                 }
                 
-                let ref = db.collection("users").document(userID)
-                try await ref.delete()
+                let usersRef = db.collection("users").document(user.userID)
+                try await usersRef.delete()
+                
+                let usernameRef = db.collection("usernames").document(user.username)
+                try await usernameRef.delete()
                 
                 // remove firebase account
                 try await Auth.auth().currentUser?.delete()
@@ -232,14 +230,15 @@ class PrayerPersonHelper { // This class provides functions to retrieve, edit, a
         var check = Bool()
         
         do {
-            let ref = try await db.collection("users").whereField("username", isEqualTo: username).getDocuments()
-            if ref.isEmpty {
-                check = false
-            } else {
+//            let ref = try await db.collection("users").whereField("username", isEqualTo: username.lowercased()).getDocuments()
+            let ref = db.collection("usernames").document(username)
+            if try await ref.getDocument().exists {
                 check = true
+            } else {
+                check = false
             }
         } catch {
-            print("Error retrieving username ref")
+            print("Error retrieving username reference")
             check = false
         }
         return check
