@@ -49,8 +49,7 @@ struct ProfileSettingsView: View {
         Task {
             if userHolder.isFinished {
                 do {
-                    try await Auth.auth().signOut()
-                    resetInfo()
+                    try Auth.auth().signOut()
                 } catch {
                     print(error)
                 }
