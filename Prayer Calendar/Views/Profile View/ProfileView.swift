@@ -19,7 +19,7 @@ struct ProfileView: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
-        NavigationStack() {
+        NavigationStack {
             ScrollView {
                 VStack {
                     HStack {
@@ -82,17 +82,33 @@ struct ProfileView: View {
                         Divider()
                         
                         FeedRequestsRowView(viewModel: viewModel, person: person, profileOrFeed: "profile")
-                        //                    if userHolder.person.username == person.username {
-                        //                        ProfileFeed(viewModel: viewModel, person: userHolder.person) // Leaving as a separate view for now in case need to implement tab view.
-                        //                            .frame(maxHeight: .infinity)
-                        //                            .padding(.top, 20)
-                        //                    } else {
-                        //                        ProfileFeed(viewModel: viewModel, person: person) // Leaving as a separate view for now in case need to implement tab view.
-                        //                            .frame(maxHeight: .infinity)
-                        //                            .padding(.top, 20)
-                        //                    }
                     }
                     .padding(.top, 10)
+                }
+            }
+            .toolbar {
+                // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        HStack {
+                            if person.username == userHolder.person.username {
+                                NavigationLink(value: "Settings") {
+                                    Image(systemName: "gear")
+                                }
+                                .id(UUID())
+                                .padding(.trailing, -10)
+                                .padding(.top, 2)
+                            }
+                            Button(action: {
+                                showSubmit.toggle()
+                            }) {
+                                Image(systemName: "square.and.pencil")
+                            }
+                        }
+                    }
+            }
+            .navigationDestination(for: String.self) { value in
+                if value == "Settings" {
+                    ProfileSettingsView()
                 }
             }
             .task {
@@ -127,31 +143,6 @@ struct ProfileView: View {
             }, content: {
                 SubmitPostForm(person: person)
             })
-            .toolbar {
-                // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        HStack {
-                            if person.username == userHolder.person.username {
-                                NavigationLink(value: "Settings") {
-                                    Image(systemName: "gear")
-                                }
-                                .id(UUID())
-                                .padding(.trailing, -10)
-                                .padding(.top, 2)
-                            }
-                            Button(action: {
-                                showSubmit.toggle()
-                            }) {
-                                Image(systemName: "square.and.pencil")
-                            }
-                        }
-                    }
-            }
-            .navigationDestination(for: String.self) { value in
-                if value == "Settings" {
-                    ProfileSettingsView()
-                }
-            }
         }
     }
     
