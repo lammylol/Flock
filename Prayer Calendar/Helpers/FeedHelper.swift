@@ -9,10 +9,10 @@ import Foundation
 import FirebaseFirestore
 import SwiftUI
 
-class PrayerFeedHelper {
+class FeedHelper {
     let db = Firestore.firestore()
     
-    func getAllPrayerRequestsQuery(user: Person, person: Person, profileOrFeed: String) -> Query {
+    func getAllPostsQuery(user: Person, person: Person, profileOrFeed: String) -> Query {
         if profileOrFeed == "feed" {
             db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
         } else {
@@ -20,7 +20,7 @@ class PrayerFeedHelper {
         }
     }
     
-    func getAllPrayerRequestsByStatusQuery(user: Person, person: Person, status: String, profileOrFeed: String) -> Query {
+    func getAllPostsByStatusQuery(user: Person, person: Person, status: String, profileOrFeed: String) -> Query {
         if profileOrFeed == "feed" {
             db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
                 .whereField("status", isEqualTo: status)
@@ -86,7 +86,7 @@ class PrayerFeedHelper {
         return (posts, lastDocument)
     }
     
-    func getPrayerRequestFeed(user: Person, person: Person, answeredFilter: String, count: Int, lastDocument: DocumentSnapshot?, profileOrFeed: String) async throws -> ([Post], DocumentSnapshot?) {
+    func getPostFeed(user: Person, person: Person, answeredFilter: String, count: Int, lastDocument: DocumentSnapshot?, profileOrFeed: String) async throws -> ([Post], DocumentSnapshot?) {
         
 //        guard user.userID != "" || person.userID != "" else {
 //            throw PrayerRequestRetrievalError.noUserID
@@ -96,17 +96,17 @@ class PrayerFeedHelper {
         
         //answeredFilter is true if only filtering on answered prayers.
         if answeredFilter == "answered" {
-            prayerFeed = getAllPrayerRequestsByStatusQuery(user: user, person: person, status: "Answered", profileOrFeed: profileOrFeed)
+            prayerFeed = getAllPostsByStatusQuery(user: user, person: person, status: "Answered", profileOrFeed: profileOrFeed)
         } else if answeredFilter == "current" {
-            prayerFeed = getAllPrayerRequestsByStatusQuery(user: user, person: person, status: "Current", profileOrFeed: profileOrFeed)
+            prayerFeed = getAllPostsByStatusQuery(user: user, person: person, status: "Current", profileOrFeed: profileOrFeed)
         } else if answeredFilter == "no longer needed" {
-            prayerFeed = getAllPrayerRequestsByStatusQuery(user: user, person: person, status: "No Longer Needed", profileOrFeed: profileOrFeed)
+            prayerFeed = getAllPostsByStatusQuery(user: user, person: person, status: "No Longer Needed", profileOrFeed: profileOrFeed)
         } else if answeredFilter == "pinned" { //if 'pinned'
-            prayerFeed = getAllPrayerRequestsQuery(user: user, person: person, profileOrFeed: profileOrFeed)
+            prayerFeed = getAllPostsQuery(user: user, person: person, profileOrFeed: profileOrFeed)
                 .whereField("isPinned", isEqualTo: true)
                 .order(by: "latestUpdateDatePosted", descending: true)
         } else {
-            prayerFeed = getAllPrayerRequestsQuery(user: user, person: person, profileOrFeed: profileOrFeed)
+            prayerFeed = getAllPostsQuery(user: user, person: person, profileOrFeed: profileOrFeed)
                 .order(by: "latestUpdateDatePosted", descending: true)
         }
         

@@ -11,9 +11,8 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(UserProfileHolder.self) var prayerListHolder
+    @Environment(DateHolder.self) var dateHolder
     @State var selection: Int
-//    @Environment(DateHolder.self) var dateHolder
     
     var body: some View {
         //Tabs for each view. Adds bottom icons.
@@ -24,7 +23,7 @@ struct ContentView: View {
                         .imageScale(.large)
                     Text("Calendar")
                 }.tag(1)
-            PrayerFeedView(person: userHolder.person)
+            FeedView(person: userHolder.person)
                 .tabItem {
                     Image(systemName: "newspaper.fill")
                         .imageScale(.large)
@@ -43,6 +42,4 @@ struct ContentView: View {
 #Preview("Content View") {
     ContentView(selection: 1)
         .environment(UserProfileHolder())
-        .environment(UserProfileHolder())
-//        .environment(PrayerRequestsHolder())
 }

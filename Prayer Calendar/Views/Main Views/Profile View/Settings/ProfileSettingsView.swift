@@ -49,8 +49,7 @@ struct ProfileSettingsView: View {
         Task {
             if userHolder.isFinished {
                 do {
-                    try await Auth.auth().signOut()
-                    resetInfo()
+                    try Auth.auth().signOut()
                 } catch {
                     print(error)
                 }
@@ -82,7 +81,7 @@ struct DeleteButton: View {
                     do {
                         if userHolder.isFinished {
                             print(Auth.auth().currentUser?.uid)
-                            try await PrayerPersonHelper().deletePerson(user: userHolder.person, friendsList: userHolder.friendsList)
+                            try await PersonHelper().deletePerson(user: userHolder.person, friendsList: userHolder.friendsList)
                         }
                     } catch {
                         print(error)
@@ -97,7 +96,6 @@ struct DeleteButton: View {
     func signOut() {
         // Sign out from firebase and change loggedIn to return to SignInView.
         try? Auth.auth().signOut()
-        resetInfo()
     }
 
     func resetInfo() {

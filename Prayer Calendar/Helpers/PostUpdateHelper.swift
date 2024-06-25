@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestore
 
-class PrayerUpdateHelper {
+class PostUpdateHelper {
     // this function gets all the prayer request updates from a specific prayer request passed through.
     func getPrayerRequestUpdates(prayerRequest: Post, person: Person) async throws -> [PostUpdate] {
         var updates = [PostUpdate]()

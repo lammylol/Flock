@@ -17,11 +17,11 @@ enum PrayerRequestRetrievalError: Error {
     case errorRetrievingFromFirebase
 }
 
-class PrayerRequestHelper {
+class PostHelper {
     let db = Firestore.firestore()
 
     //Retrieve prayer requests from Firestore
-    func getPrayerRequests(userID: String, person: Person, status: String?, fetchOnlyPublic: Bool) async throws -> [Post] {
+    func getPosts(userID: String, person: Person, status: String?, fetchOnlyPublic: Bool) async throws -> [Post] {
         var prayerRequests = [Post]()
         
         guard userID != "" else {
@@ -94,7 +94,7 @@ class PrayerRequestHelper {
         return prayerRequests
     }
     
-    func getPrayerRequest(prayerRequest: Post) async throws -> Post {
+    func getPost(prayerRequest: Post) async throws -> Post {
         guard prayerRequest.id != "" else {
             throw PrayerRequestRetrievalError.noPrayerRequestID
         }
@@ -154,7 +154,7 @@ class PrayerRequestHelper {
     }
         
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
-    func createPrayerRequest(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [String]) {
+    func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [String]) {
         
 //        var isMyProfile: Bool
 //        if person.username != "" && person.userID == userID {
@@ -245,87 +245,79 @@ class PrayerRequestHelper {
     }
     
     // This function enables an edit to a prayer requests off of a selected prayer request.
-    func editPrayerRequest(prayerRequest: Post, person: Person, friendsList: [String]) {
-        
-        var isMyProfile: Bool
-        if person.username != "" && person.userID == prayerRequest.userID {
-            isMyProfile = true
-        } else {
-            isMyProfile = false
-        } // this checks whether the prayer request is for yourself, or for a local person that you are praying for.
-        
-        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(prayerRequest.firstName.lowercased())_\(prayerRequest.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
+    func editPost(post: Post, person: Person, friendsList: [String]) {
+        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
         
         ref.updateData([
-            "datePosted": prayerRequest.date,
-            "status": prayerRequest.status,
-            "postType": prayerRequest.postType,
-            "prayerRequestText": prayerRequest.postText,
-            "privacy": prayerRequest.privacy,
-            "prayerRequestTitle": prayerRequest.postTitle
+            "datePosted": post.date,
+            "status": post.status,
+            "postType": post.postType,
+            "prayerRequestText": post.postText,
+            "privacy": post.privacy,
+            "prayerRequestTitle": post.postTitle
         ])
         
         // Add PrayerRequestID to prayerFeed/{userID}
-        if prayerRequest.status == "No Longer Needed" {
-            deleteRequestFromFeed(prayerRequest: prayerRequest, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
+        if post.status == "No Longer Needed" {
+            deleteFromFeed(post: post, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
         } else {
-            if prayerRequest.privacy == "public" && friendsList.isEmpty == false {
+            if post.privacy == "public" && friendsList.isEmpty == false {
                 for friendID in friendsList {
-                    updatePrayerFeed(prayerRequest: prayerRequest, person: person, friendID: friendID, updateFriend: true)
+                    updateFriendsFeed(post: post, person: person, friendID: friendID, updateFriend: true)
                 }
             } 
-            updatePrayerFeed(prayerRequest: prayerRequest, person: person, friendID: "", updateFriend: false)
+            updateFriendsFeed(post: post, person: person, friendID: "", updateFriend: false)
             
             // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
-            updatePrayerRequestsDataCollection(prayerRequest: prayerRequest, person: person)
-            print(prayerRequest.postText)
+            updatePostsDataCollection(prayerRequest: post, person: person)
+            print(post.postText)
         }
     }
     
     // This function updates the prayer feed of all users who are friends of the person.
-    func updatePrayerFeed(prayerRequest: Post, person: Person, friendID: String, updateFriend: Bool) {
+    func updateFriendsFeed(post: Post, person: Person, friendID: String, updateFriend: Bool) {
         if updateFriend == true {
-            let ref = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
+            let ref = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(post.id)
             ref.setData([
-                "datePosted": prayerRequest.date,
-                "firstName": prayerRequest.firstName,
-                "lastName": prayerRequest.lastName,
-                "status": prayerRequest.status,
-                "prayerRequestText": prayerRequest.postText,
-                "postType": prayerRequest.postType,
+                "datePosted": post.date,
+                "firstName": post.firstName,
+                "lastName": post.lastName,
+                "status": post.status,
+                "prayerRequestText": post.postText,
+                "postType": post.postType,
                 "userID": person.userID,
                 "username": person.username,
-                "privacy": prayerRequest.privacy,
-                "prayerRequestTitle": prayerRequest.postTitle,
-                "latestUpdateText": prayerRequest.latestUpdateText,
-                "latestUpdateDatePosted": prayerRequest.latestUpdateDatePosted,
-                "latestUpdateType": prayerRequest.latestUpdateType
+                "privacy": post.privacy,
+                "prayerRequestTitle": post.postTitle,
+                "latestUpdateText": post.latestUpdateText,
+                "latestUpdateDatePosted": post.latestUpdateDatePosted,
+                "latestUpdateType": post.latestUpdateType
             ])
-            print(prayerRequest.id)
+            print(post.id)
             print(friendID)
         } else {
-            let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+            let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
             ref.setData([
-                "datePosted": prayerRequest.date,
-                "firstName": prayerRequest.firstName,
-                "lastName": prayerRequest.lastName,
-                "status": prayerRequest.status,
-                "prayerRequestText": prayerRequest.postText,
-                "postType": prayerRequest.postType,
+                "datePosted": post.date,
+                "firstName": post.firstName,
+                "lastName": post.lastName,
+                "status": post.status,
+                "prayerRequestText": post.postText,
+                "postType": post.postType,
                 "userID": person.userID,
                 "username": person.username,
-                "privacy": prayerRequest.privacy,
-                "prayerRequestTitle": prayerRequest.postTitle,
-                "latestUpdateText": prayerRequest.latestUpdateText,
-                "latestUpdateDatePosted": prayerRequest.latestUpdateDatePosted,
-                "latestUpdateType": prayerRequest.latestUpdateType,
-                "isPinned": prayerRequest.isPinned
+                "privacy": post.privacy,
+                "prayerRequestTitle": post.postTitle,
+                "latestUpdateText": post.latestUpdateText,
+                "latestUpdateDatePosted": post.latestUpdateDatePosted,
+                "latestUpdateType": post.latestUpdateType,
+                "isPinned": post.isPinned
             ])
         }
     }
     
     // this function updates the prayer requests collection carrying all prayer requests. Takes in the prayer request being updated, and the person who is being updated for.
-    func updatePrayerRequestsDataCollection(prayerRequest: Post, person: Person) {
+    func updatePostsDataCollection(prayerRequest: Post, person: Person) {
         let ref =
         db.collection("prayerRequests").document(prayerRequest.id)
         
@@ -344,33 +336,33 @@ class PrayerRequestHelper {
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
-    func deletePrayerRequest(prayerRequest: Post, person: Person, friendsList: [String]) {
-        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(prayerRequest.firstName.lowercased())_\(prayerRequest.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
+    func deletePost(post: Post, person: Person, friendsList: [String]) {
+        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
         
         ref.delete() { err in
             if let err = err {
                 print("Error removing document: \(err)")
             } else {
                 print("Document successfully deleted")
-                print(prayerRequest.id)
-                print(prayerRequest.postText)
+                print(post.id)
+                print(post.postText)
             }
         }
         
         // Delete PrayerRequest from all feeds: friend feeds and user's feed.
-        deleteRequestFromFeed(prayerRequest: prayerRequest, person: person, friendsList: friendsList)
+        deleteFromFeed(post: post, person: person, friendsList: friendsList)
         
         // Delete PrayerRequestID and Data from prayerRequests/{prayerRequestID}
         let ref3 =
-        db.collection("prayerRequests").document(prayerRequest.id)
+        db.collection("prayerRequests").document(post.id)
         
         ref3.delete()
     }
     
     // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
-    func deleteRequestFromFeed(prayerRequest: Post, person: Person, friendsList: [String]) {
+    func deleteFromFeed(post: Post, person: Person, friendsList: [String]) {
         var isMyProfile: Bool
-        if person.username != "" && person.userID == prayerRequest.userID {
+        if person.username != "" && person.userID == post.userID {
             isMyProfile = true
         } else {
             isMyProfile = false
@@ -378,59 +370,59 @@ class PrayerRequestHelper {
     
         // Delete PrayerRequestID from prayerFeed/{userID}
 //        if isMyProfile == true {
-        if prayerRequest.privacy == "public" && friendsList.isEmpty == false {
+        if post.privacy == "public" && friendsList.isEmpty == false {
             for friendID in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
+                let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(post.id)
                 ref2.delete() { err in
                     if let err = err {
                         print("Error removing document: \(err)")
                     } else {
                         print("Document successfully deleted")
-                        print(prayerRequest.id)
-                        print(prayerRequest.postText)
+                        print(post.id)
+                        print(post.postText)
                     }
                 }
             }
         } // Delete from your friends' feeds.
         
         // Delete from your own user feed.
-        let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+        let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
         ref2.delete() { err in
             if let err = err {
                 print("Error removing document: \(err)")
             } else {
                 print("Document successfully deleted")
-                print(prayerRequest.id)
-                print(prayerRequest.postText)
+                print(post.id)
+                print(post.postText)
             }
         }
     }
     
-    func togglePinned(person: Person, prayerRequest: Post, toggle: Bool) {
-        let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+    func togglePinned(person: Person, post: Post, toggle: Bool) {
+        let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
         ref.updateData([
             "isPinned": toggle
         ])
         
-        if person.userID == prayerRequest.userID {
-            let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
+        if person.userID == post.userID {
+            let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document(post.id)
             ref2.updateData([
                 "isPinned": toggle
             ])
         } // update data to personal profile feed if this is under your profile as well.
     }
     
-    func publicToPrivate(prayerRequest: Post, friendsList: [String]) {
+    func publicToPrivate(post: Post, friendsList: [String]) {
         if friendsList.isEmpty == false {
             for friendID in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequest.id)
+                let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(post.id)
                 ref2.delete() { err in
                     if let err = err {
                         print("Error removing document: \(err)")
                     } else {
                         print("Document successfully deleted")
-                        print(prayerRequest.id)
-                        print(prayerRequest.postText)
+                        print(post.id)
+                        print(post.postText)
                     }
                 }
             }

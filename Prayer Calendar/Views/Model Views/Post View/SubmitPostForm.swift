@@ -95,7 +95,7 @@ struct SubmitPostForm: View {
     }
         
     func submitList() {
-        PrayerRequestHelper().createPrayerRequest(
+        PostHelper().createPost(
             userID: userHolder.person.userID,
             datePosted: Date(),
             person: person,

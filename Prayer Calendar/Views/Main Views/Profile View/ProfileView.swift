@@ -19,7 +19,7 @@ struct ProfileView: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
-        NavigationStack() {
+        NavigationStack {
             ScrollView {
                 VStack {
                     HStack {
@@ -80,24 +80,14 @@ struct ProfileView: View {
                             .padding(.trailing, 20)
                         }
                         Divider()
-                        
-                        FeedRequestsRowView(viewModel: viewModel, person: person, profileOrFeed: "profile")
-                        //                    if userHolder.person.username == person.username {
-                        //                        ProfileFeed(viewModel: viewModel, person: userHolder.person) // Leaving as a separate view for now in case need to implement tab view.
-                        //                            .frame(maxHeight: .infinity)
-                        //                            .padding(.top, 20)
-                        //                    } else {
-                        //                        ProfileFeed(viewModel: viewModel, person: person) // Leaving as a separate view for now in case need to implement tab view.
-                        //                            .frame(maxHeight: .infinity)
-                        //                            .padding(.top, 20)
-                        //                    }
+                        PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
                     }
                     .padding(.top, 10)
                 }
             }
             .task {
                 do {
-                    person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                 } catch {
                     print(error)
                 }
@@ -115,7 +105,7 @@ struct ProfileView: View {
                 Task {
                     do {
                         if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
-                            self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
+                            self.person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
                             await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                         } else {
                             self.viewModel.prayerRequests = viewModel.prayerRequests
@@ -132,7 +122,7 @@ struct ProfileView: View {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         HStack {
                             if person.username == userHolder.person.username {
-                                NavigationLink(value: "Settings") {
+                                NavigationLink(value: "ProfileSettings") {
                                     Image(systemName: "gear")
                                 }
                                 .id(UUID())
@@ -148,7 +138,7 @@ struct ProfileView: View {
                     }
             }
             .navigationDestination(for: String.self) { value in
-                if value == "Settings" {
+                if value == "ProfileSettings" {
                     ProfileSettingsView()
                 }
             }

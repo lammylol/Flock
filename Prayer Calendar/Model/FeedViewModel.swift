@@ -65,7 +65,7 @@ import FirebaseFirestore
         defer { viewState = .finished }
         
         do {
-            let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: nil, profileOrFeed: profileOrFeed)
+            let (newPrayerRequests, lastDocument) = try await FeedHelper().getPostFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: nil, profileOrFeed: profileOrFeed)
             
             self.prayerRequests = newPrayerRequests
             self.queryCount = newPrayerRequests.count
@@ -88,7 +88,7 @@ import FirebaseFirestore
         defer { viewState = .finished }
         
         do {
-            let (newPrayerRequests, lastDocument) = try await PrayerFeedHelper().getPrayerRequestFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: lastDocument, profileOrFeed: profileOrFeed)
+            let (newPrayerRequests, lastDocument) = try await FeedHelper().getPostFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: lastDocument, profileOrFeed: profileOrFeed)
             
             self.queryCount = newPrayerRequests.count
             self.prayerRequests.append(contentsOf: newPrayerRequests)

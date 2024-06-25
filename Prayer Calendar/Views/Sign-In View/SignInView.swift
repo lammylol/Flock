@@ -148,17 +148,17 @@ struct SignInView: View {
             }
         }
         .task { // This task runs whenever 'SignInView' is opened.
-            do {
-                userHolder.viewState = .loading
-                defer { userHolder.viewState = .finished }
-                
-                if userHolder.isLoggedIn == .authenticated/* && userHolder.person.userID == ""*/ {
-                    let userID = Auth.auth().currentUser?.uid ?? ""
-                    print(userID)
-                    await setInfo()
-                } else {
-                    resetInfo()
-                }
+            if userHolder.isLoggedIn == .authenticated && !userHolder.isLoading {
+                    userHolder.viewState = .loading
+                    defer { userHolder.viewState = .finished }
+                    
+                    do {
+                        let userID = Auth.auth().currentUser?.uid ?? ""
+                        print(userID)
+                        await setInfo()
+                    }
+            } else {
+                resetInfo()
             }
         }
     }
@@ -215,12 +215,12 @@ struct SignInView: View {
         let userID = Auth.auth().currentUser?.uid ?? ""
         
         do {
-            userHolder.person = try await PrayerPersonHelper().getUserInfo(userID: userID)
+            userHolder.person = try await PersonHelper().getUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
             
-            userHolder.prayStartDate = try await PrayerPersonHelper().getPrayerList(userID: userID).0 // set Start Date
-            userHolder.prayerList = try await PrayerPersonHelper().getPrayerList(userID: userID).1 // set Prayer List
+            userHolder.prayStartDate = try await PersonHelper().getPrayerList(userID: userID).0 // set Start Date
+            userHolder.prayerList = try await PersonHelper().getPrayerList(userID: userID).1 // set Prayer List
             
             dateHolder.date = Date() // Resets the view to current month on current
             

@@ -17,18 +17,14 @@ struct PostRow: View {
     
     // For Update
     @State private var expandUpdate: Bool = false
-//    @State private var truncatedTextSize: CGFloat = .zero
-//    @State private var expandTextSize: CGFloat = .zero
     @State private var isTruncated: Bool = false
     
     // For Main Text
     @State private var postExpandUpdate: Bool = false
-//    @State private var postTruncatedTextSize: CGFloat = .zero
-//    @State private var postExpandTextSize: CGFloat = .zero
     @State private var postIsTruncated: Bool = false
     
     var body: some View {
-        NavigationLink(destination: PostView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post)) {
+        NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post)) {
             LazyVStack{
                 HStack {
                     if viewModel.profileOrFeed == "feed" { //feed used in the feed view
@@ -65,7 +61,7 @@ struct PostRow: View {
                                     } // can only edit if you are the owner of the post.
                                 }
                                 Button {
-                                    self.pinPrayerRequest()
+                                    self.pinPost()
                                 } label: {
                                     if post.isPinned == false {
                                         Label("Pin to feed", systemImage: "pin.fill")
@@ -127,7 +123,7 @@ struct PostRow: View {
                                 .multilineTextAlignment(.leading)
                                 
                                 if isTruncated {
-                                    NavigationLink(destination: PostView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post, lineLimit: .max)) {
+                                    NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post, lineLimit: .max)) {
                                         Text(expandUpdate ? "Show Less" : "Show More")
                                             .italic()
                                             .foregroundStyle(Color.blue)
@@ -189,7 +185,7 @@ struct PostRow: View {
                                 .italic()
                                 .foregroundStyle(Color.blue)
                                 .font(.system(size: 14))
-                                // technically no need for navigation link since you just click to go to the next page anyways.
+                            // technically no need for navigation link since you just click to go to the next page anyways.
                         } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
                         
                         HStack {
@@ -210,19 +206,12 @@ struct PostRow: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    func pinPrayerRequest(){
+    func pinPost(){
         var isPinnedToggle = post.isPinned
         isPinnedToggle.toggle()
         self.post.isPinned = isPinnedToggle
-//        
-//        if isPinnedToggle == true {
-//            userHolder.pinnedPrayerRequests.append(post)
-//        } else {
-//            userHolder.pinnedPrayerRequests.removeAll(where: { $0.id == post.id})
-//        }
         
-        PrayerRequestHelper().togglePinned(person: userHolder.person, prayerRequest: post, toggle: isPinnedToggle)
-//        userHolder.refresh = true
+        PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
     }
     
     func removeFromFeed(){
@@ -239,11 +228,11 @@ struct PostRow: View {
 }
 
 struct LatestUpdate: View {
-    var prayerRequest: Post
+    var post: Post
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text("\(prayerRequest.latestUpdateType): \(prayerRequest.latestUpdateText)")
+            Text("\(post.latestUpdateType): \(post.latestUpdateText)")
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .font(.system(size: 14))
