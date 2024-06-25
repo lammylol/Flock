@@ -65,7 +65,7 @@ struct UpdateView: View {
         }
         .task {
             do {
-                prayerRequestUpdates = try await PrayerUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
+                prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
             } catch {
                 print("error retrieving")
             }

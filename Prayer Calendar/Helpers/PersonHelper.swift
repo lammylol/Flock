@@ -152,16 +152,16 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
     } // This function enables the user to update user documentation with userID, prayer start date, and prayer list.
     
     //Adding a friend - this updates the historical prayer feed
-    func updateFriendHistoricalPrayersIntoFeed(userID: String, person: Person) async throws {
+    func updateFriendHistoricalPostsIntoFeed(userID: String, person: Person) async throws {
         //In this scenario, userID is the userID of the person retrieving data from the 'person'.
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let prayerRequests = try await PostHelper().getPrayerRequests(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
+            let prayerRequests = try await PostHelper().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
             
             print(prayerRequests.description)
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
             for prayer in prayerRequests {
-                PostHelper().updatePrayerFeed(prayerRequest: prayer, person: person, friendID: userID, updateFriend: true)
+                PostHelper().updateFriendsFeed(post: prayer, person: person, friendID: userID, updateFriend: true)
                 print(prayer.id)
             }
         } catch {

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct FeedRequestsRowView: View {
+struct PostsFeed: View {
 //    @State private var showEdit: Bool = false
 //    @State var prayerRequests: [PrayerRequest] = []
 //    @State var prayerRequestVar: Post = Post.blank
@@ -33,22 +33,19 @@ struct FeedRequestsRowView: View {
                                 .foregroundStyle(.bar)
                         }
                         .task {
-                            //   print("prayerRequest ID: "+prayerRequest.id)
-                            //   print("viewModel.lastDocument: "+String(viewModel.lastDocument?.documentID ?? ""))
                             if viewModel.hasReachedEnd(of: prayerRequest) && !viewModel.isFetching {
                                 await viewModel.getNextPrayerRequests(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
                             }
                         }
                     }
                 }
-//                .scrollDismissesKeyboard(.immediately)
                 .scrollContentBackground(.hidden)
             }
         }
         .task {
             if viewModel.prayerRequests.isEmpty {
                 do {
-                    self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    self.person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)
@@ -124,7 +121,7 @@ struct FeedRequestsRowView: View {
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
                 do {
-                    self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    self.person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)

@@ -87,13 +87,13 @@ struct EditPrayerUpdate: View {
         updates.removeAll(where: {$0.id == update.id}) // must come first in order to make sure the prayer request last date posted can be factored correctly.
         print("after:")
         print(updates)
-        PrayerUpdateHelper().deletePrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, updatesArray: updates, person: person, friendsList: userHolder.friendsList)
+        PostUpdateHelper().deletePrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, updatesArray: updates, person: person, friendsList: userHolder.friendsList)
         print("Deleted")
         dismiss()
     }
     
     func updatePrayerUpdate() {
-        PrayerUpdateHelper().editPrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: userHolder.friendsList, updatesArray: prayerRequestUpdates)
+        PostUpdateHelper().editPrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: userHolder.friendsList, updatesArray: prayerRequestUpdates)
         print("Saved")
         dismiss()
     }
@@ -159,7 +159,7 @@ struct AddPrayerUpdateView: View {
     }
     
     func addUpdate() {
-        PrayerUpdateHelper().addPrayerRequestUpdate(datePosted: Date(), prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: userHolder.friendsList)
+        PostUpdateHelper().addPrayerRequestUpdate(datePosted: Date(), prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: userHolder.friendsList)
         print("Saved")
         dismiss()
     }

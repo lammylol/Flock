@@ -80,40 +80,14 @@ struct ProfileView: View {
                             .padding(.trailing, 20)
                         }
                         Divider()
-                        
-                        FeedRequestsRowView(viewModel: viewModel, person: person, profileOrFeed: "profile")
+                        PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
                     }
                     .padding(.top, 10)
                 }
             }
-            .toolbar {
-                // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        HStack {
-                            if person.username == userHolder.person.username {
-                                NavigationLink(value: "Settings") {
-                                    Image(systemName: "gear")
-                                }
-                                .id(UUID())
-                                .padding(.trailing, -10)
-                                .padding(.top, 2)
-                            }
-                            Button(action: {
-                                showSubmit.toggle()
-                            }) {
-                                Image(systemName: "square.and.pencil")
-                            }
-                        }
-                    }
-            }
-            .navigationDestination(for: String.self) { value in
-                if value == "Settings" {
-                    ProfileSettingsView()
-                }
-            }
             .task {
                 do {
-                    person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                 } catch {
                     print(error)
                 }
@@ -131,7 +105,7 @@ struct ProfileView: View {
                 Task {
                     do {
                         if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
-                            self.person = try await PrayerPersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
+                            self.person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
                             await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                         } else {
                             self.viewModel.prayerRequests = viewModel.prayerRequests
@@ -143,6 +117,31 @@ struct ProfileView: View {
             }, content: {
                 SubmitPostForm(person: person)
             })
+            .toolbar {
+                // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        HStack {
+                            if person.username == userHolder.person.username {
+                                NavigationLink(value: "ProfileSettings") {
+                                    Image(systemName: "gear")
+                                }
+                                .id(UUID())
+                                .padding(.trailing, -10)
+                                .padding(.top, 2)
+                            }
+                            Button(action: {
+                                showSubmit.toggle()
+                            }) {
+                                Image(systemName: "square.and.pencil")
+                            }
+                        }
+                    }
+            }
+            .navigationDestination(for: String.self) { value in
+                if value == "ProfileSettings" {
+                    ProfileSettingsView()
+                }
+            }
         }
     }
     
