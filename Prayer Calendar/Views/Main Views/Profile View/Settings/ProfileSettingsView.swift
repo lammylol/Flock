@@ -56,13 +56,6 @@ struct ProfileSettingsView: View {
             }
         }
     }
-    
-    func resetInfo() {
-        userHolder.friendsList = []
-        userHolder.person.userID = ""
-        userHolder.prayerList = ""
-        userHolder.prayStartDate = Date()
-    }
 }
 
 struct DeleteButton: View {
