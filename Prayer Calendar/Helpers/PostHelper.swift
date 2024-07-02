@@ -295,11 +295,10 @@ class PostHelper {
                     "latestUpdateType": post.latestUpdateType
                 ])
                 
-                
                 print("success: \(post.id)")
                 print("from person: \(person.userID)")
-                print("posting to \(friend.userID)")
-                print(ref.path)
+                print("posting to: \(friend.userID)")
+                print("path: \(ref.path)")
             } else {
                 let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
                  try await ref.setData([
