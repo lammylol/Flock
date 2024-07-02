@@ -144,11 +144,11 @@ struct SubmitPostForm: View {
         ScrollView {
             VStack (alignment: .leading) {
                 VStack (alignment: .leading) {
-                    Text("Sharing with: \(friendsList)")
-                        .italic()
+                    Text("Who Can See This Post?")
                         .multilineTextAlignment(.leading)
-//                    Text("\(friendsList)")
-//                        .multilineTextAlignment(.leading)
+                        .padding(.bottom, 1)
+                    Text("\(friendsList)")
+                        .multilineTextAlignment(.leading)
                 }
                 .font(.system(size: 12))
                 .padding(.bottom, 10)
