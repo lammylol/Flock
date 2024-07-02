@@ -82,11 +82,12 @@ struct PrayerNameInputView: View {
     func submitList() {
         Task {
             do {
-                try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: prayerListHolder.prayerList)
+                defer {saved = "Saved"
+                    self.isFocused = false // removes focus so keyboard disappears
+                    //                dismiss() //dismiss view
+                }
                 
-                saved = "Saved"
-                self.isFocused = false // removes focus so keyboard disappears
-//                dismiss() //dismiss view
+                try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: prayerListHolder.prayerList)
                 
             } catch PrayerPersonRetrievalError.incorrectUsername {
                 saved = "invalid username entered"
@@ -120,7 +121,7 @@ struct PrayerNameInputView: View {
                     $0.username
                 }
             } // reference to new state of prayer list.
-            var linkedFriends = [String()]
+        var linkedFriends: [String] = []
             
             print(prayerNamesOld)
             print(prayerNamesNew)
@@ -145,20 +146,26 @@ struct PrayerNameInputView: View {
                     }
                     
                     person = try await PersonHelper().retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder) // retrieve the "person" structure based on their username. Will return back user info.
-                        
-                    // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
-                    let refFriends = db.collection("users").document(person.userID).collection("friendsList").document(userHolder.person.userID)
+                    
+                    print("usernameOrName: \(usernameOrName)")
                         
                     do {
+                        // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
+                        let refFriends = db.collection("users").document(person.userID).collection("friendsList").document(userHolder.person.userID)
                         let document = try await refFriends.getDocument()
                         
                         if !document.exists {
                             try await refFriends.setData([
-                                "username": userHolder.person.username
-                            ])  
-                            
-                            try await PersonHelper().updateFriendHistoricalPostsIntoFeed(userID: userHolder.person.userID, person: person)
+                                "username": userHolder.person.username,
+                                "userID": userHolder.person.userID,
+                                "firstName": userHolder.person.firstName,
+                                "lastName": userHolder.person.lastName,
+                                "email": userHolder.person.email
+                            ])
                         }
+                        
+                        try await PersonHelper().updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: person)
+                        
                     } catch {
                         print(error.localizedDescription)
                     }
@@ -168,7 +175,7 @@ struct PrayerNameInputView: View {
                     
                     // Fetch all historical prayers from that person into your feed, noting that these do not have a linked username. So you need to pass in your own userID into that person for the function to retrieve out of your prayerFeed/youruserID.
                     do {
-                        try await PersonHelper().updateFriendHistoricalPostsIntoFeed(userID: userHolder.person.userID, person: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
+                        try await PersonHelper().updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
                     } catch {
                         throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
                     }
@@ -224,18 +231,13 @@ struct PrayerNameInputView: View {
     //Function to changed "saved" text. When user saves textEditor, saved will appear until the user clicks back into textEditor, then the words "saved" should disappear. This will also occur when cancel is selected.
     func savedText() -> String {
         return saved
-//        if self.isFocused == false {
-//            return ""
-//        } else {
-//            return saved
-//        }
     }
 }
 
-struct PrayerNameInputView_Previews: PreviewProvider {
-    static var previews: some View {
-        PrayerNameInputView(prayerListHolder: UserProfileHolder())
-            .environment(UserProfileHolder())
-            .environment(UserProfileHolder())
-    }
-}
+//struct PrayerNameInputView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        PrayerNameInputView(prayerListHolder: UserProfileHolder())
+//            .environment(UserProfileHolder())
+//            .environment(UserProfileHolder())
+//    }
+//}

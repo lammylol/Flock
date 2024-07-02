@@ -19,8 +19,8 @@ struct SubmitPostForm: View {
     @State private var postText: String = ""
     @State private var postTitle: String = ""
     @State private var postType: String = ""
-//    @State private var priority = "low"
     @State private var privacy: String = "private"
+    @State private var isPresentingFriends: Bool = false
     
     var body: some View {
         NavigationView{
@@ -55,18 +55,34 @@ struct SubmitPostForm: View {
                                 .offset(x: -5)
                         }
                     }
-                    HStack {
-                        Text("Privacy")
-                        Spacer()
-                        PrivacyView(person: person, privacySetting: $privacy)
-                            .task {
-                                if person.username == "" && person.userID == userHolder.person.userID {
-                                    privacy = "private"
+                    Section {
+                        HStack {
+                            Text("Privacy")
+                            Spacer()
+                            PrivacyView(person: person, privacySetting: $privacy)
+                                .task {
+                                    if person.username == "" && person.userID == userHolder.person.userID {
+                                        privacy = "private"
+                                    }
                                 }
-                            }
+                                .onChange(of: privacy, {
+                                    if privacy == "public" {
+                                        isPresentingFriends = true
+                                    }
+                                })
+                        }
+                    } footer: {
+                        if privacy == "public" {
+                            friendsList()
+                                .padding(.top, 10)
+                        }
                     }
                 }
             }
+//            .sheet(isPresented: $isPresentingFriends, content: {
+//                friendsList()
+//                    .presentationDetents([.fraction(0.20)])
+//            })
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button("Cancel") {
@@ -108,9 +124,53 @@ struct SubmitPostForm: View {
         print("Saved")
         dismiss()
     }
+    
+    func refreshFriends() {
+        Task {
+            do {
+                userHolder.friendsList = try await PersonHelper().getFriendsList(userID: userHolder.person.userID)
+                self.userHolder.friendsList = userHolder.friendsList
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    func friendsList() -> some View {
+        let friendsList = userHolder.friendsList.map({
+            $0.firstName + " " + $0.lastName
+        }).joined(separator: ", ")
+        ScrollView {
+            VStack (alignment: .leading) {
+                VStack (alignment: .leading) {
+                    Text("Sharing with: \(friendsList)")
+                        .italic()
+                        .multilineTextAlignment(.leading)
+//                    Text("\(friendsList)")
+//                        .multilineTextAlignment(.leading)
+                }
+                .font(.system(size: 12))
+                .padding(.bottom, 10)
+                
+                HStack {
+                    Text("Don't see a friend on here?")
+                    Button(action: {
+                        self.refreshFriends()
+                    }, label: {
+                        Text("Refresh")
+                            .font(.system(size: 12))
+                            .italic()
+                    })
+                    Spacer()
+                }
+                .font(.system(size: 12))
+            }
+        }
+    }
 }
 
-#Preview {
-    SubmitPostForm(person: Person(username: "lammylol"))
-        .environment(UserProfileHolder())
-}
+//#Preview {
+//    SubmitPostForm(person: Person(username: "lammylol"))
+//        .environment(UserProfileHolder())
+//}

@@ -154,14 +154,7 @@ class PostHelper {
     }
         
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
-    func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [String]) {
-        
-//        var isMyProfile: Bool
-//        if person.username != "" && person.userID == userID {
-//            isMyProfile = true
-//        } else {
-//            isMyProfile = false
-//        } // this checks whether the prayer request is for yourself, or for a local person that you are praying for.
+    func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [Person]) {
 //        
         // Create new PrayerRequestID to users/{userID}/prayerList/{person}/prayerRequests
         let ref = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document()
@@ -186,9 +179,11 @@ class PostHelper {
         
         // Add PrayerRequestID to prayerFeed/{userID}
 //        if isMyProfile == true { // removing this logic as of May 25, 2024. Now your prayer requests will update your feed as well.
-        if privacy == "public" && friendsList.isEmpty == false {
-            for friendID in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(prayerRequestID)
+        if privacy == "public" && !friendsList.isEmpty {
+            for friend in friendsList {
+                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(prayerRequestID)
+                print(friend.username)
+                print(friend.userID)
                 ref2.setData([
                     "datePosted": datePosted,
                     "firstName": person.firstName,
@@ -245,74 +240,87 @@ class PostHelper {
     }
     
     // This function enables an edit to a prayer requests off of a selected prayer request.
-    func editPost(post: Post, person: Person, friendsList: [String]) {
-        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
-        
-        ref.updateData([
-            "datePosted": post.date,
-            "status": post.status,
-            "postType": post.postType,
-            "prayerRequestText": post.postText,
-            "privacy": post.privacy,
-            "prayerRequestTitle": post.postTitle
-        ])
-        
-        // Add PrayerRequestID to prayerFeed/{userID}
-        if post.status == "No Longer Needed" {
-            deleteFromFeed(post: post, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
-        } else {
-            if post.privacy == "public" && friendsList.isEmpty == false {
-                for friendID in friendsList {
-                    updateFriendsFeed(post: post, person: person, friendID: friendID, updateFriend: true)
-                }
-            } 
-            updateFriendsFeed(post: post, person: person, friendID: "", updateFriend: false)
+    func editPost(post: Post, person: Person, friendsList: [Person]) async throws {
+        do {
+            let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
             
-            // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
-            updatePostsDataCollection(prayerRequest: post, person: person)
-            print(post.postText)
+            try await ref.updateData([
+                "datePosted": post.date,
+                "status": post.status,
+                "postType": post.postType,
+                "prayerRequestText": post.postText,
+                "privacy": post.privacy,
+                "prayerRequestTitle": post.postTitle
+            ])
+            
+            // Add PrayerRequestID to prayerFeed/{userID}
+            if post.status == "No Longer Needed" {
+                deleteFromFeed(post: post, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
+            } else {
+                if post.privacy == "public" && friendsList.isEmpty == false {
+                    for friend in friendsList {
+                        try await updateFriendsFeed(post: post, person: person, friend: friend, updateFriend: true)
+                    }
+                }
+                try await updateFriendsFeed(post: post, person: person, friend: Person(), updateFriend: false)
+                
+                // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
+                updatePostsDataCollection(prayerRequest: post, person: person)
+                print(post.postText)
+            }
+        } catch {
+            print(error)
         }
     }
     
     // This function updates the prayer feed of all users who are friends of the person.
-    func updateFriendsFeed(post: Post, person: Person, friendID: String, updateFriend: Bool) {
-        if updateFriend == true {
-            let ref = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(post.id)
-            ref.setData([
-                "datePosted": post.date,
-                "firstName": post.firstName,
-                "lastName": post.lastName,
-                "status": post.status,
-                "prayerRequestText": post.postText,
-                "postType": post.postType,
-                "userID": person.userID,
-                "username": person.username,
-                "privacy": post.privacy,
-                "prayerRequestTitle": post.postTitle,
-                "latestUpdateText": post.latestUpdateText,
-                "latestUpdateDatePosted": post.latestUpdateDatePosted,
-                "latestUpdateType": post.latestUpdateType
-            ])
-            print(post.id)
-            print(friendID)
-        } else {
-            let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-            ref.setData([
-                "datePosted": post.date,
-                "firstName": post.firstName,
-                "lastName": post.lastName,
-                "status": post.status,
-                "prayerRequestText": post.postText,
-                "postType": post.postType,
-                "userID": person.userID,
-                "username": person.username,
-                "privacy": post.privacy,
-                "prayerRequestTitle": post.postTitle,
-                "latestUpdateText": post.latestUpdateText,
-                "latestUpdateDatePosted": post.latestUpdateDatePosted,
-                "latestUpdateType": post.latestUpdateType,
-                "isPinned": post.isPinned
-            ])
+    func updateFriendsFeed(post: Post, person: Person, friend: Person, updateFriend: Bool) async throws {
+        do {
+            if updateFriend {
+                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+                
+                try await ref.setData([
+                    "datePosted": post.date,
+                    "firstName": post.firstName,
+                    "lastName": post.lastName,
+                    "status": post.status,
+                    "prayerRequestText": post.postText,
+                    "postType": post.postType,
+                    "userID": person.userID,
+                    "username": person.username,
+                    "privacy": post.privacy,
+                    "prayerRequestTitle": post.postTitle,
+                    "latestUpdateText": post.latestUpdateText,
+                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
+                    "latestUpdateType": post.latestUpdateType
+                ])
+                
+                
+                print("success: \(post.id)")
+                print("from person: \(person.userID)")
+                print("posting to \(friend.userID)")
+                print(ref.path)
+            } else {
+                let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
+                 try await ref.setData([
+                    "datePosted": post.date,
+                    "firstName": post.firstName,
+                    "lastName": post.lastName,
+                    "status": post.status,
+                    "prayerRequestText": post.postText,
+                    "postType": post.postType,
+                    "userID": person.userID,
+                    "username": person.username,
+                    "privacy": post.privacy,
+                    "prayerRequestTitle": post.postTitle,
+                    "latestUpdateText": post.latestUpdateText,
+                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
+                    "latestUpdateType": post.latestUpdateType,
+                    "isPinned": post.isPinned
+                ])
+            }
+        } catch {
+            print(error)
         }
     }
     
@@ -336,7 +344,7 @@ class PostHelper {
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
-    func deletePost(post: Post, person: Person, friendsList: [String]) {
+    func deletePost(post: Post, person: Person, friendsList: [Person]) {
         let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
         
         ref.delete() { err in
@@ -360,19 +368,13 @@ class PostHelper {
     }
     
     // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
-    func deleteFromFeed(post: Post, person: Person, friendsList: [String]) {
-        var isMyProfile: Bool
-        if person.username != "" && person.userID == post.userID {
-            isMyProfile = true
-        } else {
-            isMyProfile = false
-        }
+    func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) {
     
         // Delete PrayerRequestID from prayerFeed/{userID}
 //        if isMyProfile == true {
         if post.privacy == "public" && friendsList.isEmpty == false {
-            for friendID in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(post.id)
+            for friend in friendsList {
+                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
                 ref2.delete() { err in
                     if let err = err {
                         print("Error removing document: \(err)")
@@ -412,10 +414,10 @@ class PostHelper {
         } // update data to personal profile feed if this is under your profile as well.
     }
     
-    func publicToPrivate(post: Post, friendsList: [String]) {
+    func publicToPrivate(post: Post, friendsList: [Person]) {
         if friendsList.isEmpty == false {
-            for friendID in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friendID).collection("prayerRequests").document(post.id)
+            for friend in friendsList {
+                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
                 ref2.delete() { err in
                     if let err = err {
                         print("Error removing document: \(err)")
