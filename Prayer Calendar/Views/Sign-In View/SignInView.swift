@@ -184,13 +184,11 @@ struct SignInView: View {
                     }
                     print(errorMessage)
                 } else {
-                    Task {                             
-                        
-                        userHolder.viewState = .loading
-                        defer { userHolder.viewState = .finished }
-                        
+                    Task {
                         do {
-
+                            userHolder.viewState = .loading
+                            defer { userHolder.viewState = .finished }
+                            
                             userHolder.userPassword = password
                             await setInfo()
                             
