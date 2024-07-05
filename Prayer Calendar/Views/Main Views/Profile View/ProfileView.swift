@@ -121,33 +121,32 @@ struct ProfileView: View {
             })
             .toolbar {
                 // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                    ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if person.username == userHolder.person.username {
                         HStack {
-                            if person.username == userHolder.person.username {
-                                Button(action: {
-                                    navigationPath.append("ProfileSettings")
-                                }) {
-                                    Image(systemName: "gear")
-                                }
-                                // temporary fix for Navigation Link not working.
-                                
-//                                .animation(.default)
-//                                NavigationLink(value: "ProfileSettings") {
-//                                    Image(systemName: "gear")
-//                                }
-                                .padding(.trailing, -10)
-                                .padding(.top, 2)
-                            }
                             Button(action: {
-                                showSubmit.toggle()
+                                navigationPath.append("settings")
                             }) {
-                                Image(systemName: "square.and.pencil")
+                                Image(systemName: "gear")
                             }
                         }
+                        // temporary fix for Navigation Link not working.
+                        .padding(.trailing, -10)
+                        .padding(.top, 2)
                     }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack {
+                        Button(action: {
+                            showSubmit.toggle()
+                        }) {
+                            Image(systemName: "square.and.pencil")
+                        }
+                    }
+                }
             }
             .navigationDestination(for: String.self) { value in
-                if value == "ProfileSettings" {
+                if value == "settings" {
                     ProfileSettingsView()
                 }
             }
