@@ -13,6 +13,7 @@ struct ContentView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(DateHolder.self) var dateHolder
     @State var selection: Int
+//    @State private var path: NavigationPath
     
     var body: some View {
         //Tabs for each view. Adds bottom icons.
@@ -39,7 +40,27 @@ struct ContentView: View {
     }
 }
 
-#Preview("Content View") {
-    ContentView(selection: 1)
-        .environment(UserProfileHolder())
+// Screen Destinations for Navigation Path
+extension ContentView {
+    enum ScreenDestinations {
+        case profile
+        case feed
+        case calendar
+        
+        @ViewBuilder func view(_path: Binding<NavigationPath>, person: Person) -> some View {
+            switch self {
+            case .calendar:
+                PrayerCalendarView()
+            case .feed:
+                FeedView(person: person)
+            case .profile:
+                ProfileView(person: person)
+            }
+        }
+    }
 }
+//
+//#Preview("Content View") {
+//    ContentView(selection: 1)
+//        .environment(UserProfileHolder())
+//}

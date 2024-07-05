@@ -32,7 +32,7 @@ struct PrayerCalendarView: View {
                             Text("")
                                 .toolbar() {
                                     ToolbarItem(placement: .automatic) {
-                                        NavigationLink(destination: PrayerNameInputView(prayerListHolder: prayerListHolder)){
+                                        NavigationLink(destination: PrayerNameInputView())/*prayerListHolder: prayerListHolder)*/{
                                             friendsListText
                                         }
                                     }

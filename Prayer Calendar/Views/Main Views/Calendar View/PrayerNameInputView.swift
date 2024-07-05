@@ -13,7 +13,7 @@ struct PrayerNameInputView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UserProfileHolder.self) var userHolder
     
-    @Bindable var prayerListHolder: UserProfileHolder // This holds things necessary for prayer list.
+//    @Bindable var userHolder: UserProfileHolder // This holds things necessary for prayer list.
 
     @State var prayStartDate: Date = Date()
     @State var prayerList: String = ""
@@ -21,12 +21,12 @@ struct PrayerNameInputView: View {
     @State var saved: String = ""
     @FocusState private var isFocused: Bool
     
-    init(prayerListHolder: UserProfileHolder) {
-        self.prayerListHolder = prayerListHolder
-        _prayerList = State(initialValue: prayerListHolder.prayerList)
-        _prayStartDate = State(initialValue: prayerListHolder.prayStartDate)
-    }
-    
+//    init(/*userHolder: UserProfileHolder*/) {
+////        self.userHolder = userHolder
+//        _prayerList = State(initialValue: userHolder.prayerList)
+//        _prayStartDate = State(initialValue: userHolder.prayStartDate)
+//    }
+//    
     var body: some View {
         NavigationStack {
             VStack{
@@ -75,14 +75,18 @@ struct PrayerNameInputView: View {
                     }
                 }
             }
-    }
+            .task {
+                self.prayerList = userHolder.prayerList
+                self.prayStartDate = userHolder.prayStartDate
+            }
+        }
     }
     
     //function to submit prayer list to firestore. This will update users' prayer list for retrieval into prayer calendar and it will also tie a friend to this user if the username is linked.
     func submitList() {
         Task {
             do {
-                try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: prayerListHolder.prayerList)
+                try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: userHolder.prayerList)
                 
                 saved = "Saved"
                 self.isFocused = false // removes focus so keyboard disappears
@@ -103,7 +107,7 @@ struct PrayerNameInputView: View {
             let db = Firestore.firestore()
             
             //Add user as friend to the friend's list.
-            print("Prayer List Old: " + prayerListHolder.prayerList)
+            print("Prayer List Old: " + userHolder.prayerList)
             print("Prayer List New: " + inputText)
             
         let prayerNamesOld = PersonHelper().retrievePrayerPersonArray(prayerList: existingInput).map {
@@ -216,8 +220,8 @@ struct PrayerNameInputView: View {
                     
             
             //reset local dataHolder
-            prayerListHolder.prayerList = prayerList/*.joined(separator: "\n")*/
-            prayerListHolder.prayStartDate = prayStartDate
+            userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
+            userHolder.prayStartDate = prayStartDate
 //            saved = "Saved"
     }
     
@@ -232,10 +236,10 @@ struct PrayerNameInputView: View {
     }
 }
 
-struct PrayerNameInputView_Previews: PreviewProvider {
-    static var previews: some View {
-        PrayerNameInputView(prayerListHolder: UserProfileHolder())
-            .environment(UserProfileHolder())
-            .environment(UserProfileHolder())
-    }
-}
+//struct PrayerNameInputView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        PrayerNameInputView(/*prayerListHolder: UserProfileHolder()*/)
+//            .environment(UserProfileHolder())
+//            .environment(UserProfileHolder())
+//    }
+//}
