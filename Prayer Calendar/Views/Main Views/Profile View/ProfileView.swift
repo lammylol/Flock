@@ -131,8 +131,8 @@ struct ProfileView: View {
                             }
                         }
                         // temporary fix for Navigation Link not working.
-                        .padding(.trailing, -10)
-                        .padding(.top, 2)
+                        .padding(.trailing, -18)
+                        .padding(.top, 3)
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
