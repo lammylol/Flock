@@ -102,7 +102,7 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle(person.firstName + " " + person.lastName)
-            .navigationBarTitleDisplayMode(.automatic)
+            .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showSubmit, onDismiss: {
                 Task {
                     do {
