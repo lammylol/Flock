@@ -217,6 +217,7 @@ struct SignInView: View {
             
             userHolder.prayStartDate = try await PersonHelper().getPrayerList(userID: userID).0 // set Start Date
             userHolder.prayerList = try await PersonHelper().getPrayerList(userID: userID).1 // set Prayer List
+            userHolder.prayerListArray = PersonHelper().retrievePrayerPersonArray(prayerList: userHolder.prayerList)
             
             dateHolder.date = Date() // Resets the view to current month on current
             
@@ -228,25 +229,11 @@ struct SignInView: View {
     }
     
     func setFriendsList(userID: String) async throws {
-        let db = Firestore.firestore() // initiaties Firestore
-        
-        guard userID != "" else {
-            throw PrayerPersonRetrievalError.noUserID
-        }
-        
         do {
-            let friendsListRef = db.collection("users").document(userID).collection("friendsList")
-            
-            let querySnapshot = try await friendsListRef.getDocuments()
-            
-            //append FriendsListArray in userHolder
-            for document in querySnapshot.documents {
-                print("\(document.documentID) => \(document.data())")
-                userHolder.friendsList.append(document.documentID)
-            }
+            userHolder.friendsList = try await PersonHelper().getFriendsList(userID: userHolder.person.userID)
         } catch {
-          print("Error getting documents: \(error)")
-        } // get friends list and add that to userholder.friendslist
+            print(error)
+        }
     }
 }
 
@@ -285,8 +272,8 @@ struct MyTextView: View {
         }
     }
 }
-
-#Preview {
-    SignInView()
-        .environment(UserProfileHolder())
-}
+//
+//#Preview {
+//    SignInView()
+//        .environment(UserProfileHolder())
+//}

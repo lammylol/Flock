@@ -20,7 +20,6 @@ struct CalendarCell: View {
     
     let prayerStartingSpaces: Int
     let prayerList: String
-    let prayerListArray: [Person]
     let prayerRange: Int
     
     var prayerName: String = ""
@@ -34,7 +33,6 @@ struct CalendarCell: View {
         self.prayerStartingSpaces = prayerStartingSpaces
         self.prayerList = prayerList
         self.prayerRange = prayerRange
-        self.prayerListArray = PersonHelper().retrievePrayerPersonArray(prayerList: prayerList)
     }
         
     var body : some View {
@@ -113,18 +111,18 @@ struct CalendarCell: View {
         
         if (count <= start) {
             let day = daysInPrevMonth - (startingSpaces - count)
-            let person = prayerNameFunc(count: count, prayerRange: prayerRange, prayerListArray: prayerListArray)
+            let person = prayerNameFunc(count: count, prayerRange: prayerRange, prayerListArray: userHolder.prayerListArray)
             return MonthStruct(monthType: MonthType.Previous, dayInt: day, prayerRange: prayerRange, person: person ?? Person.blank)
         }
         
         else if ((count - startingSpaces) > daysInMonth) {
             let day = count - startingSpaces - daysInMonth
-            let person = prayerNameFunc(count: count, prayerRange: prayerRange, prayerListArray: prayerListArray)
+            let person = prayerNameFunc(count: count, prayerRange: prayerRange, prayerListArray: userHolder.prayerListArray)
             return MonthStruct(monthType: MonthType.Next, dayInt: day, prayerRange: prayerRange, person: person ?? Person.blank)
         }
         
         let day = count-start
-        let person = prayerNameFunc(count: count, prayerRange: prayerRange, prayerListArray: prayerListArray)
+        let person = prayerNameFunc(count: count, prayerRange: prayerRange, prayerListArray: userHolder.prayerListArray)
         return MonthStruct(monthType: MonthType.Current, dayInt: day, /*prayerName: person?.name ?? "",*/ prayerRange: prayerRange, /*prayerUsername: person?.username ?? "", */person: person ?? Person.blank)
     }
     

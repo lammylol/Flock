@@ -48,7 +48,7 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
     
     func getPrayerList(userID: String) async throws -> (Date, String) { // This function retrieves calendar prayer list data from Firestore.
         var prayStartDate = Date()
-        var prayerList = String()
+        var prayerList: String = ""
         
         guard userID != "" else {
             throw PrayerPersonRetrievalError.noUserID
@@ -76,36 +76,40 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
     func retrievePrayerPersonArray(prayerList: String) -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may now.
         
         let prayerListArray = prayerList.components(separatedBy: "\n") // Create an array separated by \n within the prayer list string.
+        print(prayerListArray.description)
         
         var prayerArray: [Person] = [] // Empty array of Person type.
         var firstName = ""
         var lastName = ""
         var username = ""
         
-        for person in prayerListArray {
-            
-            let array = person.split(separator: ";", omittingEmptySubsequences: true) // For each person in the array, separate out the array that contains either: [name] or [name, username].
-            
-            if array.count == 1 { // If the array is [name], then there is no username.
-                username = ""
-            } else { // If the array has [name, username], then username is equal to the last of the array.
-                username = String(array.last ?? "").trimmingCharacters(in: .whitespaces).lowercased()
-            }
-            
-            let nameArray = array.first?.split(separator: " ", omittingEmptySubsequences: true) // Split first name from last name from the name portion of the person. If there is middle name, last name will only grab last of array.
-        
-            if nameArray?.count == 1 { // nameArray?.count == 1 ensures that if user enters only first name, last name will be "", not first name.
-                firstName = String(nameArray?.first ?? "").trimmingCharacters(in: .whitespaces)
-                lastName = ""
-            } else {
-                firstName = String(nameArray?.first ?? "").trimmingCharacters(in: .whitespaces)
-                lastName = String(nameArray?.last ?? "").trimmingCharacters(in: .whitespaces)
-            }
-            
-            let prayerPerson = Person(username: username, firstName: firstName, lastName: lastName) // set userID as default user. Upon load, it will check if username exists. If username exists, then will load userID first.
-            
-            prayerArray.append(prayerPerson)
-        } // For each person in the array, separate out the array that contains either: [name] or [name, username]. Create a person object from that data and append to prayer list array.
+        if !prayerListArray.isEmpty {
+            for person in prayerListArray {
+                print(person.description)
+                
+                let array = person.split(separator: ";", omittingEmptySubsequences: true) // For each person in the array, separate out the array that contains either: [name] or [name, username].
+                
+                if array.count == 1 { // If the array is [name], then there is no username.
+                    username = ""
+                } else { // If the array has [name, username], then username is equal to the last of the array.
+                    username = String(array.last ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+                }
+                
+                let nameArray = array.first?.split(separator: " ", omittingEmptySubsequences: true) // Split first name from last name from the name portion of the person. If there is middle name, last name will only grab last of array.
+                
+                if nameArray?.count == 1 { // nameArray?.count == 1 ensures that if user enters only first name, last name will be "", not first name.
+                    firstName = String(nameArray?.first ?? "").trimmingCharacters(in: .whitespaces)
+                    lastName = ""
+                } else {
+                    firstName = String(nameArray?.first ?? "").trimmingCharacters(in: .whitespaces)
+                    lastName = String(nameArray?.last ?? "").trimmingCharacters(in: .whitespaces)
+                }
+                
+                let prayerPerson = Person(username: username, firstName: firstName, lastName: lastName) // set userID as default user. Upon load, it will check if username exists. If username exists, then will load userID first.
+                
+                prayerArray.append(prayerPerson)
+            } // For each person in the array, separate out the array that contains either: [name] or [name, username]. Create a person object from that data and append to prayer list array.
+        }
         
         return prayerArray
     }
@@ -152,17 +156,21 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
     } // This function enables the user to update user documentation with userID, prayer start date, and prayer list.
     
     //Adding a friend - this updates the historical prayer feed
-    func updateFriendHistoricalPostsIntoFeed(userID: String, person: Person) async throws {
+    func updateFriendHistoricalPostsIntoFeed(user: Person, person: Person) async throws {
         //In this scenario, userID is the userID of the person retrieving data from the 'person'.
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let prayerRequests = try await PostHelper().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
+            let posts = try await PostHelper().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
             
-            print(prayerRequests.description)
+            print("posts: \(posts.map( {$0.id}).joined(separator: ", "))")
+            print("user: \(user.userID)")
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
-            for prayer in prayerRequests {
-                PostHelper().updateFriendsFeed(post: prayer, person: person, friendID: userID, updateFriend: true)
-                print(prayer.id)
+            for post in posts {
+                do {
+                    try await PostHelper().updateFriendsFeed(post: post, person: person, friend: user, updateFriend: true)
+                } catch {
+                    print(error.localizedDescription)
+                }
             }
         } catch {
             throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
@@ -170,7 +178,7 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
     }
     
     // Account settings
-    func deletePerson(user: Person, friendsList: [String]) async throws {
+    func deletePerson(user: Person, friendsList: [Person]) async throws {
         Task {
             do {
                 // delete from prayer requests list.
@@ -187,8 +195,8 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
                 
                 // delete from friend's feed
                 if friendsList.isEmpty == false {
-                    for friendID in friendsList {
-                        let prayerRequests = try await db.collection("prayerFeed").document(friendID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+                    for friend in friendsList {
+                        let prayerRequests = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
                         
                         for request in prayerRequests.documents {
                             try await request.reference.delete()
@@ -244,4 +252,72 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
         return check
     } // This function allows you to pass in a username and return a boolean whether the username exists already. For account creation.
     
+    func getFriendsList(userID: String) async throws -> [Person]{
+        let db = Firestore.firestore() // initiaties Firestore
+        var friendsList: [Person] = []
+        
+        guard userID != "" else {
+            throw PrayerPersonRetrievalError.noUserID
+        }
+        
+        do {
+            let friendsListRef = db.collection("users").document(userID).collection("friendsList")
+            
+            let querySnapshot = try await friendsListRef.getDocuments()
+            
+            //append FriendsListArray in userHolder
+            for document in querySnapshot.documents {
+                if document.exists {
+                    let userID = document.get("userID") as? String ?? ""
+                    let username = document.get("username") as? String ?? ""
+                    let email = document.get("email") as? String ?? ""
+                    let firstName = document.get("firstName") as? String ?? ""
+                    let lastName = document.get("lastName") as? String ?? ""
+                    //                print("\(document.documentID) => \(document.data())")
+                    
+                    let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+                    friendsList.append(person)
+                }
+            }
+        } catch {
+          print("Error getting documents: \(error)")
+        } // get friends list and add that to userholder.friendslist
+        
+        return friendsList
+    }
+    
+    func addFriend(user: Person, friend: Person) async throws {
+        do {
+            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+            let document = try await refFriends.getDocument()
+            
+            if !document.exists {
+                try await refFriends.setData([
+                    "username": user.username,
+                    "userID": user.userID,
+                    "firstName": user.firstName,
+                    "lastName": user.lastName,
+                    "email": user.email
+                ])
+            }
+        } catch {
+            print(error)
+        }
+    } // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
+    
+    func deleteFriend(user: Person, friend: Person) async throws {
+        do {
+            // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
+            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+            try await refFriends.delete()
+            
+            // Update your prayer feed to remove that person's prayer requests from your current feed.
+            let refDelete = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").whereField("userID", isEqualTo: friend.userID).getDocuments()
+            for document in refDelete.documents {
+                try await document.reference.delete()
+            }
+        } catch {
+            print(error)
+        }
+    }
 }
