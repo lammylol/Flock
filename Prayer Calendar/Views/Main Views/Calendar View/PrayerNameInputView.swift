@@ -91,7 +91,7 @@ struct PrayerNameInputView: View {
                     //                dismiss() //dismiss view
                 }
                 
-                try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: prayerListHolder.prayerList)
+                try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: userHolder.prayerList)
                 
             } catch PrayerPersonRetrievalError.incorrectUsername {
                 saved = "invalid username entered"
@@ -211,9 +211,9 @@ struct PrayerNameInputView: View {
                     
             
             //reset local dataHolder
-            prayerListHolder.prayerList = prayerList/*.joined(separator: "\n")*/
-            prayerListHolder.prayerListArray = PersonHelper().retrievePrayerPersonArray(prayerList: prayerList)
-            prayerListHolder.prayStartDate = prayStartDate
+            userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
+            userHolder.prayerListArray = PersonHelper().retrievePrayerPersonArray(prayerList: prayerList)
+            userHolder.prayStartDate = prayStartDate
 //            saved = "Saved"
     }
     
@@ -221,7 +221,7 @@ struct PrayerNameInputView: View {
     func savedText() -> String {
         return saved
     }
-}f
+}
 
 //struct PrayerNameInputView_Previews: PreviewProvider {
 //    static var previews: some View {

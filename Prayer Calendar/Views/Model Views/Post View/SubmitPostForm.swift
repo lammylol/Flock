@@ -150,8 +150,6 @@ struct SubmitPostForm: View {
                      Text("\(friendsList)")
                         .multilineTextAlignment(.leading)
                         .padding(.bottom, 1)
-                    Text("\(friendsList)")
-                        .multilineTextAlignment(.leading)
                 }
                 .font(.system(size: 12))
                 .padding(.bottom, 10)
