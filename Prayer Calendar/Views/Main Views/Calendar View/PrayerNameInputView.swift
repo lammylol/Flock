@@ -13,7 +13,7 @@ struct PrayerNameInputView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UserProfileHolder.self) var userHolder
     
-    @Bindable var prayerListHolder: UserProfileHolder // This holds things necessary for prayer list.
+//    @Bindable var userHolder: UserProfileHolder // This holds things necessary for prayer list.
 
     @State var prayStartDate: Date = Date()
     @State var prayerList: String = ""
@@ -21,12 +21,12 @@ struct PrayerNameInputView: View {
     @State var saved: String = ""
     @FocusState private var isFocused: Bool
     
-    init(prayerListHolder: UserProfileHolder) {
-        self.prayerListHolder = prayerListHolder
-        _prayerList = State(initialValue: prayerListHolder.prayerList)
-        _prayStartDate = State(initialValue: prayerListHolder.prayStartDate)
-    }
-    
+//    init(/*userHolder: UserProfileHolder*/) {
+////        self.userHolder = userHolder
+//        _prayerList = State(initialValue: userHolder.prayerList)
+//        _prayStartDate = State(initialValue: userHolder.prayStartDate)
+//    }
+//    
     var body: some View {
         NavigationStack {
             VStack{
@@ -75,7 +75,11 @@ struct PrayerNameInputView: View {
                     }
                 }
             }
-    }
+            .task {
+                self.prayerList = userHolder.prayerList
+                self.prayStartDate = userHolder.prayStartDate
+            }
+        }
     }
     
     //function to submit prayer list to firestore. This will update users' prayer list for retrieval into prayer calendar and it will also tie a friend to this user if the username is linked.
@@ -217,7 +221,7 @@ struct PrayerNameInputView: View {
     func savedText() -> String {
         return saved
     }
-}
+}f
 
 //struct PrayerNameInputView_Previews: PreviewProvider {
 //    static var previews: some View {

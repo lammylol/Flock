@@ -15,11 +15,13 @@ struct ProfileView: View {
     @State private var showSubmit: Bool = false
     @State private var showEditView: Bool = false
     @State var person: Person
-    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
+    @State private var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
     @Environment(UserProfileHolder.self) var userHolder
+    @State private var profileSettingsToggle: Bool = false
+    @State private var navigationPath = NavigationPath()
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack {
                     HStack {
@@ -100,7 +102,7 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle(person.firstName + " " + person.lastName)
-            .navigationBarTitleDisplayMode(.automatic)
+            .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showSubmit, onDismiss: {
                 Task {
                     do {
@@ -119,26 +121,32 @@ struct ProfileView: View {
             })
             .toolbar {
                 // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                    ToolbarItemGroup(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if person.username == userHolder.person.username {
                         HStack {
-                            if person.username == userHolder.person.username {
-                                NavigationLink(value: "ProfileSettings") {
-                                    Image(systemName: "gear")
-                                }
-                                .id(UUID())
-                                .padding(.trailing, -10)
-                                .padding(.top, 2)
-                            }
                             Button(action: {
-                                showSubmit.toggle()
+                                navigationPath.append("settings")
                             }) {
-                                Image(systemName: "square.and.pencil")
+                                Image(systemName: "gear")
                             }
                         }
+                        // temporary fix for Navigation Link not working.
+                        .padding(.trailing, -18)
+                        .padding(.top, 3)
                     }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack {
+                        Button(action: {
+                            showSubmit.toggle()
+                        }) {
+                            Image(systemName: "square.and.pencil")
+                        }
+                    }
+                }
             }
             .navigationDestination(for: String.self) { value in
-                if value == "ProfileSettings" {
+                if value == "settings" {
                     ProfileSettingsView()
                 }
             }

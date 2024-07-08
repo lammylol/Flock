@@ -60,11 +60,10 @@ import FirebaseFirestore
     }
     
     func getPrayerRequests(user: Person, person: Person) async {
-        
-        viewState = .loading
-        defer { viewState = .finished }
-        
         do {
+            viewState = .loading
+            defer { viewState = .finished }
+            
             let (newPrayerRequests, lastDocument) = try await FeedHelper().getPostFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: nil, profileOrFeed: profileOrFeed)
             
             self.prayerRequests = newPrayerRequests

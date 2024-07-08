@@ -18,7 +18,7 @@ struct PrayerCalendarView: View {
     @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
-        NavigationStack{        //Navigation Stack.
+        NavigationStack{ // Navigation Stack.
                 LazyVStack(alignment: .leading, spacing: 0, pinnedViews: .sectionHeaders) { // LazyStack to freeze the top header when scrolling down.
                     Section {
                         VStack (spacing: 0) {
@@ -32,10 +32,10 @@ struct PrayerCalendarView: View {
                             Text("")
                                 .toolbar() {
                                     ToolbarItem(placement: .automatic) {
-                                        NavigationLink(destination: PrayerNameInputView(prayerListHolder: prayerListHolder)){
+                                        NavigationLink(destination: PrayerNameInputView())/*prayerListHolder: prayerListHolder)*/{
                                             friendsListText
                                         }
-                                        }
+                                    }
                                 }
                             DateScroller()
                                 .padding([.top, .bottom], 0)
