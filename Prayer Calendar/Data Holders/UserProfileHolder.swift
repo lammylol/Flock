@@ -18,6 +18,7 @@ import FirebaseFirestore
     var refresh: Bool = false
     var viewState: ViewState?
     var prayerList: String = ""
+    var prayerListArray: [Person] = []
     var prayStartDate = Date()
     var email: String = ""
     

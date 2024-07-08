@@ -42,110 +42,108 @@ struct SignInView: View {
             } else if userHolder.isLoggedIn == .authenticated && userHolder.isFinished {
                 ContentView(selection: 1)
             } else {
-                NavigationView {
-                    VStack(/*spacing: 20*/) {
-                        Spacer()
-                        
-                        Text("Welcome")
-                            .font(.largeTitle)
-                            .bold()
-                            .offset(x: -80)
-                        
-                        VStack {
-                            ZStack {
-                                VStack {
-                                    HStack {
-                                        Text("Email: ")
-                                            .padding(.leading, 40)
-                                        MyTextView(placeholder: "", text: $email, textPrompt: "enter email", textFieldType: "text")
-                                            .textContentType(.emailAddress)
-                                    }
-                                    Rectangle()
-                                        .frame(height: 1)
-                                        .padding([.leading, .trailing], 40)
+                VStack(/*spacing: 20*/) {
+                    Spacer()
+                    
+                    Text("Welcome")
+                        .font(.largeTitle)
+                        .bold()
+                        .offset(x: -80)
+                    
+                    VStack {
+                        ZStack {
+                            VStack {
+                                HStack {
+                                    Text("Email: ")
+                                        .padding(.leading, 40)
+                                    MyTextView(placeholder: "", text: $email, textPrompt: "enter email", textFieldType: "text")
+                                        .textContentType(.emailAddress)
                                 }
-                                
-                                VStack {
-                                    Spacer()
-                                        .frame(height: 90)
-                                    HStack {
-                                        Text("Password: ")
-                                            .padding(.leading, 40)
-                                        MyTextView(placeholder: "", text: $password, textPrompt: "enter password", textFieldType: "secure")
-                                            .textContentType(.password)
-                                    }
+                                Rectangle()
+                                    .frame(height: 1)
+                                    .padding([.leading, .trailing], 40)
+                            }
+                            
+                            VStack {
+                                Spacer()
+                                    .frame(height: 90)
+                                HStack {
+                                    Text("Password: ")
+                                        .padding(.leading, 40)
+                                    MyTextView(placeholder: "", text: $password, textPrompt: "enter password", textFieldType: "secure")
+                                        .textContentType(.password)
                                 }
                             }
                         }
-                        .frame(height: 125)
-                        
-                        Rectangle()
-                            .frame(height: 1)
-                            .padding([.leading, .trailing], 40)
-                        
-                        HStack {
-                            Button(action: {
-                                showForgotPassword.toggle()
-                            }) {
-                                Text("Forgot Password?")
-                                    .foregroundStyle(.blue)
-                                    .font(.system(size: 16))
-                            }
-                            Spacer()
-                        }
+                    }
+                    .frame(height: 125)
+                    
+                    Rectangle()
+                        .frame(height: 1)
                         .padding([.leading, .trailing], 40)
-                        .padding(.top, 5)
-                        
+                    
+                    HStack {
                         Button(action: {
-                            Task {
-                                signIn()
-                            }
-                        }) {Text("Sign In")
-                                .bold()
-                                .frame(height: 35)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 5)
-                                .fill(.blue)
-                        )
-                        .padding([.leading, .trailing], 40)
-                        .foregroundStyle(.white)
-                        .padding(.top, 30)
-                        
-                        if errorMessage != "" {
-                            Text(errorMessage)
+                            showForgotPassword.toggle()
+                        }) {
+                            Text("Forgot Password?")
+                                .foregroundStyle(.blue)
                                 .font(.system(size: 16))
-                                .foregroundStyle(Color.red)
-                                .padding([.leading, .trailing], 40)
-                                .padding([.top, .bottom], 15)
                         }
-                        
-                        HStack {
-                            Text("Don't have an account yet? ")
-                            Button(action: {
-                                showCreateAccount.toggle()
-                            }) {
-                                Text("Sign Up")
-                            }
-                        }
-                        .padding([.top, .bottom], 15)
-                        
                         Spacer()
-                        
                     }
-                    .sheet(isPresented: $showCreateAccount, onDismiss: {
-                        errorMessage = ""
-                    }) {
-                        CreateProfileView()
+                    .padding([.leading, .trailing], 40)
+                    .padding(.top, 5)
+                    
+                    Button(action: {
+                        Task {
+                            signIn()
+                        }
+                    }) {Text("Sign In")
+                            .bold()
+                            .frame(height: 35)
+                            .frame(maxWidth: .infinity)
                     }
-                    .sheet(isPresented: $showForgotPassword, onDismiss: {
-                        errorMessage = ""
-                    }) {
-                        ForgotPassword()
+                    .background(
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(.blue)
+                    )
+                    .padding([.leading, .trailing], 40)
+                    .foregroundStyle(.white)
+                    .padding(.top, 30)
+                    
+                    if errorMessage != "" {
+                        Text(errorMessage)
+                            .font(.system(size: 16))
+                            .foregroundStyle(Color.red)
+                            .padding([.leading, .trailing], 40)
+                            .padding([.top, .bottom], 15)
                     }
-                }.navigationViewStyle(.stack)
-            }
+                    
+                    HStack {
+                        Text("Don't have an account yet? ")
+                        Button(action: {
+                            showCreateAccount.toggle()
+                        }) {
+                            Text("Sign Up")
+                        }
+                    }
+                    .padding([.top, .bottom], 15)
+                    
+                    Spacer()
+                    
+                }
+                .sheet(isPresented: $showCreateAccount, onDismiss: {
+                    errorMessage = ""
+                }) {
+                    CreateProfileView()
+                }
+                .sheet(isPresented: $showForgotPassword, onDismiss: {
+                    errorMessage = ""
+                }) {
+                    ForgotPassword()
+                }
+            }/*.navigationViewStyle(.stack)*/
         }
         .task { // This task runs whenever 'SignInView' is opened.
             if userHolder.isLoggedIn == .authenticated && !userHolder.isLoading {
@@ -184,13 +182,11 @@ struct SignInView: View {
                     }
                     print(errorMessage)
                 } else {
-                    Task {                             
-                        
-                        userHolder.viewState = .loading
-                        defer { userHolder.viewState = .finished }
-                        
+                    Task {
                         do {
-
+                            userHolder.viewState = .loading
+                            defer { userHolder.viewState = .finished }
+                            
                             userHolder.userPassword = password
                             await setInfo()
                             
@@ -221,6 +217,7 @@ struct SignInView: View {
             
             userHolder.prayStartDate = try await PersonHelper().getPrayerList(userID: userID).0 // set Start Date
             userHolder.prayerList = try await PersonHelper().getPrayerList(userID: userID).1 // set Prayer List
+            userHolder.prayerListArray = PersonHelper().retrievePrayerPersonArray(prayerList: userHolder.prayerList)
             
             dateHolder.date = Date() // Resets the view to current month on current
             

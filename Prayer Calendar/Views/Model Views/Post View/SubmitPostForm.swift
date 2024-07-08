@@ -145,6 +145,9 @@ struct SubmitPostForm: View {
             VStack (alignment: .leading) {
                 VStack (alignment: .leading) {
                     Text("Who Can See This Post?")
+                         .multilineTextAlignment(.leading)
+                         .padding(.bottom, 1)
+                     Text("\(friendsList)")
                         .multilineTextAlignment(.leading)
                         .padding(.bottom, 1)
                     Text("\(friendsList)")
