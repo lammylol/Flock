@@ -152,17 +152,21 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
     } // This function enables the user to update user documentation with userID, prayer start date, and prayer list.
     
     //Adding a friend - this updates the historical prayer feed
-    func updateFriendHistoricalPostsIntoFeed(userID: String, person: Person) async throws {
+    func updateFriendHistoricalPostsIntoFeed(user: Person, person: Person) async throws {
         //In this scenario, userID is the userID of the person retrieving data from the 'person'.
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let prayerRequests = try await PostHelper().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
+            let posts = try await PostHelper().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
             
-            print(prayerRequests.description)
+            print("posts: \(posts.map( {$0.id}).joined(separator: ", "))")
+            print("user: \(user.userID)")
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
-            for prayer in prayerRequests {
-                PostHelper().updateFriendsFeed(post: prayer, person: person, friendID: userID, updateFriend: true)
-                print(prayer.id)
+            for post in posts {
+                do {
+                    try await PostHelper().updateFriendsFeed(post: post, person: person, friend: user, updateFriend: true)
+                } catch {
+                    print(error.localizedDescription)
+                }
             }
         } catch {
             throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
@@ -170,7 +174,7 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
     }
     
     // Account settings
-    func deletePerson(user: Person, friendsList: [String]) async throws {
+    func deletePerson(user: Person, friendsList: [Person]) async throws {
         Task {
             do {
                 // delete from prayer requests list.
@@ -187,8 +191,8 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
                 
                 // delete from friend's feed
                 if friendsList.isEmpty == false {
-                    for friendID in friendsList {
-                        let prayerRequests = try await db.collection("prayerFeed").document(friendID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+                    for friend in friendsList {
+                        let prayerRequests = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
                         
                         for request in prayerRequests.documents {
                             try await request.reference.delete()
@@ -244,4 +248,37 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
         return check
     } // This function allows you to pass in a username and return a boolean whether the username exists already. For account creation.
     
+    func getFriendsList(userID: String) async throws -> [Person]{
+        let db = Firestore.firestore() // initiaties Firestore
+        var friendsList: [Person] = []
+        
+        guard userID != "" else {
+            throw PrayerPersonRetrievalError.noUserID
+        }
+        
+        do {
+            let friendsListRef = db.collection("users").document(userID).collection("friendsList")
+            
+            let querySnapshot = try await friendsListRef.getDocuments()
+            
+            //append FriendsListArray in userHolder
+            for document in querySnapshot.documents {
+                if document.exists {
+                    let userID = document.get("userID") as? String ?? ""
+                    let username = document.get("username") as? String ?? ""
+                    let email = document.get("email") as? String ?? ""
+                    let firstName = document.get("firstName") as? String ?? ""
+                    let lastName = document.get("lastName") as? String ?? ""
+                    //                print("\(document.documentID) => \(document.data())")
+                    
+                    let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+                    friendsList.append(person)
+                }
+            }
+        } catch {
+          print("Error getting documents: \(error)")
+        } // get friends list and add that to userholder.friendslist
+        
+        return friendsList
+    }
 }

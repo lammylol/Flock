@@ -157,7 +157,9 @@ struct PostEditView: View {
         
         Task {
             do {
-                PostHelper().editPost(post: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
+                try await PostHelper().editPost(post: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
+            } catch {
+                print(error)
             }
         }
         print("Saved")
