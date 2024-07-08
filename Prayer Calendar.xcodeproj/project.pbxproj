@@ -31,7 +31,7 @@
 		7A4F26352AD0D2B600FB086C /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262A2AD0D2B100FB086C /* ProfileView.swift */; };
 		7A4F26362AD0D2B600FB086C /* CalendarCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262B2AD0D2B200FB086C /* CalendarCell.swift */; };
 		7A4F26372AD0D2B600FB086C /* PrayerCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262C2AD0D2B300FB086C /* PrayerCalendarView.swift */; };
-		7A4F26382AD0D2B600FB086C /* PrayerCalendarSwiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262D2AD0D2B400FB086C /* PrayerCalendarSwiftApp.swift */; };
+		7A4F26382AD0D2B600FB086C /* FlockSwiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */; };
 		7A4F26392AD0D2B600FB086C /* CalendarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262E2AD0D2B500FB086C /* CalendarHelper.swift */; };
 		7A4F263A2AD0D2B600FB086C /* MonthStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262F2AD0D2B600FB086C /* MonthStruct.swift */; };
 		7A5C72312AFEBADE00A75636 /* ProfileFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */; };
@@ -105,7 +105,7 @@
 		7A4F262A2AD0D2B100FB086C /* ProfileView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		7A4F262B2AD0D2B200FB086C /* CalendarCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarCell.swift; sourceTree = "<group>"; };
 		7A4F262C2AD0D2B300FB086C /* PrayerCalendarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrayerCalendarView.swift; sourceTree = "<group>"; };
-		7A4F262D2AD0D2B400FB086C /* PrayerCalendarSwiftApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrayerCalendarSwiftApp.swift; sourceTree = "<group>"; };
+		7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlockSwiftApp.swift; sourceTree = "<group>"; };
 		7A4F262E2AD0D2B500FB086C /* CalendarHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarHelper.swift; sourceTree = "<group>"; };
 		7A4F262F2AD0D2B600FB086C /* MonthStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MonthStruct.swift; sourceTree = "<group>"; };
 		7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileFeed.swift; sourceTree = "<group>"; };
@@ -323,7 +323,7 @@
 		7A4F25F72AD0D23900FB086C /* Prayer Calendar */ = {
 			isa = PBXGroup;
 			children = (
-				7A4F262D2AD0D2B400FB086C /* PrayerCalendarSwiftApp.swift */,
+				7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */,
 				7A285BA22B959B5900BAF4C0 /* Views */,
 				7A285BA12B959B4D00BAF4C0 /* Model */,
 				7A285B9F2B959B1B00BAF4C0 /* Data Holders */,
@@ -554,7 +554,7 @@
 				7AF31F2F2C07F5FC00FD111E /* UpdateView.swift in Sources */,
 				7AD28BF42BDF49B000F982C0 /* PostsFeed.swift in Sources */,
 				7A4F263A2AD0D2B600FB086C /* MonthStruct.swift in Sources */,
-				7A4F26382AD0D2B600FB086C /* PrayerCalendarSwiftApp.swift in Sources */,
+				7A4F26382AD0D2B600FB086C /* FlockSwiftApp.swift in Sources */,
 				7A27B7B62B2FE0EB00FF72FC /* CreateProfileView.swift in Sources */,
 				7ADE4C532B046CD400CE6B33 /* SubmitPostForm.swift in Sources */,
 				7ADE4C552B0811AC00CE6B33 /* PostFullView.swift in Sources */,
