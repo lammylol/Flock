@@ -18,7 +18,7 @@ struct SubmitPostForm: View {
     @State private var status: String = "Current"
     @State private var postText: String = ""
     @State private var postTitle: String = ""
-    @State private var postType: String = ""
+    @State private var postType: String = "Default"
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     
