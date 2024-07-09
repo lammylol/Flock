@@ -45,10 +45,18 @@ struct SubmitPostForm: View {
                         }
                         ZStack(alignment: .topLeading) {
                             if postText.isEmpty {
-                                Text("Enter Text. Consider sharing your post in the form of a prayer so that readers can join with you in prayer as they read it.")
-                                    .padding(.leading, 0)
-                                    .padding(.top, 8)
-                                    .foregroundStyle(Color.gray)
+                                HStack{
+                                    if postType == "Default (Post)" {
+                                        Text("Share what's on your mind. It can be an encouragement, a realization, or anything that God has placed on your heart.")
+                                    } else if postType == "Praise" {
+                                        Text("Share a praise report! What have seen God do in your life or in the lives of those around you?")
+                                    } else {
+                                        Text("Share a prayer request. Consider sharing your post in the form of a prayer so that readers can join with you in prayer as they read it.")
+                                    }
+                                }
+                                .padding(.leading, 0)
+                                .padding(.top, 8)
+                                .foregroundStyle(Color.gray)
                             }
                             TextEditor(text: $postText)
                                 .frame(height: 300)

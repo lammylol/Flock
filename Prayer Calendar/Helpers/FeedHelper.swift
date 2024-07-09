@@ -54,7 +54,7 @@ class FeedHelper {
                 let isPinned = document.data()["isPinned"] as? Bool ?? false
                 let postTitle = document.data()["prayerRequestTitle"] as? String ?? ""
                 let postText = document.data()["prayerRequestText"] as? String ?? ""
-                let postType = document.data()["postTitle"] as? String ?? ""
+                let postType = document.data()["postType"] as? String ?? ""
                 let documentID = document.documentID as String
                 let latestUpdateText = document.data()["latestUpdateText"] as? String ?? ""
                 let latestUpdateType = document.data()["latestUpdateType"] as? String ?? ""

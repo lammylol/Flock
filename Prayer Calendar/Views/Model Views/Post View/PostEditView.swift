@@ -36,15 +36,18 @@ struct PostEditView: View {
                             .offset(x: -5, y: -1)
                     }
                     .padding(.bottom, -4)
-                    Picker("Status", selection: $post.status) {
-                        Text("Current").tag("Current")
-                        Text("Answered").tag("Answered")
-                        Text("No Longer Needed").tag("No Longer Needed")
-                    }
+                    
                     Picker("Type", selection: $post.postType) {
                         Text("Default (Post)").tag("Default")
                         Text("Praise").tag("Praise")
                         Text("Prayer Request").tag("Prayer Request")
+                    }
+                    if post.postType == "Prayer Request" {
+                        Picker("Status", selection: $post.status) {
+                            Text("Current").tag("Current")
+                            Text("Answered").tag("Answered")
+                            Text("No Longer Needed").tag("No Longer Needed")
+                        }
                     }
                     HStack {
                         Text("Privacy")

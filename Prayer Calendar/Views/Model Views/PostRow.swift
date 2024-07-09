@@ -76,10 +76,14 @@ struct PostRow: View {
                         }
                         .font(.system(size: 13))
                         .padding(.bottom, 2)
-                        HStack() {
-                            Text("Prayer Status: ").font(.system(size: 12)).italic() + Text(post.status.capitalized)
-                                .font(.system(size: 12))
-                                .italic()
+                        HStack {
+                            if post.postType == "Prayer Request" {
+                                Text("Prayer Status: ").font(.system(size: 12)) + Text(post.status.capitalized)                        .font(.system(size: 12)).bold()
+                            } else if post.postType == "Praise" {
+                                Text("Praise 🙌").font(.system(size: 12))
+                            } else {
+                                Text("Post 📝").font(.system(size: 12))
+                            }
                             Spacer()
                         }
                     }

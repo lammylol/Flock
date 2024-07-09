@@ -34,7 +34,7 @@ struct SignInView: View {
             if userHolder.isLoading {
                 VStack {
                     Spacer()
-                    Text("Prayer Calendar")
+                    Text("Flock")
                         .font(.largeTitle)
                         .multilineTextAlignment(.center)
                     Spacer()
@@ -184,9 +184,6 @@ struct SignInView: View {
                 } else {
                     Task {
                         do {
-                            userHolder.viewState = .loading
-                            defer { userHolder.viewState = .finished }
-                            
                             userHolder.userPassword = password
                             await setInfo()
                             

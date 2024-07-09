@@ -152,7 +152,17 @@ struct PostFullView: View {
                 
                 // Content of Post
                 VStack(alignment: .leading) {
-                    Text("Status: **\(post.status.capitalized)**")
+                    HStack {
+                        if post.postType == "Prayer Request" {
+                            Text("Prayer Request: ") + Text(post.status.capitalized).bold()
+                        } else if post.postType == "Praise" {
+                            Text("Praise 🙌")
+                        } else {
+                            Text("Post 📝")
+                        }
+                    }
+                    .font(.system(size: 16))
+//                    Text("Status: **\(post.status.capitalized)**")
                     Divider()
                         .padding(.top, 5)
                         .padding(.bottom, 5)
