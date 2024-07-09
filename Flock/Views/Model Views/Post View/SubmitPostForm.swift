@@ -47,7 +47,7 @@ struct SubmitPostForm: View {
                             if postText.isEmpty {
                                 HStack{
                                     if postType == "Default" {
-                                        Text("Share what's on your mind. It can be an encouragement, a realization, or anything that God has placed on your heart.")
+                                        Text("Share what's on your mind. It can be a thought, an encouragement, or anything that God has placed on your heart.")
                                     } else if postType == "Praise" {
                                         Text("Share a praise report! What have seen God do in your life or in the lives of those around you?")
                                     } else {
