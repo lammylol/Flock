@@ -109,7 +109,7 @@ struct PrayerNameInputView: View {
 //            print("Prayer List Old: " + prayerListHolder.prayerList)
 //            print("Prayer List New: " + inputText)
             
-        let prayerNamesOld = PersonHelper().retrievePrayerPersonArray(prayerList: existingInput).map {
+        let prayerNamesOld = await PersonHelper().retrievePrayerPersonArray(prayerList: existingInput).map {
                 if $0.username == "" {
                     $0.firstName + "/" + $0.lastName
                 } else {
@@ -117,7 +117,7 @@ struct PrayerNameInputView: View {
                 }
             } // reference to initial state of prayer list
         
-        let prayerNamesNew = PersonHelper().retrievePrayerPersonArray(prayerList: inputText).map {
+        let prayerNamesNew = await PersonHelper().retrievePrayerPersonArray(prayerList: inputText).map {
             if $0.username == "" {
                 $0.firstName + "/" + $0.lastName
             } else {
@@ -212,7 +212,7 @@ struct PrayerNameInputView: View {
             
             //reset local dataHolder
             userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
-            userHolder.prayerListArray = PersonHelper().retrievePrayerPersonArray(prayerList: prayerList)
+            userHolder.prayerListArray = await PersonHelper().retrievePrayerPersonArray(prayerList: prayerList)
             userHolder.prayStartDate = prayStartDate
 //            saved = "Saved"
     }

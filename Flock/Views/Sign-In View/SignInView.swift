@@ -217,7 +217,7 @@ struct SignInView: View {
             
             userHolder.prayStartDate = try await PersonHelper().getPrayerList(userID: userID).0 // set Start Date
             userHolder.prayerList = try await PersonHelper().getPrayerList(userID: userID).1 // set Prayer List
-            userHolder.prayerListArray = PersonHelper().retrievePrayerPersonArray(prayerList: userHolder.prayerList)
+            userHolder.prayerListArray = await PersonHelper().retrievePrayerPersonArray(prayerList: userHolder.prayerList)
             
             dateHolder.date = Date() // Resets the view to current month on current
             

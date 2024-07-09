@@ -73,7 +73,7 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
         return (prayStartDate, prayerList)
     }
     
-    func retrievePrayerPersonArray(prayerList: String) -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may now.
+    func retrievePrayerPersonArray(prayerList: String) async -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may now.
         
         let prayerListArray = prayerList.components(separatedBy: "\n") // Create an array separated by \n within the prayer list string.
         print(prayerListArray.description)
