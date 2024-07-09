@@ -39,9 +39,7 @@
 		7A5C72352AFF5E3100A75636 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72342AFF5E3100A75636 /* Post.swift */; };
 		7A5D85BF2B623E2E002F55B2 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 7A5D85BE2B623E2E002F55B2 /* FirebaseFunctions */; };
 		7A66A0C52B0B24BC000CA93E /* PostHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A66A0C42B0B24BC000CA93E /* PostHelper.swift */; };
-		7A77CD832AEF8F7900A19ACE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7A77CD822AEF8F7900A19ACE /* GoogleService-Info.plist */; };
-		7A77CD842AEF8F7900A19ACE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7A77CD822AEF8F7900A19ACE /* GoogleService-Info.plist */; };
-		7A77CD852AEF8F7900A19ACE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7A77CD822AEF8F7900A19ACE /* GoogleService-Info.plist */; };
+		7A6D13C32C3CC4C100D56FCD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7A6D13C22C3CC4C100D56FCD /* GoogleService-Info.plist */; };
 		7A7C84612BF4231F00E810B2 /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7C84602BF4231E00E810B2 /* Privacy.swift */; };
 		7A7CA4752B771106001922AA /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7CA4742B771106001922AA /* ProfileSettingsView.swift */; };
 		7A8D40B52B44A9CF00B029E6 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A8D40B42B44A9CF00B029E6 /* FeedView.swift */; };
@@ -91,13 +89,13 @@
 		7A416B7A2AFC71CA00249BB3 /* UIHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIHelper.swift; sourceTree = "<group>"; };
 		7A4986652BCDCBFD00C0A936 /* PasswordChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordChangeView.swift; sourceTree = "<group>"; };
 		7A4986672BCE2AE200C0A936 /* FeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewModel.swift; sourceTree = "<group>"; };
-		7A4F25F52AD0D23900FB086C /* Prayer Calendar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Prayer Calendar.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A4F25F52AD0D23900FB086C /* Flock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A4F25FE2AD0D23B00FB086C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		7A4F26002AD0D23B00FB086C /* Prayer_Calendar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Prayer_Calendar.entitlements; sourceTree = "<group>"; };
+		7A4F26002AD0D23B00FB086C /* Flock.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Flock.entitlements; sourceTree = "<group>"; };
 		7A4F26022AD0D23B00FB086C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		7A4F26082AD0D23B00FB086C /* Prayer CalendarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Prayer CalendarTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A4F26082AD0D23B00FB086C /* FlockTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlockTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A4F260C2AD0D23B00FB086C /* Prayer_CalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prayer_CalendarTests.swift; sourceTree = "<group>"; };
-		7A4F26122AD0D23B00FB086C /* Prayer CalendarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Prayer CalendarUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A4F26122AD0D23B00FB086C /* FlockUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlockUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A4F26162AD0D23B00FB086C /* Prayer_CalendarUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prayer_CalendarUITests.swift; sourceTree = "<group>"; };
 		7A4F26182AD0D23B00FB086C /* Prayer_CalendarUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prayer_CalendarUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		7A4F26252AD0D2AD00FB086C /* DateScroller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateScroller.swift; sourceTree = "<group>"; };
@@ -112,7 +110,7 @@
 		7A5C72322AFF5D9E00A75636 /* PostRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostRow.swift; sourceTree = "<group>"; };
 		7A5C72342AFF5E3100A75636 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
 		7A66A0C42B0B24BC000CA93E /* PostHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHelper.swift; sourceTree = "<group>"; };
-		7A77CD822AEF8F7900A19ACE /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		7A6D13C22C3CC4C100D56FCD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7A7C84602BF4231E00E810B2 /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privacy.swift; sourceTree = "<group>"; };
 		7A7CA4742B771106001922AA /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
 		7A8D40B42B44A9CF00B029E6 /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
@@ -303,9 +301,9 @@
 		7A4F25EC2AD0D23900FB086C = {
 			isa = PBXGroup;
 			children = (
-				7A4F25F72AD0D23900FB086C /* Prayer Calendar */,
-				7A4F260B2AD0D23B00FB086C /* Prayer CalendarTests */,
-				7A4F26152AD0D23B00FB086C /* Prayer CalendarUITests */,
+				7A4F25F72AD0D23900FB086C /* Flock */,
+				7A4F260B2AD0D23B00FB086C /* FlockTests */,
+				7A4F26152AD0D23B00FB086C /* FlockUITests */,
 				7A4F25F62AD0D23900FB086C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -313,14 +311,14 @@
 		7A4F25F62AD0D23900FB086C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				7A4F25F52AD0D23900FB086C /* Prayer Calendar.app */,
-				7A4F26082AD0D23B00FB086C /* Prayer CalendarTests.xctest */,
-				7A4F26122AD0D23B00FB086C /* Prayer CalendarUITests.xctest */,
+				7A4F25F52AD0D23900FB086C /* Flock.app */,
+				7A4F26082AD0D23B00FB086C /* FlockTests.xctest */,
+				7A4F26122AD0D23B00FB086C /* FlockUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		7A4F25F72AD0D23900FB086C /* Prayer Calendar */ = {
+		7A4F25F72AD0D23900FB086C /* Flock */ = {
 			isa = PBXGroup;
 			children = (
 				7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */,
@@ -329,13 +327,13 @@
 				7A285B9F2B959B1B00BAF4C0 /* Data Holders */,
 				7A285BA02B959B3A00BAF4C0 /* Helpers */,
 				7A4F25FE2AD0D23B00FB086C /* Assets.xcassets */,
-				7A4F26002AD0D23B00FB086C /* Prayer_Calendar.entitlements */,
-				7A77CD822AEF8F7900A19ACE /* GoogleService-Info.plist */,
+				7A4F26002AD0D23B00FB086C /* Flock.entitlements */,
+				7A6D13C22C3CC4C100D56FCD /* GoogleService-Info.plist */,
 				7AF4CF432B670D0C0068908E /* Scripts */,
 				7A4F26012AD0D23B00FB086C /* Preview Content */,
 				7A416B7A2AFC71CA00249BB3 /* UIHelper.swift */,
 			);
-			path = "Prayer Calendar";
+			path = Flock;
 			sourceTree = "<group>";
 		};
 		7A4F26012AD0D23B00FB086C /* Preview Content */ = {
@@ -346,22 +344,22 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		7A4F260B2AD0D23B00FB086C /* Prayer CalendarTests */ = {
+		7A4F260B2AD0D23B00FB086C /* FlockTests */ = {
 			isa = PBXGroup;
 			children = (
 				7A4F260C2AD0D23B00FB086C /* Prayer_CalendarTests.swift */,
 				7AD78FD92AFB1A8800388663 /* PrayerCalendarViewTests.swift */,
 			);
-			path = "Prayer CalendarTests";
+			path = FlockTests;
 			sourceTree = "<group>";
 		};
-		7A4F26152AD0D23B00FB086C /* Prayer CalendarUITests */ = {
+		7A4F26152AD0D23B00FB086C /* FlockUITests */ = {
 			isa = PBXGroup;
 			children = (
 				7A4F26162AD0D23B00FB086C /* Prayer_CalendarUITests.swift */,
 				7A4F26182AD0D23B00FB086C /* Prayer_CalendarUITestsLaunchTests.swift */,
 			);
-			path = "Prayer CalendarUITests";
+			path = FlockUITests;
 			sourceTree = "<group>";
 		};
 		7AF31F2D2C07F5DA00FD111E /* Updates */ = {
@@ -384,9 +382,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		7A4F25F42AD0D23900FB086C /* Prayer Calendar */ = {
+		7A4F25F42AD0D23900FB086C /* Flock */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7A4F261C2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Prayer Calendar" */;
+			buildConfigurationList = 7A4F261C2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Flock" */;
 			buildPhases = (
 				7A4F25F12AD0D23900FB086C /* Sources */,
 				7A4F25F22AD0D23900FB086C /* Frameworks */,
@@ -396,7 +394,7 @@
 			);
 			dependencies = (
 			);
-			name = "Prayer Calendar";
+			name = Flock;
 			packageProductDependencies = (
 				7A3158E82AEF9C0B009B6E59 /* FirebaseAnalytics */,
 				7A3158EA2AEF9C0B009B6E59 /* FirebaseAnalyticsSwift */,
@@ -405,12 +403,12 @@
 				7A5D85BE2B623E2E002F55B2 /* FirebaseFunctions */,
 			);
 			productName = "Prayer Calendar";
-			productReference = 7A4F25F52AD0D23900FB086C /* Prayer Calendar.app */;
+			productReference = 7A4F25F52AD0D23900FB086C /* Flock.app */;
 			productType = "com.apple.product-type.application";
 		};
-		7A4F26072AD0D23B00FB086C /* Prayer CalendarTests */ = {
+		7A4F26072AD0D23B00FB086C /* FlockTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7A4F261F2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Prayer CalendarTests" */;
+			buildConfigurationList = 7A4F261F2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "FlockTests" */;
 			buildPhases = (
 				7A4F26042AD0D23B00FB086C /* Sources */,
 				7A4F26052AD0D23B00FB086C /* Frameworks */,
@@ -421,14 +419,14 @@
 			dependencies = (
 				7A4F260A2AD0D23B00FB086C /* PBXTargetDependency */,
 			);
-			name = "Prayer CalendarTests";
+			name = FlockTests;
 			productName = "Prayer CalendarTests";
-			productReference = 7A4F26082AD0D23B00FB086C /* Prayer CalendarTests.xctest */;
+			productReference = 7A4F26082AD0D23B00FB086C /* FlockTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		7A4F26112AD0D23B00FB086C /* Prayer CalendarUITests */ = {
+		7A4F26112AD0D23B00FB086C /* FlockUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7A4F26222AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Prayer CalendarUITests" */;
+			buildConfigurationList = 7A4F26222AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "FlockUITests" */;
 			buildPhases = (
 				7A4F260E2AD0D23B00FB086C /* Sources */,
 				7A4F260F2AD0D23B00FB086C /* Frameworks */,
@@ -439,9 +437,9 @@
 			dependencies = (
 				7A4F26142AD0D23B00FB086C /* PBXTargetDependency */,
 			);
-			name = "Prayer CalendarUITests";
+			name = FlockUITests;
 			productName = "Prayer CalendarUITests";
-			productReference = 7A4F26122AD0D23B00FB086C /* Prayer CalendarUITests.xctest */;
+			productReference = 7A4F26122AD0D23B00FB086C /* FlockUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -467,7 +465,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 7A4F25F02AD0D23900FB086C /* Build configuration list for PBXProject "Prayer Calendar" */;
+			buildConfigurationList = 7A4F25F02AD0D23900FB086C /* Build configuration list for PBXProject "Flock" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -483,9 +481,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				7A4F25F42AD0D23900FB086C /* Prayer Calendar */,
-				7A4F26072AD0D23B00FB086C /* Prayer CalendarTests */,
-				7A4F26112AD0D23B00FB086C /* Prayer CalendarUITests */,
+				7A4F25F42AD0D23900FB086C /* Flock */,
+				7A4F26072AD0D23B00FB086C /* FlockTests */,
+				7A4F26112AD0D23B00FB086C /* FlockUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -496,8 +494,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A4F26032AD0D23B00FB086C /* Preview Assets.xcassets in Resources */,
+				7A6D13C32C3CC4C100D56FCD /* GoogleService-Info.plist in Resources */,
 				7A4F25FF2AD0D23B00FB086C /* Assets.xcassets in Resources */,
-				7A77CD832AEF8F7900A19ACE /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -505,7 +503,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7A77CD842AEF8F7900A19ACE /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -513,7 +510,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7A77CD852AEF8F7900A19ACE /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -590,12 +586,12 @@
 /* Begin PBXTargetDependency section */
 		7A4F260A2AD0D23B00FB086C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 7A4F25F42AD0D23900FB086C /* Prayer Calendar */;
+			target = 7A4F25F42AD0D23900FB086C /* Flock */;
 			targetProxy = 7A4F26092AD0D23B00FB086C /* PBXContainerItemProxy */;
 		};
 		7A4F26142AD0D23B00FB086C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 7A4F25F42AD0D23900FB086C /* Prayer Calendar */;
+			target = 7A4F25F42AD0D23900FB086C /* Flock */;
 			targetProxy = 7A4F26132AD0D23B00FB086C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -726,17 +722,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Prayer Calendar/Prayer_Calendar.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Flock/Flock.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Prayer Calendar/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "Flock/Preview\\ Content";
 				DEVELOPMENT_TEAM = 2L362X7NU4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				EXCLUDED_ARCHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Flock POC";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -754,7 +752,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = "lammylol.Prayer-Calendar";
+				PRODUCT_BUNDLE_IDENTIFIER = lammylol.Flock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
@@ -769,17 +767,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Prayer Calendar/Prayer_Calendar.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Flock/Flock.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Prayer Calendar/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "Flock/Preview\\ Content";
 				DEVELOPMENT_TEAM = 2L362X7NU4;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				EXCLUDED_ARCHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Flock POC";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -797,7 +797,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = "lammylol.Prayer-Calendar";
+				PRODUCT_BUNDLE_IDENTIFIER = lammylol.Flock;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
@@ -827,7 +827,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Prayer Calendar.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Prayer Calendar";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Flock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Flock";
 			};
 			name = Debug;
 		};
@@ -851,7 +851,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Prayer Calendar.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Prayer Calendar";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Flock.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Flock";
 			};
 			name = Release;
 		};
@@ -904,7 +904,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		7A4F25F02AD0D23900FB086C /* Build configuration list for PBXProject "Prayer Calendar" */ = {
+		7A4F25F02AD0D23900FB086C /* Build configuration list for PBXProject "Flock" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7A4F261A2AD0D23B00FB086C /* Debug */,
@@ -913,7 +913,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7A4F261C2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Prayer Calendar" */ = {
+		7A4F261C2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Flock" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7A4F261D2AD0D23B00FB086C /* Debug */,
@@ -922,7 +922,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7A4F261F2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Prayer CalendarTests" */ = {
+		7A4F261F2AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "FlockTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7A4F26202AD0D23B00FB086C /* Debug */,
@@ -931,7 +931,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7A4F26222AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "Prayer CalendarUITests" */ = {
+		7A4F26222AD0D23B00FB086C /* Build configuration list for PBXNativeTarget "FlockUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7A4F26232AD0D23B00FB086C /* Debug */,

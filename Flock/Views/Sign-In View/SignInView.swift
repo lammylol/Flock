@@ -39,7 +39,7 @@ struct SignInView: View {
                         .multilineTextAlignment(.center)
                     Spacer()
                 }
-            } else if userHolder.isLoggedIn == .authenticated && userHolder.isFinished {
+            } else if userHolder.isLoggedIn == .authenticated && !userHolder.isLoading {
                 ContentView(selection: 1)
             } else {
                 VStack(/*spacing: 20*/) {
@@ -208,6 +208,9 @@ struct SignInView: View {
         let userID = Auth.auth().currentUser?.uid ?? ""
         
         do {
+            userHolder.viewState = .loading
+            defer { userHolder.viewState = .finished }
+            
             userHolder.person = try await PersonHelper().getUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder

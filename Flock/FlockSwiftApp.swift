@@ -10,7 +10,7 @@ import SwiftData
 import FirebaseCore
 
 @main
-struct PrayerCalendarSwiftApp: App {
+struct FlockApp: App {
     
     init(){
         FirebaseApp.configure()
