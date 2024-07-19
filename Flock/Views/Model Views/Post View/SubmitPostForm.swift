@@ -87,10 +87,6 @@ struct SubmitPostForm: View {
                     }
                 }
             }
-//            .sheet(isPresented: $isPresentingFriends, content: {
-//                friendsList()
-//                    .presentationDetents([.fraction(0.20)])
-//            })
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button("Cancel") {

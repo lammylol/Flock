@@ -12,8 +12,6 @@ import FirebaseFirestore
 struct PrayerNameInputView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UserProfileHolder.self) var userHolder
-    
-//    @Bindable var userHolder: UserProfileHolder // This holds things necessary for prayer list.
 
     @State var prayStartDate: Date = Date()
     @State var prayerList: String = ""
@@ -21,12 +19,6 @@ struct PrayerNameInputView: View {
     @State var saved: String = ""
     @FocusState private var isFocused: Bool
     
-//    init(/*userHolder: UserProfileHolder*/) {
-////        self.userHolder = userHolder
-//        _prayerList = State(initialValue: userHolder.prayerList)
-//        _prayStartDate = State(initialValue: userHolder.prayStartDate)
-//    }
-//    
     var body: some View {
         NavigationStack {
             VStack{
@@ -88,7 +80,6 @@ struct PrayerNameInputView: View {
             do {
                 defer {saved = "Saved"
                     self.isFocused = false // removes focus so keyboard disappears
-                    //                dismiss() //dismiss view
                 }
                 
                 try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: userHolder.prayerList)
@@ -96,8 +87,6 @@ struct PrayerNameInputView: View {
             } catch PrayerPersonRetrievalError.incorrectUsername {
                 saved = "invalid username entered"
                 print("invalid username entered")
-//                prayerList = prayerListHolder.prayerList
-//                prayStartDate = prayerListHolder.prayStartDate
             } catch {
                 print("error: \(error.localizedDescription)")
             }
@@ -106,9 +95,6 @@ struct PrayerNameInputView: View {
     
     func submitPrayerList(inputText: String, prayStartDate: Date, userHolder: UserProfileHolder, existingInput: String) async throws {
 //            //Add user as friend to the friend's list.
-//            print("Prayer List Old: " + prayerListHolder.prayerList)
-//            print("Prayer List New: " + inputText)
-            
         let prayerNamesOld = await PersonHelper().retrievePrayerPersonArray(prayerList: existingInput).map {
                 if $0.username == "" {
                     $0.firstName + "/" + $0.lastName
@@ -214,7 +200,6 @@ struct PrayerNameInputView: View {
             userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
             userHolder.prayerListArray = await PersonHelper().retrievePrayerPersonArray(prayerList: prayerList)
             userHolder.prayStartDate = prayStartDate
-//            saved = "Saved"
     }
     
     //Function to changed "saved" text. When user saves textEditor, saved will appear until the user clicks back into textEditor, then the words "saved" should disappear. This will also occur when cancel is selected.

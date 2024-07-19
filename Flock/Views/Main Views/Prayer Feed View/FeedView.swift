@@ -35,40 +35,6 @@ struct FeedView: View {
                             }
                         }
                     })
-                //             title hides when you scroll down
-//                HStack {
-//                    Text("Feed")
-//                        .font(.title3)
-//                        .bold()
-//                }
-//                .offset(y: 10)
-                
-//                LazyVStack(alignment: .leading, pinnedViews: [.sectionHeaders]) {
-//                    Section (
-//                        header:
-//                            HStack {
-//                                Text(viewModel.selectedStatus.statusKey.capitalized)
-//                                    .font(.title3)
-//                                StatusPicker(viewModel: viewModel)
-//                                    .onChange(of: viewModel.selectedStatus, {
-//                                        Task {
-//                                            if !viewModel.isFetching || !viewModel.isLoading {
-//                                                await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-//                                            }
-//                                        }
-//                                    })
-//                                Spacer()
-//                            }
-//                            .frame(maxWidth: .infinity)
-//                            .padding(.vertical, 5)
-//                            .padding(.horizontal, 20)
-//                            .background(
-//                                scheme == .dark ? .black : .white
-//                            )
-//                    ){
-//                        PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "feed")
-//                    }
-//                }
             }
             .refreshable {
                 Task {
@@ -95,11 +61,6 @@ struct FeedView: View {
                             .bold()
                         StatusPicker(viewModel: viewModel)
                             .padding(.trailing, -10)
-//                        VStack{
-//                            Spacer()
-//                            Text(viewModel.selectedStatus.statusKey.capitalized)
-//                                .font(.system(size: 12))
-//                        }
                         Spacer()
                     }
                     .frame(maxWidth: .infinity)

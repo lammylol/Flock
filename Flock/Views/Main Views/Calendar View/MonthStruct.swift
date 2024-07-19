@@ -11,9 +11,7 @@ import Foundation
 struct MonthStruct {
     var monthType: MonthType
     var dayInt: Int
-//    var prayerName: String
     var prayerRange: Int
-//    var prayerUsername: String
     
     var person: Person
     

@@ -37,8 +37,6 @@ struct EditPrayerUpdate: View {
                     Picker("Update Type", selection: $update.updateType) {
                         Text("Testimony").tag("Testimony")
                         Text("Update").tag("Update")
-//                        Text("Update (Public)").tag("Update")
-//                        Text("Update (Private)").tag("Update (Private)")
                 }
                 }
             }
@@ -128,8 +126,6 @@ struct AddPrayerUpdateView: View {
                     Picker("Update Type", selection: $update.updateType) {
                         Text("Testimony").tag("Testimony")
                         Text("Update").tag("Update")
-//                        Text("Update (Public)").tag("Update")
-//                        Text("Update (Private)").tag("Update (Private)")
                 }
             }
             .toolbar {

@@ -162,7 +162,6 @@ struct PostFullView: View {
                         }
                     }
                     .font(.system(size: 16))
-//                    Text("Status: **\(post.status.capitalized)**")
                     Divider()
                         .padding(.top, 5)
                         .padding(.bottom, 5)
@@ -190,7 +189,6 @@ struct PostFullView: View {
         .task {
             do {
                 self.post = oldPost
-//                    self.post = try await PrayerRequestHelper().getPrayerRequest(prayerRequest: post)
                 print("isPinned: " + post.isPinned.description)
                 originalPrivacy = post.privacy // for catching public to private.
             } catch PrayerRequestRetrievalError.noPrayerRequestID {
@@ -203,10 +201,6 @@ struct PostFullView: View {
             Task {
                 self.post = try await PostHelper().getPost(prayerRequest: post)
                 self.oldPost = self.post
-//                    print(newPost.id)
-//                    print(newPost.postText)
-//                    print(post.postText)
-//                    self.post = newPost
             }
         })
         .scrollIndicators(.hidden)
@@ -221,12 +215,6 @@ struct PostFullView: View {
         var isPinnedToggle = post.isPinned
         isPinnedToggle.toggle()
         self.post.isPinned = isPinnedToggle
-        
-//        if isPinnedToggle == true {
-//            userHolder.pinnedPrayerRequests.append(post)
-//        } else {
-//            userHolder.pinnedPrayerRequests.removeAll(where: { $0.id == post.id})
-//        }
         
         PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
 //        userHolder.refresh = true

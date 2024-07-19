@@ -106,8 +106,7 @@ struct CalendarCell: View {
     }
     
     func monthStruct() -> MonthStruct {
-        let start = startingSpaces // == 0 ? startingSpaces + 7: startingSpaces
-        //        let prayerStart = prayerStartingSpaces == 0 ? prayerStartingSpaces + 7: prayerStartingSpaces
+        let start = startingSpaces
         
         if (count <= start) {
             let day = daysInPrevMonth - (startingSpaces - count)
