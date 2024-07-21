@@ -125,7 +125,6 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
                     
                     for document in ref.documents {
                         if document.exists {
-//                            let dataDescription = document.data()
                             userID = document.get("userID") as? String ?? ""
                             firstName = document.get("firstName") as? String ?? ""
                             lastName = document.get("lastName") as? String ?? ""
@@ -230,7 +229,6 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
         var check = Bool()
         
         do {
-//            let ref = try await db.collection("users").whereField("username", isEqualTo: username.lowercased()).getDocuments()
             let ref = db.collection("usernames").document(username)
             if try await ref.getDocument().exists {
                 check = true

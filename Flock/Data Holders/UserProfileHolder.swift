@@ -38,11 +38,7 @@ import FirebaseFirestore
     
     init(){
         Auth.auth().addStateDidChangeListener { auth, user in
-//            Task {
-//                self.viewState = .loading
-//                defer { self.viewState = .finished }
                 self.isLoggedIn = user != nil ? .authenticated : .notAuthenticated
-//            }
         }
     }
 }

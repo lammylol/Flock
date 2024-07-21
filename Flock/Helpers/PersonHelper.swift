@@ -238,7 +238,6 @@ class PersonHelper { // This class provides functions to retrieve, edit, and del
         var check = Bool()
         
         do {
-//            let ref = try await db.collection("users").whereField("username", isEqualTo: username.lowercased()).getDocuments()
             let ref = db.collection("usernames").document(username)
             if try await ref.getDocument().exists {
                 check = true

@@ -53,10 +53,7 @@ import FirebaseFirestore
 //        self.selectedStatus = option
         self.lastDocument = nil
         self.prayerRequests = []
-//        if self.isFinished {
         await self.getPrayerRequests(user: user, person: person)
-//        }
-//        self.scrollViewID = UUID()
     }
     
     func getPrayerRequests(user: Person, person: Person) async {

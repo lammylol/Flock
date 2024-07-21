@@ -28,7 +28,6 @@ struct DateScroller: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
                 .frame(maxWidth: .infinity)
-//            Spacer()
             Button(action: {nextMonth()}){
                 Image(systemName: "arrow.right.circle.fill")
                     .imageScale(.small)

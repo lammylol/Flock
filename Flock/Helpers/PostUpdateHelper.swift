@@ -102,15 +102,7 @@ class PostUpdateHelper {
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
     func deletePrayerUpdate(prayerRequest: Post, prayerRequestUpdate: PostUpdate, updatesArray: [PostUpdate], person: Person, friendsList: [Person]) {
         let db = Firestore.firestore()
-        
-//        var isMyProfile: Bool
-//        if person.username != "" && person.userID == prayerRequest.userID {
-//            isMyProfile = true
-//        } else {
-//            isMyProfile = false
-//        }
-//        
-        //----------------- latest update date and text reset for original prayer request ---------------------
+
         // For resetting latest date and latest text.
         let latestUpdateDatePosted = getLatestUpdateDate(prayerRequest: prayerRequest, updates: updatesArray)
         let latestUpdateText = getLatestUpdateText(prayerRequest: prayerRequest, updates: updatesArray)
@@ -269,8 +261,6 @@ class PostUpdateHelper {
         db.collection("prayerRequests").document(prayerRequest.id).collection("updates").document(prayerRequestUpdate.id)
         
         refUpdate.updateData([
-//            "datePosted": datePosted,
-//            "prayerRequestID": prayerRequest.id,
             "prayerUpdateText": prayerRequestUpdate.prayerUpdateText,
             "updateType": prayerRequestUpdate.updateType
         ])

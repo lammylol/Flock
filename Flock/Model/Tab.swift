@@ -11,11 +11,4 @@ enum Tab: String, CaseIterable {
     case pinned = "Pinned"
     case current = "Current"
     case answered = "Answered"
-    
-//    var systemImage: String {
-//        switch self {
-//        case .pinned:
-//            return "
-//        }
-//    }
 }

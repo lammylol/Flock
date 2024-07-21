@@ -8,13 +8,9 @@
 import SwiftUI
 
 struct PostsFeed: View {
-//    @State private var showEdit: Bool = false
-//    @State var prayerRequests: [PrayerRequest] = []
-//    @State var prayerRequestVar: Post = Post.blank
     
     @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
-//    @Binding var height: CGFloat
     @State var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false

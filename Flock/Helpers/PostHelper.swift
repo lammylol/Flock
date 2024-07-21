@@ -49,7 +49,6 @@ class PostHelper {
             let querySnapshot = try await profiles.getDocuments()
             
             for document in querySnapshot.documents {
-//                print("\(document.documentID) => \(document.data())")
                 let timestamp = document.data()["datePosted"] as? Timestamp ?? Timestamp()
                 let datePosted = timestamp.dateValue()
                 
@@ -155,7 +154,6 @@ class PostHelper {
         
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
     func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [Person]) {
-//        
         // Create new PrayerRequestID to users/{userID}/prayerList/{person}/prayerRequests
         let ref = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document()
 
@@ -178,7 +176,6 @@ class PostHelper {
         let prayerRequestID = ref.documentID
         
         // Add PrayerRequestID to prayerFeed/{userID}
-//        if isMyProfile == true { // removing this logic as of May 25, 2024. Now your prayer requests will update your feed as well.
         if privacy == "public" && !friendsList.isEmpty {
             for friend in friendsList {
                 let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(prayerRequestID)
@@ -370,7 +367,6 @@ class PostHelper {
     func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) {
     
         // Delete PrayerRequestID from prayerFeed/{userID}
-//        if isMyProfile == true {
         if post.privacy == "public" && friendsList.isEmpty == false {
             for friend in friendsList {
                 let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
