@@ -15,6 +15,8 @@ struct PostsFeed: View {
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
     
+    var userService = UserService()
+    
     var body: some View {
         ZStack {
             if viewModel.isLoading/* && !userHolder.refresh*/ {
@@ -41,7 +43,7 @@ struct PostsFeed: View {
         .task {
             if viewModel.prayerRequests.isEmpty {
                 do {
-                    self.person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)
@@ -117,7 +119,7 @@ struct PostsFeed: View {
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
                 do {
-                    self.person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)

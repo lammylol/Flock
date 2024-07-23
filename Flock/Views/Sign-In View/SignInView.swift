@@ -29,7 +29,7 @@ struct SignInView: View {
     @State var passwordText: String = ""
     @State private var height: CGFloat = 0
     
-    private let postService = PrayerService()
+    private let prayerService = PrayerService()
     private let friendService = FriendService()
     
     var body: some View {
@@ -218,7 +218,7 @@ struct SignInView: View {
             // This sets firstName, lastName, username, and userID for UserHolder
             try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
             
-            var postList = try await postService.getPrayerList(userID: userID)
+            var postList = try await prayerService.getPrayerList(userID: userID)
             userHolder.prayStartDate = postList.0 // set Start Date
             userHolder.prayerList = postList.1 // set Prayer List
             userHolder.prayerListArray = await prayerService.retrievePrayerPersonArray(prayerList: userHolder.prayerList)

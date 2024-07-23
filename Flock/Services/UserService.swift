@@ -9,7 +9,6 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-
 class UserService { // Functions related to user information
     let db = Firestore.firestore() // initiaties Firestore
     

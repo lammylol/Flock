@@ -12,7 +12,7 @@ import FirebaseAuth
 // Settings page for user to edit profile information.
 struct ProfileSettingsView: View {
     @Environment(UserProfileHolder.self) var userHolder
-    
+
     var body: some View {
             Form {
                 Section {
@@ -61,7 +61,7 @@ struct ProfileSettingsView: View {
 struct DeleteButton: View {
     @Environment(UserProfileHolder.self) var userHolder
     @State private var isPresentingConfirm: Bool = false
-
+    private var friendService = FriendService()
     var body: some View {
         Button("Delete Account", role: .destructive) {
             isPresentingConfirm = true
@@ -74,7 +74,7 @@ struct DeleteButton: View {
                     do {
                         if userHolder.isFinished {
                             print(Auth.auth().currentUser?.uid)
-                            try await PersonHelper().deletePerson(user: userHolder.person, friendsList: userHolder.friendsList)
+                            try await friendService.deletePerson(user: userHolder.person, friendsList: userHolder.friendsList)
                         }
                     } catch {
                         print(error)
