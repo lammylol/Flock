@@ -190,9 +190,9 @@ struct CreateProfileView: View {
         do {
             userHolder.person = try await UserService().getUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
-            
-            userHolder.prayStartDate = try await postService.getPostList(userID: userID).0 // set Start Date
-            userHolder.prayerList = try await postService.getPostList(userID: userID).1 // set Prayer List
+            let postList = try await postService.getPostList(userID: userID)
+            userHolder.prayStartDate = postList.0 // set Start Date
+            userHolder.prayerList = postList.1 // set Prayer List
             
             self.userHolder.person = userHolder.person
         } catch {

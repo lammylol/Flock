@@ -19,7 +19,6 @@ class UserService { // Functions related to user information
         do {
             let ref = db.collection("users").document(userID)
             let document = try await ref.getDocument()
-            let dataDescription = document.data().map(String.init(describing:)) ?? "nil"
             
             let firstName = document.get("firstName") as? String ?? ""
             let lastName = document.get("lastName") as? String ?? ""

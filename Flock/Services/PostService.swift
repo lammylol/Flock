@@ -89,4 +89,21 @@ class PostService {
             "prayerList": prayerList
         ])
     }
+    
+    func removePostsFromUsersFeed(userID: String, friendUsernameToRemove: String) async {
+        // Fetch all prayer requests with that person's first name and last name, so they are removed from your feed.
+        do{
+            let refDelete = try await db.collection("prayerFeed").document(userID).collection("prayerRequests")
+                .whereField("firstName", isEqualTo: String(friendUsernameToRemove.split(separator: "/").first ?? ""))
+                .whereField("lastName", isEqualTo: String(friendUsernameToRemove.split(separator: "/").last ?? ""))
+                .getDocuments()
+            
+            for document in refDelete.documents {
+                try await document.reference.delete()
+            }
+        }catch{
+            print("Error removing posts: \(error.localizedDescription)")
+        }
+
+    }
 }

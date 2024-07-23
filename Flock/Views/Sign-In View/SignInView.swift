@@ -218,7 +218,7 @@ struct SignInView: View {
             // This sets firstName, lastName, username, and userID for UserHolder
             try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
             
-            var postList = try await postService.getPostList(userID: userID)
+            let postList = try await postService.getPostList(userID: userID)
             userHolder.prayStartDate = postList.0 // set Start Date
             userHolder.prayerList = postList.1 // set Prayer List
             userHolder.prayerListArray = await postService.retrievePostPersonArray(prayerList: userHolder.prayerList)

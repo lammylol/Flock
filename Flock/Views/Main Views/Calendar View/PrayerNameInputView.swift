@@ -97,23 +97,15 @@ struct PrayerNameInputView: View {
         }
     }
     
+    func formatPostName(_ person: Person) -> String {
+        return person.username.isEmpty ? "\(person.firstName)/\(person.lastName)" : person.username
+    }
+    
     func submitPrayerList(inputText: String, prayStartDate: Date, userHolder: UserProfileHolder, existingInput: String) async throws {
 //            //Add user as friend to the friend's list.
-        let prayerNamesOld = await postService.retrievePostPersonArray(prayerList: existingInput).map {
-                if $0.username == "" {
-                    $0.firstName + "/" + $0.lastName
-                } else {
-                    $0.username
-                }
-            } // reference to initial state of prayer list
+        let prayerNamesOld = await postService.retrievePostPersonArray(prayerList: existingInput).map {formatPostName($0)} // reference to initial state of prayer list
         
-        let prayerNamesNew = await postService.retrievePostPersonArray(prayerList: inputText).map {
-            if $0.username == "" {
-                $0.firstName + "/" + $0.lastName
-            } else {
-                $0.username
-            }
-        } // reference to new state of prayer list.
+        let prayerNamesNew = await postService.retrievePostPersonArray(prayerList: inputText).map {formatPostName($0)} // reference to new state of prayer list.
         
         var linkedFriends: [String] = []
             
@@ -145,17 +137,7 @@ struct PrayerNameInputView: View {
                 }
                 
             } else { //else is for any names you have added which do not have a username; under your account and not linked.
-                let db = Firestore.firestore()
-                
-                // Fetch all prayer requests with that person's first name and last name, so they are removed from your feed.
-                let refDelete = try await db.collection("prayerFeed").document(userHolder.person.userID).collection("prayerRequests")
-                    .whereField("firstName", isEqualTo: String(usernameOrName.split(separator: "/").first ?? ""))
-                    .whereField("lastName", isEqualTo: String(usernameOrName.split(separator: "/").last ?? ""))
-                    .getDocuments()
-                
-                for document in refDelete.documents {
-                    try await document.reference.delete()
-                }
+                await postService.removePostsFromUsersFeed(userID: userHolder.person.userID, friendUsernameToRemove: usernameOrName)
             }
         }
         
