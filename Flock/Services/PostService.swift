@@ -1,5 +1,5 @@
 //
-//  PrayerService.swift
+//  PostService.swift
 //  Flock
 //
 //  Created by Preston Mar on 7/21/24.
@@ -9,10 +9,10 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-class PrayerService {
+class PostService {
     let db = Firestore.firestore() // initiaties Firestore
     
-    func getPrayerList(userID: String) async throws -> (Date, String) { // This function retrieves calendar prayer list data from Firestore.
+    func getPostList(userID: String) async throws -> (Date, String) { // This function retrieves calendar prayer list data from Firestore.
         var prayStartDate = Date()
         var prayerList: String = ""
         
@@ -39,7 +39,7 @@ class PrayerService {
         return (prayStartDate, prayerList)
     }
     
-    func retrievePrayerPersonArray(prayerList: String) async -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may not.
+    func retrievePostPersonArray(prayerList: String) async -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may not.
         
         let prayerListArray = prayerList.components(separatedBy: "\n") // Create an array separated by \n within the prayer list string.
         print(prayerListArray.description)
@@ -80,7 +80,7 @@ class PrayerService {
         return prayerArray
     }
     
-    func updatePrayerListData(userID: String, prayStartDate: Date, prayerList: String) {
+    func updatePostListData(userID: String, prayStartDate: Date, prayerList: String) {
         // This function enables the user to update user documentation with userID, prayer start date, and prayer list.
         let ref = db.collection("users").document(userID)
         ref.updateData([

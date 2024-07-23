@@ -20,7 +20,7 @@ struct CreateProfileView: View {
     @State var errorMessage = ""
     
     private let userService = UserService()
-    private let prayerService = PrayerService()
+    private let postService = PostService()
     
     var body: some View {
         NavigationView{
@@ -191,8 +191,8 @@ struct CreateProfileView: View {
             userHolder.person = try await UserService().getUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             
-            userHolder.prayStartDate = try await prayerService.getPrayerList(userID: userID).0 // set Start Date
-            userHolder.prayerList = try await prayerService.getPrayerList(userID: userID).1 // set Prayer List
+            userHolder.prayStartDate = try await postService.getPostList(userID: userID).0 // set Start Date
+            userHolder.prayerList = try await postService.getPostList(userID: userID).1 // set Prayer List
             
             self.userHolder.person = userHolder.person
         } catch {

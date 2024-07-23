@@ -20,7 +20,7 @@ struct PrayerNameInputView: View {
     @FocusState private var isFocused: Bool
     
     private var userService = UserService()
-    private var prayerService = PrayerService()
+    private var postService = PostService()
     private var friendService = FriendService()
     
     var body: some View {
@@ -99,7 +99,7 @@ struct PrayerNameInputView: View {
     
     func submitPrayerList(inputText: String, prayStartDate: Date, userHolder: UserProfileHolder, existingInput: String) async throws {
 //            //Add user as friend to the friend's list.
-        let prayerNamesOld = await prayerService.retrievePrayerPersonArray(prayerList: existingInput).map {
+        let prayerNamesOld = await postService.retrievePostPersonArray(prayerList: existingInput).map {
                 if $0.username == "" {
                     $0.firstName + "/" + $0.lastName
                 } else {
@@ -107,7 +107,7 @@ struct PrayerNameInputView: View {
                 }
             } // reference to initial state of prayer list
         
-        let prayerNamesNew = await prayerService.retrievePrayerPersonArray(prayerList: inputText).map {
+        let prayerNamesNew = await postService.retrievePostPersonArray(prayerList: inputText).map {
             if $0.username == "" {
                 $0.firstName + "/" + $0.lastName
             } else {
@@ -197,12 +197,12 @@ struct PrayerNameInputView: View {
         
         print("Linked Friends: " + linkedFriends.description)
             
-            prayerService.updatePrayerListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
+        postService.updatePostListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
                     
             
             //reset local dataHolder
             userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
-            userHolder.prayerListArray = await prayerService.retrievePrayerPersonArray(prayerList: prayerList)
+            userHolder.prayerListArray = await postService.retrievePostPersonArray(prayerList: prayerList)
             userHolder.prayStartDate = prayStartDate
     }
     
