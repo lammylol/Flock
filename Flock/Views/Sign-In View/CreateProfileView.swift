@@ -19,6 +19,9 @@ struct CreateProfileView: View {
     @State var lastName = ""
     @State var errorMessage = ""
     
+    private let userService = UserService()
+    private let prayerService = PrayerService()
+    
     var body: some View {
         NavigationView{
             VStack(/*spacing: 20*/) {
@@ -125,7 +128,7 @@ struct CreateProfileView: View {
     func createAccount() {
         Task {
             // Ensure username does not exist.
-            if await PersonHelper().checkIfUsernameExists(username: username) == true {
+            if await userService.checkIfUsernameExists(username: username) == true {
                 errorMessage = "Username already taken by an existing account. Please enter try a different username."
             }
             // Ensure username does not have special characters. This will affect assessment of 'username' or 'name' in prayerNameInputView().
@@ -185,11 +188,11 @@ struct CreateProfileView: View {
         let userID = Auth.auth().currentUser?.uid ?? ""
         
         do {
-            userHolder.person = try await PersonHelper().getUserInfo(userID: userID)
+            userHolder.person = try await UserService().getUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             
-            userHolder.prayStartDate = try await PersonHelper().getPrayerList(userID: userID).0 // set Start Date
-            userHolder.prayerList = try await PersonHelper().getPrayerList(userID: userID).1 // set Prayer List
+            userHolder.prayStartDate = try await prayerService.getPrayerList(userID: userID).0 // set Start Date
+            userHolder.prayerList = try await prayerService.getPrayerList(userID: userID).1 // set Prayer List
             
             self.userHolder.person = userHolder.person
         } catch {

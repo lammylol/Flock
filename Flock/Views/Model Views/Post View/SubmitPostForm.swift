@@ -22,6 +22,8 @@ struct SubmitPostForm: View {
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     
+    private var friendService = FriendService()
+    
     var body: some View {
         NavigationView{
             VStack {
@@ -132,7 +134,7 @@ struct SubmitPostForm: View {
     func refreshFriends() {
         Task {
             do {
-                userHolder.friendsList = try await PersonHelper().getFriendsList(userID: userHolder.person.userID)
+                userHolder.friendsList = try await friendService().getFriendsList(userID: userHolder.person.userID)
                 self.userHolder.friendsList = userHolder.friendsList
             } catch {
                 print(error)

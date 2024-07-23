@@ -19,7 +19,7 @@ struct ProfileFeed: View {
     @State private var showEdit: Bool = false
     @State private var height: CGFloat = 0
     
-    let db = Firestore.firestore()
+    private var userService = UserService()
     
     var body: some View {
         LazyVStack {
@@ -78,7 +78,7 @@ struct ProfileFeed: View {
             Task {
                 do {
                     if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
-                        self.person = try await PersonHelper().retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
+                        self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // retrieve the userID from the username submitted only if username is not your own. Will return user's userID if there is a valid username. If not, will return user's own.
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                     } else {
                         self.viewModel.prayerRequests = viewModel.prayerRequests

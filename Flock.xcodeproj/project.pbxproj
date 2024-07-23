@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3ABC0AA62C4DD9BC000AFFD1 /* UserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */; };
+		3ABC0AA82C4DDF17000AFFD1 /* PostService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0AA72C4DDF17000AFFD1 /* PostService.swift */; };
+		3ABC0AAA2C4DDFB8000AFFD1 /* FriendService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0AA92C4DDFB8000AFFD1 /* FriendService.swift */; };
 		7A0AFA882BB777750051A4E0 /* TabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0AFA872BB777750051A4E0 /* TabBarButton.swift */; };
 		7A0FBB432C2A7E4C0079ACEC /* PostEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0FBB422C2A7E4C0079ACEC /* PostEditView.swift */; };
 		7A12A9CE2B87FA3B00707E3C /* EditPrayerUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A12A9CD2B87FA3B00707E3C /* EditPrayerUpdate.swift */; };
@@ -77,6 +80,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserService.swift; sourceTree = "<group>"; };
+		3ABC0AA72C4DDF17000AFFD1 /* PostService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostService.swift; sourceTree = "<group>"; };
+		3ABC0AA92C4DDFB8000AFFD1 /* FriendService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendService.swift; sourceTree = "<group>"; };
 		7A0AFA872BB777750051A4E0 /* TabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarButton.swift; sourceTree = "<group>"; };
 		7A0FBB422C2A7E4C0079ACEC /* PostEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEditView.swift; sourceTree = "<group>"; };
 		7A12A9CD2B87FA3B00707E3C /* EditPrayerUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPrayerUpdate.swift; sourceTree = "<group>"; };
@@ -158,6 +164,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3ABC0AA42C4DD8F4000AFFD1 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */,
+				3ABC0AA72C4DDF17000AFFD1 /* PostService.swift */,
+				3ABC0AA92C4DDFB8000AFFD1 /* FriendService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		7A0AFA842BB7773A0051A4E0 /* Custom Tab Bar */ = {
 			isa = PBXGroup;
 			children = (
@@ -316,6 +332,7 @@
 		7A4F25F72AD0D23900FB086C /* Flock */ = {
 			isa = PBXGroup;
 			children = (
+				3ABC0AA42C4DD8F4000AFFD1 /* Services */,
 				7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */,
 				7A285BA22B959B5900BAF4C0 /* Views */,
 				7A285BA12B959B4D00BAF4C0 /* Model */,
@@ -540,12 +557,15 @@
 				7A4F26372AD0D2B600FB086C /* PrayerCalendarView.swift in Sources */,
 				7A4F26392AD0D2B600FB086C /* CalendarHelper.swift in Sources */,
 				7AF31F2F2C07F5FC00FD111E /* UpdateView.swift in Sources */,
+				3ABC0AA82C4DDF17000AFFD1 /* PostService.swift in Sources */,
 				7AD28BF42BDF49B000F982C0 /* PostsFeed.swift in Sources */,
 				7A4F263A2AD0D2B600FB086C /* MonthStruct.swift in Sources */,
 				7A4F26382AD0D2B600FB086C /* FlockSwiftApp.swift in Sources */,
 				7A27B7B62B2FE0EB00FF72FC /* CreateProfileView.swift in Sources */,
 				7ADE4C532B046CD400CE6B33 /* SubmitPostForm.swift in Sources */,
 				7ADE4C552B0811AC00CE6B33 /* PostFullView.swift in Sources */,
+				3ABC0AA62C4DD9BC000AFFD1 /* UserService.swift in Sources */,
+				3ABC0AAA2C4DDFB8000AFFD1 /* FriendService.swift in Sources */,
 				7A8D40B52B44A9CF00B029E6 /* FeedView.swift in Sources */,
 				7AF1E9F02B145848007E3303 /* UserProfileHolder.swift in Sources */,
 				7A0FBB432C2A7E4C0079ACEC /* PostEditView.swift in Sources */,
