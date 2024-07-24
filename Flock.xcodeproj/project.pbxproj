@@ -181,6 +181,21 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		3ABC0ABA2C50940C000AFFD1 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		3ABC0ABD2C509485000AFFD1 /* ErrorHandling */ = {
+			isa = PBXGroup;
+			children = (
+				3ABC0AAD2C4F3872000AFFD1 /* FirebaseErrors.swift */,
+			);
+			path = ErrorHandling;
+			sourceTree = "<group>";
+		};
 		7A0AFA842BB7773A0051A4E0 /* Custom Tab Bar */ = {
 			isa = PBXGroup;
 			children = (
@@ -225,7 +240,6 @@
 				7A66A0C42B0B24BC000CA93E /* PostHelper.swift */,
 				7AF4CF412B66F9370068908E /* FeedHelper.swift */,
 				7AFD17E92B822C7C0015CD96 /* PostUpdateHelper.swift */,
-				3ABC0AAD2C4F3872000AFFD1 /* FirebaseErrors.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -340,6 +354,8 @@
 		7A4F25F72AD0D23900FB086C /* Flock */ = {
 			isa = PBXGroup;
 			children = (
+				3ABC0ABD2C509485000AFFD1 /* ErrorHandling */,
+				3ABC0ABA2C50940C000AFFD1 /* Utilities */,
 				3ABC0AA42C4DD8F4000AFFD1 /* Services */,
 				7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */,
 				7A285BA22B959B5900BAF4C0 /* Views */,
