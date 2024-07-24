@@ -145,6 +145,23 @@ class FriendService {
         }
     }
     
+    func removeFriendPostsFromUserFeed(userID: String, friendUsernameToRemove: String) async {
+        // Fetch all prayer requests with that person's first name and last name, so they are removed from your feed.
+        do{
+            let refDelete = try await db.collection("prayerFeed").document(userID).collection("prayerRequests")
+                .whereField("firstName", isEqualTo: String(friendUsernameToRemove.split(separator: "/").first ?? ""))
+                .whereField("lastName", isEqualTo: String(friendUsernameToRemove.split(separator: "/").last ?? ""))
+                .getDocuments()
+            
+            for document in refDelete.documents {
+                try await document.reference.delete()
+            }
+        }catch{
+            print("Error removing posts: \(error.localizedDescription)")
+        }
+
+    }
+    
     func deleteFriend(user: Person, friend: Person) async throws {
         do {
             // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.

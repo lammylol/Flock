@@ -19,9 +19,10 @@ struct PrayerNameInputView: View {
     @State var saved: String = ""
     @FocusState private var isFocused: Bool
     
-    private var userService = UserService()
-    private var postService = PostService()
-    private var friendService = FriendService()
+    let userService = UserService()
+    let postService = PostService()
+    let friendService = FriendService()
+    let calendarService = CalendarService()
     
     var body: some View {
         NavigationStack {
@@ -103,9 +104,9 @@ struct PrayerNameInputView: View {
     
     func submitPrayerList(inputText: String, prayStartDate: Date, userHolder: UserProfileHolder, existingInput: String) async throws {
 //            //Add user as friend to the friend's list.
-        let prayerNamesOld = await postService.retrievePostPersonArray(prayerList: existingInput).map {formatPostName($0)} // reference to initial state of prayer list
+        let prayerNamesOld = await calendarService.retrieveCalendarPersonArray(prayerList: existingInput).map {formatPostName($0)} // reference to initial state of prayer list
         
-        let prayerNamesNew = await postService.retrievePostPersonArray(prayerList: inputText).map {formatPostName($0)} // reference to new state of prayer list.
+        let prayerNamesNew = await calendarService.retrieveCalendarPersonArray(prayerList: inputText).map {formatPostName($0)} // reference to new state of prayer list.
         
         var linkedFriends: [String] = []
             
@@ -137,7 +138,7 @@ struct PrayerNameInputView: View {
                 }
                 
             } else { //else is for any names you have added which do not have a username; under your account and not linked.
-                await postService.removePostsFromUsersFeed(userID: userHolder.person.userID, friendUsernameToRemove: usernameOrName)
+                await friendService.removeFriendPostsFromUserFeed(userID: userHolder.person.userID, friendUsernameToRemove: usernameOrName)
             }
         }
         
@@ -184,7 +185,7 @@ struct PrayerNameInputView: View {
             
             //reset local dataHolder
             userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
-            userHolder.prayerListArray = await postService.retrievePostPersonArray(prayerList: prayerList)
+            userHolder.prayerListArray = await calendarService.retrieveCalendarPersonArray(prayerList: prayerList)
             userHolder.prayStartDate = prayStartDate
     }
     

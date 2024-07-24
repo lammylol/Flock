@@ -16,6 +16,7 @@
 		3ABC0AB52C500804000AFFD1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3ABC0AB42C500804000AFFD1 /* FirebaseAuth */; };
 		3ABC0AB72C500809000AFFD1 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 3ABC0AB62C500809000AFFD1 /* FirebaseFirestore */; };
 		3ABC0AB92C50080F000AFFD1 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 3ABC0AB82C50080F000AFFD1 /* FirebaseFunctions */; };
+		3ABC0ABF2C517533000AFFD1 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0ABE2C517533000AFFD1 /* CalendarService.swift */; };
 		7A0AFA882BB777750051A4E0 /* TabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0AFA872BB777750051A4E0 /* TabBarButton.swift */; };
 		7A0FBB432C2A7E4C0079ACEC /* PostEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0FBB422C2A7E4C0079ACEC /* PostEditView.swift */; };
 		7A12A9CE2B87FA3B00707E3C /* EditPrayerUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A12A9CD2B87FA3B00707E3C /* EditPrayerUpdate.swift */; };
@@ -84,6 +85,7 @@
 		3ABC0AA72C4DDF17000AFFD1 /* PostService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostService.swift; sourceTree = "<group>"; };
 		3ABC0AA92C4DDFB8000AFFD1 /* FriendService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendService.swift; sourceTree = "<group>"; };
 		3ABC0AAD2C4F3872000AFFD1 /* FirebaseErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseErrors.swift; sourceTree = "<group>"; };
+		3ABC0ABE2C517533000AFFD1 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		7A0AFA872BB777750051A4E0 /* TabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarButton.swift; sourceTree = "<group>"; };
 		7A0FBB422C2A7E4C0079ACEC /* PostEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEditView.swift; sourceTree = "<group>"; };
 		7A12A9CD2B87FA3B00707E3C /* EditPrayerUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPrayerUpdate.swift; sourceTree = "<group>"; };
@@ -170,6 +172,7 @@
 				3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */,
 				3ABC0AA72C4DDF17000AFFD1 /* PostService.swift */,
 				3ABC0AA92C4DDFB8000AFFD1 /* FriendService.swift */,
+				3ABC0ABE2C517533000AFFD1 /* CalendarService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -574,6 +577,7 @@
 				7A4F26302AD0D2B600FB086C /* DateScroller.swift in Sources */,
 				7A3158ED2AF357F5009B6E59 /* SignInView.swift in Sources */,
 				7AE46BD52B10100D0034DAD6 /* Person.swift in Sources */,
+				3ABC0ABF2C517533000AFFD1 /* CalendarService.swift in Sources */,
 				7AF4CF422B66F9370068908E /* FeedHelper.swift in Sources */,
 				7A5C72352AFF5E3100A75636 /* Post.swift in Sources */,
 				3ABC0AAE2C4F3872000AFFD1 /* FirebaseErrors.swift in Sources */,
