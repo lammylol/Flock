@@ -19,6 +19,11 @@ struct PrayerNameInputView: View {
     @State var saved: String = ""
     @FocusState private var isFocused: Bool
     
+    let userService = UserService()
+    let postService = PostService()
+    let friendService = FriendService()
+    let calendarService = CalendarService()
+    
     var body: some View {
         NavigationStack {
             VStack{
@@ -93,23 +98,15 @@ struct PrayerNameInputView: View {
         }
     }
     
+    func formatPostName(_ person: Person) -> String {
+        return person.username.isEmpty ? "\(person.firstName)/\(person.lastName)" : person.username
+    }
+    
     func submitPrayerList(inputText: String, prayStartDate: Date, userHolder: UserProfileHolder, existingInput: String) async throws {
 //            //Add user as friend to the friend's list.
-        let prayerNamesOld = await PersonHelper().retrievePrayerPersonArray(prayerList: existingInput).map {
-                if $0.username == "" {
-                    $0.firstName + "/" + $0.lastName
-                } else {
-                    $0.username
-                }
-            } // reference to initial state of prayer list
+        let prayerNamesOld = await calendarService.retrieveCalendarPersonArray(prayerList: existingInput).map {formatPostName($0)} // reference to initial state of prayer list
         
-        let prayerNamesNew = await PersonHelper().retrievePrayerPersonArray(prayerList: inputText).map {
-            if $0.username == "" {
-                $0.firstName + "/" + $0.lastName
-            } else {
-                $0.username
-            }
-        } // reference to new state of prayer list.
+        let prayerNamesNew = await calendarService.retrieveCalendarPersonArray(prayerList: inputText).map {formatPostName($0)} // reference to new state of prayer list.
         
         var linkedFriends: [String] = []
             
@@ -129,29 +126,19 @@ struct PrayerNameInputView: View {
         for usernameOrName in removals {
             if usernameOrName.contains("/") == false { // This checks if the person is a linked account or not. If it was linked, usernameOrName would be a username. Usernames cannot have special characters in them.
                 
-                if await PersonHelper().checkIfUsernameExists(username: usernameOrName) == true {
+                if await userService.checkIfUsernameExists(username: usernameOrName) == true {
                     do {
-                        let person = try await PersonHelper().retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder) // retrieve the "person" structure based on their username. Will return back user info.
+                        let person = try await userService.retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder) // retrieve the "person" structure based on their username. Will return back user info.
                         
                         // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed. And, update your prayer feed to remove that person's prayer requests from your current feed.
-                        try await PersonHelper().deleteFriend(user: userHolder.person, friend: person)
+                        try await friendService.deleteFriend(user: userHolder.person, friend: person)
                     } catch {
                         print(error)
                     }
                 }
                 
             } else { //else is for any names you have added which do not have a username; under your account and not linked.
-                let db = Firestore.firestore()
-                
-                // Fetch all prayer requests with that person's first name and last name, so they are removed from your feed.
-                let refDelete = try await db.collection("prayerFeed").document(userHolder.person.userID).collection("prayerRequests")
-                    .whereField("firstName", isEqualTo: String(usernameOrName.split(separator: "/").first ?? ""))
-                    .whereField("lastName", isEqualTo: String(usernameOrName.split(separator: "/").last ?? ""))
-                    .getDocuments()
-                
-                for document in refDelete.documents {
-                    try await document.reference.delete()
-                }
+                await friendService.removeFriendPostsFromUserFeed(userID: userHolder.person.userID, friendUsernameToRemove: usernameOrName)
             }
         }
         
@@ -162,18 +149,18 @@ struct PrayerNameInputView: View {
                 
                 var person = Person.blank
                     
-                guard await PersonHelper().checkIfUsernameExists(username: usernameOrName) == true else {
+                guard await userService.checkIfUsernameExists(username: usernameOrName) == true else {
                     throw PrayerPersonRetrievalError.incorrectUsername
                 }
                 
-                person = try await PersonHelper().retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder) // retrieve the "person" structure based on their username. Will return back user info.
+                person = try await userService.retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder) // retrieve the "person" structure based on their username. Will return back user info.
                 
                 print("usernameOrName: \(usernameOrName)")
                     
                 do {
                     // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
-                    try await PersonHelper().addFriend(user: userHolder.person, friend: person)
-                    try await PersonHelper().updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: person)
+                    try await friendService.addFriend(user: userHolder.person, friend: person)
+                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: person)
                     
                 } catch {
                     print(error.localizedDescription)
@@ -184,7 +171,7 @@ struct PrayerNameInputView: View {
                 
                 // Fetch all historical prayers from that person into your feed, noting that these do not have a linked username. So you need to pass in your own userID into that person for the function to retrieve out of your prayerFeed/youruserID.
                 do {
-                    try await PersonHelper().updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
+                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
                 } catch {
                     throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
                 }
@@ -193,12 +180,12 @@ struct PrayerNameInputView: View {
         
         print("Linked Friends: " + linkedFriends.description)
             
-            PersonHelper().updatePrayerListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
+        postService.updatePostListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
                     
             
             //reset local dataHolder
             userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
-            userHolder.prayerListArray = await PersonHelper().retrievePrayerPersonArray(prayerList: prayerList)
+            userHolder.prayerListArray = await calendarService.retrieveCalendarPersonArray(prayerList: prayerList)
             userHolder.prayStartDate = prayStartDate
     }
     

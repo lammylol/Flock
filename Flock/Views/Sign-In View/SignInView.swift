@@ -29,6 +29,10 @@ struct SignInView: View {
     @State var passwordText: String = ""
     @State private var height: CGFloat = 0
     
+    let postService = PostService()
+    let friendService = FriendService()
+    let calendarService = CalendarService()
+    
     var body: some View {
         Group {
             if userHolder.isLoading {
@@ -211,13 +215,14 @@ struct SignInView: View {
             userHolder.viewState = .loading
             defer { userHolder.viewState = .finished }
             
-            userHolder.person = try await PersonHelper().getUserInfo(userID: userID)
+            userHolder.person = try await UserService().getUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
             
-            userHolder.prayStartDate = try await PersonHelper().getPrayerList(userID: userID).0 // set Start Date
-            userHolder.prayerList = try await PersonHelper().getPrayerList(userID: userID).1 // set Prayer List
-            userHolder.prayerListArray = await PersonHelper().retrievePrayerPersonArray(prayerList: userHolder.prayerList)
+            let postList = try await calendarService.getPrayerCalendarList(userID: userID)
+            userHolder.prayStartDate = postList.0 // set Start Date
+            userHolder.prayerList = postList.1 // set Prayer List
+            userHolder.prayerListArray = await calendarService.retrieveCalendarPersonArray(prayerList: userHolder.prayerList)
             
             dateHolder.date = Date() // Resets the view to current month on current
             
@@ -230,7 +235,7 @@ struct SignInView: View {
     
     func setFriendsList(userID: String) async throws {
         do {
-            userHolder.friendsList = try await PersonHelper().getFriendsList(userID: userHolder.person.userID)
+            userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID)
         } catch {
             print(error)
         }
