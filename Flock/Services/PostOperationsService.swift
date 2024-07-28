@@ -1,14 +1,4 @@
-//
-//  PrayerRequestHelper.swift
-//  Prayer Calendar
-//
-//  Created by Matt Lam on 11/19/23.
-//
-
-import Foundation
-import SwiftUI
-import FirebaseFirestore
-import FirebaseFunctions
+// Handles essential post CRUD operations
 
 enum PrayerRequestRetrievalError: Error {
     case noUserID
@@ -17,22 +7,8 @@ enum PrayerRequestRetrievalError: Error {
     case errorRetrievingFromFirebase
 }
 
-class PostHelper {
-    let db = Firestore.firestore()
-
-    func togglePinned(person: Person, post: Post, toggle: Bool) {
-        let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-        ref.updateData([
-            "isPinned": toggle
-        ])
-        
-        if person.userID == post.userID {
-            let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document(post.id)
-            ref2.updateData([
-                "isPinned": toggle
-            ])
-        } // update data to personal profile feed if this is under your profile as well.
-    }
+class PostOperationsService {
+    private let db = Firestore.firestore()
 
     //Retrieve prayer requests from Firestore
     func getPosts(userID: String, person: Person, status: String?, fetchOnlyPublic: Bool) async throws -> [Post] {
@@ -106,7 +82,7 @@ class PostHelper {
         }
         return prayerRequests
     }
-    
+
     func getPost(prayerRequest: Post) async throws -> Post {
         guard prayerRequest.id != "" else {
             throw PrayerRequestRetrievalError.noPrayerRequestID
@@ -165,7 +141,7 @@ class PostHelper {
         
         return prayerRequest
     }
-        
+
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
     func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [Person]) {
         // Create new PrayerRequestID to users/{userID}/prayerList/{person}/prayerRequests
@@ -249,7 +225,7 @@ class PostHelper {
             "latestUpdateType": ""
         ])
     }
-    
+
     // This function enables an edit to a prayer requests off of a selected prayer request.
     func editPost(post: Post, person: Person, friendsList: [Person]) async throws {
         do {
@@ -283,76 +259,7 @@ class PostHelper {
             print(error)
         }
     }
-    
-    // This function updates the prayer feed of all users who are friends of the person.
-    func updateFriendsFeed(post: Post, person: Person, friend: Person, updateFriend: Bool) async throws {
-        do {
-            if updateFriend {
-                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                
-                try await ref.setData([
-                    "datePosted": post.date,
-                    "firstName": post.firstName,
-                    "lastName": post.lastName,
-                    "status": post.status,
-                    "prayerRequestText": post.postText,
-                    "postType": post.postType,
-                    "userID": person.userID,
-                    "username": person.username,
-                    "privacy": post.privacy,
-                    "prayerRequestTitle": post.postTitle,
-                    "latestUpdateText": post.latestUpdateText,
-                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
-                    "latestUpdateType": post.latestUpdateType
-                ])
-                
-                print("success: \(post.id)")
-                print("from person: \(person.userID)")
-                print("posting to: \(friend.userID)")
-                print("path: \(ref.path)")
-            } else {
-                let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-                 try await ref.setData([
-                    "datePosted": post.date,
-                    "firstName": post.firstName,
-                    "lastName": post.lastName,
-                    "status": post.status,
-                    "prayerRequestText": post.postText,
-                    "postType": post.postType,
-                    "userID": person.userID,
-                    "username": person.username,
-                    "privacy": post.privacy,
-                    "prayerRequestTitle": post.postTitle,
-                    "latestUpdateText": post.latestUpdateText,
-                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
-                    "latestUpdateType": post.latestUpdateType,
-                    "isPinned": post.isPinned
-                ])
-            }
-        } catch {
-            print(error)
-        }
-    }
-    
-    // this function updates the prayer requests collection carrying all prayer requests. Takes in the prayer request being updated, and the person who is being updated for.
-    func updatePostsDataCollection(prayerRequest: Post, person: Person) {
-        let ref =
-        db.collection("prayerRequests").document(prayerRequest.id)
-        
-        ref.updateData([
-            "datePosted": prayerRequest.date,
-            "firstName": prayerRequest.firstName,
-            "lastName": prayerRequest.lastName,
-            "status": prayerRequest.status,
-            "postType": prayerRequest.postType,
-            "prayerRequestText": prayerRequest.postText,
-            "userID": person.userID,
-            "username": person.username,
-            "privacy": prayerRequest.privacy,
-            "prayerRequestTitle": prayerRequest.postTitle
-        ])
-    }
-    
+
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
     func deletePost(post: Post, person: Person, friendsList: [Person]) {
         let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
@@ -376,53 +283,4 @@ class PostHelper {
         
         ref3.delete()
     }
-    
-    // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
-    func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) {
-    
-        // Delete PrayerRequestID from prayerFeed/{userID}
-        if post.privacy == "public" && friendsList.isEmpty == false {
-            for friend in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                ref2.delete() { err in
-                    if let err = err {
-                        print("Error removing document: \(err)")
-                    } else {
-                        print("Document successfully deleted")
-                        print(post.id)
-                        print(post.postText)
-                    }
-                }
-            }
-        } // Delete from your friends' feeds.
-        
-        // Delete from your own user feed.
-        let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-        ref2.delete() { err in
-            if let err = err {
-                print("Error removing document: \(err)")
-            } else {
-                print("Document successfully deleted")
-                print(post.id)
-                print(post.postText)
-            }
-        }
-    }
-    
-    func publicToPrivate(post: Post, friendsList: [Person]) {
-        if friendsList.isEmpty == false {
-            for friend in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                ref2.delete() { err in
-                    if let err = err {
-                        print("Error removing document: \(err)")
-                    } else {
-                        print("Document successfully deleted")
-                        print(post.id)
-                        print(post.postText)
-                    }
-                }
-            }
-        }
-    } // This function allows you to pass in a prayer request and delete that from friends' feeds if you have changed it from public to private.
 }
