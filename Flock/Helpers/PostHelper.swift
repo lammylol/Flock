@@ -34,6 +34,7 @@ class PostHelper {
         } // update data to personal profile feed if this is under your profile as well.
     }
 
+    
     //Retrieve prayer requests from Firestore
     func getPosts(userID: String, person: Person, status: String?, fetchOnlyPublic: Bool) async throws -> [Post] {
         var prayerRequests = [Post]()
