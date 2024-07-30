@@ -42,10 +42,10 @@ fastlane/test_output
 # Swift Package Manager
 #
 # Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-# Package.pins
-# Package.resolved
-# .swiftpm/
+Packages/
+Package.pins
+Package.resolved
+.swiftpm/
 
 # Xcode automatically generates a plist file to store the App Store Connect API key when the API key is configured in the project.
 # More information: https://developer.apple.com/documentation/xcode/creating-an-api-key-for-app-store-connect-api
