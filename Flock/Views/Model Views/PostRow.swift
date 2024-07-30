@@ -211,11 +211,17 @@ struct PostRow: View {
     }
     
     func pinPost(){
-        var isPinnedToggle = post.isPinned
-        isPinnedToggle.toggle()
-        self.post.isPinned = isPinnedToggle
-        
-        PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
+        Task {
+            do {
+                var isPinnedToggle = post.isPinned
+                isPinnedToggle.toggle()
+                self.post.isPinned = isPinnedToggle
+                
+                try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
+            } catch {
+                print(error)
+            }
+        }
     }
     
     func removeFromFeed(){

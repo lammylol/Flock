@@ -86,7 +86,8 @@ struct PrayerNameInputView: View {
     func submitList() {
         Task {
             do {
-                defer {saved = "Saved"
+                defer {
+                    saved = "Saved"
                     self.isFocused = false // removes focus so keyboard disappears
                 }
                 
@@ -185,7 +186,7 @@ struct PrayerNameInputView: View {
             
         self.prayStartDate = Calendar.current.startOfDay(for: prayStartDate)
         
-        postService.updatePostListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
+        try await postService.updatePostListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
         
             
         //reset local dataHolder

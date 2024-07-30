@@ -191,10 +191,6 @@ struct PostFullView: View {
                 self.post = oldPost
                 print("isPinned: " + post.isPinned.description)
                 originalPrivacy = post.privacy // for catching public to private.
-            } catch PrayerRequestRetrievalError.noPrayerRequestID {
-                print("missing prayer request ID for update.")
-            } catch {
-                print("error retrieving")
             }
         }
         .refreshable(action: {
@@ -212,12 +208,18 @@ struct PostFullView: View {
     }
     
     func pinPost(){
-        var isPinnedToggle = post.isPinned
-        isPinnedToggle.toggle()
-        self.post.isPinned = isPinnedToggle
-        
-        PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
-//        userHolder.refresh = true
+        Task {
+            do {
+                var isPinnedToggle = post.isPinned
+                isPinnedToggle.toggle()
+                self.post.isPinned = isPinnedToggle
+                
+                try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
+                //        userHolder.refresh = true
+            } catch {
+                print(error)
+            }
+        }
     }
     
     func usernameDisplay() -> String {
