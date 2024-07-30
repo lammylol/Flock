@@ -102,7 +102,7 @@ struct PostEditView: View {
             }
             .task {
                 do {
-                    self.post = try await PostHelper().getPost(prayerRequest: post)
+                    self.post = try await PostOperationsService().getPost(prayerRequest: post)
                     self.post = post
                     prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
                     print("isPinned: " + post.isPinned.description)
@@ -117,7 +117,7 @@ struct PostEditView: View {
                 Task {
                     do {
                         prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
-                        post = try await PostHelper().getPost(prayerRequest: post)
+                        post = try await PostOperationsService().getPost(prayerRequest: post)
                     } catch {
                         print("error retrieving updates.")
                     }
@@ -153,14 +153,14 @@ struct PostEditView: View {
 
         let newPrivacy = post.privacy
         if originalPrivacy != "private" && newPrivacy == "private" {
-            PostHelper().publicToPrivate(post: post, friendsList: userHolder.friendsList)
+            FeedService().publicToPrivate(post: post, friendsList: userHolder.friendsList)
         } // if the privacy has changed from public to private, delete it from friends' feeds.
         
         // Function to catch if privacy was changed from public to private.
         
         Task {
             do {
-                try await PostHelper().editPost(post: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
+                try await PostOperationsService().editPost(post: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
             } catch {
                 print(error)
             }
@@ -170,7 +170,7 @@ struct PostEditView: View {
     }
     
     func deletePost() {
-        PostHelper().deletePost(post: post, person: person, friendsList: userHolder.friendsList)
+        PostOperationsService().deletePost(post: post, person: person, friendsList: userHolder.friendsList)
         userHolder.refresh = true
         
         print("Deleted")

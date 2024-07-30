@@ -199,7 +199,7 @@ struct PostFullView: View {
         }
         .refreshable(action: {
             Task {
-                self.post = try await PostHelper().getPost(prayerRequest: post)
+                self.post = try await PostOperationsService().getPost(prayerRequest: post)
                 self.oldPost = self.post
             }
         })

@@ -4,9 +4,6 @@ import Foundation
 import SwiftUI
 import FirebaseFirestore
 import FirebaseFunctions
-import PostHelper
-import FeedService
-import PostDataService
 
 enum PrayerRequestRetrievalError: Error {
     case noUserID
@@ -250,17 +247,17 @@ class PostOperationsService {
             
             // Add PrayerRequestID to prayerFeed/{userID}
             if post.status == "No Longer Needed" {
-                deleteFromFeed(post: post, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
+                FeedService().deleteFromFeed(post: post, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
             } else {
                 if post.privacy == "public" && friendsList.isEmpty == false {
                     for friend in friendsList {
-                        try await updateFriendsFeed(post: post, person: person, friend: friend, updateFriend: true)
+                        try await FeedService().updateFriendsFeed(post: post, person: person, friend: friend, updateFriend: true)
                     }
                 }
-                try await updateFriendsFeed(post: post, person: person, friend: Person(), updateFriend: false)
+                try await FeedService().updateFriendsFeed(post: post, person: person, friend: Person(), updateFriend: false)
                 
                 // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
-                updatePostsDataCollection(prayerRequest: post, person: person)
+                PostDataService().updatePostsDataCollection(prayerRequest: post, person: person)
                 print(post.postText)
             }
         } catch {
@@ -283,7 +280,7 @@ class PostOperationsService {
         }
         
         // Delete PrayerRequest from all feeds: friend feeds and user's feed.
-        deleteFromFeed(post: post, person: person, friendsList: friendsList)
+        FeedService().deleteFromFeed(post: post, person: person, friendsList: friendsList)
         
         // Delete PrayerRequestID and Data from prayerRequests/{prayerRequestID}
         let ref3 =

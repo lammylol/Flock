@@ -117,7 +117,7 @@ struct SubmitPostForm: View {
     }
         
     func submitList() {
-        PostHelper().createPost(
+        PostOperationsService().createPost(
             userID: userHolder.person.userID,
             datePosted: Date(),
             person: person,

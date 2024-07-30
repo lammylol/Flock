@@ -8,9 +8,6 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
-import PostHelper
-import PostOperationsService
-import FeedService
 
 class PostDataService {
     let db = Firestore.firestore() // initiaties Firestore
