@@ -174,7 +174,11 @@ struct CreateProfileView: View {
                                 print("Account successfully created.")
                                 await setInfo()
                                 errorMessage = ""
-                                dismiss()
+                                
+                                // DispatchQueue ensures that dismiss happens on the main thread.
+                                DispatchQueue.main.async {
+                                    dismiss()
+                                }
                             } catch {
                                 print(error)
                             }
