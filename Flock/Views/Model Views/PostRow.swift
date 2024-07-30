@@ -24,7 +24,7 @@ struct PostRow: View {
     @State private var postIsTruncated: Bool = false
     
     var body: some View {
-        NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post)) {
+        NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post)) {
             LazyVStack{
                 HStack {
                     if viewModel.profileOrFeed == "feed" { //feed used in the feed view
@@ -127,7 +127,7 @@ struct PostRow: View {
                                 .multilineTextAlignment(.leading)
                                 
                                 if isTruncated {
-                                    NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), oldPost: $post, lineLimit: .max)) {
+                                    NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post, lineLimit: .max)) {
                                         Text(expandUpdate ? "Show Less" : "Show More")
                                             .italic()
                                             .foregroundStyle(Color.blue)

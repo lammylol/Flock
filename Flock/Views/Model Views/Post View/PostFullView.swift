@@ -10,10 +10,12 @@ import SwiftUI
 
 struct PostFullView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(\.dismiss) var dismiss
+    
     @State var postUpdates: [PostUpdate] = []
     @State var person: Person
     @State var post: Post = Post.blank
-    @Binding var oldPost: Post
+    @Binding var originalPost: Post
     @State var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
@@ -188,15 +190,21 @@ struct PostFullView: View {
         }
         .task {
             do {
-                self.post = oldPost
+                self.post = try await PostHelper().getPost(prayerRequest: originalPost)
+                self.originalPost = self.post
                 print("isPinned: " + post.isPinned.description)
                 originalPrivacy = post.privacy // for catching public to private.
+            } catch {
+                // DispatchQueue ensures that dismiss happens on the main thread.
+                DispatchQueue.main.async {
+                    dismiss()
+                }
             }
         }
         .refreshable(action: {
             Task {
                 self.post = try await PostHelper().getPost(prayerRequest: post)
-                self.oldPost = self.post
+                self.originalPost = self.post
             }
         })
         .scrollIndicators(.hidden)
