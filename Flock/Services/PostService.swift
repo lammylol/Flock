@@ -9,6 +9,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
+// This service is for things related to users posts
 class PostService {
     let db = Firestore.firestore() // initiaties Firestore
     
