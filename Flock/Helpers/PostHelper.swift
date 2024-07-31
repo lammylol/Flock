@@ -6,16 +6,7 @@
 //
 
 import Foundation
-import SwiftUI
 import FirebaseFirestore
-import FirebaseFunctions
-
-enum PrayerRequestRetrievalError: Error {
-    case noUserID
-    case noPrayerRequestID
-    case noPrayerRequest
-    case errorRetrievingFromFirebase
-}
 
 class PostHelper {
     let db = Firestore.firestore()

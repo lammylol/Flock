@@ -1,16 +1,7 @@
 // Handles essential post CRUD operations
 
 import Foundation
-import SwiftUI
 import FirebaseFirestore
-import FirebaseFunctions
-
-enum PrayerRequestRetrievalError: Error {
-    case noUserID
-    case noPrayerRequestID
-    case noPrayerRequest
-    case errorRetrievingFromFirebase
-}
 
 class PostOperationsService {
     private let db = Firestore.firestore()
@@ -20,7 +11,7 @@ class PostOperationsService {
         var prayerRequests = [Post]()
         
         guard userID != "" else {
-            throw PrayerRequestRetrievalError.noUserID
+            throw PrayerPersonRetrievalError.noUserID
         }
         
         var profiles: Query

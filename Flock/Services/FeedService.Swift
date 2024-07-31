@@ -1,12 +1,14 @@
-// this will handle user and friend feeds
-
-// created 07/27/24
+//
+//  FeedService.swift
+//  Flock
+//
+//  Created by Preston Mar & Ramon Jiang on 7/24/24.
+//
 
 import Foundation
-import SwiftUI
 import FirebaseFirestore
-import FirebaseFunctions
 
+// this will handle user and friend feeds
 class FeedService {
     private let db = Firestore.firestore()
 
