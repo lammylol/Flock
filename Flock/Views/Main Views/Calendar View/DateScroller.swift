@@ -22,7 +22,7 @@ struct DateScroller: View {
                     .font(Font.title)
                     .padding(.leading, 33)
             }
-            Text(CalendarHelper().monthString(date: dataHolder.date) + " " + CalendarHelper().yearString(date: dataHolder.date))
+            Text(CalendarHelper().monthString(from: dataHolder.date) + " " + CalendarHelper().yearString(from: dataHolder.date))
                 .font(.title2)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
@@ -41,11 +41,11 @@ struct DateScroller: View {
     }
     
     func previousMonth(){
-        dataHolder.date = CalendarHelper().minusMonth(date: dataHolder.date)
+        dataHolder.date = CalendarHelper().minusMonth(from: dataHolder.date)
     }
     
     func nextMonth(){
-        dataHolder.date = CalendarHelper().plusMonth(date: dataHolder.date)
+        dataHolder.date = CalendarHelper().plusMonth(to: dataHolder.date)
     }
     
     struct DateScroller_Previews: PreviewProvider {
