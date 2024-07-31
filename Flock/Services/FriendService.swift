@@ -88,39 +88,67 @@ class FriendService {
             } catch {
                 throw error
             }
-        }}
+        }
+    }
     
+    func listenForFriendRequest(userID: String) async throws -> [(Person, String)] {
+        var friendRequests: [(Person, String)] = []
+        
+        db.collection("users").document(userID).collection("friendsList").whereField("state", isEqualTo: "pending")
+            .addSnapshotListener { querySnapshot, error in
+                guard let documents = querySnapshot?.documents else {
+                      print("Error fetching friendRequests: \(error!)")
+                      return
+                    }
+                
+                for document in documents {
+                    if document.exists {
+                        let userID = document.get("userID") as? String ?? ""
+                        let username = document.get("username") as? String ?? ""
+                        let email = document.get("email") as? String ?? ""
+                        let firstName = document.get("firstName") as? String ?? ""
+                        let lastName = document.get("lastName") as? String ?? ""
+                        let state = document.get("state") as? String ?? ""
+                        
+                        let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+                        
+                        friendRequests.append((person, state))
+                    }
+                }
+                
+                let friendRequestList = documents.compactMap { $0["firstName"] }
+                print("Pending Friend Requests from: \(friendRequestList)")
+            }
+        
+        return friendRequests
+    }
+        
     // Login functions:
-    func getFriendsList(userID: String) async throws -> [Person]{
-        let db = Firestore.firestore() // initiaties Firestore
+    func getFriendsList(userID: String) async throws -> [Person] {
         var friendsList: [Person] = []
         
         guard userID != "" else {
             throw PrayerPersonRetrievalError.noUserID
         }
         
-        do {
-            let friendsListRef = db.collection("users").document(userID).collection("friendsList")
-            
-            let querySnapshot = try await friendsListRef.getDocuments()
-            
-            //append FriendsListArray in userHolder
-            for document in querySnapshot.documents {
-                if document.exists {
-                    let userID = document.get("userID") as? String ?? ""
-                    let username = document.get("username") as? String ?? ""
-                    let email = document.get("email") as? String ?? ""
-                    let firstName = document.get("firstName") as? String ?? ""
-                    let lastName = document.get("lastName") as? String ?? ""
-                    //                print("\(document.documentID) => \(document.data())")
-                    
-                    let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
-                    friendsList.append(person)
-                }
+        let friendsListRef = db.collection("users").document(userID).collection("friendsList").whereField("state", isNotEqualTo: "pending")
+        
+        let querySnapshot = try await friendsListRef.getDocuments()
+        
+        //append FriendsListArray in userHolder
+        for document in querySnapshot.documents {
+            if document.exists {
+                let userID = document.get("userID") as? String ?? ""
+                let username = document.get("username") as? String ?? ""
+                let email = document.get("email") as? String ?? ""
+                let firstName = document.get("firstName") as? String ?? ""
+                let lastName = document.get("lastName") as? String ?? ""
+                
+                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+                
+                friendsList.append(person)
             }
-        } catch {
-          print("Error getting documents: \(error)")
-        } // get friends list and add that to userholder.friendslist
+        }
         
         return friendsList
     }
@@ -137,7 +165,8 @@ class FriendService {
                     "userID": user.userID,
                     "firstName": user.firstName,
                     "lastName": user.lastName,
-                    "email": user.email
+                    "email": user.email,
+                    "state": "pending"
                 ])
             }
         } catch {

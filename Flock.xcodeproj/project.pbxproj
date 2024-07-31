@@ -48,7 +48,10 @@
 		7A7CA4752B771106001922AA /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7CA4742B771106001922AA /* ProfileSettingsView.swift */; };
 		7A8D40B52B44A9CF00B029E6 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A8D40B42B44A9CF00B029E6 /* FeedView.swift */; };
 		7A92577C2B686BCF00D5EF35 /* ProfilePictureAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A92577B2B686BCF00D5EF35 /* ProfilePictureAvatar.swift */; };
+		7AC3931C2C596D4E00A6D793 /* FriendsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AC3931B2C596D4E00A6D793 /* FriendsPageView.swift */; };
 		7ACECCDD2C014CF900E61837 /* PrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ACECCDC2C014CF900E61837 /* PrivacyView.swift */; };
+		7ACFF5582C59AD65003272B6 /* ContactRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ACFF5572C59AD65003272B6 /* ContactRow.swift */; };
+		7ACFF55A2C59B1F5003272B6 /* FriendHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ACFF5592C59B1F5003272B6 /* FriendHelper.swift */; };
 		7AD28BF42BDF49B000F982C0 /* PostsFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AD28BF32BDF49B000F982C0 /* PostsFeed.swift */; };
 		7AD78FDA2AFB1A8800388663 /* PrayerCalendarViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AD78FD92AFB1A8800388663 /* PrayerCalendarViewTests.swift */; };
 		7AD808D12AD6F9E000A0ECA6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AD808D02AD6F9E000A0ECA6 /* ContentView.swift */; };
@@ -121,7 +124,10 @@
 		7A7CA4742B771106001922AA /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
 		7A8D40B42B44A9CF00B029E6 /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		7A92577B2B686BCF00D5EF35 /* ProfilePictureAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePictureAvatar.swift; sourceTree = "<group>"; };
+		7AC3931B2C596D4E00A6D793 /* FriendsPageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsPageView.swift; sourceTree = "<group>"; };
 		7ACECCDC2C014CF900E61837 /* PrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyView.swift; sourceTree = "<group>"; };
+		7ACFF5572C59AD65003272B6 /* ContactRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactRow.swift; sourceTree = "<group>"; };
+		7ACFF5592C59B1F5003272B6 /* FriendHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendHelper.swift; sourceTree = "<group>"; };
 		7AD28BF32BDF49B000F982C0 /* PostsFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsFeed.swift; sourceTree = "<group>"; };
 		7AD78FD92AFB1A8800388663 /* PrayerCalendarViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerCalendarViewTests.swift; sourceTree = "<group>"; };
 		7AD808D02AD6F9E000A0ECA6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -213,6 +219,7 @@
 		7A0FBB442C2A7F840079ACEC /* Model Views */ = {
 			isa = PBXGroup;
 			children = (
+				7ACFF5572C59AD65003272B6 /* ContactRow.swift */,
 				7A5C72322AFF5D9E00A75636 /* PostRow.swift */,
 				7A92577B2B686BCF00D5EF35 /* ProfilePictureAvatar.swift */,
 				7AF957442C0D11DE00282639 /* StatusPicker.swift */,
@@ -236,6 +243,7 @@
 				7A66A0C42B0B24BC000CA93E /* PostHelper.swift */,
 				7AF4CF412B66F9370068908E /* FeedHelper.swift */,
 				7AFD17E92B822C7C0015CD96 /* PostUpdateHelper.swift */,
+				7ACFF5592C59B1F5003272B6 /* FriendHelper.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -318,6 +326,7 @@
 		7A285BA82B959C7200BAF4C0 /* Main Views */ = {
 			isa = PBXGroup;
 			children = (
+				7AC3931A2C596D3900A6D793 /* Friends View */,
 				7AD808D02AD6F9E000A0ECA6 /* ContentView.swift */,
 				7A285BA32B959B6B00BAF4C0 /* Calendar View */,
 				7A285BA42B959B7B00BAF4C0 /* Prayer Feed View */,
@@ -390,6 +399,14 @@
 				7A4F26182AD0D23B00FB086C /* Prayer_CalendarUITestsLaunchTests.swift */,
 			);
 			path = FlockUITests;
+			sourceTree = "<group>";
+		};
+		7AC3931A2C596D3900A6D793 /* Friends View */ = {
+			isa = PBXGroup;
+			children = (
+				7AC3931B2C596D4E00A6D793 /* FriendsPageView.swift */,
+			);
+			path = "Friends View";
 			sourceTree = "<group>";
 		};
 		7AF31F2D2C07F5DA00FD111E /* Updates */ = {
@@ -546,6 +563,7 @@
 				7A5C72312AFEBADE00A75636 /* ProfileFeed.swift in Sources */,
 				7A0AFA882BB777750051A4E0 /* TabBarButton.swift in Sources */,
 				7A4986662BCDCBFD00C0A936 /* PasswordChangeView.swift in Sources */,
+				7AC3931C2C596D4E00A6D793 /* FriendsPageView.swift in Sources */,
 				7A4F26352AD0D2B600FB086C /* ProfileView.swift in Sources */,
 				7A92577C2B686BCF00D5EF35 /* ProfilePictureAvatar.swift in Sources */,
 				7AD808D12AD6F9E000A0ECA6 /* ContentView.swift in Sources */,
@@ -561,9 +579,11 @@
 				7A4F26302AD0D2B600FB086C /* DateScroller.swift in Sources */,
 				7A3158ED2AF357F5009B6E59 /* SignInView.swift in Sources */,
 				7AE46BD52B10100D0034DAD6 /* Person.swift in Sources */,
+				7ACFF55A2C59B1F5003272B6 /* FriendHelper.swift in Sources */,
 				3ABC0ABF2C517533000AFFD1 /* CalendarService.swift in Sources */,
 				7AF4CF422B66F9370068908E /* FeedHelper.swift in Sources */,
 				7A5C72352AFF5E3100A75636 /* Post.swift in Sources */,
+				7ACFF5582C59AD65003272B6 /* ContactRow.swift in Sources */,
 				3ABC0AAE2C4F3872000AFFD1 /* FirebaseErrors.swift in Sources */,
 				7AFD17EA2B822C7C0015CD96 /* PostUpdateHelper.swift in Sources */,
 				7A4F26372AD0D2B600FB086C /* PrayerCalendarView.swift in Sources */,

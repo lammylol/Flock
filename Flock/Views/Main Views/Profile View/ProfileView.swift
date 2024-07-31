@@ -21,6 +21,7 @@ struct ProfileView: View {
     @State private var navigationPath = NavigationPath()
     
     var userService = UserService()
+    var friendService = FriendService()
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -92,6 +93,7 @@ struct ProfileView: View {
             .task {
                 do {
                     person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    let friendsRequest = try await friendService.listenForFriendRequest(userID: person.userID)
                 } catch {
                     print(error)
                 }
