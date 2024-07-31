@@ -33,6 +33,9 @@ struct PrayerNameInputView: View {
                 displayedComponents: [.date]
                 )
                 .padding([.leading, .trailing], 85)
+                .onTapGesture {
+                    isFocused = true
+                }
                 
                 Divider()
                 Text("Add the friends you would like to pray for by submitting their names below. Adding a friend will create a profile for them within your account, unless you link to an active profile. To link to an active account, enter the person's name, followed by a semicolon, followed by the person's username.\n\nex. Berry Lam; berry")
@@ -83,7 +86,8 @@ struct PrayerNameInputView: View {
     func submitList() {
         Task {
             do {
-                defer {saved = "Saved"
+                defer {
+                    saved = "Saved"
                     self.isFocused = false // removes focus so keyboard disappears
                 }
                 
@@ -180,13 +184,15 @@ struct PrayerNameInputView: View {
         
         print("Linked Friends: " + linkedFriends.description)
             
-        postService.updatePostListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
-                    
+        self.prayStartDate = Calendar.current.startOfDay(for: prayStartDate)
+        
+        try await postService.updatePostListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
+        
             
-            //reset local dataHolder
-            userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
-            userHolder.prayerListArray = await calendarService.retrieveCalendarPersonArray(prayerList: prayerList)
-            userHolder.prayStartDate = prayStartDate
+        //reset local dataHolder
+        userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
+        userHolder.prayerListArray = await calendarService.retrieveCalendarPersonArray(prayerList: prayerList)
+        userHolder.prayStartDate = prayStartDate
     }
     
     //Function to changed "saved" text. When user saves textEditor, saved will appear until the user clicks back into textEditor, then the words "saved" should disappear. This will also occur when cancel is selected.

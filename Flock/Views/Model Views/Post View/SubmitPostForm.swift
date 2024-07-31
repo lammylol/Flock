@@ -117,18 +117,28 @@ struct SubmitPostForm: View {
     }
         
     func submitList() {
-        PostHelper().createPost(
-            userID: userHolder.person.userID,
-            datePosted: Date(),
-            person: person,
-            postText: postText,
-            postTitle: postTitle,
-            privacy: privacy,
-            postType: postType,
-            friendsList: userHolder.friendsList)
-        userHolder.refresh = true
-        print("Saved")
-        dismiss()
+        Task {
+            do {
+                try await PostHelper().createPost(
+                    userID: userHolder.person.userID,
+                    datePosted: Date(),
+                    person: person,
+                    postText: postText,
+                    postTitle: postTitle,
+                    privacy: privacy,
+                    postType: postType,
+                    friendsList: userHolder.friendsList)
+                userHolder.refresh = true
+                print("Saved")
+                
+                // DispatchQueue ensures that dismiss happens on the main thread.
+                DispatchQueue.main.async {
+                    dismiss()
+                }
+            } catch {
+                print(error)
+            }
+        }
     }
     
     func refreshFriends() {
