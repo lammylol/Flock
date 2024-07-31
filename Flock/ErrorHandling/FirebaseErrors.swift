@@ -15,3 +15,10 @@ enum PrayerPersonRetrievalError: Error {
     case errorRetrievingFromFirebase
     case noUserID
 }
+
+enum PrayerRequestRetrievalError: Error {
+    case noUserID
+    case noPrayerRequestID
+    case noPrayerRequest
+    case errorRetrievingFromFirebase
+}

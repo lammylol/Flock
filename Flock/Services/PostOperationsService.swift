@@ -11,7 +11,7 @@ class PostOperationsService {
         var prayerRequests = [Post]()
         
         guard userID != "" else {
-            throw PrayerPersonRetrievalError.noUserID
+            throw PrayerRequestRetrievalError.noUserID
         }
         
         var profiles: Query

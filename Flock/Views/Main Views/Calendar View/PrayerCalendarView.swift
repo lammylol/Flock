@@ -75,12 +75,12 @@ struct PrayerCalendarView: View {
     var calendarGrid: some View {
         VStack() {
 //            prayerList = dataHolder.prayerList //Required so that view will reset when prayerList changes.
-            let firstDayofMonth = CalendarHelper().firstDayOfMonth(date: dateHolder.date) //First Day of the Month
-            let startingSpaces = CalendarHelper().weekDay(date: firstDayofMonth)-1 //Number of spaces before month starts in a table of 42 rows.
-            let daysInMonth = CalendarHelper().daysInMonth(date: dateHolder.date) //Number of days in each month.
-            let daysInPrevMonth = CalendarHelper().daysInMonth(date: CalendarHelper().minusMonth(date: dateHolder.date))
+            let firstDayofMonth = CalendarHelper().firstDayOfMonth(for: dateHolder.date) //First Day of the Month
+            let startingSpaces = CalendarHelper().weekDay(for: firstDayofMonth)-1 //Number of spaces before month starts in a table of 42 rows.
+            let daysInMonth = CalendarHelper().daysInMonth(for: dateHolder.date) //Number of days in each month.
+            let daysInPrevMonth = CalendarHelper().daysInMonth(for: CalendarHelper().minusMonth(from: dateHolder.date))
             
-            let prayerStartingSpaces = CalendarHelper().weekDay(date: prayerListHolder.prayStartDate) //Number of spaces before prayer start date begins in a table of 42 rows.
+            let prayerStartingSpaces = CalendarHelper().weekDay(for: prayerListHolder.prayStartDate) //Number of spaces before prayer start date begins in a table of 42 rows.
             
             ForEach(0..<5){ row in
                 HStack(spacing: 1)
@@ -89,7 +89,7 @@ struct PrayerCalendarView: View {
                     { column in
                         let count = column + (row * 7)
                         let prayerRange =
-                        CalendarHelper().rangeOfPrayerStart(startDate: prayerListHolder.prayStartDate, firstDayOfMonth: firstDayofMonth) + count - startingSpaces - 1
+                        CalendarHelper().rangeOfPrayerStart(from: prayerListHolder.prayStartDate, to: firstDayofMonth) + count - startingSpaces - 1
                         
                         CalendarCell(count: count, startingSpaces: startingSpaces, daysInMonth: daysInMonth, daysInPrevMonth: daysInPrevMonth, date: dateHolder.date, prayerStartingSpaces: prayerStartingSpaces, prayerList: prayerListHolder.prayerList, prayerRange: prayerRange)
                     }

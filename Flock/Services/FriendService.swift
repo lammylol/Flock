@@ -24,7 +24,7 @@ class FriendService {
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
             for post in posts {
                 do {
-                    try await PostHelper().updateFriendsFeed(post: post, person: person, friend: user, updateFriend: true)
+                    try await FeedService().updateFriendsFeed(post: post, person: person, friend: user, updateFriend: true)
                 } catch {
                     print(error.localizedDescription)
                 }
