@@ -17,14 +17,14 @@ class FriendService {
         //In this scenario, userID is the userID of the person retrieving data from the 'person'.
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let posts = try await PostHelper().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
+            let posts = try await PostOperationsService().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
             
             print("posts: \(posts.map( {$0.id}).joined(separator: ", "))")
             print("user: \(user.userID)")
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
             for post in posts {
                 do {
-                    try await PostHelper().updateFriendsFeed(post: post, person: person, friend: user, updateFriend: true)
+                    try await FeedService().updateFriendsFeed(post: post, person: person, friend: user, updateFriend: true)
                 } catch {
                     print(error.localizedDescription)
                 }

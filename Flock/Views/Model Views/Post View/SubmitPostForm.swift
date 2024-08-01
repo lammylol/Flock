@@ -119,7 +119,7 @@ struct SubmitPostForm: View {
     func submitList() {
         Task {
             do {
-                try await PostHelper().createPost(
+                try await PostOperationsService().createPost(
                     userID: userHolder.person.userID,
                     datePosted: Date(),
                     person: person,

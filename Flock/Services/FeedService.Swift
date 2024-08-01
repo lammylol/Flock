@@ -2,16 +2,16 @@
 //  FeedService.swift
 //  Flock
 //
-//  Created by Preston Mar on 7/24/24.
+//  Created by Preston Mar & Ramon Jiang on 7/24/24.
 //
 
 import Foundation
 import FirebaseFirestore
 
-// db stuff to support the feed
+// this will handle user and friend feeds
 class FeedService {
     private let db = Firestore.firestore()
-    
+
     private func collectionPath(for user: Person, person: Person, profileOrFeed: String) -> CollectionReference {
         if profileOrFeed == "feed" {
             return db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
@@ -20,31 +20,31 @@ class FeedService {
             return db.collection("users").document(person.userID).collection("prayerList").document(personDocID).collection("prayerRequests")
         }
     }
-    
+
     func getAllPostsQuery(user: Person, person: Person, profileOrFeed: String) -> Query {
         return collectionPath(for: user, person: person, profileOrFeed: profileOrFeed)
     }
-    
+
     func getAllPostsByStatusQuery(user: Person, person: Person, status: String, profileOrFeed: String) -> Query {
         let collection = collectionPath(for: user, person: person, profileOrFeed: profileOrFeed)
         var query = collection.whereField("status", isEqualTo: status).order(by: "latestUpdateDatePosted", descending: true)
-        
+
         if profileOrFeed != "feed" && person.userID != user.userID {
             query = query.whereField("privacy", isEqualTo: "public")
         }
-        
+
         return query
     }
-    
+
     func getPosts(querySnapshot: QuerySnapshot) -> ([Post], DocumentSnapshot?) {
         var posts = [Post]()
         var lastDocument: DocumentSnapshot? = nil
-        
+
         for document in querySnapshot.documents {
             let data = document.data()
             let timestamp = data["datePosted"] as? Timestamp ?? Timestamp()
             let updateTimestamp = data["latestUpdateDatePosted"] as? Timestamp ?? timestamp
-            
+
             let post = Post(
                 id: document.documentID,
                 date: timestamp.dateValue(),
@@ -62,17 +62,17 @@ class FeedService {
                 privacy: data["privacy"] as? String ?? "private",
                 isPinned: data["isPinned"] as? Bool ?? false
             )
-            
+
             posts.append(post)
         }
-        
+
         lastDocument = querySnapshot.documents.last
         return (posts, lastDocument)
     }
-    
+
     func getPostFeed(user: Person, person: Person, answeredFilter: String, count: Int, lastDocument: DocumentSnapshot?, profileOrFeed: String) async throws -> ([Post], DocumentSnapshot?) {
         let prayerFeed: Query
-        
+
         switch answeredFilter {
         case "answered":
             prayerFeed = getAllPostsByStatusQuery(user: user, person: person, status: "Answered", profileOrFeed: profileOrFeed)
@@ -88,15 +88,97 @@ class FeedService {
             prayerFeed = getAllPostsQuery(user: user, person: person, profileOrFeed: profileOrFeed)
                 .order(by: "latestUpdateDatePosted", descending: true)
         }
-        
+
         let querySnapshot: QuerySnapshot
-        
+
         if let lastDoc = lastDocument {
             querySnapshot = try await prayerFeed.start(afterDocument: lastDoc).limit(to: count).getDocuments()
         } else {
             querySnapshot = try await prayerFeed.limit(to: count).getDocuments()
         }
-        
+
         return getPosts(querySnapshot: querySnapshot)
     }
+
+    // This function updates the prayer feed of all users who are friends of the person.
+    func updateFriendsFeed(post: Post, person: Person, friend: Person, updateFriend: Bool) async throws {
+        do {
+            if updateFriend {
+                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+                
+                try await ref.setData([
+                    "datePosted": post.date,
+                    "firstName": post.firstName,
+                    "lastName": post.lastName,
+                    "status": post.status,
+                    "prayerRequestText": post.postText,
+                    "postType": post.postType,
+                    "userID": person.userID,
+                    "username": person.username,
+                    "privacy": post.privacy,
+                    "prayerRequestTitle": post.postTitle,
+                    "latestUpdateText": post.latestUpdateText,
+                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
+                    "latestUpdateType": post.latestUpdateType
+                ])
+                
+                print("success: \(post.id)")
+                print("from person: \(person.userID)")
+                print("posting to: \(friend.userID)")
+                print("path: \(ref.path)")
+            } else {
+                let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
+                 try await ref.setData([
+                    "datePosted": post.date,
+                    "firstName": post.firstName,
+                    "lastName": post.lastName,
+                    "status": post.status,
+                    "prayerRequestText": post.postText,
+                    "postType": post.postType,
+                    "userID": person.userID,
+                    "username": person.username,
+                    "privacy": post.privacy,
+                    "prayerRequestTitle": post.postTitle,
+                    "latestUpdateText": post.latestUpdateText,
+                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
+                    "latestUpdateType": post.latestUpdateType,
+                    "isPinned": post.isPinned
+                ])
+            }
+        } catch {
+            print(error)
+        }
+    }
+
+    // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
+    func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) async throws {
+    
+        // Delete PrayerRequestID from prayerFeed/{userID}
+        if post.privacy == "public" && friendsList.isEmpty == false {
+            for friend in friendsList {
+                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+                try await ref2.delete()
+            }
+        } // Delete from your friends' feeds.
+        
+        // Delete from your own user feed.
+        let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
+        try await ref2.delete()
+    }
+
+    func publicToPrivate(post: Post, friendsList: [Person]) async throws {
+        if friendsList.isEmpty == false {
+            for friend in friendsList {
+                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+                try await ref2.delete()
+//                    if let err = err {
+//                        print("Error removing document: \(err)")
+//                    } else {
+//                        print("Document successfully deleted")
+//                        print(post.id)
+//                        print(post.postText)
+//                    }
+            }
+        }
+    } // This function allows you to pass in a prayer request and delete that from friends' feeds if you have changed it from public to private.
 }
