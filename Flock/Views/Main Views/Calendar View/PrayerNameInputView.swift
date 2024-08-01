@@ -20,7 +20,6 @@ struct PrayerNameInputView: View {
     @FocusState private var isFocused: Bool
     
     let userService = UserService()
-    let postService = PostService()
     let friendService = FriendService()
     let calendarService = CalendarService()
     
@@ -186,7 +185,7 @@ struct PrayerNameInputView: View {
             
         self.prayStartDate = Calendar.current.startOfDay(for: prayStartDate)
         
-        try await postService.updatePostListData(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
+        try await calendarService.updatePrayerCalendarList(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
         
             
         //reset local dataHolder

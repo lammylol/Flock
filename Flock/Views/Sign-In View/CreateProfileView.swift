@@ -20,7 +20,6 @@ struct CreateProfileView: View {
     @State var errorMessage = ""
     
     let userService = UserService()
-    let postService = PostService()
     let calendarService = CalendarService()
     
     var body: some View {
