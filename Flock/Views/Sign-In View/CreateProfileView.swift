@@ -168,13 +168,17 @@ struct CreateProfileView: View {
                                 let refUsernames = db.collection("usernames").document("\(username)")
                                 try await refUsernames.setData(
                                     ["userID": userID ?? "",
-                                     "username": username]
+                                     "username": username.lowercased()]
                                 )
                                 
                                 print("Account successfully created.")
                                 await setInfo()
                                 errorMessage = ""
-                                dismiss()
+                                
+                                // DispatchQueue ensures that dismiss happens on the main thread.
+                                DispatchQueue.main.async {
+                                    dismiss()
+                                }
                             } catch {
                                 print(error)
                             }

@@ -156,7 +156,7 @@ class FriendService {
             for document in refDelete.documents {
                 try await document.reference.delete()
             }
-        }catch{
+        } catch{
             print("Error removing posts: \(error.localizedDescription)")
         }
 

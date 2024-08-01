@@ -150,31 +150,44 @@ struct PostEditView: View {
     }
     
     func updatePost(post: Post) {
-
-        let newPrivacy = post.privacy
-        if originalPrivacy != "private" && newPrivacy == "private" {
-            FeedService().publicToPrivate(post: post, friendsList: userHolder.friendsList)
-        } // if the privacy has changed from public to private, delete it from friends' feeds.
-        
-        // Function to catch if privacy was changed from public to private.
-        
         Task {
             do {
-                try await PostOperationsService().editPost(post: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
+                let newPrivacy = post.privacy
+                if originalPrivacy != "private" && newPrivacy == "private" {
+                    try await PostHelper().publicToPrivate(post: post, friendsList: userHolder.friendsList)
+                } // if the privacy has changed from public to private, delete it from friends' feeds.
+                
+                // Function to catch if privacy was changed from public to private.
+                try await PostHelper().editPost(post: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
+                
+                print("Saved")
+                
+                // DispatchQueue ensures that dismiss happens on the main thread.
+                DispatchQueue.main.async {
+                    dismiss()
+                }
             } catch {
                 print(error)
             }
         }
-        print("Saved")
-        dismiss()
     }
     
     func deletePost() {
-        PostOperationsService().deletePost(post: post, person: person, friendsList: userHolder.friendsList)
-        userHolder.refresh = true
-        
-        print("Deleted")
-        dismiss()
+        Task {
+            do {
+                try await PostHelper().deletePost(post: post, person: person, friendsList: userHolder.friendsList)
+                userHolder.refresh = true
+                
+                print("Deleted")
+                
+                // DispatchQueue ensures that dismiss happens on the main thread.
+                DispatchQueue.main.async {
+                    dismiss()
+                }
+            } catch {
+                print(error)
+            }
+        }
     }
 }
 

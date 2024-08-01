@@ -13,7 +13,6 @@ import FirebaseAuth
 
 struct PrayerCalendarView: View {
     @Environment(UserProfileHolder.self) var userHolder
-    @Environment(UserProfileHolder.self) var prayerListHolder
     @Environment(DateHolder.self) var dateHolder
     @Environment(\.colorScheme) var colorScheme
     
@@ -72,26 +71,26 @@ struct PrayerCalendarView: View {
         .fontWeight(.semibold)
     }
     
+    @ViewBuilder
     var calendarGrid: some View {
-        VStack() {
+        VStack {
 //            prayerList = dataHolder.prayerList //Required so that view will reset when prayerList changes.
             let firstDayofMonth = CalendarHelper().firstDayOfMonth(for: dateHolder.date) //First Day of the Month
             let startingSpaces = CalendarHelper().weekDay(for: firstDayofMonth)-1 //Number of spaces before month starts in a table of 42 rows.
             let daysInMonth = CalendarHelper().daysInMonth(for: dateHolder.date) //Number of days in each month.
             let daysInPrevMonth = CalendarHelper().daysInMonth(for: CalendarHelper().minusMonth(from: dateHolder.date))
             
-            let prayerStartingSpaces = CalendarHelper().weekDay(for: prayerListHolder.prayStartDate) //Number of spaces before prayer start date begins in a table of 42 rows.
+
+            let prayerStartingSpaces = CalendarHelper().weekDay(for: userHolder.prayStartDate) //Number of spaces before prayer start date begins in a table of 42 rows.
             
             ForEach(0..<5){ row in
-                HStack(spacing: 1)
-                {
-                    ForEach(1..<8)
-                    { column in
+                HStack(spacing: 1) {
+                    ForEach(1..<8) { column in
                         let count = column + (row * 7)
-                        let prayerRange =
-                        CalendarHelper().rangeOfPrayerStart(from: prayerListHolder.prayStartDate, to: firstDayofMonth) + count - startingSpaces - 1
+
+                        let prayerRange = CalendarHelper().rangeOfPrayerStart(from: userHolder.prayStartDate, to: firstDayofMonth) + count - startingSpaces - 1
                         
-                        CalendarCell(count: count, startingSpaces: startingSpaces, daysInMonth: daysInMonth, daysInPrevMonth: daysInPrevMonth, date: dateHolder.date, prayerStartingSpaces: prayerStartingSpaces, prayerList: prayerListHolder.prayerList, prayerRange: prayerRange)
+                        CalendarCell(count: count, startingSpaces: startingSpaces, daysInMonth: daysInMonth, daysInPrevMonth: daysInPrevMonth, date: dateHolder.date, prayerStartingSpaces: prayerStartingSpaces, prayerList: userHolder.prayerList, prayerRange: prayerRange)
                     }
                 }
             }
@@ -100,7 +99,7 @@ struct PrayerCalendarView: View {
     
     @ViewBuilder
     var friendsListText: some View {
-        if prayerListHolder.prayerList.isEmpty {
+        if userHolder.prayerList.isEmpty {
             HStack {
                 Text("Add a Friend to Pray For -> ")
                     .font(.system(size: 15))
@@ -121,10 +120,10 @@ extension Text {
     } // Sets dayOfWeek width and padding.
 }
 
-struct PrayerCalendarView_Previews: PreviewProvider {
-    static var previews: some View {
-        PrayerCalendarView()
-            .environment(UserProfileHolder())
-            .environment(UserProfileHolder())
-    }
-}
+//struct PrayerCalendarView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        PrayerCalendarView()
+//            .environment(UserProfileHolder())
+//            .environment(UserProfileHolder())
+//    }
+//}
