@@ -100,6 +100,7 @@ class FeedService {
         return getPosts(querySnapshot: querySnapshot)
     }
 
+    // This function updates the prayer feed of all users who are friends of the person.
     func updateFriendsFeed(post: Post, person: Person, friend: Person, updateFriend: Bool) async throws {
         do {
             if updateFriend {

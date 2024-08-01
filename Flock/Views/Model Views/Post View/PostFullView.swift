@@ -190,7 +190,7 @@ struct PostFullView: View {
         }
         .task {
             do {
-                self.post = try await PostHelper().getPost(prayerRequest: originalPost)
+                self.post = try await PostOperationsService().getPost(prayerRequest: originalPost)
                 self.originalPost = self.post
                 print("isPinned: " + post.isPinned.description)
                 originalPrivacy = post.privacy // for catching public to private.
@@ -203,7 +203,7 @@ struct PostFullView: View {
         }
         .refreshable(action: {
             Task {
-                self.post = try await PostHelper().getPost(prayerRequest: post)
+                self.post = try await PostOperationsService().getPost(prayerRequest: post)
                 self.originalPost = self.post
             }
         })

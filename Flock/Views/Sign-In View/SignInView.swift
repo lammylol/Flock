@@ -29,7 +29,6 @@ struct SignInView: View {
     @State var passwordText: String = ""
     @State private var height: CGFloat = 0
     
-    let postService = PostService()
     let friendService = FriendService()
     let calendarService = CalendarService()
     
