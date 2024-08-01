@@ -93,7 +93,7 @@ struct ProfileView: View {
             .task {
                 do {
                     person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-                    let friendsRequest = try await friendService.listenForFriendRequest(userID: person.userID)
+//                    let friendsRequest = try await friendService.listenForFriendRequest(userID: person.userID)
                 } catch {
                     print(error)
                 }
