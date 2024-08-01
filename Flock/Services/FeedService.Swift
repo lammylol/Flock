@@ -150,49 +150,34 @@ class FeedService {
         }
     }
 
-    func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) {
+    // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
+    func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) async throws {
+    
         // Delete PrayerRequestID from prayerFeed/{userID}
         if post.privacy == "public" && friendsList.isEmpty == false {
             for friend in friendsList {
                 let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                ref2.delete() { err in
-                    if let err = err {
-                        print("Error removing document: \(err)")
-                    } else {
-                        print("Document successfully deleted")
-                        print(post.id)
-                        print(post.postText)
-                    }
-                }
+                try await ref2.delete()
             }
         } // Delete from your friends' feeds.
         
         // Delete from your own user feed.
         let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-        ref2.delete() { err in
-            if let err = err {
-                print("Error removing document: \(err)")
-            } else {
-                print("Document successfully deleted")
-                print(post.id)
-                print(post.postText)
-            }
-        }
+        try await ref2.delete()
     }
 
-    func publicToPrivate(post: Post, friendsList: [Person]) {
+    func publicToPrivate(post: Post, friendsList: [Person]) async throws {
         if friendsList.isEmpty == false {
             for friend in friendsList {
                 let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                ref2.delete() { err in
-                    if let err = err {
-                        print("Error removing document: \(err)")
-                    } else {
-                        print("Document successfully deleted")
-                        print(post.id)
-                        print(post.postText)
-                    }
-                }
+                try await ref2.delete()
+//                    if let err = err {
+//                        print("Error removing document: \(err)")
+//                    } else {
+//                        print("Document successfully deleted")
+//                        print(post.id)
+//                        print(post.postText)
+//                    }
             }
         }
     } // This function allows you to pass in a prayer request and delete that from friends' feeds if you have changed it from public to private.
