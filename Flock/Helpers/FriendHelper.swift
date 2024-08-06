@@ -11,11 +11,5 @@ import FirebaseFirestore
 class FriendHelper {
     var friendService = FriendService()
     
-    func acceptOrDenyFriendRequest(acceptOrDeny: Bool, user: Person, friend: Person) async throws {
-        if acceptOrDeny {
-            try await friendService.addFriend(user: user, friend: friend)
-        } else {
-            try await friendService.deleteFriend(user: user, friend: friend)
-        }
-    }
+    
 }

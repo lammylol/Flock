@@ -11,7 +11,8 @@ import FirebaseFirestore
 @Observable class FriendRequestListener {
 //    private let friendService: FriendService
     private var friendRequestListener: ListenerRegistration?
-    var friendRequests: [Person] = []
+    var pendingFriendRequests: [Person] = []
+    var acceptedFriendRequests: [Person] = []
     
 //    init(friendService: FriendService) {
 //        self.friendService = friendService
@@ -20,19 +21,20 @@ import FirebaseFirestore
     func setUpListener(userID: String) {
         let db = Firestore.firestore()
         
-        friendRequestListener = db.collection("users").document(userID).collection("friendsList").whereField("state", isEqualTo: "pending")
+        friendRequestListener = db.collection("users").document(userID).collection("friendsList")/*.whereField("state", isEqualTo: "pending")*/
             .addSnapshotListener { querySnapshot, error in
                 guard let documents = querySnapshot?.documents else {
                     print("Error fetching friendRequests: \(error!)")
                     return
                 }
-//                
+                
 //                // Check if the snapshot has changes or if it comes from the server
 //                guard !(querySnapshot?.metadata.hasPendingWrites)! && querySnapshot?.metadata.isFromCache == false else {
 //                    return
 //                }
                 
-                var newFriendRequests: [Person] = []
+                var newPendingFriendRequests: [Person] = []
+                var newAcceptedFriendRequests: [Person] = []
                 for document in documents {
                     if document.exists {
                         let userID = document.get("userID") as? String ?? ""
@@ -44,16 +46,24 @@ import FirebaseFirestore
                         
                         let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: state)
                         
-                        newFriendRequests.append(person)
+                        if state == "pending" {
+                            newPendingFriendRequests.append(person)
+                        } else {
+                            newAcceptedFriendRequests.append(person)
+                        }
                     }
                 }
                 
-                if newFriendRequests != self.friendRequests {
-                    self.friendRequests = newFriendRequests
+                if newPendingFriendRequests != self.pendingFriendRequests {
+                    self.pendingFriendRequests = newPendingFriendRequests
                 }
                 
-                let friendRequestList = documents.compactMap { $0["firstName"] }
-                print("Pending Friend Requests from: \(friendRequestList)")
+                if newAcceptedFriendRequests != self.acceptedFriendRequests {
+                    self.acceptedFriendRequests = newAcceptedFriendRequests
+                }
+//                
+//                let friendRequestList = documents.compactMap { $0["firstName"] }
+//                print("Pending Friend Requests from: \(friendRequestList)")
             }
     }
     

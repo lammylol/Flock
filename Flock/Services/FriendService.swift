@@ -13,18 +13,18 @@ class FriendService {
     let db = Firestore.firestore() // initiaties Firestore
     
     //Adding a friend - this updates the historical prayer feed
-    func updateFriendHistoricalPostsIntoFeed(user: Person, person: Person) async throws {
+    func updateFriendHistoricalPostsIntoFeed(user: Person, friend: Person) async throws {
         //In this scenario, userID is the userID of the person retrieving data from the 'person'.
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let posts = try await PostOperationsService().getPosts(userID: person.userID, person: person, status: "Current", fetchOnlyPublic: true)
+            let posts = try await PostOperationsService().getPosts(userID: friend.userID, person: friend, status: "Current", fetchOnlyPublic: true)
             
             print("posts: \(posts.map( {$0.id}).joined(separator: ", "))")
             print("user: \(user.userID)")
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
             for post in posts {
                 do {
-                    try await FeedService().updateFriendsFeed(post: post, person: person, friend: user, updateFriend: true)
+                    try await FeedService().updateFriendsFeed(post: post, person: friend, friend: user, updateFriend: true)
                 } catch {
                     print(error.localizedDescription)
                 }
@@ -92,14 +92,15 @@ class FriendService {
     }
         
     // Login functions:
-    func getFriendsList(userID: String) async throws -> [Person] {
+    func getFriendsList(userID: String) async throws -> ([Person], [Person]) {
         var friendsList: [Person] = []
+        var pendingFriendsList: [Person] = []
         
         guard userID != "" else {
             throw PrayerPersonRetrievalError.noUserID
         }
         
-        let friendsListRef = db.collection("users").document(userID).collection("friendsList").whereField("state", isNotEqualTo: "pending")
+        let friendsListRef = db.collection("users").document(userID).collection("friendsList")/*.whereField("state", isNotEqualTo: "pending")*/
         
         let querySnapshot = try await friendsListRef.getDocuments()
         
@@ -111,14 +112,20 @@ class FriendService {
                 let email = document.get("email") as? String ?? ""
                 let firstName = document.get("firstName") as? String ?? ""
                 let lastName = document.get("lastName") as? String ?? ""
+                let state = document.get("state") as? String ?? ""
+//                let prayerCalendarInd = document.get("prayerCalendarInd") as? Bool ?? false
                 
-                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: state/*, prayerCalendarInd: prayerCalendarInd*/)
                 
-                friendsList.append(person)
+                if state == "pending" {
+                    pendingFriendsList.append(person)
+                } else {
+                    friendsList.append(person)
+                }
             }
         }
         
-        return friendsList
+        return (friendsList, pendingFriendsList)
     }
     
     func addFriend(user: Person, friend: Person) async throws {
@@ -137,6 +144,28 @@ class FriendService {
                     "state": "pending"
                 ])
             }
+        } catch {
+            print(error)
+        }
+    }
+    
+    func approveFriend(user: Person, friend: Person) async throws {
+        // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
+        do {
+            let refFriends = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+            let document = try await refFriends.getDocument()
+            
+            guard document.exists else {
+                fatalError("Could not find existing friend request to approve")
+            }
+                
+            if document.exists {
+                try await refFriends.updateData([
+                    "state": "approved"
+                ])
+            }
+            
+            try await updateFriendHistoricalPostsIntoFeed(user: user, friend: friend) // load historical posts into your feed once you approve.
         } catch {
             print(error)
         }
@@ -177,9 +206,60 @@ class FriendService {
     
     func acceptOrDenyFriendRequest(acceptOrDeny: Bool, user: Person, friend: Person) async throws {
         if acceptOrDeny {
-            try await addFriend(user: friend, friend: user) // temp swapped friend and user to not screw up existing feed.
+            try await approveFriend(user: user, friend: friend)
         } else {
-            try await deleteFriend(user: friend, friend: user)
+            try await deleteFriend(user: friend, friend: user) // temp swapped friend and user to not screw up existing feed.
         }
+    }
+    
+    func addFriendtoCalendarIndicator(user: Person, friend: Person) async throws {
+        // Update the friend document in firebase with a calendar indicator as true.
+        do {
+            let refFriends = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+            let document = try await refFriends.getDocument()
+            
+            guard document.exists else {
+                fatalError("Could not find existing friend")
+            }
+                
+            if document.exists {
+                try await refFriends.updateData([
+                    "prayerCalendarInd": true
+                ])
+            }
+        } catch {
+            print(error)
+        }
+    }
+    
+    func validateFriendUsername(username: String, firstName: String, lastName: String) async throws -> (Bool, Person) {
+        // This function allows you to pass in a username and return a boolean whether the username is tied to an account, and if it's tied to the correct first and last name. For adding friends.
+        var check: Bool = false
+        var person: Person = Person()
+        
+        do {
+            let ref = db.collection("users").whereField("username", isEqualTo: username)
+            let querySnapshot = try await ref.getDocuments()
+            
+            //append FriendsListArray in userHolder
+            for document in querySnapshot.documents {
+                if document.exists {
+                    if document.get("username") as! String == username.lowercased() && document.get("firstName") as! String == firstName.capitalized && document.get("lastName") as! String == lastName.capitalized {
+                        check = true
+                        
+                        let firstName = document.get("firstName") as? String ?? ""
+                        let lastName = document.get("lastName") as? String ?? ""
+                        let username = document.get("username") as? String ?? ""
+                        let userID = document.get("userID") as? String ?? ""
+                        let email = document.get("email") as? String ?? ""
+                        
+                        person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+                    }
+                }
+            }
+        } catch {
+            print(error)
+        }
+        return (check, person)
     }
 }
