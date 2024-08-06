@@ -144,7 +144,7 @@ struct SubmitPostForm: View {
     func refreshFriends() {
         Task {
             do {
-                userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID)
+                userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID).0
                 self.userHolder.friendsList = userHolder.friendsList
             } catch {
                 print(error)

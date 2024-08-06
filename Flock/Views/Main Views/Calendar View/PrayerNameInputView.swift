@@ -163,7 +163,7 @@ struct PrayerNameInputView: View {
                 do {
                     // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
                     try await friendService.addFriend(user: userHolder.person, friend: person)
-                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: person)
+                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, friend: person)
                     
                 } catch {
                     print(error.localizedDescription)
@@ -174,7 +174,7 @@ struct PrayerNameInputView: View {
                 
                 // Fetch all historical prayers from that person into your feed, noting that these do not have a linked username. So you need to pass in your own userID into that person for the function to retrieve out of your prayerFeed/youruserID.
                 do {
-                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
+                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, friend: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
                 } catch {
                     throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
                 }
@@ -186,7 +186,6 @@ struct PrayerNameInputView: View {
         self.prayStartDate = Calendar.current.startOfDay(for: prayStartDate)
         
         try await calendarService.updatePrayerCalendarList(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
-        
             
         //reset local dataHolder
         userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
