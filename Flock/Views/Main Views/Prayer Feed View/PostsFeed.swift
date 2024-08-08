@@ -112,8 +112,8 @@ struct PostsFeed: View {
                                 }
                             }
                         }
-                        .frame(height: 250)
-                        .offset(y: 120)
+                        .frame(height: 500)
+                        .offset(y: 140)
                         Spacer()
                     }
             }

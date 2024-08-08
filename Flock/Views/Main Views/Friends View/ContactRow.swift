@@ -13,6 +13,7 @@ struct ContactRow: View {
     var person: Person
     var friendService = FriendService()
     var calendarService = CalendarService()
+    @State var removeFriendConfirm: Bool = false
 //    var friendState: String
     
     var body: some View {
@@ -29,11 +30,29 @@ struct ContactRow: View {
                         if person.isPublic && person.friendState != "pending" {
                             Image(systemName: "checkmark.circle.fill")
                         }
+                        Spacer()
+                        Menu {
+                            Button {
+                                removeFriendConfirm = true
+                            } label: {
+                                Label("Remove Friend", systemImage: "minus.square")
+                            }
+                        } label: {
+                            Label("", systemImage: "ellipsis")
+                        }
+                        .highPriorityGesture(TapGesture())
+                        .confirmationDialog("Are you sure?", isPresented: $removeFriendConfirm) {
+                            Button("Delete Friend", role: .destructive) {
+                                self.removeFriend(friend: person)
+                            }
+                        } message: {
+                            Text("Your friend's history will be deleted from your feed and you will no longer appear on their feed.")
+                        }
                     }
                     .padding(.bottom, -3)
                     
-                    if person.friendState == "pending" {
-                        HStack {
+                    HStack {
+                        if person.friendState == "pending" {
                             Button(action: {
                                 acceptFriendRequest(friendState: person.friendState)
                             }) {
@@ -64,9 +83,7 @@ struct ContactRow: View {
                             }
                             .foregroundStyle(.black)
                             .buttonStyle(PlainButtonStyle())
-                        }
-                    } else {
-                        HStack {
+                        } else {
                             Text(person.isPublic ? "Public Account" : "Private")
                                 .padding([.vertical], 3)
                                 .padding([.horizontal], 20)
@@ -76,15 +93,11 @@ struct ContactRow: View {
                                         .fill(.gray)
                                         .opacity(0.30)
                                 }
-                                .foregroundStyle(.black)
-                            
-                            Spacer()
                         }
+                        Spacer()
                     }
                 }
                 .padding(.vertical, 10)
-                
-                Spacer()
             }
             .frame(height: 80)
             .frame(maxWidth: .infinity)
@@ -127,6 +140,17 @@ struct ContactRow: View {
 //                self.userHolder.friendsList = friends.0
 //                self.userHolder.pendingFriendsList = friends.1
                 print("test")
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    func removeFriend(friend: Person) {
+        Task {
+            do {
+                try await friendService.deleteFriend(user: userHolder.person, friend: person)
+                try await friendService.deleteFriend(user: person, friend: userHolder.person)
             } catch {
                 print(error)
             }

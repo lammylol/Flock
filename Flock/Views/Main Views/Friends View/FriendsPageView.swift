@@ -51,7 +51,7 @@ struct FriendsPageView: View {
                     }
                         
                     VStack(alignment: .leading) { // Friends
-                        if !friendRequestListener.pendingFriendRequests.isEmpty {
+                        if !friendRequestListener.pendingFriendRequests.isEmpty && !friendRequestListener.acceptedFriendRequests.isEmpty {
                             HStack {
                                 Text("Friends")
                                     .font(.title2)
@@ -82,9 +82,8 @@ struct FriendsPageView: View {
                     }
                     .frame(maxWidth: .infinity)
                 }
-                .padding(.horizontal, 17)
                 .overlay {
-                    if friendRequestListener.acceptedFriendRequests.isEmpty {
+                    if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty {
                             VStack{
                                 ContentUnavailableView {
                                     Label("No Friends...Yet!", systemImage: "person.crop.square")
@@ -104,13 +103,8 @@ struct FriendsPageView: View {
                             }
                     }
                 }
+                .padding(.horizontal, 17)
                 .padding(.bottom, 15)
-            }
-            .onAppear {
-                friendRequestListener.setUpListener(userID: userHolder.person.userID)
-            }
-            .onDisappear {
-                friendRequestListener.removeListener()
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
