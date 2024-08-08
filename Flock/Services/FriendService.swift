@@ -130,22 +130,30 @@ class FriendService {
     
     func addFriend(user: Person, friend: Person) async throws {
         // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
-        do {
-            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
-            let document = try await refFriends.getDocument()
-            
-            if !document.exists {
-                try await refFriends.setData([
-                    "username": user.username,
-                    "userID": user.userID,
-                    "firstName": user.firstName,
-                    "lastName": user.lastName,
-                    "email": user.email,
+        let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+        let document = try await refFriends.getDocument()
+        
+//            guard !document.exists else {
+//                placeholder for after friends get transferred
+//            }
+        
+        if document.exists { // only applies for initial beta launch of friends page, where some friends have documents but without a state.
+            if document.get("state") == nil {
+                try await refFriends.updateData([
                     "state": "pending"
                 ])
+            } else {
+                throw AddFriendError.friendAddedAlready
             }
-        } catch {
-            print(error)
+        } else { // if document doesn't exist, set data.
+            try await refFriends.setData([
+                "username": user.username,
+                "userID": user.userID,
+                "firstName": user.firstName,
+                "lastName": user.lastName,
+                "email": user.email,
+                "state": "pending"
+            ])
         }
     }
     

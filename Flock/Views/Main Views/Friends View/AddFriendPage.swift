@@ -15,6 +15,8 @@ struct AddFriendPage: View {
     @State private var firstName: String = ""
     @State private var lastName: String = ""
     @State private var errorAlert: Bool = false
+    @State private var errorType: AddFriendError?
+    @State private var confirmation: Bool = false
     @FocusState private var focus: Bool
     
     var friendService = FriendService()
@@ -151,11 +153,29 @@ struct AddFriendPage: View {
                     .foregroundStyle(.white)
                 }
                 .frame(maxWidth: .infinity)
+                .alert(isPresented: $errorAlert) {
+                    return Alert(
+                        title: Text(errorType?.failureReason ?? "error"),
+                        message: Text(errorType?.errorDescription ?? "error"),
+                        dismissButton: .default(Text("OK")) {
+                            errorAlert = false
+                        })
+                }
+                .alert(isPresented: $confirmation) {
+                    return Alert(
+                        title: Text("Request Sent"),
+                        message: Text("Your friend will appear in your list once the request has been approved."),
+                        dismissButton: .default(Text("OK")) {
+                            confirmation = false
+                            DispatchQueue.main.async {
+                                dismiss()
+                            }
+                        })
+                    
+                }
                 
                 Spacer()
             }
-            .navigationTitle("Add Friend")
-            .padding(.horizontal, 20)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button("Cancel") {
@@ -165,8 +185,10 @@ struct AddFriendPage: View {
                     }
                 }
             }
+            .navigationTitle("Add Friend")
             .navigationBarBackButtonHidden(true)
             .ignoresSafeArea(.keyboard)
+            .padding(.horizontal, 20)
         }
     }
     
@@ -179,7 +201,6 @@ struct AddFriendPage: View {
                     
                     guard validation else {
                         print("username not valid")
-                        errorAlert = true
                         throw AddFriendError.invalidUsername
                     }
                     
@@ -193,7 +214,6 @@ struct AddFriendPage: View {
                     
                     guard firstName != "" && lastName != "" else {
                         print("First Name or Last Name cannot be empty.")
-                        errorAlert = true
                         throw AddFriendError.missingName
                     }
                     
@@ -202,18 +222,21 @@ struct AddFriendPage: View {
                     try await friendService.addFriend(user: userHolder.person, friend: person) // add friend, but need to wait for approval before historical posts are loaded.
                 }
                 
-                DispatchQueue.main.async {
-                    dismiss()
-                }
+                confirmation = true
                 
+            } catch let AddFriendError as AddFriendError {
+                self.errorType = AddFriendError
+                errorAlert = true
             } catch {
                 print(error)
+                errorAlert = true
+                self.errorType = nil
             }
         }
     }
 }
-
-#Preview {
-    AddFriendPage()
-        .environment(UserProfileHolder())
-}
+//
+//#Preview {
+//    AddFriendPage()
+//        .environment(UserProfileHolder())
+//}

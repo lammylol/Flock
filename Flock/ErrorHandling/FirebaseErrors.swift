@@ -26,6 +26,7 @@ enum PrayerRequestRetrievalError: Error {
 enum AddFriendError: LocalizedError {
     case invalidUsername
     case missingName
+    case friendAddedAlready
     
     var errorDescription: String? {
         switch self {
@@ -33,6 +34,8 @@ enum AddFriendError: LocalizedError {
             return NSLocalizedString("Username not valid. Make sure you have entered a valid username, and make sure it matches the first and last name of the user you are trying to add.", comment: "Invalid Username")
         case .missingName:
             return NSLocalizedString("Either the first name or last name is blank. Make sure you enter in a value for both first name and last name to add a user.", comment: "Missing First Name or Last Name")
+        case .friendAddedAlready:
+            return NSLocalizedString("This friend has already been added.", comment: "Friend Already Exists")
         }
     }
     
@@ -42,6 +45,8 @@ enum AddFriendError: LocalizedError {
             return NSLocalizedString("Invalid Username", comment: "Invalid Username")
         case .missingName:
             return NSLocalizedString("Missing Name", comment: "Missing Name")
+        case .friendAddedAlready:
+            return NSLocalizedString("Friend Already Added", comment: "Friend Already Added")
         }
     }
 }
