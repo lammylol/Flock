@@ -234,7 +234,9 @@ struct SignInView: View {
     
     func setFriendsList(userID: String) async throws {
         do {
-            userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID)
+            let friends = try await friendService.getFriendsList(userID: userHolder.person.userID) // run to refresh friends list on command
+            userHolder.friendsList = friends.0
+//            userHolder.pendingFriendsList = friends.1
         } catch {
             print(error)
         }

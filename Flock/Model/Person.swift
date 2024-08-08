@@ -14,10 +14,14 @@ struct Person: Identifiable, Hashable {
     var email: String = ""
     var firstName: String = ""
     var lastName: String = ""
+    var fullName: String {
+        firstName + " " + lastName
+    }
     var isPublic: Bool {
         username != ""
     }
     var friendState: String = ""
+//    var prayerCalendarInd: Bool = false
 }
 
 extension Person {

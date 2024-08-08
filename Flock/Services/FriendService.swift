@@ -232,7 +232,7 @@ class FriendService {
         }
     }
     
-    func validateFriendUsername(username: String, firstName: String, lastName: String) async throws -> (Bool, Person) {
+    func validateFriendUsername(username: String/*, firstName: String, lastName: String*/) async throws -> (Bool, Person) {
         // This function allows you to pass in a username and return a boolean whether the username is tied to an account, and if it's tied to the correct first and last name. For adding friends.
         var check: Bool = false
         var person: Person = Person()
@@ -244,7 +244,7 @@ class FriendService {
             //append FriendsListArray in userHolder
             for document in querySnapshot.documents {
                 if document.exists {
-                    if document.get("username") as! String == username.lowercased() && document.get("firstName") as! String == firstName.capitalized && document.get("lastName") as! String == lastName.capitalized {
+//                    if document.get("username") as! String == username.lowercased() && document.get("firstName") as! String == firstName.capitalized && document.get("lastName") as! String == lastName.capitalized {
                         check = true
                         
                         let firstName = document.get("firstName") as? String ?? ""
@@ -254,7 +254,7 @@ class FriendService {
                         let email = document.get("email") as? String ?? ""
                         
                         person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
-                    }
+//                    }
                 }
             }
         } catch {

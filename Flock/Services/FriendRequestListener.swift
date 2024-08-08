@@ -61,9 +61,6 @@ import FirebaseFirestore
                 if newAcceptedFriendRequests != self.acceptedFriendRequests {
                     self.acceptedFriendRequests = newAcceptedFriendRequests
                 }
-//                
-//                let friendRequestList = documents.compactMap { $0["firstName"] }
-//                print("Pending Friend Requests from: \(friendRequestList)")
             }
     }
     
