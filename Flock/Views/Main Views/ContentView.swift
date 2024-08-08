@@ -30,12 +30,18 @@ struct ContentView: View {
                         .imageScale(.large)
                     Text("Feed")
                 }.tag(2)
+            FriendsPageView()
+                .tabItem {
+                    Image(systemName: "person.2.fill")
+                        .imageScale(.large)
+                    Text("Friends")
+                }.tag(3)
             ProfileView(person: userHolder.person)
                 .tabItem {
                     Image(systemName: "person.circle")
                         .imageScale(.large)
                     Text("Profile")
-                }.tag(3)
+                }.tag(4)
         }
     }
 }

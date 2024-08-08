@@ -22,10 +22,17 @@ struct ProfilePictureAvatar: View {
             ZStack {
                 Circle()
                     .frame(width: imageSize, height: imageSize)
-                Text(name)
-                    .foregroundStyle(textColor())
-                    .font(.system(size: fontSize))
-                    .bold()
+                if (firstName == "" || lastName == "") {
+                    Image(systemName: "person.fill")
+                        .resizable()
+                        .frame(width: imageSize * 0.65, height: imageSize * 0.65)
+                        .foregroundStyle(colorScheme == .dark ? .gray : .white)
+                } else {
+                    Text(name)
+                        .foregroundStyle(textColor())
+                        .font(.system(size: fontSize))
+                        .bold()
+                }
             }
         }
 //        .shadow(radius: 10)

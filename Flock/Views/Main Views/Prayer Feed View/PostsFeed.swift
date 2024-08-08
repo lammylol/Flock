@@ -97,6 +97,7 @@ struct PostsFeed: View {
                                     Button(action: {showSubmit.toggle() })
                                     {
                                         Text("Add a Post")
+                                            .font(.system(size: 16))
                                     }
                                 }
                             } else {
@@ -105,6 +106,7 @@ struct PostsFeed: View {
                                         Button(action: {showSubmit.toggle() })
                                         {
                                             Text("Add a Post")
+                                                .font(.system(size: 16))
                                         }
                                     }
                                 }
