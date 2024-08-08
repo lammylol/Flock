@@ -150,8 +150,8 @@ class FriendService {
     }
     
     func approveFriend(user: Person, friend: Person) async throws {
-        // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
         do {
+            // Updates your friends list with the person who you has now added you. Your friends list is updated, so that when you post, it will add to your feed. All of your existing posts will also populate into their feed.
             let refFriends = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
             let document = try await refFriends.getDocument()
             
@@ -166,6 +166,21 @@ class FriendService {
             }
             
             try await updateFriendHistoricalPostsIntoFeed(user: user, friend: friend) // load historical posts into your feed once you approve.
+            
+            // Update your friends' friends list with the your information so you will now see their posts. All of their existing posts will also populate to your feed.
+            let theirFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+            
+            try await theirFriends.setData([
+                "username": user.username,
+                "userID": user.userID,
+                "firstName": user.firstName,
+                "lastName": user.lastName,
+                "email": user.email,
+                "state": "approved"
+            ])
+            
+            try await updateFriendHistoricalPostsIntoFeed(user: friend, friend: user) // load historical posts into that friend's feed once you approve.
+            
         } catch {
             print(error)
         }
