@@ -11,6 +11,7 @@ import FirebaseFirestore
 
 struct SubmitPostForm: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.dismiss) var dismiss
     
     var person: Person
@@ -96,7 +97,7 @@ struct SubmitPostForm: View {
                     }
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button(action: {submitList()}) {
+                    Button(action: {submitPost()}) {
                         Text("Post")
                             .offset(x: -4)
                             .font(.system(size: 16))
@@ -116,7 +117,7 @@ struct SubmitPostForm: View {
         }
     }
         
-    func submitList() {
+    func submitPost() {
         Task {
             do {
                 try await PostOperationsService().createPost(
@@ -127,7 +128,7 @@ struct SubmitPostForm: View {
                     postTitle: postTitle,
                     privacy: privacy,
                     postType: postType,
-                    friendsList: userHolder.friendsList)
+                    friendsList: friendRequestListener.acceptedFriendRequests)
                 userHolder.refresh = true
                 print("Saved")
                 
@@ -141,47 +142,50 @@ struct SubmitPostForm: View {
         }
     }
     
-    func refreshFriends() {
-        Task {
-            do {
-                userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID).0
-                self.userHolder.friendsList = userHolder.friendsList
-            } catch {
-                print(error)
-            }
-        }
-    }
+//    func refreshFriends() {
+//        Task {
+//            do {
+//                userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID).0
+//                self.userHolder.friendsList = userHolder.friendsList
+//            } catch {
+//                print(error)
+//            }
+//        }
+//    }
     
     @ViewBuilder
     func friendsList() -> some View {
-        let friendsList = userHolder.friendsList.map({
-            $0.firstName + " " + $0.lastName
-        }).joined(separator: ", ")
+//        let friendsList = userHolder.friendsList.map({
+//            $0.firstName + " " + $0.lastName
+//        }).joined(separator: ", ")
         ScrollView {
             VStack (alignment: .leading) {
-                VStack (alignment: .leading) {
-                    Text("Who Can See This Post?")
+                HStack {
+                    Text("Who can see this post?")
                          .multilineTextAlignment(.leading)
                          .padding(.bottom, 1)
-                     Text("\(friendsList)")
-                        .multilineTextAlignment(.leading)
-                        .padding(.bottom, 1)
-                }
-                .font(.system(size: 12))
-                .padding(.bottom, 10)
-                
-                HStack {
-                    Text("Don't see a friend on here?")
-                    Button(action: {
-                        self.refreshFriends()
-                    }, label: {
-                        Text("Refresh")
+                    NavigationLink(destination: FriendsPageView()) {
+                        Text("See Friends")
                             .font(.system(size: 12))
                             .italic()
-                    })
+                    }
                     Spacer()
                 }
                 .font(.system(size: 12))
+                .padding(.bottom, 10)
+//                
+//                HStack {
+//                    Text("Don't see a friend on here?")
+//                    Button(action: {
+//                        self.refreshFriends()
+//                    }, label: {
+//                        Text("Refresh")
+//                            .font(.system(size: 12))
+//                            .italic()
+//                    })
+//                    Spacer()
+//                }
+//                .font(.system(size: 12))
             }
         }
     }

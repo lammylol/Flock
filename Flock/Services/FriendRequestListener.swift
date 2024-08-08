@@ -62,9 +62,11 @@ import FirebaseFirestore
                     self.acceptedFriendRequests = newAcceptedFriendRequests
                 }
             }
+        print("FriendsListener turned on.")
     }
     
     func removeListener() {
         friendRequestListener?.remove()
+        print("FriendsListener turned off.")
     }
 }

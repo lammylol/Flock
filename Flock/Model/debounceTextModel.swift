@@ -36,7 +36,7 @@ import SwiftUI
         Task {
             do {
                 if username != "" { // functions only if the username exists (aka profile is public)
-                    let ref = try await friendService.validateFriendUsername(username: username) // returns (bool, person)
+                    let ref = try await friendService.validateFriendUsername(username: username.lowercased()) // returns (bool, person)
                     self.validated = ref.0 // true or false if username is validated according to first and last name
                     
                     if validated {

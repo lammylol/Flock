@@ -18,6 +18,7 @@ enum AuthError: Error {
 struct SignInView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(DateHolder.self) var dateHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.colorScheme) var colorScheme
     @State var email = ""
     @State var username = ""
@@ -157,6 +158,9 @@ struct SignInView: View {
                         let userID = Auth.auth().currentUser?.uid ?? ""
                         print(userID)
                         await setInfo()
+                        
+                        // Turn on friend listener function. Enabled at start of app, and turned off when user exists app. Must exist throughout app active state so that if a friend is added when a user posts, it gets sent to all friends including new.
+                        friendRequestListener.setUpListener(userID: userHolder.person.userID)
                     }
             } else {
                 resetInfo()
@@ -216,7 +220,8 @@ struct SignInView: View {
             
             userHolder.person = try await UserService().getUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
-            try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
+            
+//            try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
             
             let postList = try await calendarService.getPrayerCalendarList(userID: userID)
             userHolder.prayStartDate = postList.0 // set Start Date

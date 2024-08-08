@@ -12,6 +12,8 @@ import SwiftData
 struct ContentView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(DateHolder.self) var dateHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
+    @Environment(\.scenePhase) var scenePhase
     @State var selection: Int
 //    @State private var path: NavigationPath
     
@@ -43,6 +45,19 @@ struct ContentView: View {
                     Text("Profile")
                 }.tag(4)
         }
+        .onChange(of: scenePhase) { 
+            oldPhase, newPhase in
+                if newPhase == .active {
+                    print("Active")
+                    friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                } else if newPhase == .inactive {
+                    friendRequestListener.removeListener()
+                    print("Inactive")
+                } else if newPhase == .background {
+                    friendRequestListener.removeListener()
+                    print("Background")
+            }
+        } // detect when app is closed or open.
     }
 }
 
