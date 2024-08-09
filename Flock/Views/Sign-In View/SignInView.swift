@@ -158,9 +158,6 @@ struct SignInView: View {
                         let userID = Auth.auth().currentUser?.uid ?? ""
                         print(userID)
                         await setInfo()
-                        
-                        // Turn on friend listener function. Enabled at start of app, and turned off when user exists app. Must exist throughout app active state so that if a friend is added when a user posts, it gets sent to all friends including new.
-                        friendRequestListener.setUpListener(userID: userHolder.person.userID)
                     }
             } else {
                 resetInfo()
@@ -231,21 +228,24 @@ struct SignInView: View {
             dateHolder.date = Date() // Resets the view to current month on current
             
             self.userHolder.person = userHolder.person
+            
+            // Turn on friend listener function. Enabled at start of app, and turned off when user exists app. Must exist throughout app active state so that if a friend is added when a user posts, it gets sent to all friends including new.
+            await friendRequestListener.setUpListener(userID: userHolder.person.userID)
         } catch {
             resetInfo()
             userHolder.isLoggedIn = .notAuthenticated
         }
     }
-    
-    func setFriendsList(userID: String) async throws {
-        do {
-            let friends = try await friendService.getFriendsList(userID: userHolder.person.userID) // run to refresh friends list on command
-            userHolder.friendsList = friends.0
-//            userHolder.pendingFriendsList = friends.1
-        } catch {
-            print(error)
-        }
-    }
+//    
+//    func setFriendsList(userID: String) async throws {
+//        do {
+//            let friends = try await friendService.getFriendsList(userID: userHolder.person.userID) // run to refresh friends list on command
+//            userHolder.friendsList = friends.0
+////            userHolder.pendingFriendsList = friends.1
+//        } catch {
+//            print(error)
+//        }
+//    }
 }
 
 

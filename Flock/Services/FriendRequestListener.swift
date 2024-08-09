@@ -9,16 +9,11 @@ import Foundation
 import FirebaseFirestore
 
 @Observable class FriendRequestListener {
-//    private let friendService: FriendService
     private var friendRequestListener: ListenerRegistration?
     var pendingFriendRequests: [Person] = []
     var acceptedFriendRequests: [Person] = []
     
-//    init(friendService: FriendService) {
-//        self.friendService = friendService
-//    }
-    
-    func setUpListener(userID: String) {
+    func setUpListener(userID: String) async {
         let db = Firestore.firestore()
         
         friendRequestListener = db.collection("users").document(userID).collection("friendsList")/*.whereField("state", isEqualTo: "pending")*/
@@ -35,6 +30,7 @@ import FirebaseFirestore
                 
                 var newPendingFriendRequests: [Person] = []
                 var newAcceptedFriendRequests: [Person] = []
+                
                 for document in documents {
                     if document.exists {
                         let userID = document.get("userID") as? String ?? ""

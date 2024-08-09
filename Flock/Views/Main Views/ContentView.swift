@@ -49,7 +49,9 @@ struct ContentView: View {
             oldPhase, newPhase in
                 if newPhase == .active {
                     print("Active")
-                    friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                    Task {
+                        await friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                    }
                 } else if newPhase == .inactive {
                     friendRequestListener.removeListener()
                     print("Inactive")
