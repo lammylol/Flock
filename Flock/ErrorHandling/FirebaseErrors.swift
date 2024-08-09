@@ -35,7 +35,7 @@ enum AddFriendError: LocalizedError {
         case .missingName:
             return NSLocalizedString("Either the first name or last name is blank. Make sure you enter in a value for both first name and last name to add a user.", comment: "Missing First Name or Last Name")
         case .friendAddedAlready:
-            return NSLocalizedString("This friend has already been added.", comment: "Friend Already Exists")
+            return NSLocalizedString("This friend has already been added, or a request is pending.", comment: "Friend Already Exists")
         }
     }
     
