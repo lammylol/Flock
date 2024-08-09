@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContactRow: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(\.colorScheme) var colorScheme
     
     var person: Person
     var friendService = FriendService()
@@ -29,24 +30,28 @@ struct ContactRow: View {
                             .bold()
                         if person.isPublic && person.friendState != "pending" {
                             Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.blue)
                         }
                         Spacer()
-                        Menu {
-                            Button {
-                                removeFriendConfirm = true
+                        
+                        if person.friendState != "pending" {
+                            Menu {
+                                Button {
+                                    removeFriendConfirm = true
+                                } label: {
+                                    Label("Remove Friend", systemImage: "minus.square")
+                                }
                             } label: {
-                                Label("Remove Friend", systemImage: "minus.square")
+                                Label("", systemImage: "ellipsis")
                             }
-                        } label: {
-                            Label("", systemImage: "ellipsis")
-                        }
-                        .highPriorityGesture(TapGesture())
-                        .confirmationDialog("Are you sure?", isPresented: $removeFriendConfirm) {
-                            Button("Delete Friend", role: .destructive) {
-                                self.removeFriend(friend: person)
+                            .highPriorityGesture(TapGesture())
+                            .confirmationDialog("Are you sure?", isPresented: $removeFriendConfirm) {
+                                Button("Delete Friend", role: .destructive) {
+                                    self.removeFriend(friend: person)
+                                }
+                            } message: {
+                                Text("Your friend's history will be deleted from your feed and you will no longer appear on their feed.")
                             }
-                        } message: {
-                            Text("Your friend's history will be deleted from your feed and you will no longer appear on their feed.")
                         }
                     }
                     .padding(.bottom, -3)
@@ -81,7 +86,7 @@ struct ContactRow: View {
                                     .fill(.gray)
                                     .opacity(0.30)
                             }
-                            .foregroundStyle(.black)
+                            .foregroundStyle(colorScheme == .dark ? .white : .black)
                             .buttonStyle(PlainButtonStyle())
                         } else {
                             Text(person.isPublic ? "Public Account" : "Private")

@@ -47,7 +47,7 @@ struct AddFriendPage: View {
                             .padding(.horizontal, 7)
                             .font(.system(size: 14))
                             .background {
-                                Rectangle().fill(colorScheme == .dark ? .black : .white)
+                                Rectangle().fill(.background)
                             }
                             .offset(x: 8, y: -27)
                         Spacer()
@@ -104,7 +104,7 @@ struct AddFriendPage: View {
                             .padding(.horizontal, 7)
                             .font(.system(size: 14))
                             .background {
-                                Rectangle().fill(colorScheme == .dark ? .black : .white)
+                                Rectangle().fill(.background)
                             }
                             .offset(x: 8, y: -27)
                         Spacer()
@@ -129,7 +129,7 @@ struct AddFriendPage: View {
                             .padding(.horizontal, 7)
                             .font(.system(size: 14))
                             .background {
-                                Rectangle().fill(colorScheme == .dark ? .black : .white)
+                                Rectangle().fill(.background)
                             }
                             .offset(x: 8, y: -27)
                         Spacer()
