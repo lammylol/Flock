@@ -31,7 +31,7 @@ enum AddFriendError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidUsername:
-            return NSLocalizedString("Username not valid. Make sure you have entered a valid username, and make sure it matches the first and last name of the user you are trying to add.", comment: "Invalid Username")
+            return NSLocalizedString("Username invalid. Make sure you have entered a valid username that exists and is not your own.", comment: "Invalid Username")
         case .missingName:
             return NSLocalizedString("Either the first name or last name is blank. Make sure you enter in a value for both first name and last name to add a user.", comment: "Missing First Name or Last Name")
         case .friendAddedAlready:

@@ -17,7 +17,7 @@ class FriendService {
         //In this scenario, userID is the userID of the person retrieving data from the 'person'.
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let posts = try await PostOperationsService().getPosts(userID: friend.userID, person: friend, status: "Current", fetchOnlyPublic: true)
+            let posts = try await PostOperationsService().getPosts(userID: friend.userID, person: friend)
             
             print("posts: \(posts.map( {$0.id}).joined(separator: ", "))")
             print("user: \(user.userID)")

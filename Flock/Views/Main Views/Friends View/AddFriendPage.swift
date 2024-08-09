@@ -153,14 +153,6 @@ struct AddFriendPage: View {
                     .foregroundStyle(.white)
                 }
                 .frame(maxWidth: .infinity)
-                .alert(isPresented: $errorAlert) {
-                    return Alert(
-                        title: Text(errorType?.failureReason ?? "error"),
-                        message: Text(errorType?.errorDescription ?? "error"),
-                        dismissButton: .default(Text("OK")) {
-                            errorAlert = false
-                        })
-                }
                 .alert(isPresented: $confirmation) {
                     return Alert(
                         title: Text("Request Sent"),
@@ -175,6 +167,14 @@ struct AddFriendPage: View {
                 }
                 
                 Spacer()
+            }
+            .alert(isPresented: $errorAlert) {
+                return Alert(
+                    title: Text(errorType?.failureReason ?? "error"),
+                    message: Text(errorType?.errorDescription ?? "error"),
+                    dismissButton: .default(Text("OK")) {
+                        errorAlert = false
+                    })
             }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
@@ -196,6 +196,10 @@ struct AddFriendPage: View {
         Task {
             do {
                 if username != "" { // functions only if the username exists (aka profile is public)
+                    guard username.lowercased() != userHolder.person.username else {
+                        throw AddFriendError.invalidUsername
+                    }
+                        
                     let ref = try await friendService.validateFriendUsername(username: username.lowercased()/*, firstName: firstName, lastName: lastName*/) // returns (bool, person)
                     let validation = ref.0 // true or false if username is validated according to first and last name
                     
