@@ -22,6 +22,8 @@ struct AddFriendPage: View {
     var friendService = FriendService()
     @StateObject var debounceModel = debounceTextModel()
     
+    var preName: String = ""
+    
     var body: some View {
         NavigationStack{
             VStack(alignment: .leading, spacing: 15) {
@@ -83,59 +85,59 @@ struct AddFriendPage: View {
                 .frame(height: 12)
                 .padding(.bottom, 5)
                 
-                Text("You can create a private profile to pray for your friend that doesn’t have an account! Only you will be able to edit and view the prayer requests for this friend.")
-                    .font(.system(size: 14))
-                    .padding(.bottom, 5)
-                
-                ZStack { // for firstName
-                    Rectangle()
-                        .frame(height: 55)
-                        .foregroundStyle(.clear)
-                        .border(.secondary)
-                    
-                    TextField("First Name", text: $firstName)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 55)
-                        .textInputAutocapitalization(.never)
-                        .offset(x: 15)
-                    
-                    HStack {
-                        Text("Name")
-                            .padding(.horizontal, 7)
-                            .font(.system(size: 14))
-                            .background {
-                                Rectangle().fill(.background)
-                            }
-                            .offset(x: 8, y: -27)
-                        Spacer()
-                    }
-                }
-                .padding(.bottom, 5)
-                
-                ZStack { // for lastName
-                    Rectangle()
-                        .frame(height: 55)
-                        .foregroundStyle(.clear)
-                        .border(.secondary)
-                    
-                    TextField("Last Name", text: $lastName)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 55)
-                        .textInputAutocapitalization(.never)
-                        .offset(x: 15)
-                    
-                    HStack {
-                        Text("Name")
-                            .padding(.horizontal, 7)
-                            .font(.system(size: 14))
-                            .background {
-                                Rectangle().fill(.background)
-                            }
-                            .offset(x: 8, y: -27)
-                        Spacer()
-                    }
-                }
-                .padding(.bottom, 40)
+//                Removing 'Private Friend' Option for now.
+//                Text("You can create a private profile to pray for your friend that doesn’t have an account! Only you will be able to edit and view the prayer requests for this friend.")
+//                    .font(.system(size: 14))
+//                    .padding(.bottom, 5)
+//                
+//                ZStack { // for firstName
+//                    Rectangle()
+//                        .frame(height: 55)
+//                        .foregroundStyle(.clear)
+//                        .border(.secondary)
+//                    
+//                    TextField("First Name", text: $firstName)
+//                        .frame(maxWidth: .infinity)
+//                        .frame(height: 55)
+//                        .textInputAutocapitalization(.never)
+//                        .offset(x: 15)
+//                    
+//                    HStack {
+//                        Text("Name")
+//                            .padding(.horizontal, 7)
+//                            .font(.system(size: 14))
+//                            .background {
+//                                Rectangle().fill(.background)
+//                            }
+//                            .offset(x: 8, y: -27)
+//                        Spacer()
+//                    }
+//                }
+//                .padding(.bottom, 5)
+//                
+//                ZStack { // for lastName
+//                    Rectangle()
+//                        .frame(height: 55)
+//                        .foregroundStyle(.clear)
+//                        .border(.secondary)
+//                    
+//                    TextField("Last Name", text: $lastName)
+//                        .frame(maxWidth: .infinity)
+//                        .frame(height: 55)
+//                        .textInputAutocapitalization(.never)
+//                        .offset(x: 15)
+//                    
+//                    HStack {
+//                        Text("Name")
+//                            .padding(.horizontal, 7)
+//                            .font(.system(size: 14))
+//                            .background {
+//                                Rectangle().fill(.background)
+//                            }
+//                            .offset(x: 8, y: -27)
+//                        Spacer()
+//                    }
+//                }
                 
                 HStack {
                     Button {
@@ -165,6 +167,7 @@ struct AddFriendPage: View {
                         })
                     
                 }
+                .padding(.top, 10)
                 
                 Spacer()
             }
@@ -183,6 +186,13 @@ struct AddFriendPage: View {
                             dismiss()
                         }
                     }
+                }
+            }
+            .task {
+                if preName != "" {
+                    let name = splitName(preName)
+                    firstName = name?.0 ?? ""
+                    lastName = name?.1 ?? ""
                 }
             }
             .navigationTitle("Add Friend")
@@ -236,6 +246,22 @@ struct AddFriendPage: View {
                 errorAlert = true
                 self.errorType = nil
             }
+        }
+    }
+    
+    func splitName(_ fullName: String) -> (String, String?)? {
+        let components = fullName.split(separator: " ")
+        guard !components.isEmpty else { return nil }
+        
+        let firstName = String(components[0])
+        
+        if components.count == 2 {
+            let lastName = String(components[1])
+            return (firstName, lastName)
+        } else if components.count == 1 {
+            return (firstName, nil)
+        } else {
+            return nil
         }
     }
 }

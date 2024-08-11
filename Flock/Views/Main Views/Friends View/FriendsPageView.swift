@@ -14,24 +14,39 @@ struct FriendsPageView: View {
     
     var friendService = FriendService()
     @State private var showAddFriend: Bool = false
-    @State private var showCreateContact: Bool = false
-    @State private var showPending: Bool = true
+    @State private var showPendingExpand: Bool = true // Variable to expand and contract pending friends list
+    @State private var showDuringSearch: Bool = false // Variable to show pending "title" and section.
     @State private var search: String = ""
+    @State private var showCreateorAddFriend: Bool = false // Variable to add / create friend on search.
     @State var friendsList: [Person] = []
+    
+//    @State var newFriendFirstName: String = ""
+//    @State var newFriendLastName: String = ""
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading){
-                    if !friendRequestListener.pendingFriendRequests.isEmpty {
+                    if showDuringSearch {
+                        Button {
+                            showAddFriend.toggle()
+                        } label: {
+                            Label("Add '\(search)' as a friend", systemImage: "person.fill.badge.plus")
+                                .foregroundStyle(Color.primary)
+                        }
+                        .padding(.vertical, 5)
+                        .padding(.leading, 3)
+                    }
+                    
+                    if !friendRequestListener.pendingFriendRequests.isEmpty && !showDuringSearch {
                         VStack(alignment: .leading) { // Pending Requests
                             HStack {
                                 Text("Pending Requests")
                                     .font(.title2)
                                 Button {
-                                    showPending.toggle()
+                                    showPendingExpand.toggle()
                                 } label: {
-                                    if showPending {
+                                    if showPendingExpand {
                                         Image(systemName: "chevron.up")
                                     } else {
                                         Image(systemName: "chevron.up").rotationEffect(.degrees(180))
@@ -39,7 +54,7 @@ struct FriendsPageView: View {
                                 }
                                 Spacer()
                             }
-                            if showPending {
+                            if showPendingExpand {
                                 ForEach(friendRequestListener.pendingFriendRequests) { friend in
                                     ContactRow(person: friend)
                                         .frame(maxWidth: .infinity)
@@ -65,7 +80,7 @@ struct FriendsPageView: View {
                         .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search friends")
                         .textInputAutocapitalization(.never)
                         .onChange(of: search) {
-                            showPending = false
+                            showDuringSearch = true
                             
                             if friendsList.isEmpty {
                                  friendsList = friendRequestListener.acceptedFriendRequests
@@ -73,6 +88,7 @@ struct FriendsPageView: View {
 
                              if search.isEmpty {
                                  friendRequestListener.acceptedFriendRequests = friendsList
+                                 showDuringSearch = false
                              } else {
                                  friendRequestListener.acceptedFriendRequests = friendsList.filter { person in
                                      person.fullName.lowercased().contains(search.lowercased())
@@ -116,7 +132,7 @@ struct FriendsPageView: View {
                 }
             }
             .sheet(isPresented: $showAddFriend) {
-                AddFriendPage()
+                AddFriendPage(preName: search)
             }
             .navigationTitle("Friends")
             .navigationBarTitleDisplayMode(.automatic)
