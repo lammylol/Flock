@@ -155,7 +155,19 @@ struct AddFriendPage: View {
                     .foregroundStyle(.white)
                 }
                 .frame(maxWidth: .infinity)
-                .alert(isPresented: $confirmation) {
+                .padding(.top, 10)
+                
+                Spacer()
+            }
+            .alert(isPresented: .constant(errorAlert || confirmation)) {
+                if errorAlert {
+                    return Alert(
+                        title: Text(errorType?.failureReason ?? "error"),
+                        message: Text(errorType?.errorDescription ?? "error"),
+                        dismissButton: .default(Text("OK")) {
+                            errorAlert = false
+                        })
+                } else {
                     return Alert(
                         title: Text("Request Sent"),
                         message: Text("Your friend will appear in your list once the request has been approved."),
@@ -165,19 +177,7 @@ struct AddFriendPage: View {
                                 dismiss()
                             }
                         })
-                    
                 }
-                .padding(.top, 10)
-                
-                Spacer()
-            }
-            .alert(isPresented: $errorAlert) {
-                return Alert(
-                    title: Text(errorType?.failureReason ?? "error"),
-                    message: Text(errorType?.errorDescription ?? "error"),
-                    dismissButton: .default(Text("OK")) {
-                        errorAlert = false
-                    })
             }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
