@@ -26,7 +26,6 @@
 		7A3158ED2AF357F5009B6E59 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3158EC2AF357F5009B6E59 /* SignInView.swift */; };
 		7A3440832C5ABE6E0041156F /* ContactRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3440822C5ABE6E0041156F /* ContactRow.swift */; };
 		7A3440862C5ABE790041156F /* FriendsPageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3440842C5ABE790041156F /* FriendsPageView.swift */; };
-		7A3440882C5ABEE70041156F /* FriendHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3440872C5ABEE70041156F /* FriendHelper.swift */; };
 		7A416B7B2AFC71CB00249BB3 /* UIHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A416B7A2AFC71CA00249BB3 /* UIHelper.swift */; };
 		7A4986662BCDCBFD00C0A936 /* PasswordChangeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4986652BCDCBFD00C0A936 /* PasswordChangeView.swift */; };
 		7A4986682BCE2AE200C0A936 /* FeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4986672BCE2AE200C0A936 /* FeedViewModel.swift */; };
@@ -102,7 +101,6 @@
 		7A3158EC2AF357F5009B6E59 /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
 		7A3440822C5ABE6E0041156F /* ContactRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactRow.swift; sourceTree = "<group>"; };
 		7A3440842C5ABE790041156F /* FriendsPageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FriendsPageView.swift; sourceTree = "<group>"; };
-		7A3440872C5ABEE70041156F /* FriendHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FriendHelper.swift; sourceTree = "<group>"; };
 		7A416B7A2AFC71CA00249BB3 /* UIHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIHelper.swift; sourceTree = "<group>"; };
 		7A4986652BCDCBFD00C0A936 /* PasswordChangeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordChangeView.swift; sourceTree = "<group>"; };
 		7A4986672BCE2AE200C0A936 /* FeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedViewModel.swift; sourceTree = "<group>"; };
@@ -249,7 +247,6 @@
 		7A285BA02B959B3A00BAF4C0 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				7A3440872C5ABEE70041156F /* FriendHelper.swift */,
 				7A4F262E2AD0D2B500FB086C /* CalendarHelper.swift */,
 				7A66A0C42B0B24BC000CA93E /* PostHelper.swift */,
 				7AFD17E92B822C7C0015CD96 /* PostUpdateHelper.swift */,
@@ -593,7 +590,6 @@
 				7A3158ED2AF357F5009B6E59 /* SignInView.swift in Sources */,
 				7AE46BD52B10100D0034DAD6 /* Person.swift in Sources */,
 				7AB4DF5F2C641E2100CC3C67 /* debounceTextModel.swift in Sources */,
-				7A3440882C5ABEE70041156F /* FriendHelper.swift in Sources */,
 				3ABC0ABF2C517533000AFFD1 /* CalendarService.swift in Sources */,
 				7A5C72352AFF5E3100A75636 /* Post.swift in Sources */,
 				3ABC0AAE2C4F3872000AFFD1 /* FirebaseErrors.swift in Sources */,
