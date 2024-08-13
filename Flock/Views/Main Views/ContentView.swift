@@ -20,23 +20,23 @@ struct ContentView: View {
     var body: some View {
         //Tabs for each view. Adds bottom icons.
         TabView(selection: $selection) {
-            PrayerCalendarView()
+            FeedView(person: userHolder.person)
                 .tabItem {
                     Image(systemName: "house.fill")
                         .imageScale(.large)
-                    Text("Calendar")
-                }.tag(1)
-            FeedView(person: userHolder.person)
-                .tabItem {
-                    Image(systemName: "newspaper.fill")
-                        .imageScale(.large)
                     Text("Feed")
-                }.tag(2)
+                }.tag(1)
             FriendsPageView()
                 .tabItem {
                     Image(systemName: "person.2.fill")
                         .imageScale(.large)
                     Text("Friends")
+                }.tag(2)
+            PrayerCalendarView()
+                .tabItem {
+                    Image(systemName: "calendar")
+                        .imageScale(.large)
+                    Text("Calendar")
                 }.tag(3)
             ProfileView(person: userHolder.person)
                 .tabItem {
