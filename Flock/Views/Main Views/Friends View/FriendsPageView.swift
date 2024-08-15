@@ -136,6 +136,17 @@ struct FriendsPageView: View {
             }
             .navigationTitle("Friends")
             .navigationBarTitleDisplayMode(.automatic)
+            .refreshable(action: {
+                Task {
+                    do {
+                        let friends = try await friendService.getFriendsList(userID: userHolder.person.userID)
+                        friendRequestListener.acceptedFriendRequests = friends.0
+                        friendRequestListener.pendingFriendRequests = friends.1
+                    } catch {
+                        print(error)
+                    }
+                }
+            })
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .background(colorScheme == .dark ? .black : .white)
