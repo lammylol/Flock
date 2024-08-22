@@ -7,7 +7,7 @@ class PostOperationsService {
     private let db = Firestore.firestore()
 
     //Retrieve prayer requests from Firestore
-    func getPosts(userID: String, person: Person, status: String?, fetchOnlyPublic: Bool) async throws -> [Post] {
+    func getPosts(userID: String, person: Person) async throws -> [Post] {
         var prayerRequests = [Post]()
         
         guard userID != "" else {
@@ -17,20 +17,21 @@ class PostOperationsService {
         var profiles: Query
         
         do {
-            if fetchOnlyPublic {
+//            if fetchOnlyPublic {
                 profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests")
-                    .whereField("status", isEqualTo: status!)
+                    .whereField("status", in: ["Current", "Answered"])
                     .whereField("privacy", isEqualTo: "public")
                     .order(by: "latestUpdateDatePosted", descending: true)
-            } else {
-                if status == "isPinned" {
-                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("isPinned", isEqualTo: true).order(by: "latestUpdateDatePosted", descending: true)
-                } else if status != nil { // if a status is passed, retrieve prayer list with status filtered.
-                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("status", isEqualTo: status!).order(by: "latestUpdateDatePosted", descending: true)
-                } else { // if a status is not passed, retrieve all prayers.
-                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").order(by: "latestUpdateDatePosted", descending: true)
-                }
-            }
+//            }
+//            } else {
+//                if status == "isPinned" {
+//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("isPinned", isEqualTo: true).order(by: "latestUpdateDatePosted", descending: true)
+//                } else if status != nil { // if a status is passed, retrieve prayer list with status filtered.
+//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("status", isEqualTo: status!).order(by: "latestUpdateDatePosted", descending: true)
+//                } else { // if a status is not passed, retrieve all prayers.
+//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").order(by: "latestUpdateDatePosted", descending: true)
+//                }
+//            }
             
             let querySnapshot = try await profiles.getDocuments()
             

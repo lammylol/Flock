@@ -12,6 +12,7 @@ import FirebaseAuth
 // Settings page for user to edit profile information.
 struct ProfileSettingsView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
 
     var body: some View {
             Form {
@@ -49,6 +50,7 @@ struct ProfileSettingsView: View {
         Task {
             if userHolder.isFinished {
                 do {
+                    friendRequestListener.removeListener()
                     try Auth.auth().signOut()
                 } catch {
                     print(error)

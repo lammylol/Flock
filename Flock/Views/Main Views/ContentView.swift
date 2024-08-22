@@ -12,6 +12,8 @@ import SwiftData
 struct ContentView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(DateHolder.self) var dateHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
+    @Environment(\.scenePhase) var scenePhase
     @State var selection: Int
 //    @State private var path: NavigationPath
     
@@ -30,13 +32,34 @@ struct ContentView: View {
                         .imageScale(.large)
                     Text("Feed")
                 }.tag(2)
+            FriendsPageView()
+                .tabItem {
+                    Image(systemName: "person.2.fill")
+                        .imageScale(.large)
+                    Text("Friends")
+                }.tag(3)
             ProfileView(person: userHolder.person)
                 .tabItem {
                     Image(systemName: "person.circle")
                         .imageScale(.large)
                     Text("Profile")
-                }.tag(3)
+                }.tag(4)
         }
+        .onChange(of: scenePhase) { 
+            oldPhase, newPhase in
+                if newPhase == .active {
+                    print("Active")
+                    Task {
+                        await friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                    }
+                } else if newPhase == .inactive {
+                    friendRequestListener.removeListener()
+                    print("Inactive")
+                } else if newPhase == .background {
+                    friendRequestListener.removeListener()
+                    print("Background")
+            }
+        } // detect when app is closed or open.
     }
 }
 

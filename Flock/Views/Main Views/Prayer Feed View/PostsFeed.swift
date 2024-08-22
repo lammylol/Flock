@@ -97,6 +97,7 @@ struct PostsFeed: View {
                                     Button(action: {showSubmit.toggle() })
                                     {
                                         Text("Add a Post")
+                                            .font(.system(size: 16))
                                     }
                                 }
                             } else {
@@ -105,13 +106,14 @@ struct PostsFeed: View {
                                         Button(action: {showSubmit.toggle() })
                                         {
                                             Text("Add a Post")
+                                                .font(.system(size: 16))
                                         }
                                     }
                                 }
                             }
                         }
-                        .frame(height: 250)
-                        .offset(y: 120)
+                        .frame(height: 500)
+                        .offset(y: 140)
                         Spacer()
                     }
             }

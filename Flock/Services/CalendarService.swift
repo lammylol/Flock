@@ -80,10 +80,10 @@ class CalendarService {
         return prayerArray
     }
 
-    func updatePrayerCalendarList(userID: String, prayStartDate: Date, prayerList: String) {
+    func updatePrayerCalendarList(userID: String, prayStartDate: Date, prayerList: String) async throws {
         // This function enables the user to update user documentation with userID, prayer start date, and prayer list.
         let ref = db.collection("users").document(userID)
-        ref.updateData([
+        try await ref.updateData([
             "userID": userID,
             "prayStartDate": prayStartDate,
             "prayerList": prayerList

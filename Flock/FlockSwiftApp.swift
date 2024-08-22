@@ -11,6 +11,7 @@ import FirebaseCore
 
 @main
 struct FlockApp: App {
+    @State private var friendRequestListener = FriendRequestListener()
     
     init(){
         FirebaseApp.configure()
@@ -23,6 +24,7 @@ struct FlockApp: App {
                 .environment(UserProfileHolder())
                 .environment(DateHolder())
                 .environment(FeedViewModel())
+                .environment(friendRequestListener)
         }
     }
 }

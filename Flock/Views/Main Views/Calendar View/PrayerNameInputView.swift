@@ -37,7 +37,7 @@ struct PrayerNameInputView: View {
                 }
                 
                 Divider()
-                Text("Add the friends you would like to pray for by submitting their names below. Adding a friend will create a profile for them within your account, unless you link to an active profile. To link to an active account, enter the person's name, followed by a semicolon, followed by the person's username.\n\nex. Berry Lam; berry")
+                Text("Add the friends you would like to pray for on your calendar below, with one person per line. Adding a friend will create a profile for them which you can click into via their name in your calendar. You can also link to an active friend by entering the person's name, followed by a semicolon, followed by the person's username.\n\nex. Berry Lam; berry")
                     .italic()
                     .padding(.all, 10)
                     .font(.system(size: 14))
@@ -127,66 +127,24 @@ struct PrayerNameInputView: View {
         // Removals MUST come prior to insertion. This is due to the edge case that you have a user that you are adding a username to. If so, you want to delete any request in the feed pertaining to the first name and last name (which was originally a private account you created), prior to inserting history for a username. If you allow insertions to come first, the deletion of 'first name_ last name' of that new public user will occur immediately after adding their posts to you feed. Ex. remove [Matt_Lam], insert [lammylol]. Not insert [lammylol], remove [Matt_lam] which will force all messages with 'matt lam' as first and last name to delete.
         
         for usernameOrName in removals {
-            if usernameOrName.contains("/") == false { // This checks if the person is a linked account or not. If it was linked, usernameOrName would be a username. Usernames cannot have special characters in them.
-                
-                if await userService.checkIfUsernameExists(username: usernameOrName) == true {
-                    do {
-                        let person = try await userService.retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder) // retrieve the "person" structure based on their username. Will return back user info.
-                        
-                        // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed. And, update your prayer feed to remove that person's prayer requests from your current feed.
-                        try await friendService.deleteFriend(user: userHolder.person, friend: person)
-                    } catch {
-                        print(error)
-                    }
-                }
-                
-            } else { //else is for any names you have added which do not have a username; under your account and not linked.
-                await friendService.removeFriendPostsFromUserFeed(userID: userHolder.person.userID, friendUsernameToRemove: usernameOrName)
-            }
+            await friendService.removeFriendPostsFromUserFeed(userID: userHolder.person.userID, friendUsernameToRemove: usernameOrName) // remove friends only for private friends in calendar. Keeping this function available for now.
         }
         
         
         // for each person in prayerList who has a username (aka a linked account), check if the user already exists in the prayerList person's friendsList. If not, add their name and update all historical prayer feeds as well.
-        for usernameOrName in insertions {
-            if usernameOrName.contains("/") == false { // This checks if the person is a linked account or not. If it was linked, usernameOrName would be a username. Usernames cannot have special characters in them.
-                
-                var person = Person.blank
-                    
-                guard await userService.checkIfUsernameExists(username: usernameOrName) == true else {
-                    throw PrayerPersonRetrievalError.incorrectUsername
-                }
-                
-                person = try await userService.retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder) // retrieve the "person" structure based on their username. Will return back user info.
-                
-                print("usernameOrName: \(usernameOrName)")
-                    
-                do {
-                    // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
-                    try await friendService.addFriend(user: userHolder.person, friend: person)
-                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: person)
-                    
-                } catch {
-                    print(error.localizedDescription)
-                }
-                    
-                linkedFriends.append(person.firstName + " " + person.lastName) // for printing purposes.
-            } else { //else is for any names you have added which do not have a username; under your account and not linked.
+        for usernameOrName in insertions { // keeping this available to add private ames you have added which do not have a username; under your account and not linked.
                 
                 // Fetch all historical prayers from that person into your feed, noting that these do not have a linked username. So you need to pass in your own userID into that person for the function to retrieve out of your prayerFeed/youruserID.
                 do {
-                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, person: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
+                    try await friendService.updateFriendHistoricalPostsIntoFeed(user: userHolder.person, friend: Person(userID: userHolder.person.userID, firstName: String(usernameOrName.split(separator: "/").first ?? ""), lastName: String(usernameOrName.split(separator: "/").last ?? "")))
                 } catch {
                     throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
                 }
-            }
         }
-        
-        print("Linked Friends: " + linkedFriends.description)
             
         self.prayStartDate = Calendar.current.startOfDay(for: prayStartDate)
         
         try await calendarService.updatePrayerCalendarList(userID: userHolder.person.userID, prayStartDate: prayStartDate, prayerList: prayerList)
-        
             
         //reset local dataHolder
         userHolder.prayerList = prayerList/*.joined(separator: "\n")*/
