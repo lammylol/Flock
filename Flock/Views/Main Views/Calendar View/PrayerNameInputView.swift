@@ -37,7 +37,7 @@ struct PrayerNameInputView: View {
                 }
                 
                 Divider()
-                Text("Add the friends you would like to pray for by submitting their names below. Adding a friend will create a profile for them within your account, unless you link to an active profile. To link to an active account, enter the person's name, followed by a semicolon, followed by the person's username.\n\nex. Berry Lam; berry")
+                Text("Add the friends you would like to pray for on your calendar below, with one person per line. Adding a friend will create a profile for them which you can click into via their name in your calendar. You can also link to an active friend by entering the person's name, followed by a semicolon, followed by the person's username.\n\nex. Berry Lam; berry")
                     .italic()
                     .padding(.all, 10)
                     .font(.system(size: 14))
