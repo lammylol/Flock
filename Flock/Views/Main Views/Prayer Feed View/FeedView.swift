@@ -56,7 +56,7 @@ struct FeedView: View {
             .toolbar() {
                 ToolbarItem(placement: .topBarLeading) {
                     HStack {
-                        Text("Feed")
+                        Text("Flock")
                             .font(.title2)
                             .bold()
                         StatusPicker(viewModel: viewModel)

@@ -24,6 +24,7 @@ struct PrayerCalendarView: View {
                             calendarGrid
                                 .padding(.horizontal, 10)
                                 .padding(.top, 20)
+                            Spacer()
                         }
                         .background(Color.gray.opacity(0.05))
                     } header: { //Header that freezes for lazy stack.
