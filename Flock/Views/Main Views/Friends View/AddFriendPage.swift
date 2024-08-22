@@ -31,6 +31,7 @@ struct AddFriendPage: View {
                     .font(.system(size: 16))
                     .padding(.top, 40)
                     .padding(.bottom, 5)
+                
                 ZStack { // for username
                     Rectangle()
                         .frame(height: 55)

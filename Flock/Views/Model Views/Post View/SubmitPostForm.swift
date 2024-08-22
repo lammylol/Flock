@@ -23,6 +23,8 @@ struct SubmitPostForm: View {
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     
+    @State private var isDraftSaved = false
+
     var friendService = FriendService()
     
     var body: some View {
@@ -93,6 +95,10 @@ struct SubmitPostForm: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarLeading) {
                     Button("Cancel") {
+                        if !isDraftSaved {
+                            saveDraft()
+                            isDraftSaved = true
+                        }
                         dismiss()
                     }
                 }
@@ -115,6 +121,16 @@ struct SubmitPostForm: View {
             .navigationTitle("Add Something...")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .onAppear {
+            isDraftSaved = false
+            loadDraft()
+        }
+        .onDisappear {
+            if !isDraftSaved {
+                saveDraft()
+                isDraftSaved = true
+            }
+        }
     }
         
     func submitPost() {
@@ -132,6 +148,9 @@ struct SubmitPostForm: View {
                 userHolder.refresh = true
                 print("Saved")
                 
+                clearDraft()
+                isDraftSaved = true
+
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {
                     dismiss()
@@ -140,6 +159,36 @@ struct SubmitPostForm: View {
                 print(error)
             }
         }
+    }
+
+    private func saveDraft() {
+        if !postTitle.isEmpty || !postText.isEmpty {
+            userHolder.draftPost = UserProfileHolder.DraftPost(
+                title: postTitle,
+                content: postText,
+                selectedTags: [postType, privacy]
+            )
+            print("Draft saved")
+        } else {
+            print("No content to save as draft")
+        }
+    }
+
+    private func loadDraft() {
+        if let draft = userHolder.draftPost {
+            postTitle = draft.title
+            postText = draft.content
+            if draft.selectedTags.count >= 2 {
+                postType = draft.selectedTags[0]
+                privacy = draft.selectedTags[1]
+            }
+            print("Draft loaded")
+        }
+    }
+
+    private func clearDraft() {
+        userHolder.draftPost = nil
+        print("Draft cleared")
     }
     
 //    func refreshFriends() {

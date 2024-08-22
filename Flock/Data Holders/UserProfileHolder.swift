@@ -23,6 +23,8 @@ import FirebaseFirestore
     var prayStartDate = Date()
     var email: String = ""
     
+    var draftPost: DraftPost?
+
     var isLoading: Bool {
         viewState == .loading
     }
@@ -41,6 +43,14 @@ import FirebaseFirestore
         Auth.auth().addStateDidChangeListener { auth, user in
                 self.isLoggedIn = user != nil ? .authenticated : .notAuthenticated
         }
+    }
+}
+
+extension UserProfileHolder {
+    struct DraftPost {
+        var title: String
+        var content: String
+        var selectedTags: [String]
     }
 }
 
