@@ -7,3 +7,8 @@ See [Notion](https://www.notion.so/7a20c472b3bc4b50b79d57fdfdf22f73?v=8703808a97
 
 ###
 <img width="1204" alt="Screenshot 2023-11-02 at 8 23 13 AM" src="https://github.com/lammylol/Prayer-Calendar/assets/44993071/669810be-6829-4dfd-b5fd-41297521480b">
+
+## Setup
+Linking Firebase
+- Download the `GoogleService-info.plist`
+- move to `Flock/Flock/Firebase`
