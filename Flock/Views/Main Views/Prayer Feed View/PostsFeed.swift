@@ -42,15 +42,9 @@ struct PostsFeed: View {
         }
         .task {
             if viewModel.prayerRequests.isEmpty {
-                do {
-                    self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-                    
-                    if !viewModel.isFetching || !viewModel.isLoading {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-                        self.viewModel.prayerRequests = viewModel.prayerRequests
-                    }
-                } catch {
-                    print(error.localizedDescription)
+                if !viewModel.isFetching || !viewModel.isLoading {
+                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                    self.viewModel.prayerRequests = viewModel.prayerRequests
                 }
             }
         }
