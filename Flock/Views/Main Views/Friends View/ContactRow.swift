@@ -13,6 +13,7 @@ struct ContactRow: View {
     
     var person: Person
     var friendService = FriendService()
+    var friendHelper = FriendHelper()
     var calendarService = CalendarService()
     @State var removeFriendConfirm: Bool = false
 //    var friendState: String
@@ -59,7 +60,7 @@ struct ContactRow: View {
                     HStack {
                         if person.friendState == "pending" {
                             Button(action: {
-                                acceptFriendRequest(friendState: person.friendState)
+                                friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
                             }) {
                                 Text("Accept")
                                     .padding([.vertical], 5)
@@ -74,7 +75,7 @@ struct ContactRow: View {
                             .foregroundStyle(.white)
                             
                             Button(action: {
-                                denyFriendRequest(friendState: person.friendState)
+                                friendHelper.denyFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
                             }) {
                                 Text("Dismiss")
                                     .padding([.vertical], 5)
@@ -111,44 +112,6 @@ struct ContactRow: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-    }
-        
-    func acceptFriendRequest(friendState: String) {
-        Task {
-            guard friendState == "pending" else {
-                print("No action pending")
-                return
-            }
-            
-            do {
-                try await friendService.acceptOrDenyFriendRequest(acceptOrDeny: true, user: userHolder.person, friend: person)
-//                let friends = try await friendService.getFriendsList(userID: userHolder.person.userID) // run to refresh friends list on command
-//                self.userHolder.friendsList = friends.0
-//                self.userHolder.pendingFriendsList = friends.1
-                print("userHolder.friendsList: \(userHolder.friendsList)")
-            } catch {
-                print(error)
-            }
-        }
-    }
-    
-    func denyFriendRequest(friendState: String) {
-        Task {
-            guard friendState == "pending" else {
-                print("No action pending")
-                return
-            }
-            
-            do {
-                try await friendService.acceptOrDenyFriendRequest(acceptOrDeny: false, user: userHolder.person, friend: person)
-//                let friends = try await friendService.getFriendsList(userID: userHolder.person.userID) // run to refresh friends list on command
-//                self.userHolder.friendsList = friends.0
-//                self.userHolder.pendingFriendsList = friends.1
-                print("test")
-            } catch {
-                print(error)
-            }
-        }
     }
     
     func removeFriend(friend: Person) {
