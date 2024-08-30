@@ -43,6 +43,11 @@ struct PostsFeed: View {
         .task {
             if viewModel.prayerRequests.isEmpty {
                 if !viewModel.isFetching || !viewModel.isLoading {
+                    do {
+                        person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    } catch {
+                        print(error)
+                    }
                     await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                     self.viewModel.prayerRequests = viewModel.prayerRequests
                 }
