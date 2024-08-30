@@ -21,6 +21,8 @@ struct ProfileView: View {
     @State private var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
     @State private var profileSettingsToggle: Bool = false
     @State private var navigationPath = NavigationPath()
+    @State private var friendText: String = ""
+    @State private var addFriendConfirmation: Bool = false
     
     var userService = UserService()
     var friendService = FriendService()
@@ -46,68 +48,32 @@ struct ProfileView: View {
                             if person.friendState == "pending" {
                                 Menu {
                                     Button {
-                                        friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+                                        acceptFriendRequest()
                                     } label: {
-                                        Text("Approve Friend Request")
+                                        Label("Approve Request", systemImage: "person.crop.circle.badge.plus")
                                     }
                                     Button {
-                                        friendHelper.denyFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+                                        dismissFriendRequest()
                                     } label: {
-                                        Text("Dismiss Request")
+                                        Label("Dismiss Request", systemImage: "xmark.circle")
                                     }
                                 } label: {
-                                    HStack {
-                                        Text("Respond to Friend Request")
-                                            .font(.system(size: 14))
-                                            .bold()
-                                        Image(systemName: "arrowtriangle.down.circle.fill")
-                                            .foregroundStyle(.white)
-                                            .imageScale(.small)
-                                            .padding([.horizontal], -3)
-                                    }
-                                    .padding([.vertical], 5)
-                                    .padding([.horizontal], 10)
+                                    tagModelView(textLabel: "Respond to Friend Request", systemImage: "arrowtriangle.down.circle.fill", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                                        .buttonStyle(PlainButtonStyle())
                                 }
-                                .background {
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(.blue)
-                                }
-                                .foregroundStyle(.white)
-                                .buttonStyle(PlainButtonStyle())
                             } else if person.friendState == "approved" {
-                                HStack {
-                                    Text("Friends")
-                                        .font(.system(size: 14))
-                                        .bold()
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.black)
-                                        .imageScale(.small)
-                                        .padding([.horizontal], -3)
-                                }
-                                .padding([.vertical], 5)
-                                .padding([.horizontal], 10)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(.gray)
-                                        .opacity(0.30)
+                                tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
+                            } else if person.friendState == "sent" {
+                                tagModelView(textLabel: "Pending", systemImage: "", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
+                            }
+                            else if person.isPublic && person.username != userHolder.person.username {
+                                Button {
+                                    addFriend()
+                                } label: {
+                                    tagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
                                 }
                             } else if !person.isPublic {
-                                HStack {
-                                    Text("Private")
-                                        .font(.system(size: 14))
-                                        .bold()
-                                    Image(systemName: "lock.icloud.fill")
-                                        .foregroundStyle(.black)
-                                        .imageScale(.small)
-                                        .padding([.horizontal], -3)
-                                }
-                                .padding([.vertical], 5)
-                                .padding([.horizontal], 10)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(.gray)
-                                        .opacity(0.30)
-                                }
+                                tagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
                             }
                         }
                         .padding(.top, 3)
@@ -186,7 +152,6 @@ struct ProfileView: View {
                             await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                         } else {
                             self.viewModel.prayerRequests = viewModel.prayerRequests
-                            //                            self.height = height
                         }
                         print("Success retrieving prayer requests for \(person.userID)")
                     }
@@ -227,6 +192,40 @@ struct ProfileView: View {
                     ProfileSettingsView()
                 }
             }
+            .alert(isPresented: $addFriendConfirmation) {
+                return Alert(
+                    title: Text("Request Sent"),
+                    message: Text("Your friend will appear in your list once the request has been approved."),
+                    dismissButton: .default(Text("OK")) {
+                        addFriendConfirmation = false
+                    })
+            }
+        }
+    }
+    
+    func addFriend() {
+        Task {
+            do {
+                try await friendService.addFriend(user: userHolder.person, friend: person)
+                addFriendConfirmation = true
+                person.friendState = "sent"
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    func acceptFriendRequest() {
+        Task {
+            friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+            person.friendState = "approved"
+        }
+    }
+    
+    func dismissFriendRequest() {
+        Task {
+            friendHelper.denyFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+            person.friendState = ""
         }
     }
     
@@ -235,6 +234,36 @@ struct ProfileView: View {
             return "private profile"
         }
         return "@\(person.username.capitalized)"
+    }
+}
+
+struct tagModelView: View {
+    var textLabel: String
+    var systemImage: String = ""
+    var textSize: CGFloat
+    var foregroundColor: Color
+    var backgroundColor: Color
+    var opacity: CGFloat = 1.00
+    
+    var body: some View {
+        HStack {
+            Text(textLabel)
+                .font(.system(size: textSize))
+                .bold()
+            if systemImage != "" {
+                Image(systemName: systemImage)
+                    .imageScale(.small)
+                    .padding([.horizontal], -3)
+            }
+        }
+        .padding([.vertical], 5)
+        .padding([.horizontal], 10)
+        .background {
+            RoundedRectangle(cornerRadius: 5)
+                .fill(backgroundColor)
+                .opacity(opacity)
+        }
+        .foregroundStyle(foregroundColor)
     }
 }
 
