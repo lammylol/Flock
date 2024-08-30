@@ -12,35 +12,107 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct ProfileView: View {
+    @Environment(UserProfileHolder.self) var userHolder
+    @Environment(\.colorScheme) var colorScheme
+    
     @State private var showSubmit: Bool = false
     @State private var showEditView: Bool = false
     @State var person: Person
     @State private var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
-    @Environment(UserProfileHolder.self) var userHolder
     @State private var profileSettingsToggle: Bool = false
     @State private var navigationPath = NavigationPath()
     
     var userService = UserService()
     var friendService = FriendService()
+    var friendHelper = FriendHelper()
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
-                VStack {
-                    HStack {
-                        VStack (alignment: .leading) {
+                VStack(alignment: .leading) {
+                    VStack(alignment: .leading) {
+                        Group {
                             if person.username == "" {
-                                Text("private profile")
-                                Text("@\(userHolder.person.username.capitalized)").bold()
+                                Text("@\(userHolder.person.username)")
                             } else {
-                                Text("public profile")
-                                Text("@\(person.username.capitalized)").bold()
+                                Text("@\(person.username)")
                             }
                         }
-                        Spacer()
+                        .font(.system(size: 14))
+                        .padding(.top, -8)
+                        
+                        Group {
+                            // Button to show friend state. If friend state is pending, give option to approve or decline. Currently: Can't view a profile if you didn't add.
+                            if person.friendState == "pending" {
+                                Menu {
+                                    Button {
+                                        friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+                                    } label: {
+                                        Text("Approve Friend Request")
+                                    }
+                                    Button {
+                                        friendHelper.denyFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+                                    } label: {
+                                        Text("Dismiss Request")
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text("Respond to Friend Request")
+                                            .font(.system(size: 14))
+                                            .bold()
+                                        Image(systemName: "arrowtriangle.down.circle.fill")
+                                            .foregroundStyle(.white)
+                                            .imageScale(.small)
+                                            .padding([.horizontal], -3)
+                                    }
+                                    .padding([.vertical], 5)
+                                    .padding([.horizontal], 10)
+                                }
+                                .background {
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .fill(.blue)
+                                }
+                                .foregroundStyle(.white)
+                                .buttonStyle(PlainButtonStyle())
+                            } else if person.friendState == "approved" {
+                                HStack {
+                                    Text("Friends")
+                                        .font(.system(size: 14))
+                                        .bold()
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.black)
+                                        .imageScale(.small)
+                                        .padding([.horizontal], -3)
+                                }
+                                .padding([.vertical], 5)
+                                .padding([.horizontal], 10)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .fill(.gray)
+                                        .opacity(0.30)
+                                }
+                            } else if !person.isPublic {
+                                HStack {
+                                    Text("Private")
+                                        .font(.system(size: 14))
+                                        .bold()
+                                    Image(systemName: "lock.icloud.fill")
+                                        .foregroundStyle(.black)
+                                        .imageScale(.small)
+                                        .padding([.horizontal], -3)
+                                }
+                                .padding([.vertical], 5)
+                                .padding([.horizontal], 10)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .fill(.gray)
+                                        .opacity(0.30)
+                                }
+                            }
+                        }
+                        .padding(.top, 3)
                     }
                     .padding([.leading, .trailing], 20)
-                    .font(.system(size: 14))
                     
                     Spacer()
                     
@@ -92,8 +164,7 @@ struct ProfileView: View {
             }
             .task {
                 do {
-                    person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-//                    let friendsRequest = try await friendService.listenForFriendRequest(userID: person.userID)
+                    self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
                 } catch {
                     print(error)
                 }
@@ -125,26 +196,28 @@ struct ProfileView: View {
             })
             .toolbar {
                 // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                ToolbarItem(placement: .topBarTrailing) {
-                    if person.username == userHolder.person.username {
+                if person.userID == userHolder.person.userID {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        if person.username == userHolder.person.username {
+                            HStack {
+                                Button(action: {
+                                    navigationPath.append("settings")
+                                }) {
+                                    Image(systemName: "gear")
+                                }
+                            }
+                            // temporary fix for Navigation Link not working.
+                            .padding(.trailing, -18)
+                            .padding(.top, 3)
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
                         HStack {
                             Button(action: {
-                                navigationPath.append("settings")
+                                showSubmit.toggle()
                             }) {
-                                Image(systemName: "gear")
+                                Image(systemName: "square.and.pencil")
                             }
-                        }
-                        // temporary fix for Navigation Link not working.
-                        .padding(.trailing, -18)
-                        .padding(.top, 3)
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
-                        Button(action: {
-                            showSubmit.toggle()
-                        }) {
-                            Image(systemName: "square.and.pencil")
                         }
                     }
                 }
