@@ -118,7 +118,6 @@ struct ContactRow: View {
         Task {
             do {
                 try await friendService.deleteFriend(user: userHolder.person, friend: person)
-                try await friendService.deleteFriend(user: person, friend: userHolder.person)
             } catch {
                 print(error)
             }

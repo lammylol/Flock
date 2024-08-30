@@ -155,6 +155,33 @@ class FriendService {
                 "state": "pending"
             ])
         }
+        
+        // Update user's personal friends list with state of 'sent'
+        let refUserFriends = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+        let userFriendsDocument = try await refUserFriends.getDocument()
+        
+//            guard !document.exists else {
+//                placeholder for after friends get transferred
+//            }
+        
+        if userFriendsDocument.exists { // only applies for initial beta launch of friends page, where some friends have documents but without a state.
+            if userFriendsDocument.get("state") == nil {
+                try await refUserFriends.updateData([
+                    "state": "sent"
+                ])
+            } else {
+                throw AddFriendError.friendAddedAlready
+            }
+        } else { // if document doesn't exist, set data.
+            try await refUserFriends.setData([
+                "username": friend.username,
+                "userID": friend.userID,
+                "firstName": friend.firstName,
+                "lastName": friend.lastName,
+                "email": friend.email,
+                "state": "sent"
+            ])
+        }
     }
     
     func approveFriend(user: Person, friend: Person) async throws {
@@ -178,12 +205,7 @@ class FriendService {
             // Update your friends' friends list with the your information so you will now see their posts. All of their existing posts will also populate to your feed.
             let theirFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
             
-            try await theirFriends.setData([
-                "username": user.username,
-                "userID": user.userID,
-                "firstName": user.firstName,
-                "lastName": user.lastName,
-                "email": user.email,
+            try await theirFriends.updateData([
                 "state": "approved"
             ])
             
@@ -222,6 +244,30 @@ class FriendService {
             for document in refDelete.documents {
                 try await document.reference.delete()
             }
+            
+            // Update user's personal friends list and delete historical posts.
+            let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+            try await refUser.delete()
+            
+            // Update your prayer feed to remove that person's prayer requests from your current feed.
+            let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+            for document in refDeleteUser.documents {
+                try await document.reference.delete()
+            }
+        } catch {
+            print(error)
+        }
+    }
+    
+    func dismissFriendRequest(user: Person, friend: Person) async throws {
+        do {
+            // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
+            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+            try await refFriends.delete()
+            
+            // Update user's personal friends list and delete historical posts.
+            let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+            try await refUser.delete()
         } catch {
             print(error)
         }
@@ -231,7 +277,7 @@ class FriendService {
         if acceptOrDeny {
             try await approveFriend(user: user, friend: friend)
         } else {
-            try await deleteFriend(user: friend, friend: user) // temp swapped friend and user to not screw up existing feed.
+            try await dismissFriendRequest(user: user, friend: friend) // temp swapped friend and user to not screw up existing feed.
         }
     }
     
