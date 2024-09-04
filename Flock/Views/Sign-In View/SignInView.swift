@@ -202,7 +202,8 @@ struct SignInView: View {
     }
     
     func resetInfo() {
-        userHolder.friendsList = []
+        friendRequestListener.acceptedFriendRequests = []
+        friendRequestListener.pendingFriendRequests = []
         userHolder.person.userID = ""
         userHolder.prayerList = ""
         userHolder.prayStartDate = Date()

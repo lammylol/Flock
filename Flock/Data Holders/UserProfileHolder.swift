@@ -13,8 +13,8 @@ import FirebaseFirestore
 @Observable class UserProfileHolder {
     // after sign-in, the 'person' will include userID, username, firstName, and lastName
     var person: Person = Person(username: "")
-    var friendsList: [Person] = []
-    var pendingFriendsList: [Person] = []
+//    var friendsList: [Person] = []
+//    var pendingFriendsList: [Person] = []
     var userPassword: String = ""
     var refresh: Bool = false
     var viewState: ViewState?

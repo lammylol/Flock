@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PostEditView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.dismiss) var dismiss
     
     @State var prayerRequestUpdates: [PostUpdate] = []
@@ -102,6 +103,8 @@ struct PostEditView: View {
             }
             .task {
                 do {
+                    print(friendRequestListener.acceptedFriendRequests.map {$0.firstName})
+                    print(friendRequestListener.acceptedFriendRequests.count)
                     self.post = try await PostOperationsService().getPost(prayerRequest: post)
                     self.post = post
                     prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
@@ -154,11 +157,11 @@ struct PostEditView: View {
             do {
                 let newPrivacy = post.privacy
                 if originalPrivacy != "private" && newPrivacy == "private" {
-                    try await FeedService().publicToPrivate(post: post, friendsList: userHolder.friendsList)
+                    try await FeedService().publicToPrivate(post: post, friendsList: friendRequestListener.acceptedFriendRequests)
                 } // if the privacy has changed from public to private, delete it from friends' feeds.
                 
                 // Function to catch if privacy was changed from public to private.
-                try await PostOperationsService().editPost(post: post, person: person, friendsList: userHolder.friendsList) // edit prayer request in firebase
+                try await PostOperationsService().editPost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests) // edit prayer request in firebase
                 
                 print("Saved")
                 
@@ -175,7 +178,7 @@ struct PostEditView: View {
     func deletePost() {
         Task {
             do {
-                try await PostOperationsService().deletePost(post: post, person: person, friendsList: userHolder.friendsList)
+                try await PostOperationsService().deletePost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
                 userHolder.refresh = true
                 
                 print("Deleted")

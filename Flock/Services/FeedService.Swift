@@ -153,11 +153,12 @@ class FeedService {
     // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
     func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) async throws {
     
+        print("friendsList: \(friendsList.map{$0.firstName})")
         // Delete PrayerRequestID from prayerFeed/{userID}
         if post.privacy == "public" && friendsList.isEmpty == false {
             for friend in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                try await ref2.delete()
+                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+                try await ref.delete()
             }
         } // Delete from your friends' feeds.
         

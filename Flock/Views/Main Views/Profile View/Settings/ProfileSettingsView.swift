@@ -62,8 +62,10 @@ struct ProfileSettingsView: View {
 
 struct DeleteButton: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
     @State private var isPresentingConfirm: Bool = false
     private var friendService = FriendService()
+    
     var body: some View {
         Button("Delete Account", role: .destructive) {
             isPresentingConfirm = true
@@ -76,7 +78,7 @@ struct DeleteButton: View {
                     do {
                         if userHolder.isFinished {
                             print(Auth.auth().currentUser?.uid)
-                            try await friendService.deletePerson(user: userHolder.person, friendsList: userHolder.friendsList)
+                            try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
                         }
                     } catch {
                         print(error)
@@ -94,7 +96,8 @@ struct DeleteButton: View {
     }
 
     func resetInfo() {
-        userHolder.friendsList = []
+        friendRequestListener.acceptedFriendRequests = []
+        friendRequestListener.pendingFriendRequests = []
         userHolder.person.userID = ""
         userHolder.prayerList = ""
         userHolder.prayStartDate = Date()
