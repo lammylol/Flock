@@ -64,7 +64,7 @@ struct ProfileFeed: View {
             }
             Divider()
             
-            PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
+            PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile")
         }
         .task {
             print(viewModel.selectedStatus.rawValue)

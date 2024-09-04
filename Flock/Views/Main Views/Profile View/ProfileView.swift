@@ -62,11 +62,10 @@ struct ProfileView: View {
                                         .buttonStyle(PlainButtonStyle())
                                 }
                             } else if person.friendState == "approved" {
-                                tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
+                                tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30)
                             } else if person.friendState == "sent" {
                                 tagModelView(textLabel: "Pending", systemImage: "", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
-                            }
-                            else if person.isPublic && person.username != userHolder.person.username {
+                            } else if person.isPublic && person.username != userHolder.person.username {
                                 Button {
                                     addFriend()
                                 } label: {
@@ -123,16 +122,9 @@ struct ProfileView: View {
                             .padding(.trailing, 20)
                         }
                         Divider()
-                        PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
+                        PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile") //person is binding so it updates when parent view updates.
                     }
                     .padding(.top, 10)
-                }
-            }
-            .task {
-                do {
-                    self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-                } catch {
-                    print(error)
                 }
             }
             .refreshable {
@@ -219,6 +211,7 @@ struct ProfileView: View {
         Task {
             friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
             person.friendState = "approved"
+            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
         }
     }
     

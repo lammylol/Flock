@@ -108,7 +108,7 @@ struct ContactRow: View {
             .frame(height: 80)
             .frame(maxWidth: .infinity)
             .background{
-                Rectangle().fill(.windowBackground)
+                Rectangle().fill(.background)
             }
         }
         .buttonStyle(PlainButtonStyle())

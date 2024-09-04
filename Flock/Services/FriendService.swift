@@ -119,7 +119,7 @@ class FriendService {
                 
                 if state == "pending" {
                     pendingFriendsList.append(person)
-                } else {
+                } else if state == "approved" {
                     friendsList.append(person)
                 }
             }
