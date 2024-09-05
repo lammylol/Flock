@@ -39,30 +39,30 @@ class UserService { // Functions related to user information
         var userID = person.userID
         var firstName = person.firstName
         var lastName = person.lastName
+        var friendState = person.friendState
         
-        if person.userID == "" { // Only perform if the person's userID is empty. If not, assume the data for the user already exists.
-            if person.username == "" { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
-                userID = userHolder.person.userID
-            } else { // If username exists, then request user document from firestore off of the username.
-                do {
-                    let ref = try await db.collection("users").whereField("username", isEqualTo: person.username).getDocuments()
-                    
-                    for document in ref.documents {
-                        if document.exists {
-//                            let dataDescription = document.data()
-                            userID = document.get("userID") as? String ?? ""
-                            firstName = document.get("firstName") as? String ?? ""
-                            lastName = document.get("lastName") as? String ?? ""
-                        } else {
-                            throw PrayerPersonRetrievalError.noUsername
-                        }
+        if !person.isPublic { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
+            userID = userHolder.person.userID
+        } else { // If username exists, then request user document from firestore off of the username.
+            do {
+                let ref = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").whereField("username", isEqualTo: person.username).getDocuments()
+                
+                for document in ref.documents {
+                    print(document.documentID)
+                    if document.exists {
+                        userID = document.get("userID") as? String ?? ""
+                        firstName = document.get("firstName") as? String ?? ""
+                        lastName = document.get("lastName") as? String ?? ""
+                        friendState = document.get("state") as? String ?? ""
+                    } else {
+                        throw PrayerPersonRetrievalError.noUsername
                     }
-                } catch {
-                    print("Error getting document: \(error)")
                 }
+            } catch {
+                print("Error getting document: \(error)")
             }
         }
-        return Person(userID: userID, username: person.username, firstName: firstName, lastName: lastName)
+        return Person(userID: userID, username: person.username, firstName: firstName, lastName: lastName, friendState: friendState)
     }
     
     func checkIfUsernameExists(username: String) async -> Bool {

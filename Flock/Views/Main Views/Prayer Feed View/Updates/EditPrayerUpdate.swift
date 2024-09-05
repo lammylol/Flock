@@ -9,6 +9,7 @@ import SwiftUI
 
 struct EditPrayerUpdate: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.dismiss) var dismiss
     
     var person: Person
@@ -88,7 +89,7 @@ struct EditPrayerUpdate: View {
                 print("after:")
                 print(updates)
                 
-                try await PostUpdateHelper().deletePrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, updatesArray: updates, person: person, friendsList: userHolder.friendsList)
+                try await PostUpdateHelper().deletePrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, updatesArray: updates, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
                 
                 print("Deleted")
                 
@@ -105,7 +106,7 @@ struct EditPrayerUpdate: View {
     func updatePrayerUpdate() {
         Task {
             do {
-                try await PostUpdateHelper().editPrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: userHolder.friendsList, updatesArray: prayerRequestUpdates)
+                try await PostUpdateHelper().editPrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests, updatesArray: prayerRequestUpdates)
                 print("Saved")
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.
@@ -122,6 +123,7 @@ struct EditPrayerUpdate: View {
 
 struct AddPrayerUpdateView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.dismiss) var dismiss
     
     var person: Person
@@ -179,7 +181,7 @@ struct AddPrayerUpdateView: View {
     func addUpdate() {
         Task {
             do {
-                try await PostUpdateHelper().addPrayerRequestUpdate(datePosted: Date(), prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: userHolder.friendsList)
+                try await PostUpdateHelper().addPrayerRequestUpdate(datePosted: Date(), prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
                 print("Saved")
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.

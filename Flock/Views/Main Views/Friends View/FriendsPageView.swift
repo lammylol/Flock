@@ -149,7 +149,7 @@ struct FriendsPageView: View {
             })
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .background(colorScheme == .dark ? .black : .white)
+        .background(.windowBackground)
         .scrollContentBackground(.hidden)
     }
     

@@ -20,7 +20,7 @@ struct Person: Identifiable, Hashable {
     var isPublic: Bool {
         username != ""
     }
-    var friendState: String = ""
+    var friendState: String = String()
 //    var prayerCalendarInd: Bool = false
 }
 

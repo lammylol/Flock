@@ -22,12 +22,12 @@ struct FeedView: View {
     @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
     @Environment(\.colorScheme) private var scheme
     
-    var person: Person
+    @State var person: Person
     
     var body: some View {
         NavigationStack {
             ScrollView(.vertical) {
-                PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "feed")
+                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "feed")
                     .onChange(of: viewModel.selectedStatus, {
                         Task {
                             if !viewModel.isFetching || !viewModel.isLoading {

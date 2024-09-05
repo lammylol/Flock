@@ -12,35 +12,72 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct ProfileView: View {
+    @Environment(UserProfileHolder.self) var userHolder
+    @Environment(\.colorScheme) var colorScheme
+    
     @State private var showSubmit: Bool = false
     @State private var showEditView: Bool = false
     @State var person: Person
     @State private var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "profile")
-    @Environment(UserProfileHolder.self) var userHolder
     @State private var profileSettingsToggle: Bool = false
     @State private var navigationPath = NavigationPath()
+    @State private var friendText: String = ""
+    @State private var addFriendConfirmation: Bool = false
     
     var userService = UserService()
     var friendService = FriendService()
+    var friendHelper = FriendHelper()
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
-                VStack {
-                    HStack {
-                        VStack (alignment: .leading) {
+                VStack(alignment: .leading) {
+                    VStack(alignment: .leading) {
+                        Group {
                             if person.username == "" {
-                                Text("private profile")
-                                Text("@\(userHolder.person.username.capitalized)").bold()
+                                Text("@\(userHolder.person.username)")
                             } else {
-                                Text("public profile")
-                                Text("@\(person.username.capitalized)").bold()
+                                Text("@\(person.username)")
                             }
                         }
-                        Spacer()
+                        .font(.system(size: 14))
+                        .padding(.top, -8)
+                        
+                        Group {
+                            // Button to show friend state. If friend state is pending, give option to approve or decline. Currently: Can't view a profile if you didn't add.
+                            if person.friendState == "pending" {
+                                Menu {
+                                    Button {
+                                        acceptFriendRequest()
+                                    } label: {
+                                        Label("Approve Request", systemImage: "person.crop.circle.badge.plus")
+                                    }
+                                    Button {
+                                        dismissFriendRequest()
+                                    } label: {
+                                        Label("Dismiss Request", systemImage: "xmark.circle")
+                                    }
+                                } label: {
+                                    tagModelView(textLabel: "Respond to Friend Request", systemImage: "arrowtriangle.down.circle.fill", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                                        .buttonStyle(PlainButtonStyle())
+                                }
+                            } else if person.friendState == "approved" {
+                                tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30)
+                            } else if person.friendState == "sent" {
+                                tagModelView(textLabel: "Pending", systemImage: "", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
+                            } else if person.isPublic && person.username != userHolder.person.username {
+                                Button {
+                                    addFriend()
+                                } label: {
+                                    tagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                                }
+                            } else if !person.isPublic {
+                                tagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
+                            }
+                        }
+                        .padding(.top, 3)
                     }
                     .padding([.leading, .trailing], 20)
-                    .font(.system(size: 14))
                     
                     Spacer()
                     
@@ -85,17 +122,9 @@ struct ProfileView: View {
                             .padding(.trailing, 20)
                         }
                         Divider()
-                        PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
+                        PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile") //person is binding so it updates when parent view updates.
                     }
                     .padding(.top, 10)
-                }
-            }
-            .task {
-                do {
-                    person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
-//                    let friendsRequest = try await friendService.listenForFriendRequest(userID: person.userID)
-                } catch {
-                    print(error)
                 }
             }
             .refreshable {
@@ -115,7 +144,6 @@ struct ProfileView: View {
                             await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                         } else {
                             self.viewModel.prayerRequests = viewModel.prayerRequests
-                            //                            self.height = height
                         }
                         print("Success retrieving prayer requests for \(person.userID)")
                     }
@@ -125,26 +153,28 @@ struct ProfileView: View {
             })
             .toolbar {
                 // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.
-                ToolbarItem(placement: .topBarTrailing) {
-                    if person.username == userHolder.person.username {
+                if person.userID == userHolder.person.userID {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        if person.username == userHolder.person.username {
+                            HStack {
+                                Button(action: {
+                                    navigationPath.append("settings")
+                                }) {
+                                    Image(systemName: "gear")
+                                }
+                            }
+                            // temporary fix for Navigation Link not working.
+                            .padding(.trailing, -18)
+                            .padding(.top, 3)
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
                         HStack {
                             Button(action: {
-                                navigationPath.append("settings")
+                                showSubmit.toggle()
                             }) {
-                                Image(systemName: "gear")
+                                Image(systemName: "square.and.pencil")
                             }
-                        }
-                        // temporary fix for Navigation Link not working.
-                        .padding(.trailing, -18)
-                        .padding(.top, 3)
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    HStack {
-                        Button(action: {
-                            showSubmit.toggle()
-                        }) {
-                            Image(systemName: "square.and.pencil")
                         }
                     }
                 }
@@ -154,6 +184,41 @@ struct ProfileView: View {
                     ProfileSettingsView()
                 }
             }
+            .alert(isPresented: $addFriendConfirmation) {
+                return Alert(
+                    title: Text("Request Sent"),
+                    message: Text("Your friend will appear in your list once the request has been approved."),
+                    dismissButton: .default(Text("OK")) {
+                        addFriendConfirmation = false
+                    })
+            }
+        }
+    }
+    
+    func addFriend() {
+        Task {
+            do {
+                try await friendService.addFriend(user: userHolder.person, friend: person)
+                addFriendConfirmation = true
+                person.friendState = "sent"
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    func acceptFriendRequest() {
+        Task {
+            friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+            person.friendState = "approved"
+            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+        }
+    }
+    
+    func dismissFriendRequest() {
+        Task {
+            friendHelper.denyFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
+            person.friendState = ""
         }
     }
     
@@ -162,6 +227,36 @@ struct ProfileView: View {
             return "private profile"
         }
         return "@\(person.username.capitalized)"
+    }
+}
+
+struct tagModelView: View {
+    var textLabel: String
+    var systemImage: String = ""
+    var textSize: CGFloat
+    var foregroundColor: Color
+    var backgroundColor: Color
+    var opacity: CGFloat = 1.00
+    
+    var body: some View {
+        HStack {
+            Text(textLabel)
+                .font(.system(size: textSize))
+                .bold()
+            if systemImage != "" {
+                Image(systemName: systemImage)
+                    .imageScale(.small)
+                    .padding([.horizontal], -3)
+            }
+        }
+        .padding([.vertical], 5)
+        .padding([.horizontal], 10)
+        .background {
+            RoundedRectangle(cornerRadius: 5)
+                .fill(backgroundColor)
+                .opacity(opacity)
+        }
+        .foregroundStyle(foregroundColor)
     }
 }
 

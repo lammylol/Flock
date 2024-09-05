@@ -44,7 +44,7 @@ import FirebaseFirestore
                         
                         if state == "pending" {
                             newPendingFriendRequests.append(person)
-                        } else {
+                        } else if state == "approved" {
                             newAcceptedFriendRequests.append(person)
                         }
                     }
