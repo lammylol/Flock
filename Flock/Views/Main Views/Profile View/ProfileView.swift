@@ -23,6 +23,7 @@ struct ProfileView: View {
     @State private var navigationPath = NavigationPath()
     @State private var friendText: String = ""
     @State private var addFriendConfirmation: Bool = false
+    @State private var isLoading: Bool = false
     
     var userService = UserService()
     var friendService = FriendService()
@@ -43,39 +44,45 @@ struct ProfileView: View {
                         .font(.system(size: 14))
                         .padding(.top, -8)
                         
-                        Group {
-                            // Button to show friend state. If friend state is pending, give option to approve or decline. Currently: Can't view a profile if you didn't add.
-                            if person.friendState == "pending" {
-                                Menu {
-                                    Button {
-                                        acceptFriendRequest()
+                        if !isLoading {
+                            Group {
+                                // Button to show friend state. If friend state is pending, give option to approve or decline. Currently: Can't view a profile if you didn't add.
+                                if person.friendState == "pending" {
+                                    Menu {
+                                        Button {
+                                            acceptFriendRequest()
+                                        } label: {
+                                            Label("Approve Request", systemImage: "person.crop.circle.badge.plus")
+                                        }
+                                        Button {
+                                            dismissFriendRequest()
+                                        } label: {
+                                            Label("Dismiss Request", systemImage: "xmark.circle")
+                                        }
                                     } label: {
-                                        Label("Approve Request", systemImage: "person.crop.circle.badge.plus")
+                                        tagModelView(textLabel: "Respond to Friend Request", systemImage: "arrowtriangle.down.circle.fill", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                                            .buttonStyle(PlainButtonStyle())
                                     }
+                                } else if person.friendState == "approved" {
+                                    tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30)
+                                } else if person.friendState == "sent" {
+                                    tagModelView(textLabel: "Pending", systemImage: "", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
+                                } else if person.isPublic && person.username != userHolder.person.username && person.friendState == "" {
                                     Button {
-                                        dismissFriendRequest()
+                                        addFriend()
                                     } label: {
-                                        Label("Dismiss Request", systemImage: "xmark.circle")
+                                        tagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
                                     }
-                                } label: {
-                                    tagModelView(textLabel: "Respond to Friend Request", systemImage: "arrowtriangle.down.circle.fill", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
-                                        .buttonStyle(PlainButtonStyle())
+                                } else if !person.isPublic && person.friendState == "" {
+                                    tagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
                                 }
-                            } else if person.friendState == "approved" {
-                                tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30)
-                            } else if person.friendState == "sent" {
-                                tagModelView(textLabel: "Pending", systemImage: "", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
-                            } else if person.isPublic && person.username != userHolder.person.username {
-                                Button {
-                                    addFriend()
-                                } label: {
-                                    tagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
-                                }
-                            } else if !person.isPublic {
-                                tagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
                             }
+                            .padding(.top, 3)
+                        } else {
+                            tagModelView(textLabel: "T", textSize: 14, foregroundColor: .clear, backgroundColor: .clear)
+                            .padding(.top, 3)
+                            // blanket clear background to make sure the height gets set while loading friend status.
                         }
-                        .padding(.top, 3)
                     }
                     .padding([.leading, .trailing], 20)
                     
@@ -125,6 +132,15 @@ struct ProfileView: View {
                         PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile") //person is binding so it updates when parent view updates.
                     }
                     .padding(.top, 10)
+                }
+            }
+            .task {
+                do {
+                    isLoading = true
+                    defer { isLoading = false }
+                    person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
+                } catch {
+                    print(error)
                 }
             }
             .refreshable {
