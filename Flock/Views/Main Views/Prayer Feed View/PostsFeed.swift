@@ -43,11 +43,20 @@ struct PostsFeed: View {
         .task {
             if viewModel.prayerRequests.isEmpty {
                 if !viewModel.isFetching || !viewModel.isLoading {
-                    if person.friendState == "sent" || person.friendState == "pending" {
-                        return
+                    do {
+                        userHolder.profileViewIsLoading = true
+                        defer { userHolder.profileViewIsLoading = false }
+                        
+                        person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
+                        
+                        if person.friendState == "sent" || person.friendState == "pending" {
+                            return
+                        }
+                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        self.viewModel.prayerRequests = viewModel.prayerRequests
+                    } catch {
+                        print(error)
                     }
-                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-                    self.viewModel.prayerRequests = viewModel.prayerRequests
                 }
             }
         }

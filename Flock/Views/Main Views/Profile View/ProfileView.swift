@@ -23,7 +23,6 @@ struct ProfileView: View {
     @State private var navigationPath = NavigationPath()
     @State private var friendText: String = ""
     @State private var addFriendConfirmation: Bool = false
-    @State private var isLoading: Bool = false
     
     var userService = UserService()
     var friendService = FriendService()
@@ -44,7 +43,7 @@ struct ProfileView: View {
                         .font(.system(size: 14))
                         .padding(.top, -8)
                         
-                        if !isLoading {
+                        if !userHolder.profileViewIsLoading {
                             Group {
                                 // Button to show friend state. If friend state is pending, give option to approve or decline. Currently: Can't view a profile if you didn't add.
                                 if person.friendState == "pending" {
@@ -132,15 +131,6 @@ struct ProfileView: View {
                         PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile") //person is binding so it updates when parent view updates.
                     }
                     .padding(.top, 10)
-                }
-            }
-            .task {
-                do {
-                    isLoading = true
-                    defer { isLoading = false }
-                    person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
-                } catch {
-                    print(error)
                 }
             }
             .refreshable {

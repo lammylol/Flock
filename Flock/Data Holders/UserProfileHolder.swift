@@ -23,6 +23,8 @@ import FirebaseFirestore
     var prayStartDate = Date()
     var email: String = ""
     
+    var profileViewIsLoading: Bool = false
+    
     var draftPost: DraftPost?
 
     var isLoading: Bool {
