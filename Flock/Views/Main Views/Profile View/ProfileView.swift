@@ -78,7 +78,7 @@ struct ProfileView: View {
                                 }
                             }
                             .padding(.top, 3)
-                        } else {
+                        } else if person.username != userHolder.person.username {
                             tagModelView(textLabel: "T", textSize: 14, foregroundColor: .clear, backgroundColor: .clear)
                             .padding(.top, 3)
                             // blanket clear background to make sure the height gets set while loading friend status.
