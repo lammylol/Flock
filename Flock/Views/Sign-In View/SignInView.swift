@@ -237,16 +237,6 @@ struct SignInView: View {
             userHolder.isLoggedIn = .notAuthenticated
         }
     }
-//    
-//    func setFriendsList(userID: String) async throws {
-//        do {
-//            let friends = try await friendService.getFriendsList(userID: userHolder.person.userID) // run to refresh friends list on command
-//            userHolder.friendsList = friends.0
-////            userHolder.pendingFriendsList = friends.1
-//        } catch {
-//            print(error)
-//        }
-//    }
 }
 
 
