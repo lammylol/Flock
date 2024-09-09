@@ -15,13 +15,34 @@ struct FriendsPageView: View {
     var friendService = FriendService()
     @State private var showAddFriend: Bool = false
     @State private var showPendingExpand: Bool = true // Variable to expand and contract pending friends list
-    @State private var showDuringSearch: Bool = false // Variable to show pending "title" and section.
     @State private var search: String = ""
     @State private var showCreateorAddFriend: Bool = false // Variable to add / create friend on search.
     @State var friendsList: [Person] = []
     
-//    @State var newFriendFirstName: String = ""
-//    @State var newFriendLastName: String = ""
+    private var showDuringSearch: Bool {
+        if search.isEmpty {
+            return false
+        } else {
+            return true
+        }
+    } // Variable to show pending "title" and section.
+    
+    // Filtered Friends Based on Search Query
+    var filteredPublicFriends: [Person] {
+        if search.isEmpty {
+            return friendRequestListener.acceptedFriendRequests
+        } else {
+            return friendRequestListener.acceptedFriendRequests.filter { $0.firstName.lowercased().contains(search.lowercased()) || $0.lastName.lowercased().contains(search.lowercased()) }
+        }
+    }
+    
+    var filteredPrivateFriends: [Person] {
+        if search.isEmpty {
+            return friendRequestListener.privateFriends
+        } else {
+            return friendRequestListener.privateFriends.filter { $0.firstName.lowercased().contains(search.lowercased()) || $0.lastName.lowercased().contains(search.lowercased()) }
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -66,38 +87,39 @@ struct FriendsPageView: View {
                     }
                         
                     VStack(alignment: .leading) { // Friends
-                        if !friendRequestListener.pendingFriendRequests.isEmpty && !friendRequestListener.acceptedFriendRequests.isEmpty {
+                        if !friendRequestListener.pendingFriendRequests.isEmpty && !filteredPublicFriends.isEmpty {
                             HStack {
                                 Text("Friends")
                                     .font(.title2)
                                 Spacer()
                             }
                         }
-                        ForEach(friendRequestListener.acceptedFriendRequests) { friend in
+                        ForEach(filteredPublicFriends) { friend in
                                 ContactRow(person: friend)
                                 .frame(maxWidth: .infinity)
                         }
-                        .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search friends")
                         .textInputAutocapitalization(.never)
-                        .onChange(of: search) {
-                            showDuringSearch = true
-                            
-                            if friendsList.isEmpty {
-                                 friendsList = friendRequestListener.acceptedFriendRequests
-                             } // stores an 'original' copy of the friends request to return to after the filter is removed.
-
-                             if search.isEmpty {
-                                 friendRequestListener.acceptedFriendRequests = friendsList
-                                 showDuringSearch = false
-                             } else {
-                                 friendRequestListener.acceptedFriendRequests = friendsList.filter { person in
-                                     person.fullName.lowercased().contains(search.lowercased())
-                                 }
-                             }
-                        }
                     }
                     .frame(maxWidth: .infinity)
+                    
+                    VStack(alignment: .leading) { // Friends
+                        if !filteredPrivateFriends.isEmpty && !showDuringSearch {
+                            HStack {
+                                Text("Private Friends")
+                                    .font(.title2)
+                                Spacer()
+                            }
+                        }
+                        ForEach(filteredPrivateFriends) { friend in
+                                ContactRow(person: friend)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .textInputAutocapitalization(.never)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
                 }
+                .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search friends")
                 .overlay {
                     if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty {
                             VStack{

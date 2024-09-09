@@ -93,7 +93,6 @@ struct AddFriendPage: View {
                             Button {
                                 addPublicFriend(username: debounceModel.username)
                             } label: {
-                                Text(!debounceModel.validated && firstName != "" ? "Create a Profile" : "Request Friend")
                                 Text("Request Friend")
                                     .bold()
                                     .frame(maxWidth: .infinity)
@@ -297,7 +296,7 @@ struct AddFriendPage: View {
     
     func addPrivateFriend(firstName: String, lastName: String) {
         Task {
-            try await friendService.addPrivateFriend(firstName: firstName, lastName: lastName, user: userHolder.person)
+            try await friendService.addPrivateFriend(firstName: firstName.lowercased(), lastName: lastName.lowercased(), user: userHolder.person)
             privateConfirmation = true
         }
     }

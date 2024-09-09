@@ -66,14 +66,14 @@ struct ProfileView: View {
                                     tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30)
                                 } else if person.friendState == "sent" {
                                     tagModelView(textLabel: "Pending", systemImage: "", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
-                                } else if person.isPublic && person.username != userHolder.person.username && person.friendState == "" {
-                                    Button {
-                                        addFriend()
-                                    } label: {
-                                        tagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
-                                    }
-                                } else if !person.isPublic && person.friendState == "" {
+                                } else if person.friendState == "private" {
                                     tagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .black, backgroundColor: .gray, opacity: 0.30)
+                                } else if person.isPublic && person.username != userHolder.person.username && person.friendState == "" {
+                                   Button {
+                                       addFriend()
+                                   } label: {
+                                       tagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                                   }
                                 }
                             }
                             .padding(.top, 3)
@@ -140,7 +140,7 @@ struct ProfileView: View {
                     }
                 }
             }
-            .navigationTitle(person.firstName + " " + person.lastName)
+            .navigationTitle(person.firstName.capitalized + " " + person.lastName.capitalized)
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showSubmit, onDismiss: {
                 Task {
@@ -233,36 +233,6 @@ struct ProfileView: View {
             return "private profile"
         }
         return "@\(person.username.capitalized)"
-    }
-}
-
-struct tagModelView: View {
-    var textLabel: String
-    var systemImage: String = ""
-    var textSize: CGFloat
-    var foregroundColor: Color
-    var backgroundColor: Color
-    var opacity: CGFloat = 1.00
-    
-    var body: some View {
-        HStack {
-            Text(textLabel)
-                .font(.system(size: textSize))
-                .bold()
-            if systemImage != "" {
-                Image(systemName: systemImage)
-                    .imageScale(.small)
-                    .padding([.horizontal], -3)
-            }
-        }
-        .padding([.vertical], 5)
-        .padding([.horizontal], 10)
-        .background {
-            RoundedRectangle(cornerRadius: 5)
-                .fill(backgroundColor)
-                .opacity(opacity)
-        }
-        .foregroundStyle(foregroundColor)
     }
 }
 

@@ -160,8 +160,8 @@ struct CreateProfileView: View {
                                     ["email": email,
                                      "userID": userID ?? "",
                                      "username": username.lowercased(),
-                                     "firstName": firstName.capitalized,
-                                     "lastName": lastName.capitalized]
+                                     "firstName": firstName.lowercased(),
+                                     "lastName": lastName.lowercased()]
                                 )
                                 
                                 let refUsernames = db.collection("usernames").document("\(username)")

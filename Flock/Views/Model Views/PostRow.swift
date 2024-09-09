@@ -48,7 +48,7 @@ struct PostRow: View {
                     
                     VStack(alignment: .leading) {
                         HStack() {
-                            Text(post.firstName + " " + post.lastName).font(.system(size: 18)).bold()
+                            Text(post.firstName.capitalized + " " + post.lastName.capitalized).font(.system(size: 18)).bold()
                             Spacer()
                             if post.isPinned == true {
                                 Image(systemName: "pin.fill")
