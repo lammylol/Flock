@@ -140,6 +140,9 @@ struct ProfileView: View {
                 }
                 .task {
                     do {
+                        userHolder.profileViewIsLoading = true // sets variable so no 'tag' shows until task has run.
+                        defer { userHolder.profileViewIsLoading = false }
+
                         person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
                     } catch {
                         print(error)

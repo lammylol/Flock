@@ -144,20 +144,9 @@ struct FriendsPageView: View {
                 .padding(.horizontal, 17)
                 .padding(.bottom, 15)
             }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showAddFriend.toggle()
-                    } label: {
-                        Image(systemName: "plus.circle")
-                    }
-                }
-            }
             .sheet(isPresented: $showAddFriend) {
                 AddFriendPage(preName: search)
             }
-            .navigationTitle("Friends")
-            .navigationBarTitleDisplayMode(.automatic)
             .refreshable(action: {
                 Task {
                     do {
@@ -170,6 +159,17 @@ struct FriendsPageView: View {
                 }
             })
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .navigationTitle("Friends")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showAddFriend.toggle()
+                    } label: {
+                        Image(systemName: "plus.circle")
+                    }
+                }
+            }
         }
         .background(.windowBackground)
         .scrollContentBackground(.hidden)

@@ -29,7 +29,7 @@ struct SubmitPostForm: View {
     var friendService = FriendService()
     
     var body: some View {
-        NavigationView{
+        NavigationStack{
             ZStack {
                 (colorScheme == .light ? Color(.systemGray6) : .clear)
                     .ignoresSafeArea()
@@ -195,38 +195,22 @@ struct SubmitPostForm: View {
         print("Draft cleared")
     }
     
-//    func refreshFriends() {
-//        Task {
-//            do {
-//                userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID).0
-//                self.userHolder.friendsList = userHolder.friendsList
-//            } catch {
-//                print(error)
-//            }
-//        }
-//    }
-    
     @ViewBuilder
     func friendsList() -> some View {
-//        let friendsList = userHolder.friendsList.map({
-//            $0.firstName + " " + $0.lastName
-//        }).joined(separator: ", ")
-        ScrollView {
-            VStack (alignment: .leading) {
-                HStack {
-                    Text("Who can see this post?")
-                         .multilineTextAlignment(.leading)
-                         .padding(.bottom, 1)
-                    NavigationLink(destination: FriendsPageView()) {
-                        Text("See Friends")
-                            .font(.system(size: 12))
-                            .italic()
-                    }
-                    Spacer()
+        VStack (alignment: .leading) {
+            HStack {
+                Text("Who can see this post?")
+                    .multilineTextAlignment(.leading)
+                    .padding(.bottom, 1)
+                NavigationLink(destination: FriendsPageView()) {
+                    Text("See Friends")
+                        .font(.system(size: 12))
+                        .italic()
                 }
-                .font(.system(size: 12))
-                .padding(.bottom, 10)
+                Spacer()
             }
+            .font(.system(size: 12))
+            .padding(.bottom, 10)
         }
     }
 }
