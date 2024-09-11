@@ -14,7 +14,7 @@ struct PostEditView: View {
     @Environment(\.colorScheme) var colorScheme
     
     @State var prayerRequestUpdates: [PostUpdate] = []
-    var person: Person
+    @State var person: Person
     @State var post: Post
     @State var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
@@ -110,8 +110,6 @@ struct PostEditView: View {
             }
             .task {
                 do {
-                    print(friendRequestListener.acceptedFriendRequests.map {$0.firstName})
-                    print(friendRequestListener.acceptedFriendRequests.count)
                     self.post = try await PostOperationsService().getPost(prayerRequest: post)
                     self.post = post
                     prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)

@@ -138,6 +138,14 @@ struct ProfileView: View {
                         .padding(.top, 10)
                     }
                 }
+                .task {
+                    do {
+                        person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
+                    } catch {
+                        print(error)
+                    }
+                    
+                }
                 .refreshable {
                     Task {
                         if viewModel.isFinished {

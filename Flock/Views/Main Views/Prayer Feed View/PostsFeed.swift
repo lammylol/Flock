@@ -28,7 +28,7 @@ struct PostsFeed: View {
                 LazyVStack {
                     ForEach($viewModel.prayerRequests) { $prayerRequest in
                         VStack {
-                            PostRow(viewModel: viewModel, post: $prayerRequest)
+                            PostRow(viewModel: viewModel, post: $prayerRequest, person: person)
                             Rectangle()
                                 .frame(height: 4)
                                 .foregroundStyle(.bar)
@@ -49,9 +49,7 @@ struct PostsFeed: View {
                     do {
                         userHolder.profileViewIsLoading = true
                         defer { userHolder.profileViewIsLoading = false }
-                        
-                        person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
-                        
+
                         if person.friendState == "sent" || person.friendState == "pending" {
                             return
                         }
@@ -141,7 +139,7 @@ struct PostsFeed: View {
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
                 do {
-                    self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    self.person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)

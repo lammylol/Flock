@@ -192,7 +192,7 @@ struct CreateProfileView: View {
         let userID = Auth.auth().currentUser?.uid ?? ""
         
         do {
-            userHolder.person = try await UserService().getUserInfo(userID: userID)
+            userHolder.person = try await UserService().getBasicUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             let postList = try await calendarService.getPrayerCalendarList(userID: userID)
             userHolder.prayStartDate = postList.0 // set Start Date

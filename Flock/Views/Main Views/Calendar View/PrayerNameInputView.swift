@@ -138,7 +138,7 @@ struct PrayerNameInputView: View {
             
             if !usernameOrName.contains("/") {
                 do {
-                    try await userService.retrieveUserInfoFromUsername(person: Person(username: usernameOrName), userHolder: userHolder)
+                    try await userService.retrieveUserInfoFromUserID(person: Person(username: usernameOrName), userHolder: userHolder)
                 } catch PrayerPersonRetrievalError.noUsername {
                     saved = "\(String(usernameOrName.split(separator: "/").first ?? "")) has not been added as a friend yet. Please add them first as a friend before adding them to your calendar."
                 } catch {

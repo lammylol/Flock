@@ -15,7 +15,7 @@ struct SubmitPostForm: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     
-    var person: Person
+    @State var person: Person
     @State private var datePosted = Date()
     @State private var status: String = "Current"
     @State private var postText: String = ""
@@ -77,11 +77,11 @@ struct SubmitPostForm: View {
                             Text("Privacy")
                             Spacer()
                             PrivacyView(person: person, privacySetting: $privacy)
-                                .task {
-                                    if person.isPrivateFriend {
-                                        privacy = "private"
-                                    }
-                                }
+//                                .task {
+//                                    if person.isPrivateFriend {
+//                                        privacy = "private"
+//                                    }
+//                                }
                                 .onChange(of: privacy, {
                                     if privacy == "public" {
                                         isPresentingFriends = true
@@ -226,19 +226,6 @@ struct SubmitPostForm: View {
                 }
                 .font(.system(size: 12))
                 .padding(.bottom, 10)
-//                
-//                HStack {
-//                    Text("Don't see a friend on here?")
-//                    Button(action: {
-//                        self.refreshFriends()
-//                    }, label: {
-//                        Text("Refresh")
-//                            .font(.system(size: 12))
-//                            .italic()
-//                    })
-//                    Spacer()
-//                }
-//                .font(.system(size: 12))
             }
         }
     }

@@ -13,6 +13,7 @@ struct PostRow: View {
     @State var viewModel: FeedViewModel
     @Environment(\.colorScheme) private var scheme
     @Binding var post: Post
+    @State var person: Person = Person()
     @Environment(UserProfileHolder.self) var userHolder
     
     // For Update
@@ -56,7 +57,7 @@ struct PostRow: View {
                             Privacy(rawValue: post.privacy)?.systemImage
                             Menu {
                                 if post.userID == userHolder.person.userID {
-                                    NavigationLink(destination: PostEditView(person: userHolder.person, post: post)){
+                                    NavigationLink(destination: PostEditView(person: person, post: post)){
                                         Label("Edit Post", systemImage: "pencil")
                                     } // can only edit if you are the owner of the post.
                                 }
@@ -78,7 +79,7 @@ struct PostRow: View {
                         .padding(.bottom, 2)
                         HStack {
                             if post.postType == "Prayer Request" {
-                                Text("Prayer Status: ").font(.system(size: 12)) + Text(post.status.capitalized)                        .font(.system(size: 12)).bold()
+                                Text("Prayer Status: ").font(.system(size: 12)) + Text(post.status.capitalized).font(.system(size: 12)).bold()
                             } else if post.postType == "Praise" {
                                 Text("Praise 🙌").font(.system(size: 12))
                             } else {

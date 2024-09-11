@@ -178,6 +178,7 @@ struct AddFriendPage: View {
                                 Text("Create Friend")
                                     .bold()
                                     .frame(maxWidth: .infinity)
+                                    .foregroundStyle(colorScheme == .dark ? Color.white : Color.blue)
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 15)
