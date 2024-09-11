@@ -11,6 +11,7 @@ struct PostsFeed: View {
     
     @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(\.colorScheme) var colorScheme
     @Binding var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
@@ -19,6 +20,8 @@ struct PostsFeed: View {
     
     var body: some View {
         ZStack {
+            (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea() // sets background color.
+                
             if viewModel.isLoading/* && !userHolder.refresh*/ {
                 ProgressView()
             } else {

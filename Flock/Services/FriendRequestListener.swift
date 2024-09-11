@@ -12,6 +12,7 @@ import FirebaseFirestore
     private var friendRequestListener: ListenerRegistration?
     var pendingFriendRequests: [Person] = []
     var acceptedFriendRequests: [Person] = []
+    var privateFriends: [Person] = []
     
     func setUpListener(userID: String) async {
         let db = Firestore.firestore()
@@ -30,6 +31,7 @@ import FirebaseFirestore
                 
                 var newPendingFriendRequests: [Person] = []
                 var newAcceptedFriendRequests: [Person] = []
+                var newPrivateFriends: [Person] = []
                 
                 for document in documents {
                     if document.exists {
@@ -46,6 +48,8 @@ import FirebaseFirestore
                             newPendingFriendRequests.append(person)
                         } else if state == "approved" {
                             newAcceptedFriendRequests.append(person)
+                        } else if state == "private" {
+                            newPrivateFriends.append(person)
                         }
                     }
                 }
@@ -56,6 +60,10 @@ import FirebaseFirestore
                 
                 if newAcceptedFriendRequests != self.acceptedFriendRequests {
                     self.acceptedFriendRequests = newAcceptedFriendRequests
+                }
+                
+                if newPrivateFriends != self.privateFriends {
+                    self.privateFriends = newPrivateFriends
                 }
             }
         print("FriendsListener turned on.")

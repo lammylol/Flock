@@ -15,7 +15,7 @@ struct PrivacyView: View {
     
     var body: some View {
         Menu {
-            if person.username != "" && person.userID == userHolder.person.userID { // this would mean this is your own profile. You should only be able to set public and private settings for your own prayer requests.
+            if person.isPrivateFriend { // this would mean this is your own profile. You should only be able to set public and private settings for your own prayer requests.
                 ForEach(privacyOptions) { privacy in
                     Button {
                         privacySetting = privacy.statusKey

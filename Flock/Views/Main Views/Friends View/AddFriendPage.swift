@@ -181,10 +181,9 @@ struct AddFriendPage: View {
                             }
                             .background(
                                 RoundedRectangle(cornerRadius: 15)
-                                    .stroke(Color.blue, lineWidth: 1)
+                                    .stroke(colorScheme == .dark ? Color.white : Color.blue, lineWidth: 1)
                                     .fill(Color.clear)
                                     .frame(height: 50)
-                                //                                .border(Color.blue)
                             )
                         }
                         .frame(maxWidth: .infinity)
@@ -242,7 +241,6 @@ struct AddFriendPage: View {
             .navigationTitle("Add Friend")
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden(true)
-            .ignoresSafeArea(.keyboard)
             .padding(.horizontal, 20)
         }
     }

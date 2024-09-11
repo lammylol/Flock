@@ -74,7 +74,7 @@ struct SubmitPostForm: View {
                             Spacer()
                             PrivacyView(person: person, privacySetting: $privacy)
                                 .task {
-                                    if person.username == "" && person.userID == userHolder.person.userID {
+                                    if person.isPrivateFriend {
                                         privacy = "private"
                                     }
                                 }

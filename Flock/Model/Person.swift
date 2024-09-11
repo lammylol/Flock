@@ -18,7 +18,10 @@ struct Person: Identifiable, Hashable {
         firstName + " " + lastName
     }
     var isPublic: Bool {
-        username != ""
+        friendState != "private"
+    }
+    var isPrivateFriend: Bool {
+        friendState == "private"
     }
     var friendState: String = String()
 //    var prayerCalendarInd: Bool = false

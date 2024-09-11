@@ -41,8 +41,9 @@ class UserService { // Functions related to user information
         var lastName = person.lastName
         var friendState = person.friendState
         
-        if !person.isPublic { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
+        if !person.isPublic || person.userID == userHolder.person.userID { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
             userID = userHolder.person.userID
+            friendState = "private"
         } else { // If username exists, then request user document from firestore off of the username.
             do {
                 let ref = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").whereField("username", isEqualTo: person.username).getDocuments()

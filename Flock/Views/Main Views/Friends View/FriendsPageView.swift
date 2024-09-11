@@ -121,7 +121,7 @@ struct FriendsPageView: View {
                 }
                 .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search friends")
                 .overlay {
-                    if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty {
+                    if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty && friendRequestListener.privateFriends.isEmpty {
                             VStack{
                                 ContentUnavailableView {
                                     Label("No Friends...Yet!", systemImage: "person.crop.square")
