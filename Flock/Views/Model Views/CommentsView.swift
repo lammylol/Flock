@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct CommentsView: View {
+public struct CommentsView: View {
     let postID: String
     @StateObject private var viewModel = CommentViewModel()
     @State private var newCommentText = ""
@@ -42,7 +42,7 @@ struct CommentsView: View {
                     TextField("Add a comment", text: $newCommentText)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     Button("Post") {
-                        viewModel.addComment(to: postID, text: newCommentText, user: userHolder.person)
+                        viewModel.addComment(to: postID, text: newCommentText, person: userHolder.person)
                         newCommentText = ""
                     }
                     .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

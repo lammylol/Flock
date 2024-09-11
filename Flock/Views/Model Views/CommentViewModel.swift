@@ -33,7 +33,7 @@ class CommentViewModel: ObservableObject {
         }
     }
     
-    func addComment(to postID: String, text: String, user: User) {
+    func addComment(to postID: String, text: String, person: Person) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = "Comment text cannot be empty"
             return
@@ -42,7 +42,13 @@ class CommentViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        let newComment = Comment(postID: postID, userID: user.id, username: user.username, text: text, createdAt: Date())
+        let newComment = Comment(
+            postID: postID, 
+            userID: person.userID,  // Using userID from Person
+            username: person.username,  // Using username from Person
+            text: text, 
+            createdAt: Date()
+        )
         
         Task { @MainActor in
             do {
