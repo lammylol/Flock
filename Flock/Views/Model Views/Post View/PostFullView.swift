@@ -24,6 +24,9 @@ struct PostFullView: View {
     @State private var isTruncated: Bool = false
     @State var lineLimit: Int = 6 // This is to set default setting for max lines shown, set as a var so a user can pass in .max if they are calling directly from the feed.
     
+    @StateObject private var commentViewModel = CommentViewModel()
+    @State private var newCommentText = ""
+    
     var body: some View {
         ScrollView {
             LazyVStack{
@@ -185,9 +188,39 @@ struct PostFullView: View {
                         .multilineTextAlignment(/*@START_MENU_TOKEN@*/.leading/*@END_MENU_TOKEN@*/)
                         .padding(.top, 7)
                 }
-                Spacer()
+                VStack(alignment: .leading) {
+                    Text("Comments")
+                        .font(.headline)
+                        .padding(.top)
+
+                    if commentViewModel.isLoading {
+                        ProgressView()
+                    } else if commentViewModel.comments.isEmpty {
+                        Text("No comments yet.")
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(commentViewModel.comments) { comment in
+                            CommentRow(comment: comment)
+                        }
+                    }
+
+                    HStack {
+                        TextField("Add a comment", text: $newCommentText)
+                        Button("Post") {
+                            commentViewModel.addComment(to: post.id, text: newCommentText, user: userHolder.person)
+                            newCommentText = ""
+                        }
+                        .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                    .padding(.top)
+                }
+                .padding()
             }
+        .onAppear {
+            commentViewModel.fetchComments(for: post.id)
         }
+        Spacer()
+    }
         .task {
             do {
                 self.post = try await PostOperationsService().getPost(prayerRequest: originalPost)

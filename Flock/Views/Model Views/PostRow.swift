@@ -7,7 +7,7 @@
 // Description: This captures the layout of what each row in the prayer request list looks like.
 
 import SwiftUI
-
+import CommentsView
 
 struct PostRow: View {
     @State var viewModel: FeedViewModel
@@ -22,6 +22,8 @@ struct PostRow: View {
     // For Main Text
     @State private var postExpandUpdate: Bool = false
     @State private var postIsTruncated: Bool = false
+
+    @State private var showComments = false
     
     var body: some View {
         NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post)) {
@@ -197,17 +199,33 @@ struct PostRow: View {
                                 .font(.system(size: 12))
                                 .padding(.top, 7)
                             Spacer()
+                            Button(action: {
+                                showComments = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "bubble.left")
+                                    Text("Comments")
+                                }
+                                .font(.footnote)
+                                .padding(6)
+                                .background(Color.secondary.opacity(0.1))
+                                .cornerRadius(8)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .padding(.top, 7)
                         }
                     }
-                    .padding(.top, 7)
                 }
+                .foregroundStyle(Color.primary)
             }
-            .foregroundStyle(Color.primary)
         }
         .id(UUID())
         .padding([.leading, .trailing], 30)
         .padding([.top, .bottom], 15)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheet(isPresented: $showComments) {
+            CommentsView(postID: post.id)
+        }
     }
     
     func pinPost(){
