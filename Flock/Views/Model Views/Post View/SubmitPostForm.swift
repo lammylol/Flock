@@ -12,6 +12,7 @@ import FirebaseFirestore
 struct SubmitPostForm: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
+    @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     
     var person: Person
@@ -29,7 +30,10 @@ struct SubmitPostForm: View {
     
     var body: some View {
         NavigationView{
-            VStack {
+            ZStack {
+                (colorScheme == .light ? Color(.systemGray6) : .clear)
+                    .ignoresSafeArea()
+                
                 Form {
                     Section(/*header: Text("Share a Prayer Request")*/) {
                         ZStack(alignment: .topLeading) {

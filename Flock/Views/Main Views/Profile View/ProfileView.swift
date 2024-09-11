@@ -31,7 +31,9 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack {
-                (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea() // sets background color.
+//                (colorScheme == .light ? Color(.systemGray6) : .clear)
+//                    .ignoresSafeArea()
+                 // sets background color.
                 
                 ScrollView {
                     VStack(alignment: .leading) {
