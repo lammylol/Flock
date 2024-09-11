@@ -79,7 +79,7 @@ struct PostRow: View {
                         .padding(.bottom, 2)
                         HStack {
                             if post.postType == "Prayer Request" {
-                                Text("Prayer Status: ").font(.system(size: 12)) + Text(post.status.capitalized).font(.system(size: 12)).bold()
+                                Text("Prayer Request: ").font(.system(size: 12)) + Text(post.status.capitalized).font(.system(size: 12)).bold()
                             } else if post.postType == "Praise" {
                                 Text("Praise 🙌").font(.system(size: 12))
                             } else {
