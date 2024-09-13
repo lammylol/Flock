@@ -6,7 +6,7 @@
 // Created by Ramon Jiang 09/07/24
 
 import Foundation
-import FirebaseFirestoreSwift
+import FirebaseFirestore
 
 struct Comment: Identifiable, Codable {
     @DocumentID var id: String?

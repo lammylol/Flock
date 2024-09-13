@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-public struct CommentsView: View {
+struct CommentsView: View {
     let postID: String
     @StateObject private var viewModel = CommentViewModel()
     @State private var newCommentText = ""

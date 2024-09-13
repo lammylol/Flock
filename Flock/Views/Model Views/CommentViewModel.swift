@@ -43,7 +43,7 @@ class CommentViewModel: ObservableObject {
         errorMessage = nil
         
         let newComment = Comment(
-            postID: postID, 
+            postID: postID,
             userID: person.userID,  // Using userID from Person
             username: person.username,  // Using username from Person
             text: text, 

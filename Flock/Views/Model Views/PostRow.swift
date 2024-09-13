@@ -7,7 +7,6 @@
 // Description: This captures the layout of what each row in the prayer request list looks like.
 
 import SwiftUI
-import CommentsView
 
 struct PostRow: View {
     @State var viewModel: FeedViewModel
