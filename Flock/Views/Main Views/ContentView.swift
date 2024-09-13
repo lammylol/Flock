@@ -32,18 +32,18 @@ struct ContentView: View {
                         .imageScale(.large)
                     Text("Friends")
                 }.tag(2)
-            PrayerCalendarView()
-                .tabItem {
-                    Image(systemName: "calendar")
-                        .imageScale(.large)
-                    Text("Calendar")
-                }.tag(3)
+//            PrayerCalendarView()
+//                .tabItem {
+//                    Image(systemName: "calendar")
+//                        .imageScale(.large)
+//                    Text("Calendar")
+//                }.tag(3)
             ProfileView(person: userHolder.person)
                 .tabItem {
                     Image(systemName: "person.circle")
                         .imageScale(.large)
                     Text("Profile")
-                }.tag(4)
+                }.tag(3)
         }
         .onChange(of: scenePhase) { 
             oldPhase, newPhase in

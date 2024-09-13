@@ -12,7 +12,7 @@ import FirebaseAuth
 class UserService { // Functions related to user information
     let db = Firestore.firestore() // initiaties Firestore
     
-    func getUserInfo(userID: String) async throws -> Person {
+    func getBasicUserInfo(userID: String) async throws -> Person {
         // get user information and save it to userHolder.person
         var person = Person()
         
@@ -34,30 +34,32 @@ class UserService { // Functions related to user information
         return person
     }
     
-    func retrieveUserInfoFromUsername(person: Person, userHolder: UserProfileHolder) async throws -> Person {
+    func retrieveUserInfoFromUserID(person: Person, userHolder: UserProfileHolder) async throws -> Person {
         // This function takes in a person object and returns additional information about the person. ie. if a user is accessing a profile for a username, this will retrieve information needed to fetch their data.
         var userID = person.userID
         var firstName = person.firstName
         var lastName = person.lastName
         var friendState = person.friendState
-        
-        if !person.isPublic { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
+    
+        if person.isPrivateFriend || person.username == "" { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
             userID = userHolder.person.userID
+            friendState = "private"
         } else { // If username exists, then request user document from firestore off of the username.
             do {
-                let ref = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").whereField("username", isEqualTo: person.username).getDocuments()
+//                let ref = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").whereField("username", isEqualTo: person.username).getDocuments()
+                let document = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").document(person.userID).getDocument()
                 
-                for document in ref.documents {
-                    print(document.documentID)
-                    if document.exists {
-                        userID = document.get("userID") as? String ?? ""
-                        firstName = document.get("firstName") as? String ?? ""
-                        lastName = document.get("lastName") as? String ?? ""
-                        friendState = document.get("state") as? String ?? ""
-                    } else {
-                        throw PrayerPersonRetrievalError.noUsername
-                    }
+//                for document in ref.documents {
+//                    print(document.documentID)
+                if document.exists {
+                    userID = document.get("userID") as? String ?? ""
+                    firstName = document.get("firstName") as? String ?? ""
+                    lastName = document.get("lastName") as? String ?? ""
+                    friendState = document.get("state") as? String ?? ""
+                } else {
+                    throw PrayerPersonRetrievalError.noUsername
                 }
+//                }
             } catch {
                 print("Error getting document: \(error)")
             }

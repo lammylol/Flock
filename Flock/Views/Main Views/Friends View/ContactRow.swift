@@ -26,12 +26,15 @@ struct ContactRow: View {
                 
                 VStack(alignment: .leading) {
                     HStack {
-                        Text("\(person.firstName) \(person.lastName)")
+                        Text("\(person.firstName.capitalized) \(person.lastName.capitalized)")
                             .font(.system(size: 20))
                             .bold()
                         if person.isPublic && person.friendState != "pending" {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.blue)
+                        } else if !person.isPublic {
+                            Image(systemName: "lock.icloud.fill")
+                                .foregroundStyle(colorScheme == .dark ? .white : .black )
                         }
                         Spacer()
                         
@@ -90,15 +93,11 @@ struct ContactRow: View {
                             .foregroundStyle(colorScheme == .dark ? .white : .black)
                             .buttonStyle(PlainButtonStyle())
                         } else {
-                            Text(person.isPublic ? "Public Account" : "Private")
-                                .padding([.vertical], 3)
-                                .padding([.horizontal], 20)
-                                .font(.system(size: 16))
-                                .background {
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(.gray)
-                                        .opacity(0.30)
-                                }
+                            if person.isPublic {
+                                tagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30, boldBool: false)
+                            } else {
+                                tagModelView(textLabel: "Private Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30, boldBool: false)
+                            }
                         }
                         Spacer()
                     }

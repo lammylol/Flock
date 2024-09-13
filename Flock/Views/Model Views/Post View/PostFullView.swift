@@ -43,7 +43,7 @@ struct PostFullView: View {
                     
                     VStack() {
                         HStack {
-                            Text(post.firstName + " " + post.lastName).font(.system(size: 18)).bold()
+                            Text(post.firstName.capitalized + " " + post.lastName.capitalized).font(.system(size: 18)).bold()
                             Spacer()
                         }
                         HStack() {

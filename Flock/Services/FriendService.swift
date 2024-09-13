@@ -100,7 +100,7 @@ class FriendService {
             throw PrayerPersonRetrievalError.noUserID
         }
         
-        let friendsListRef = db.collection("users").document(userID).collection("friendsList")/*.whereField("state", isNotEqualTo: "pending")*/
+        let friendsListRef = db.collection("users").document(userID).collection("friendsList")
         
         let querySnapshot = try await friendsListRef.getDocuments()
         
@@ -218,7 +218,7 @@ class FriendService {
     
     func removeFriendPostsFromUserFeed(userID: String, friendUsernameToRemove: String) async {
         // Fetch all prayer requests with that person's first name and last name, so they are removed from your feed.
-        do{
+        do {
             let refDelete = try await db.collection("prayerFeed").document(userID).collection("prayerRequests")
                 .whereField("firstName", isEqualTo: String(friendUsernameToRemove.split(separator: "/").first ?? ""))
                 .whereField("lastName", isEqualTo: String(friendUsernameToRemove.split(separator: "/").last ?? ""))
@@ -235,24 +235,43 @@ class FriendService {
     
     func deleteFriend(user: Person, friend: Person) async throws {
         do {
-            // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
-            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
-            try await refFriends.delete()
-            
-            // Update your prayer feed to remove that person's prayer requests from your current feed.
-            let refDelete = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").whereField("userID", isEqualTo: friend.userID).getDocuments()
-            for document in refDelete.documents {
-                try await document.reference.delete()
-            }
-            
-            // Update user's personal friends list and delete historical posts.
-            let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
-            try await refUser.delete()
-            
-            // Update your prayer feed to remove that person's prayer requests from your current feed.
-            let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-            for document in refDeleteUser.documents {
-                try await document.reference.delete()
+            if friend.isPublic {
+                // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
+                let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+                try await refFriends.delete()
+                
+                // Update your prayer feed to remove that person's prayer requests from your current feed.
+                let refDelete = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").whereField("userID", isEqualTo: friend.userID).getDocuments()
+                for document in refDelete.documents {
+                    try await document.reference.delete()
+                }
+                
+                // Update user's personal friends list and delete historical posts.
+                let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+                try await refUser.delete()
+                
+                // Update your prayer feed to remove that person's prayer requests from your current feed.
+                let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+                for document in refDeleteUser.documents {
+                    try await document.reference.delete()
+                }
+            } else { // if user is private, delete the friend from just your prayer list.
+                
+                // Update user's personal friends list and delete historical posts.
+                let refUser = try await db.collection("users").document(user.userID).collection("friendsList")
+                    .whereField("firstName", isEqualTo: friend.firstName.lowercased())
+                    .whereField("lastName", isEqualTo: friend.lastName.lowercased()).getDocuments()
+                
+                for document in refUser.documents {
+                    try await document.reference.delete()
+                }
+                
+//                // Update your prayer feed to remove that person's prayer requests from your current feed. Current functionality - don't delete historical posts.
+//                let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+//                
+//                for document in refDeleteUser.documents {
+//                    try await document.reference.delete()
+//                }
             }
         } catch {
             print(error)
@@ -330,5 +349,18 @@ class FriendService {
             print(error)
         }
         return (check, person)
+    }
+    
+    func addPrivateFriend(firstName: String, lastName: String, user: Person) async throws {
+        let ref = db.collection("users").document(user.userID).collection("friendsList").document()
+        
+        try await ref.setData([
+            "username": user.username,
+            "userID": user.userID,
+            "firstName": firstName,
+            "lastName": lastName,
+            "email": "",
+            "state": "private"
+        ])
     }
 }

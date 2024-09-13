@@ -12,9 +12,10 @@ import FirebaseFirestore
 struct SubmitPostForm: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
+    @Environment(\.colorScheme) var colorScheme
     @Environment(\.dismiss) var dismiss
     
-    var person: Person
+    @State var person: Person
     @State private var datePosted = Date()
     @State private var status: String = "Current"
     @State private var postText: String = ""
@@ -28,8 +29,11 @@ struct SubmitPostForm: View {
     var friendService = FriendService()
     
     var body: some View {
-        NavigationView{
-            VStack {
+        NavigationStack{
+            ZStack {
+                (colorScheme == .light ? Color(.systemGray6) : .clear)
+                    .ignoresSafeArea()
+                
                 Form {
                     Section(/*header: Text("Share a Prayer Request")*/) {
                         ZStack(alignment: .topLeading) {
@@ -73,11 +77,11 @@ struct SubmitPostForm: View {
                             Text("Privacy")
                             Spacer()
                             PrivacyView(person: person, privacySetting: $privacy)
-                                .task {
-                                    if person.username == "" && person.userID == userHolder.person.userID {
-                                        privacy = "private"
-                                    }
-                                }
+//                                .task {
+//                                    if person.isPrivateFriend {
+//                                        privacy = "private"
+//                                    }
+//                                }
                                 .onChange(of: privacy, {
                                     if privacy == "public" {
                                         isPresentingFriends = true
@@ -191,51 +195,22 @@ struct SubmitPostForm: View {
         print("Draft cleared")
     }
     
-//    func refreshFriends() {
-//        Task {
-//            do {
-//                userHolder.friendsList = try await friendService.getFriendsList(userID: userHolder.person.userID).0
-//                self.userHolder.friendsList = userHolder.friendsList
-//            } catch {
-//                print(error)
-//            }
-//        }
-//    }
-    
     @ViewBuilder
     func friendsList() -> some View {
-//        let friendsList = userHolder.friendsList.map({
-//            $0.firstName + " " + $0.lastName
-//        }).joined(separator: ", ")
-        ScrollView {
-            VStack (alignment: .leading) {
-                HStack {
-                    Text("Who can see this post?")
-                         .multilineTextAlignment(.leading)
-                         .padding(.bottom, 1)
-                    NavigationLink(destination: FriendsPageView()) {
-                        Text("See Friends")
-                            .font(.system(size: 12))
-                            .italic()
-                    }
-                    Spacer()
+        VStack (alignment: .leading) {
+            HStack {
+                Text("Who can see this post?")
+                    .multilineTextAlignment(.leading)
+                    .padding(.bottom, 1)
+                NavigationLink(destination: FriendsPageView()) {
+                    Text("See Friends")
+                        .font(.system(size: 12))
+                        .italic()
                 }
-                .font(.system(size: 12))
-                .padding(.bottom, 10)
-//                
-//                HStack {
-//                    Text("Don't see a friend on here?")
-//                    Button(action: {
-//                        self.refreshFriends()
-//                    }, label: {
-//                        Text("Refresh")
-//                            .font(.system(size: 12))
-//                            .italic()
-//                    })
-//                    Spacer()
-//                }
-//                .font(.system(size: 12))
+                Spacer()
             }
+            .font(.system(size: 12))
+            .padding(.bottom, 10)
         }
     }
 }
