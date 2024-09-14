@@ -13,6 +13,10 @@ class CommentHelper {
     
     // Add a new comment to a post
     func addComment(to postID: String, comment: Comment) async throws {
+        guard !postID.isEmpty else {
+            throw NSError(domain: "CommentError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Post ID cannot be empty"])
+        }
+        
         let postRef = db.collection("posts").document(postID)
         let commentRef = postRef.collection("comments").document()
         
@@ -24,6 +28,12 @@ class CommentHelper {
     
     // Retrieve comments for a post
     func getComments(for postID: String, limit: Int = 20, lastCommentDate: Date? = nil) async throws -> [Comment] {
+        print("Fetching comments for post ID: '\(postID)'") // Debug line
+        
+        guard !postID.isEmpty else {
+            throw NSError(domain: "CommentError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Post ID cannot be empty"])
+        }
+        
         var query = db.collection("posts").document(postID).collection("comments")
             .order(by: "createdAt", descending: true)
             .limit(to: limit)
@@ -38,6 +48,14 @@ class CommentHelper {
     
     // Delete a comment
     func deleteComment(postID: String, commentID: String) async throws {
+        guard !postID.isEmpty else {
+            throw NSError(domain: "CommentError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Post ID cannot be empty"])
+        }
+        
+        guard !commentID.isEmpty else {
+            throw NSError(domain: "CommentError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Comment ID cannot be empty"])
+        }
+        
         let postRef = db.collection("posts").document(postID)
         let commentRef = postRef.collection("comments").document(commentID)
         
@@ -46,8 +64,12 @@ class CommentHelper {
     
     // Update a comment
     func updateComment(postID: String, comment: Comment) async throws {
-        guard let commentID = comment.id else {
-            throw NSError(domain: "CommentError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Comment ID is missing"])
+        guard !postID.isEmpty else {
+            throw NSError(domain: "CommentError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Post ID cannot be empty"])
+        }
+        
+        guard let commentID = comment.id, !commentID.isEmpty else {
+            throw NSError(domain: "CommentError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Comment ID is missing or empty"])
         }
         
         let commentRef = db.collection("posts").document(postID).collection("comments").document(commentID)
