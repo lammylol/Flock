@@ -160,8 +160,8 @@ struct CreateProfileView: View {
                                     ["email": email,
                                      "userID": userID ?? "",
                                      "username": username.lowercased(),
-                                     "firstName": firstName.capitalized,
-                                     "lastName": lastName.capitalized]
+                                     "firstName": firstName.lowercased(),
+                                     "lastName": lastName.lowercased()]
                                 )
                                 
                                 let refUsernames = db.collection("usernames").document("\(username)")
@@ -192,7 +192,7 @@ struct CreateProfileView: View {
         let userID = Auth.auth().currentUser?.uid ?? ""
         
         do {
-            userHolder.person = try await UserService().getUserInfo(userID: userID)
+            userHolder.person = try await UserService().getBasicUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             let postList = try await calendarService.getPrayerCalendarList(userID: userID)
             userHolder.prayStartDate = postList.0 // set Start Date

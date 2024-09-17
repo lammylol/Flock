@@ -11,9 +11,10 @@ struct PostEditView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
     
     @State var prayerRequestUpdates: [PostUpdate] = []
-    var person: Person
+    @State var person: Person
     @State var post: Post
     @State var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
@@ -22,89 +23,93 @@ struct PostEditView: View {
     @State private var isTruncated: Bool = false
     
     var body: some View {
-        NavigationStack {
-            Form {
-                Section(header: Text("Title")) {
-                    ZStack(alignment: .topLeading) {
-                        if post.postTitle.isEmpty {
-                            Text("Title")
-                                .padding(.top, 8)
-                                .foregroundStyle(Color.gray)
-                        }
-                        Text(post.postTitle)
-                            .foregroundStyle(Color.clear)//this is a swift workaround to dynamically expand textEditor.
-                        TextEditor(text: $post.postTitle)
-                            .offset(x: -5, y: -1)
-                    }
-                    .padding(.bottom, -4)
+            NavigationView {
+                ZStack {
+                    (colorScheme == .dark ? Color.black : Color(.systemGray6))
+                        .ignoresSafeArea()//background
                     
-                    Picker("Type", selection: $post.postType) {
-                        Text("Default (Post)").tag("Default")
-                        Text("Praise").tag("Praise")
-                        Text("Prayer Request").tag("Prayer Request")
-                    }
-                    if post.postType == "Prayer Request" {
-                        Picker("Status", selection: $post.status) {
-                            Text("Current").tag("Current")
-                            Text("Answered").tag("Answered")
-                            Text("No Longer Needed").tag("No Longer Needed")
+                    Form {
+                        Section(header: Text("Title")) {
+                            ZStack(alignment: .topLeading) {
+                                if post.postTitle.isEmpty {
+                                    Text("Title")
+                                        .padding(.top, 8)
+                                        .foregroundStyle(Color.gray)
+                                }
+                                Text(post.postTitle)
+                                    .foregroundStyle(Color.clear)//this is a swift workaround to dynamically expand textEditor.
+                                TextEditor(text: $post.postTitle)
+                                    .offset(x: -5, y: -1)
+                            }
+                            .padding(.bottom, -4)
+                            
+                            Picker("Type", selection: $post.postType) {
+                                Text("Default (Post)").tag("Default")
+                                Text("Praise").tag("Praise")
+                                Text("Prayer Request").tag("Prayer Request")
+                            }
+                            if post.postType == "Prayer Request" {
+                                Picker("Status", selection: $post.status) {
+                                    Text("Current").tag("Current")
+                                    Text("Answered").tag("Answered")
+                                    Text("No Longer Needed").tag("No Longer Needed")
+                                }
+                            }
+                            HStack {
+                                Text("Privacy")
+                                Spacer()
+                                PrivacyView(person: person, privacySetting: $post.privacy)
+                            }
                         }
-                    }
-                    HStack {
-                        Text("Privacy")
-                        Spacer()
-                        PrivacyView(person: person, privacySetting: $post.privacy)
-                    }
-                }
-                Section(header: Text("Edit Post")) {
-                    ZStack (alignment: .topLeading) {
-                        if post.postText.isEmpty {
-                            Text("Enter text")
-                                .padding(.top, 8)
-                                .foregroundStyle(Color.gray)
+                        Section(header: Text("Edit Post")) {
+                            ZStack (alignment: .topLeading) {
+                                if post.postText.isEmpty {
+                                    Text("Enter text")
+                                        .padding(.top, 8)
+                                        .foregroundStyle(Color.gray)
+                                }
+                                TextEditor(text: $post.postText)
+                                    .offset(y: 2)
+                                Text(post.postText)
+                                    .hidden() //this is a swift workaround to dynamically expand textEditor.
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .padding(.all, 8)
+                            }
                         }
-                        TextEditor(text: $post.postText)
-                            .offset(y: 2)
-                        Text(post.postText)
-                            .hidden() //this is a swift workaround to dynamically expand textEditor.
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .padding(.all, 8)
-                    }
-                }
-                if prayerRequestUpdates.count > 0 {
-                    ForEach(prayerRequestUpdates) { update in
-                        Section(header: Text("\(update.updateType): \(update.datePosted, style: .date)")) {
-                            VStack(alignment: .leading){
-                                NavigationLink(destination: EditPrayerUpdate(person: person, prayerRequest: post, prayerRequestUpdates: prayerRequestUpdates, update: update)) {
-                                    Text(update.prayerUpdateText)
+                        if prayerRequestUpdates.count > 0 {
+                            ForEach(prayerRequestUpdates) { update in
+                                Section(header: Text("\(update.updateType): \(update.datePosted, style: .date)")) {
+                                    VStack(alignment: .leading){
+                                        NavigationLink(destination: EditPrayerUpdate(person: person, prayerRequest: post, prayerRequestUpdates: prayerRequestUpdates, update: update)) {
+                                            Text(update.prayerUpdateText)
+                                        }
+                                    }
                                 }
                             }
                         }
-                    }
-                }
-                Section {
-                    Button(action: {
-                        showAddUpdateView.toggle()
-                    }) {Text("Add Update or Testimony")
-                        //                                .font(.system(size: 16))
-                            .foregroundColor(.blue)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                }
-                Section {
-                    Button(action: {
-                        deletePost()
-                    }) {Text("Delete Post")
-                        //                                .font(.system(size: 16))
-                            .foregroundColor(.red)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                        Section {
+                            Button(action: {
+                                showAddUpdateView.toggle()
+                            }) {Text("Add Update or Testimony")
+                                //                                .font(.system(size: 16))
+                                    .foregroundColor(.blue)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                        }
+                        Section {
+                            Button(action: {
+                                deletePost()
+                            }) {Text("Delete Post")
+                                //                                .font(.system(size: 16))
+                                    .foregroundColor(.red)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                        }
                     }
                 }
             }
             .task {
                 do {
-                    print(friendRequestListener.acceptedFriendRequests.map {$0.firstName})
-                    print(friendRequestListener.acceptedFriendRequests.count)
                     self.post = try await PostOperationsService().getPost(prayerRequest: post)
                     self.post = post
                     prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
@@ -128,6 +133,8 @@ struct PostEditView: View {
             }) {
                 AddPrayerUpdateView(person: person, prayerRequest: post)
             }
+            .navigationTitle("Edit Post")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button(action: {
@@ -146,10 +153,6 @@ struct PostEditView: View {
                     )
                 }
             }
-//            .toolbarBackground(Color.clear, for: .tabBar)
-        }
-        .navigationTitle("Edit Post")
-        .navigationBarTitleDisplayMode(.inline)
     }
     
     func updatePost(post: Post) {

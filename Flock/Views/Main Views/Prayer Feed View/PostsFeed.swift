@@ -11,6 +11,7 @@ struct PostsFeed: View {
     
     @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(\.colorScheme) var colorScheme
     @Binding var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
@@ -19,13 +20,15 @@ struct PostsFeed: View {
     
     var body: some View {
         ZStack {
+            (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea() // sets background color.
+                
             if viewModel.isLoading/* && !userHolder.refresh*/ {
                 ProgressView()
             } else {
                 LazyVStack {
                     ForEach($viewModel.prayerRequests) { $prayerRequest in
                         VStack {
-                            PostRow(viewModel: viewModel, post: $prayerRequest)
+                            PostRow(viewModel: viewModel, post: $prayerRequest, person: person)
                             Rectangle()
                                 .frame(height: 4)
                                 .foregroundStyle(.bar)
@@ -43,20 +46,11 @@ struct PostsFeed: View {
         .task {
             if viewModel.prayerRequests.isEmpty {
                 if !viewModel.isFetching || !viewModel.isLoading {
-                    do {
-                        userHolder.profileViewIsLoading = true
-                        defer { userHolder.profileViewIsLoading = false }
-                        
-                        person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
-                        
-                        if person.friendState == "sent" || person.friendState == "pending" {
-                            return
-                        }
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-                        self.viewModel.prayerRequests = viewModel.prayerRequests
-                    } catch {
-                        print(error)
+                    if person.friendState == "sent" || person.friendState == "pending" {
+                        return
                     }
+                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                    self.viewModel.prayerRequests = viewModel.prayerRequests
                 }
             }
         }
@@ -138,7 +132,7 @@ struct PostsFeed: View {
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
                 do {
-                    self.person = try await userService.retrieveUserInfoFromUsername(person: person, userHolder: userHolder)
+                    self.person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)

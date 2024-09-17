@@ -216,7 +216,7 @@ struct SignInView: View {
             userHolder.viewState = .loading
             defer { userHolder.viewState = .finished }
             
-            userHolder.person = try await UserService().getUserInfo(userID: userID)
+            userHolder.person = try await UserService().getBasicUserInfo(userID: userID)
             // This sets firstName, lastName, username, and userID for UserHolder
             
 //            try await setFriendsList(userID: userHolder.person.userID) // setFriendsList for userHolder
@@ -237,16 +237,6 @@ struct SignInView: View {
             userHolder.isLoggedIn = .notAuthenticated
         }
     }
-//    
-//    func setFriendsList(userID: String) async throws {
-//        do {
-//            let friends = try await friendService.getFriendsList(userID: userHolder.person.userID) // run to refresh friends list on command
-//            userHolder.friendsList = friends.0
-////            userHolder.pendingFriendsList = friends.1
-//        } catch {
-//            print(error)
-//        }
-//    }
 }
 
 
