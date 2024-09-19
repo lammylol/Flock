@@ -1,9 +1,17 @@
-# Flock
+# Flock | An application created to encourage prayer across the globe
 
->An application used to glorify God by encouraging the act of prayer across the globe.
->**Mission:** Feed My Sheep. To obey God’s command to ‘feed my sheep’ by taking care of each other through the act of prayer, support, and encouragement.
->**Vision:** To become a centralized hub for prayer, inspiring the act of prayer across the globe, increasing prayer among big and small communities, and instilling the belief that prayer is necessary and beneficial in one’s everyday life.
+**Mission:** To ‘feed my sheep’ by supporting each other through the act of prayer, support, and encouragement. <br>
+**Vision:** To become a centralized hub for prayer, inspiring the act of prayer across the globe among both big and small communities.
+
 ###
+>**Key Features:**
+>- Add posts and share prayer requests, with select privacy settings.
+>- Provide updates to existing prayers.
+>- Add real friends and receive updates through a feed.
+>- Track prayers and prayer requests for family & friends who aren't using the app.
+>- Record and send a prayer directly to someone.
+>- Group functionality for small groups and/or communities.
+>- Analytics on trends and historical insights.
 
 See [Notion](https://www.notion.so/7a20c472b3bc4b50b79d57fdfdf22f73?v=8703808a97b34242a8b2a00cb1456be9&pvs=4) for more information on the project.
 
