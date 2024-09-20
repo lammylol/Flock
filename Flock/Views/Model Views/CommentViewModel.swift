@@ -7,13 +7,13 @@
 
 import Foundation
 import Combine
+import SwiftUI
 
-@MainActor
-class CommentViewModel: ObservableObject {
+@Observable final class CommentViewModel {
     private let commentHelper = CommentHelper()
-    @Published var comments: [Comment] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var comments: [Comment] = []
+    var isLoading = false
+    var errorMessage: String?
     
     private var currentPostID: String?
     

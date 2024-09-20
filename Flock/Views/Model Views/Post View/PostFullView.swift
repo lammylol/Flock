@@ -24,7 +24,7 @@ struct PostFullView: View {
     @State private var isTruncated: Bool = false
     @State var lineLimit: Int = 6 // This is to set default setting for max lines shown, set as a var so a user can pass in .max if they are calling directly from the feed.
     
-    @State private var commentViewModel = CommentViewModel()
+    @State private var commentViewModel: CommentViewModel = CommentViewModel()
     @State private var newCommentText = ""
     
     var body: some View {
@@ -207,8 +207,10 @@ struct PostFullView: View {
                     HStack {
                         TextField("Add a comment", text: $newCommentText)
                         Button("Post") {
-                            commentViewModel.addComment(to: post.id, text: newCommentText, person: userHolder.person)
-                            newCommentText = ""
+                            Task {
+                                await commentViewModel.addComment(to: post.id, text: newCommentText, person: userHolder.person)
+                                newCommentText = ""
+                            }
                         }
                         .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
@@ -216,13 +218,11 @@ struct PostFullView: View {
                 }
                 .padding()
             }
-        .onAppear {
-            commentViewModel.fetchComments(for: post.id)
-        }
         Spacer()
     }
         .task {
             do {
+                await commentViewModel.fetchComments(for: post.id)
                 self.post = try await PostOperationsService().getPost(prayerRequest: originalPost)
                 self.originalPost = self.post
                 print("isPinned: " + post.isPinned.description)

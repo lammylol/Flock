@@ -9,14 +9,15 @@ import SwiftUI
 
 struct CommentsView: View {
     let postID: String
-    @StateObject private var viewModel: CommentViewModel
+    // @StateObject private var viewModel: CommentViewModel
+    @State private var viewModel: CommentViewModel = CommentViewModel()
     @State private var newCommentText = ""
     @Environment(UserProfileHolder.self) var userHolder
     @FocusState private var isCommentFieldFocused: Bool
     
     init(postID: String) {
         self.postID = postID
-        _viewModel = StateObject(wrappedValue: CommentViewModel())
+        //_viewModel = StateObject(wrappedValue: CommentViewModel())
     }
     
     var body: some View {

@@ -15,7 +15,7 @@ class CommentHelper {
     func addComment(to postID: String, comment: Comment) async throws {
         try validatePostID(postID)
         
-        let postRef = db.collection("posts").document(postID)
+        let postRef = db.collection("prayerRequests").document(postID)
         let commentRef = postRef.collection("comments").document()
         
         var newComment = comment
@@ -28,7 +28,7 @@ class CommentHelper {
     func getComments(for postID: String, limit: Int = 20, lastCommentDate: Date? = nil) async throws -> [Comment] {
         try validatePostID(postID)
         
-        var query = db.collection("posts").document(postID).collection("comments")
+        var query = db.collection("prayerRequests").document(postID).collection("comments")
             .order(by: "createdAt", descending: true)
             .limit(to: limit)
         
@@ -45,7 +45,7 @@ class CommentHelper {
         try validatePostID(postID)
         try validateCommentID(commentID)
         
-        let commentRef = db.collection("posts").document(postID).collection("comments").document(commentID)
+        let commentRef = db.collection("prayerRequests").document(postID).collection("comments").document(commentID)
         try await commentRef.delete()
     }
     
@@ -57,7 +57,7 @@ class CommentHelper {
         }
         try validateCommentID(commentID)
         
-        let commentRef = db.collection("posts").document(postID).collection("comments").document(commentID)
+        let commentRef = db.collection("prayerRequests").document(postID).collection("comments").document(commentID)
         try await commentRef.setData(from: comment)
     }
     
