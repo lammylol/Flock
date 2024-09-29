@@ -9,38 +9,51 @@ import Foundation
 import Combine
 import SwiftUI
 
-@Observable final class CommentViewModel {
+class CommentViewModel: ObservableObject {
     private let commentHelper = CommentHelper()
-    var comments: [Comment] = []
-    var isLoading = false
-    var errorMessage: String?
+    @Published var comments: [Comment] = []
+    @Published var isLoading = false
+    @Published var errorMessage: String?
     
     private var currentPostID: String?
     
     func fetchComments(for postID: String) async {
         guard !isLoading else { return }
         
-        isLoading = true
-        errorMessage = nil
+        DispatchQueue.main.async {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
         currentPostID = postID
         
         do {
-            comments = try await commentHelper.getComments(for: postID)
+            let fetchedComments = try await commentHelper.getComments(for: postID)
+            DispatchQueue.main.async {
+                self.comments = fetchedComments
+            }
         } catch {
-            errorMessage = "Failed to fetch comments: \(error.localizedDescription)"
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to fetch comments: \(error.localizedDescription)"
+            }
         }
         
-        isLoading = false
+        DispatchQueue.main.async {
+            self.isLoading = false
+        }
     }
     
     func addComment(to postID: String, text: String, person: Person) async {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Comment text cannot be empty"
+            DispatchQueue.main.async {
+                self.errorMessage = "Comment text cannot be empty"
+            }
             return
         }
         
-        isLoading = true
-        errorMessage = nil
+        DispatchQueue.main.async {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
         
         let newComment = Comment(
             postID: postID,
@@ -54,34 +67,47 @@ import SwiftUI
             try await commentHelper.addComment(to: postID, comment: newComment)
             await fetchComments(for: postID)
         } catch {
-            errorMessage = "Failed to add comment: \(error.localizedDescription)"
-            isLoading = false
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to add comment: \(error.localizedDescription)"
+            }
+        }
+        
+        DispatchQueue.main.async {
+            self.isLoading = false
         }
     }
     
     func deleteComment(postID: String, commentID: String) async {
-        isLoading = true
-        errorMessage = nil
+        DispatchQueue.main.async {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
         
         do {
             try await commentHelper.deleteComment(postID: postID, commentID: commentID)
             await fetchComments(for: postID)
         } catch {
-            errorMessage = "Failed to delete comment: \(error.localizedDescription)"
-            isLoading = false
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to delete comment: \(error.localizedDescription)"
+                self.isLoading = false
+            }
         }
     }
     
     func updateComment(postID: String, comment: Comment) async {
-        isLoading = true
-        errorMessage = nil
+        DispatchQueue.main.async {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
         
         do {
             try await commentHelper.updateComment(postID: postID, comment: comment)
             await fetchComments(for: postID)
         } catch {
-            errorMessage = "Failed to update comment: \(error.localizedDescription)"
-            isLoading = false
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to update comment: \(error.localizedDescription)"
+                self.isLoading = false
+            }
         }
     }
     
