@@ -220,7 +220,7 @@ struct PostRow: View {
                 
                 try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
             } catch {
-                print(error)
+                ModelLogger.error("pinPost failed \(error)")
             }
         }
     }

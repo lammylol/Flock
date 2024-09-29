@@ -121,11 +121,7 @@ class FeedService {
                     "latestUpdateDatePosted": post.latestUpdateDatePosted,
                     "latestUpdateType": post.latestUpdateType
                 ])
-                
-                print("success: \(post.id)")
-                print("from person: \(person.userID)")
-                print("posting to: \(friend.userID)")
-                print("path: \(ref.path)")
+
             } else {
                 let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
                  try await ref.setData([
@@ -146,40 +142,43 @@ class FeedService {
                 ])
             }
         } catch {
-            print(error)
+            NetworkingLogger.error("FeedService.udpateFriendsFeed failed \(error)")
         }
     }
 
     // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
     func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) async throws {
-    
-        print("friendsList: \(friendsList.map{$0.firstName})")
-        // Delete PrayerRequestID from prayerFeed/{userID}
-        if post.privacy == "public" && friendsList.isEmpty == false {
-            for friend in friendsList {
-                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                try await ref.delete()
-            }
-        } // Delete from your friends' feeds.
+        do{
+            // Delete PrayerRequestID from prayerFeed/{userID}
+            if post.privacy == "public" && friendsList.isEmpty == false {
+                for friend in friendsList {
+                    let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+                    try await ref.delete()
+                }
+            } // Delete from your friends' feeds.
+        }catch{
+            NetworkingLogger.error("FeedService.deleteFromFeed. Failed to delete from friends feed \(error)")
+        }
         
-        // Delete from your own user feed.
-        let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-        try await ref2.delete()
+        do{
+            // Delete from your own user feed.
+            let ref2 = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
+            try await ref2.delete()
+        }catch{
+            NetworkingLogger.error("FeedService.deleteFromFeed failed to delete from user feed \(error)")
+        }
     }
 
     func publicToPrivate(post: Post, friendsList: [Person]) async throws {
-        if friendsList.isEmpty == false {
-            for friend in friendsList {
-                let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                try await ref2.delete()
-//                    if let err = err {
-//                        print("Error removing document: \(err)")
-//                    } else {
-//                        print("Document successfully deleted")
-//                        print(post.id)
-//                        print(post.postText)
-//                    }
+        do{
+            if friendsList.isEmpty == false {
+                for friend in friendsList {
+                    let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+                    try await ref2.delete()
+                }
             }
+        }catch{
+            NetworkingLogger.error("FeedService.publicToPrivate failed \(error)")
         }
     } // This function allows you to pass in a prayer request and delete that from friends' feeds if you have changed it from public to private.
 }

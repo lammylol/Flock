@@ -83,22 +83,16 @@ struct EditPrayerUpdate: View {
         Task {
             do {
                 var updates = prayerRequestUpdates.sorted(by: {$1.datePosted > $0.datePosted})
-                print("before:")
-                print(updates)
                 updates.removeAll(where: {$0.id == update.id}) // must come first in order to make sure the prayer request last date posted can be factored correctly.
-                print("after:")
-                print(updates)
                 
                 try await PostUpdateHelper().deletePrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, updatesArray: updates, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
-                
-                print("Deleted")
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {
                     dismiss()
                 }
             } catch {
-                print(error)
+                ViewLogger.error("EditPrayerUpdate.deleteUpdate \(error)")
             }
         }
     }
@@ -107,14 +101,13 @@ struct EditPrayerUpdate: View {
         Task {
             do {
                 try await PostUpdateHelper().editPrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests, updatesArray: prayerRequestUpdates)
-                print("Saved")
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {
                     dismiss()
                 }
             } catch {
-                print(error)
+                ViewLogger.error("EditPrayerUpdate.updatePrayerUpdate \(error)")
             }
         }
     }
@@ -182,14 +175,13 @@ struct AddPrayerUpdateView: View {
         Task {
             do {
                 try await PostUpdateHelper().addPrayerRequestUpdate(datePosted: Date(), prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
-                print("Saved")
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {
                     dismiss()
                 }
             } catch {
-                print(error)
+                ViewLogger.error("EditPrayerUpdate.addUpdate \(error)")
             }
         }
     }

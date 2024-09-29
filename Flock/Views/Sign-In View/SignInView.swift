@@ -156,7 +156,6 @@ struct SignInView: View {
                     
                     do {
                         let userID = Auth.auth().currentUser?.uid ?? ""
-                        print(userID)
                         await setInfo()
                     }
             } else {
@@ -184,7 +183,7 @@ struct SignInView: View {
                             errorMessage = "Invalid Credentials."
                         }
                     }
-                    print(errorMessage)
+                    ViewLogger.error("\(errorMessage)")
                 } else {
                     Task {
                         do {

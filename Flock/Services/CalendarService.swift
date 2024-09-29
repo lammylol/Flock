@@ -29,11 +29,11 @@ class CalendarService {
                 prayStartDate = startDateTimeStamp.dateValue()
                 prayerList = document.get("prayerList") as? String ?? ""
             } else {
-                print("Document does not exist")
+                NetworkingLogger.error("CalendarService.getPrayerCalendarList failed no document")
                 prayerList = ""
             }
         } catch {
-            print(error.localizedDescription)
+            NetworkingLogger.error("CalendarService.getPrayerCalendarList failed \(error.localizedDescription)")
         }
         
         return (prayStartDate, prayerList)
@@ -42,7 +42,6 @@ class CalendarService {
     func retrieveCalendarPersonArray(prayerList: String) async -> [Person] { // This function accepts a prayer list string (from firestore) and returns an array of PrayerPerson's so that the view can grab both the username or name. A prayer list may look like the following: "Matt Lam;lammylol\nEsther Choi;heej\nJoe". Some may have usernames, some may not.
         
         let prayerListArray = prayerList.components(separatedBy: "\n") // Create an array separated by \n within the prayer list string.
-        print(prayerListArray.description)
         
         var prayerArray: [Person] = [] // Empty array of Person type.
         var firstName = ""
@@ -51,8 +50,6 @@ class CalendarService {
         
         if !prayerListArray.isEmpty {
             for person in prayerListArray {
-                print(person.description)
-                
                 let array = person.split(separator: ";", omittingEmptySubsequences: true) // For each person in the array, separate out the array that contains either: [name] or [name, username].
                 
                 if array.count == 1 { // If the array is [name], then there is no username.

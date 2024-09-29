@@ -139,7 +139,7 @@ struct PostsFeed: View {
                         self.viewModel.prayerRequests = viewModel.prayerRequests
                     }
                 } catch {
-                    print(error.localizedDescription)
+                    ViewLogger.error("PostsFeed \(error.localizedDescription)")
                 }
             }
         }, content: {

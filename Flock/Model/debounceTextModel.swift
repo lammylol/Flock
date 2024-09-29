@@ -41,10 +41,10 @@ import SwiftUI
                     
                     if validated {
                         self.person = ref.1
-                        print("ran user validation. success: \(person.firstName) \(person.lastName)")
+                        NetworkingLogger.debug("user validation - success: \(self.person.firstName, privacy: .private) \(self.person.lastName, privacy: .private)")
                     } else {
                         returnText = "No user found."
-                        print("ran user validation. invalid user.")
+                        NetworkingLogger.error("user validation - no user found")
                     }
                 }
             }

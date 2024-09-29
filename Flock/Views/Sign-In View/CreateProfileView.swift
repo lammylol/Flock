@@ -134,7 +134,6 @@ struct CreateProfileView: View {
             // Ensure username does not have special characters. This will affect assessment of 'username' or 'name' in prayerNameInputView().
             else if specialCharacterTest(username: username) {
                 errorMessage = "Username cannot contain special characters. Please enter a new username."
-                print("Username cannot contain special characters. Please submit a new username.")
             }
             
             // Task to set data.
@@ -143,7 +142,7 @@ struct CreateProfileView: View {
                     
                     if error != nil {
                         errorMessage = error!.localizedDescription
-                        print(error!.localizedDescription.localizedLowercase)
+                        ViewLogger.error("CreateProfileViews \(error!.localizedDescription.localizedLowercase)")
                     } else {
                         Task {
                             userHolder.viewState = .loading
@@ -151,7 +150,6 @@ struct CreateProfileView: View {
                             
                             do {
                                 let userID = result?.user.uid
-                                print("userID: " + (userID ?? ""))
                                 
                                 let db = Firestore.firestore()
                                 let ref = db.collection("users").document("\(userID ?? "")")
@@ -170,7 +168,7 @@ struct CreateProfileView: View {
                                      "username": username.lowercased()]
                                 )
                                 
-                                print("Account successfully created.")
+                                ViewLogger.info("Account successfully created.")
                                 await setInfo()
                                 errorMessage = ""
                                 
@@ -179,7 +177,7 @@ struct CreateProfileView: View {
                                     dismiss()
                                 }
                             } catch {
-                                print(error)
+                                ViewLogger.error("CreateProfileView \(error)")
                             }
                         }
                     }

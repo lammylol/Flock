@@ -24,9 +24,7 @@ class PostUpdateHelper {
             let querySnapshot = try await prayerRequestUpdates.getDocuments()
             
             for document in querySnapshot.documents {
-//                print("\(document.documentID) => \(document.data())")
                 let timestamp = document.data()["datePosted"] as? Timestamp ?? Timestamp()
-                //              let timestamp = document.data()["DatePosted"]/* as? ip_timestamp ?? ip_timestamp()*/
                 let datePosted = timestamp.dateValue()
                 
                 let prayerRequestID = document.data()["prayerRequestID"] as? String ?? ""
@@ -39,7 +37,7 @@ class PostUpdateHelper {
                 updates.append(prayerRequestUpdate)
             }
         } catch {
-            print("Error getting documents: \(error)")
+            NetworkingLogger.error("postUpdateHelper: Error getting documents: \(error)")
         }
         return updates
     }
@@ -207,16 +205,10 @@ class PostUpdateHelper {
         let db = Firestore.firestore()
         
         let latestUpdateDatePosted = getLatestUpdateDate(prayerRequest: prayerRequest, updates: updatesArray)
-        print(latestUpdateDatePosted)
-        print(prayerRequestUpdate.datePosted)
         
         if prayerRequestUpdate.datePosted == latestUpdateDatePosted  { // Only update latestUpdate to PrayerRequest if it is newer than the last.
             //      Reset latest update date and text for user id prayer list.
             let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(prayerRequest.firstName.lowercased())_\(prayerRequest.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
-            print(prayerRequest.firstName)
-            print(prayerRequest.lastName)
-            print(prayerRequest.id)
-            print(person.userID)
             
             try await ref.updateData([
                 "latestUpdateDatePosted": prayerRequestUpdate.datePosted,

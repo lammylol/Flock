@@ -66,10 +66,6 @@ struct ProfileFeed: View {
             
             PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile")
         }
-        .task {
-            print(viewModel.selectedStatus.rawValue)
-            print("Success retrieving prayer requests for \(person.userID)")
-        }
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
                 do {
@@ -79,7 +75,6 @@ struct ProfileFeed: View {
                         self.viewModel.prayerRequests = viewModel.prayerRequests
                         self.height = height
                     }
-                    print("Success retrieving prayer requests for \(person.userID)")
                 }
             }
         }, content: {
