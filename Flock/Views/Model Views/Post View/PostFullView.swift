@@ -200,7 +200,10 @@ struct PostFullView: View {
                                 withAnimation {
                                     showComments.toggle()
                                     if showComments {
-                                        scrollToComments = true
+                                        Task {
+                                            await commentViewModel.fetchComments(for: post.id)
+                                            scrollToComments = true
+                                        }
                                     }
                                 }
                             }) {
@@ -267,7 +270,6 @@ struct PostFullView: View {
         }
         .task {
             await loadPost()
-            await commentViewModel.fetchComments(for: post.id)
             if showComments {
                 scrollToComments = true
             }
