@@ -145,7 +145,7 @@ struct ProfileView: View {
 
                         person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder) // repetitive. Need to refactor later.
                     } catch {
-                        print(error)
+                        ViewLogger.error("ProfileView \(error)")
                     }
                     
                 }
@@ -170,7 +170,6 @@ struct ProfileView: View {
                             } else {
                                 self.viewModel.prayerRequests = viewModel.prayerRequests
                             }
-                            print("Success retrieving prayer requests for \(person.userID)")
                         }
                     }
                 }, content: {
@@ -228,7 +227,7 @@ struct ProfileView: View {
                 addFriendConfirmation = true
                 person.friendState = "sent"
             } catch {
-                print(error)
+                ViewLogger.error("ProfileView.addFriend \(error)")
             }
         }
     }

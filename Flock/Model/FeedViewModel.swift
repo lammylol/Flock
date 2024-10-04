@@ -72,9 +72,9 @@ import FirebaseFirestore
                 self.lastDocument = lastDocument
             }
             
-            print("last document: " + String(lastDocument?.documentID ?? ""))
+            ModelLogger.debug("FeedViewModel.getPrayerRequest last document \(lastDocument?.documentID ?? "n/a")")
         } catch {
-            print(error)
+            ModelLogger.error("FeedViewModel.getPrayerRequest failed \(error)")
         }
     }
     
@@ -95,10 +95,9 @@ import FirebaseFirestore
                 self.lastDocument = lastDocument
             }
             
-            print("last document: " + String(lastDocument?.documentID ?? ""))
-
+            ModelLogger.debug("FeedViewModel.getNextPrayerRequests last document: \(lastDocument?.documentID ?? "n/a")")
         } catch {
-            print(error.localizedDescription)
+            ModelLogger.error("\(error.localizedDescription)")
         }
     }
     

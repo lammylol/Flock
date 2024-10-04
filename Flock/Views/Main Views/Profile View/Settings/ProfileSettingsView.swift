@@ -53,7 +53,7 @@ struct ProfileSettingsView: View {
                     friendRequestListener.removeListener()
                     try Auth.auth().signOut()
                 } catch {
-                    print(error)
+                    ViewLogger.error("ProfileSettingsView signOut failed \(error)")
                 }
             }
         }
@@ -77,11 +77,11 @@ struct DeleteButton: View {
 //                    defer { signOut() }
                     do {
                         if userHolder.isFinished {
-                            print(Auth.auth().currentUser?.uid)
+
                             try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
                         }
                     } catch {
-                        print(error)
+                        ViewLogger.error("ProfileSettingsView DeleteAndSignout error \(error)")
                     }
                 }
             }

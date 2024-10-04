@@ -111,7 +111,7 @@ struct ForgotPassword: View {
         Auth.auth().sendPasswordReset(withEmail: email) { error in
             if error != nil {
                 errorMessage = error!.localizedDescription
-                print(errorMessage)
+                ViewLogger.error("reset password error: \(errorMessage)")
             } else {
                 successMessage = "A link to reset password has been sent to your email!"
                 errorMessage = ""

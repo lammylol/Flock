@@ -192,7 +192,6 @@ struct PostFullView: View {
             do {
                 self.post = try await PostOperationsService().getPost(prayerRequest: originalPost)
                 self.originalPost = self.post
-                print("isPinned: " + post.isPinned.description)
                 originalPrivacy = post.privacy // for catching public to private.
             } catch {
                 // DispatchQueue ensures that dismiss happens on the main thread.
@@ -225,7 +224,7 @@ struct PostFullView: View {
                 try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
                 //        userHolder.refresh = true
             } catch {
-                print(error)
+                ViewLogger.error("PostFullView.pinPost \(error)")
             }
         }
     }

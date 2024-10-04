@@ -113,12 +113,11 @@ struct PostEditView: View {
                     self.post = try await PostOperationsService().getPost(prayerRequest: post)
                     self.post = post
                     prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
-                    print("isPinned: " + post.isPinned.description)
                     originalPrivacy = post.privacy // for catching public to private.
                 } catch PrayerRequestRetrievalError.noPrayerRequestID {
-                    print("missing prayer request ID for update.")
+                    ViewLogger.error("PostEditView missing prayer request ID for update.")
                 } catch {
-                    print("error retrieving")
+                    ViewLogger.error("PostEditView error retrieving \(error)")
                 }
             }
             .sheet(isPresented: $showAddUpdateView, onDismiss: {
@@ -127,7 +126,7 @@ struct PostEditView: View {
                         prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
                         post = try await PostOperationsService().getPost(prayerRequest: post)
                     } catch {
-                        print("error retrieving updates.")
+                        ViewLogger.error("PostEditView error retrieving updates \(error)")
                     }
                 }
             }) {
@@ -166,14 +165,12 @@ struct PostEditView: View {
                 // Function to catch if privacy was changed from public to private.
                 try await PostOperationsService().editPost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests) // edit prayer request in firebase
                 
-                print("Saved")
-                
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {
                     dismiss()
                 }
             } catch {
-                print(error)
+                ViewLogger.error("PostEditView.updatePost \(error)")
             }
         }
     }
@@ -184,14 +181,12 @@ struct PostEditView: View {
                 try await PostOperationsService().deletePost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
                 userHolder.refresh = true
                 
-                print("Deleted")
-                
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {
                     dismiss()
                 }
             } catch {
-                print(error)
+                ViewLogger.error("PostEditView.deletePost \(error)")
             }
         }
     }

@@ -20,7 +20,7 @@ import FirebaseFirestore
         friendRequestListener = db.collection("users").document(userID).collection("friendsList")/*.whereField("state", isEqualTo: "pending")*/
             .addSnapshotListener { querySnapshot, error in
                 guard let documents = querySnapshot?.documents else {
-                    print("Error fetching friendRequests: \(error!)")
+                    NetworkingLogger.error("FriendRequestListener.setUpListener Error fetching friendRequests: \(error!)")
                     return
                 }
                 
@@ -66,11 +66,11 @@ import FirebaseFirestore
                     self.privateFriends = newPrivateFriends
                 }
             }
-        print("FriendsListener turned on.")
+        NetworkingLogger.info("FriendRequestListener turned on.")
     }
     
     func removeListener() {
         friendRequestListener?.remove()
-        print("FriendsListener turned off.")
+        NetworkingLogger.info("FriendRequestListener turned off.")
     }
 }

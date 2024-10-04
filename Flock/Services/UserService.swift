@@ -27,8 +27,9 @@ class UserService { // Functions related to user information
             let email = document.get("email") as? String ?? ""
             
             person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
+            NetworkingLogger.debug("userService.getBasicUserInfo \(userID, privacy: .private)")
         } catch {
-            print("Error retrieving user info. \(error)")
+            NetworkingLogger.error("userService.getBasicUserInfo failed \(userID) \(error)")
         }
         
         return person
@@ -50,7 +51,6 @@ class UserService { // Functions related to user information
                 let document = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").document(person.userID).getDocument()
                 
 //                for document in ref.documents {
-//                    print(document.documentID)
                 if document.exists {
                     userID = document.get("userID") as? String ?? ""
                     firstName = document.get("firstName") as? String ?? ""
@@ -61,9 +61,10 @@ class UserService { // Functions related to user information
                 }
 //                }
             } catch {
-                print("Error getting document: \(error)")
+                NetworkingLogger.error("userService.retrieveUserInfoFromUserID failed \(error)")
             }
         }
+        NetworkingLogger.debug("userService.retrieveUserInfoFromUserID got \(person.userID, privacy: .private)")
         return Person(userID: userID, username: person.username, firstName: firstName, lastName: lastName, friendState: friendState)
     }
     
@@ -79,7 +80,7 @@ class UserService { // Functions related to user information
                 check = false
             }
         } catch {
-            print("Error retrieving username reference")
+            NetworkingLogger.error("Error retrieving username reference")
             check = false
         }
         return check

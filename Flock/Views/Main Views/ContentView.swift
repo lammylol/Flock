@@ -48,16 +48,13 @@ struct ContentView: View {
         .onChange(of: scenePhase) { 
             oldPhase, newPhase in
                 if newPhase == .active {
-                    print("Active")
                     Task {
                         await friendRequestListener.setUpListener(userID: userHolder.person.userID)
                     }
                 } else if newPhase == .inactive {
                     friendRequestListener.removeListener()
-                    print("Inactive")
                 } else if newPhase == .background {
                     friendRequestListener.removeListener()
-                    print("Background")
             }
         } // detect when app is closed or open.
     }

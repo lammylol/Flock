@@ -4,7 +4,6 @@
 //
 //  Created by Matt Lam on 9/25/23.
 //
-
 import SwiftUI
 import SwiftData
 import FirebaseCore
@@ -15,7 +14,6 @@ struct FlockApp: App {
     
     init(){
         FirebaseApp.configure()
-        print("Configured Firebase!")
     }
     
     var body: some Scene {

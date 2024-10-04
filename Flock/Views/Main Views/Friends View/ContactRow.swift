@@ -118,7 +118,7 @@ struct ContactRow: View {
             do {
                 try await friendService.deleteFriend(user: userHolder.person, friend: person)
             } catch {
-                print(error)
+                ViewLogger.error("ContactRow \(error)")
             }
         }
     }
@@ -140,9 +140,8 @@ struct ContactRow: View {
                 
                 //Update friend indicator that they are added to your calendar.
 //                try await friendService.addFriendtoCalendarIndicator(user: userHolder.person, friend: friend)
-                print("test")
             } catch {
-                print(error)
+                ViewLogger.error("ContactRow \(error)")
             }
         }
     }

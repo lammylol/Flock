@@ -258,7 +258,6 @@ struct AddFriendPage: View {
                     let validation = ref.0 // true or false if username is validated according to first and last name
                     
                     guard validation else {
-                        print("username not valid")
                         throw AddFriendError.invalidUsername
                     }
                     
@@ -271,7 +270,6 @@ struct AddFriendPage: View {
                     // add friend and add user's ID to the private card.
                     
                     guard firstName != "" && lastName != "" else {
-                        print("First Name or Last Name cannot be empty.")
                         throw AddFriendError.missingName
                     }
                     
@@ -286,7 +284,7 @@ struct AddFriendPage: View {
                 self.errorType = AddFriendError
                 errorAlert = true
             } catch {
-                print(error)
+                ViewLogger.error("AddFriendPage \(error)")
                 errorAlert = true
                 self.errorType = nil
             }

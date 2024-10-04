@@ -67,7 +67,7 @@ struct UpdateView: View {
             do {
                 prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
             } catch {
-                print("error retrieving")
+                ViewLogger.error("UpdateView error retrieving")
             }
         }
         .padding([.leading, .trailing], 20)

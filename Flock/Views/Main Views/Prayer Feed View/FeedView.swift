@@ -48,7 +48,6 @@ struct FeedView: View {
                     if viewModel.isFinished {
                         await viewModel.getPrayerRequests(user: userHolder.person, person: person)
                     }
-                    print("Success retrieving prayer requests for \(person.userID)")
                 }
             }, content: {
                 SubmitPostForm(person: person)
@@ -116,7 +115,6 @@ extension View {
                     Color.clear
                         .preference(key: HeightKey.self, value: geo.size.height)
                         .onPreferenceChange(HeightKey.self, perform: completion)
-                        .onAppear { print(geo.size.height) }
                 }
             }
     }
