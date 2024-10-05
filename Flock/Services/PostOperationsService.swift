@@ -193,7 +193,8 @@ class PostOperationsService {
                         "prayerRequestTitle": postTitle,
                         "latestUpdateText": "",
                         "latestUpdateDatePosted": datePosted,
-                        "latestUpdateType": ""
+                        "latestUpdateType": "",
+                        "lastSeenNotificationCount": 1 // this defaults to 1. once user takes action to view or select, notification goes to 0. if update is added, notification goes to +1.
                     ])
                 } // If you have friends and have set privacy to public, this will update all friends feeds.
             }
@@ -299,7 +300,7 @@ class PostOperationsService {
             db.collection("prayerRequests").document(post.id)
             try await ref3.delete()
             NetworkingLogger.debug("postOperations.deletePost.deleteFromPrayerRequests delete \(post.id)")
-        }catch {
+        } catch {
             NetworkingLogger.error("postOperations.deletePost.deleteFromPrayerRequests failed deleting \(post.id) \(error)")
         }
     }

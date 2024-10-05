@@ -60,7 +60,8 @@ class FeedService {
                 latestUpdateDatePosted: updateTimestamp.dateValue(),
                 latestUpdateType: data["latestUpdateType"] as? String ?? "",
                 privacy: data["privacy"] as? String ?? "private",
-                isPinned: data["isPinned"] as? Bool ?? false
+                isPinned: data["isPinned"] as? Bool ?? false,
+                lastSeenNotificationCount: data["lastSeenNotificationCount"] as? Int ?? 0
             )
 
             posts.append(post)

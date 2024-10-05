@@ -24,6 +24,7 @@ struct Post : Identifiable, Observable, Hashable {
     var latestUpdateType: String
     var privacy: String
     var isPinned: Bool
+    var lastSeenNotificationCount: Int = 0
 }
 
 extension Post {
