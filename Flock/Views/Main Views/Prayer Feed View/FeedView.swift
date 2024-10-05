@@ -50,7 +50,7 @@ struct FeedView: View {
                     }
                 }
             }, content: {
-                SubmitPostForm(person: person)
+                PostCreateView(person: person)
             })
             .toolbar() {
                 ToolbarItem(placement: .topBarLeading) {

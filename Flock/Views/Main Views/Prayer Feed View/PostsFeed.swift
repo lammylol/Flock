@@ -143,7 +143,7 @@ struct PostsFeed: View {
                 }
             }
         }, content: {
-            SubmitPostForm(person: person)
+            PostCreateView(person: person)
         })
     }
 }

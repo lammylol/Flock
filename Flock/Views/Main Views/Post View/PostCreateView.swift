@@ -9,7 +9,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct SubmitPostForm: View {
+struct PostCreateView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.colorScheme) var colorScheme

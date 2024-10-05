@@ -173,7 +173,7 @@ struct ProfileView: View {
                         }
                     }
                 }, content: {
-                    SubmitPostForm(person: person)
+                    PostCreateView(person: person)
                 })
                 .toolbar {
                     // Only show this if the account has been created under your userID. Aka, can be your profile or another that you have created for someone.

@@ -78,7 +78,7 @@ struct ProfileFeed: View {
                 }
             }
         }, content: {
-            SubmitPostForm(person: person)
+            PostCreateView(person: person)
         })
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
