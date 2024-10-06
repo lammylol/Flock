@@ -10,26 +10,54 @@ import SwiftUI
 struct CommentsView: View {
     let postID: String
     // @StateObject private var viewModel: CommentViewModel
-    @State private var viewModel: CommentViewModel = CommentViewModel()
-    @State private var newCommentText = ""
-    @Environment(UserProfileHolder.self) var userHolder
-    @FocusState private var isCommentFieldFocused: Bool
+    var isInSheet: Bool
+    @ObservedObject var viewModel: CommentViewModel
     
-    init(postID: String) {
-        self.postID = postID
-        //_viewModel = StateObject(wrappedValue: CommentViewModel())
-    }
+    @State private var newCommentText = ""
+    @FocusState private var isCommentFieldFocused: Bool
+    @Environment(UserProfileHolder.self) var userHolder
+    @Environment(\.presentationMode) var presentationMode
+    
+    @State private var viewModelUpdateCounter = 0
     
     var body: some View {
         VStack {
+            if isInSheet {
+                HStack {
+                    Button("Close") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                    Spacer()
+                    Text("Comments")
+                        .font(.headline)
+                    Spacer()
+                }
+                .padding()
+            }
+            
             commentsList
             
             errorView
             
             commentInputField
         }
-        .navigationTitle("Comments")
-        .task {
+        .navigationTitle(isInSheet ? "" : "Comments")
+        .onAppear {
+            print("CommentsView appeared for post \(postID)")
+            fetchCommentsIfNeeded()
+        }
+        .onChange(of: postID) { newID in
+            print("PostID changed to: \(newID)")
+            fetchCommentsIfNeeded()
+        }
+    }
+
+    private func fetchCommentsIfNeeded() {
+        guard !postID.isEmpty else {
+            print("PostID is empty, not fetching comments")
+            return
+        }
+        Task {
             await viewModel.fetchComments(for: postID)
         }
     }
@@ -50,7 +78,9 @@ struct CommentsView: View {
                 }
                 .listStyle(PlainListStyle())
                 .refreshable {
-                    await viewModel.refreshComments()
+                    Task {
+                        await viewModel.refreshComments()
+                    }
                 }
             }
         }
@@ -72,10 +102,18 @@ struct CommentsView: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .focused($isCommentFieldFocused)
                 .submitLabel(.send)
-                .onSubmit(postComment)
+                .onSubmit {
+                    Task {
+                        await postComment()
+                    }
+                }
             
-            Button("Post", action: postComment)
-                .disabled(isCommentTextEmpty)
+            Button("Post") {
+                Task {
+                    await postComment()
+                }
+            }
+            .disabled(isCommentTextEmpty)
         }
         .padding()
         .background(Color(.systemBackground))
@@ -86,13 +124,12 @@ struct CommentsView: View {
         newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    private func postComment() {
+    private func postComment() async {
         guard !isCommentTextEmpty else { return }
-        Task {
-            await viewModel.addComment(to: postID, text: newCommentText, person: userHolder.person)
-            newCommentText = ""
-            isCommentFieldFocused = false
-        }
+        await viewModel.addComment(to: postID, text: newCommentText, person: userHolder.person)
+        newCommentText = ""
+        isCommentFieldFocused = false
+        await viewModel.fetchComments(for: postID)
     }
 }
 

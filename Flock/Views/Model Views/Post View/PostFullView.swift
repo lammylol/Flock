@@ -24,12 +24,12 @@ struct PostFullView: View {
     @State private var isTruncated: Bool = false
     @State var lineLimit: Int = 6 // This is to set default setting for max lines shown, set as a var so a user can pass in .max if they are calling directly from the feed.
     
-    @StateObject private var commentViewModel: CommentViewModel = CommentViewModel()
-    @State private var newCommentText = ""
-    @FocusState private var isCommentFieldFocused: Bool
+    @StateObject private var commentViewModel = CommentViewModel()
+    // @State private var newCommentText = ""
+    // @FocusState private var isCommentFieldFocused: Bool
 
     @State private var isPostLoaded = false
-    @State private var scrollToComments = false
+    // @State private var scrollToComments = false
     
     var body: some View {
         ScrollViewReader { scrollProxy in
@@ -194,65 +194,24 @@ struct PostFullView: View {
                             .padding(.top, 7)
                     }
                     // Comment section
-                    VStack(alignment: .leading) {
-                        Text("Comments")
-                            .font(.headline)
-                            .padding(.top)
-
-                        if commentViewModel.isLoading {
-                            ProgressView()
-                        } else if commentViewModel.comments.isEmpty {
-                            Text("No comments yet.")
-                                .foregroundColor(.secondary)
-                        } else {
-                            ForEach(commentViewModel.comments) { comment in
-                                CommentRow(comment: comment)
-                            }
+                        if isPostLoaded {
+                            CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
+                                .padding()
+                                .id("commentsSection")
                         }
-
-                        HStack {
-                            TextField("Add a comment", text: $newCommentText)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .focused($isCommentFieldFocused)
-                            Button("Post") {
-                                postComment()
-                            }
-                            .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        }
-                        .padding(.top)
                     }
-                    .padding()
-                    .id("commentsSection")
-                }   
-            }    
-            .onChange(of: scrollToComments) { newValue in
-                if newValue {
-                    withAnimation {
-                        scrollProxy.scrollTo("commentsSection", anchor: .top)
-                    }
-                    scrollToComments = false
+                }
+                .task {
+                    await loadPost()
                 }
             }
-            .scrollIndicators(.hidden)
-            .padding([.leading, .trailing], 20)
-            .padding([.top, .bottom], 15)
-            .navigationTitle("Post")
-            .navigationBarTitleDisplayMode(.inline)
-            .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/, maxHeight: .infinity)
         }
-        .task {
-            await loadPost()
-            await commentViewModel.fetchComments(for: post.id)
-        }
-        .refreshable {
-            await refreshPost()
-        }
-    }
 
     private func refreshPost() async {
         await loadPost()
     }
     
+    /*
     private func postComment() {
         guard !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         Task {
@@ -264,6 +223,7 @@ struct PostFullView: View {
             await commentViewModel.fetchComments(for: post.id)
         }
     }
+    */
 
     private func loadPost() async {
         do {
@@ -272,9 +232,12 @@ struct PostFullView: View {
                 self.post = loadedPost
                 self.originalPost = loadedPost
                 self.originalPrivacy = loadedPost.privacy
+                self.isPostLoaded = true
+                print("Post loaded in PostFullView, id: \(self.post.id)")
             }
             await commentViewModel.fetchComments(for: loadedPost.id)
         } catch {
+            print("Error loading post: \(error)")
             DispatchQueue.main.async {
                 self.dismiss()
             }

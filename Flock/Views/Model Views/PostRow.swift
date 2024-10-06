@@ -23,6 +23,7 @@ struct PostRow: View {
     @State private var postExpandUpdate: Bool = false
     @State private var postIsTruncated: Bool = false
 
+    @StateObject private var commentViewModel = CommentViewModel()
     @State private var showComments = false
     
     var body: some View {
@@ -194,6 +195,7 @@ struct PostRow: View {
                             // technically no need for navigation link since you just click to go to the next page anyways.
                         } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
                         
+                        //comments
                         HStack {
                             Text(post.date, style: .date)
                                 .font(.system(size: 12))
@@ -216,7 +218,6 @@ struct PostRow: View {
                         }
                     }
                 }
-                .foregroundStyle(Color.primary)
             }
         }
         .id(UUID())
@@ -224,7 +225,14 @@ struct PostRow: View {
         .padding([.top, .bottom], 15)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showComments) {
-            CommentsView(postID: post.id)
+            CommentsView(postID: post.id, isInSheet: true, viewModel: commentViewModel)
+        }
+        .onChange(of: showComments) { newValue in
+            if newValue {
+                Task {
+                    await commentViewModel.fetchComments(for: post.id)
+                }
+            }
         }
     }
     
