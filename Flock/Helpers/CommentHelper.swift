@@ -26,6 +26,7 @@ class CommentHelper {
     
     // Retrieve comments for a post
     func getComments(for postID: String, limit: Int = 20, lastCommentDate: Date? = nil) async throws -> [Comment] {
+        print("CommentHelper: Getting comments for post ID: \(postID)")
         try validatePostID(postID)
         
         var query = db.collection("prayerRequests").document(postID).collection("comments")
@@ -36,8 +37,13 @@ class CommentHelper {
             query = query.start(after: [lastCommentDate])
         }
         
+        print("CommentHelper: Executing Firestore query")
         let snapshot = try await query.getDocuments()
-        return snapshot.documents.compactMap { try? $0.data(as: Comment.self) }
+        print("CommentHelper: Query completed, document count: \(snapshot.documents.count)")
+        
+        let comments = snapshot.documents.compactMap { try? $0.data(as: Comment.self) }
+        print("CommentHelper: Parsed \(comments.count) comments")
+        return comments
     }
     
     // Delete a comment

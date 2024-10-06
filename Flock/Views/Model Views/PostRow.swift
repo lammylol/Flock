@@ -224,7 +224,7 @@ struct PostRow: View {
         .padding([.top, .bottom], 15)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showComments) {
-            CommentsView(postID: post.id)
+            CommentsView(postID: post.id, isModal: true, isPresented: $showComments)
         }
     }
     

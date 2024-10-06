@@ -9,59 +9,39 @@ import SwiftUI
 
 struct CommentsView: View {
     let postID: String
-    // @StateObject private var viewModel: CommentViewModel
-    @State private var viewModel: CommentViewModel = CommentViewModel()
+    @StateObject private var viewModel: CommentViewModel
     @State private var newCommentText = ""
     @Environment(UserProfileHolder.self) var userHolder
     @FocusState private var isCommentFieldFocused: Bool
+    var isModal: Bool = false
+    @Binding var isPresented: Bool
     
-    init(postID: String) {
+    init(postID: String, isModal: Bool = false, isPresented: Binding<Bool> = .constant(true)) {
         self.postID = postID
-        //_viewModel = StateObject(wrappedValue: CommentViewModel())
+        self.isModal = isModal
+        self._isPresented = isPresented
+        self._viewModel = StateObject(wrappedValue: CommentViewModel())
     }
     
     var body: some View {
         VStack {
-            commentsList
-            
-            errorView
+            if viewModel.isLoading {
+                ProgressView("Loading comments...")
+            } else if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+            } else {
+                List(viewModel.comments) { comment in
+                    CommentRowView(comment: comment)
+                }
+                .listStyle(PlainListStyle())
+            }
             
             commentInputField
         }
-        .navigationTitle("Comments")
-        .task {
-            await viewModel.fetchComments(for: postID)
-        }
-    }
-    
-    private var commentsList: some View {
-        Group {
-            if viewModel.isLoading {
-                ProgressView()
-            } else if viewModel.comments.isEmpty {
-                Text("No comments yet. Be the first to comment!")
-                    .foregroundColor(.secondary)
-                    .padding()
-            } else {
-                List {
-                    ForEach(viewModel.comments) { comment in
-                        CommentRow(comment: comment)
-                    }
-                }
-                .listStyle(PlainListStyle())
-                .refreshable {
-                    await viewModel.refreshComments()
-                }
-            }
-        }
-    }
-    
-    private var errorView: some View {
-        Group {
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .padding(.horizontal)
+        .onAppear {
+            Task {
+                await viewModel.fetchComments(for: postID)
             }
         }
     }
@@ -75,19 +55,12 @@ struct CommentsView: View {
                 .onSubmit(postComment)
             
             Button("Post", action: postComment)
-                .disabled(isCommentTextEmpty)
+                .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding()
-        .background(Color(.systemBackground))
-        .shadow(radius: 2)
-    }
-    
-    private var isCommentTextEmpty: Bool {
-        newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     private func postComment() {
-        guard !isCommentTextEmpty else { return }
         Task {
             await viewModel.addComment(to: postID, text: newCommentText, person: userHolder.person)
             newCommentText = ""
@@ -96,19 +69,17 @@ struct CommentsView: View {
     }
 }
 
-struct CommentRow: View {
+struct CommentRowView: View {
     let comment: Comment
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 4) {
             Text(comment.username)
                 .font(.headline)
             Text(comment.text)
-                .font(.body)
             Text(comment.createdAt, style: .relative)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 5)
     }
 }

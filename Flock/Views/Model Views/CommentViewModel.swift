@@ -18,29 +18,22 @@ class CommentViewModel: ObservableObject {
     private var currentPostID: String?
     
     func fetchComments(for postID: String) async {
-        guard !isLoading else { return }
-        
         DispatchQueue.main.async {
-            self.isLoading = true
+            self.isLoading = true              // Set loading state to true when fetching starts
             self.errorMessage = nil
         }
-        currentPostID = postID
-        
+
         do {
             let fetchedComments = try await commentHelper.getComments(for: postID)
             DispatchQueue.main.async {
-                self.comments = fetchedComments.sorted { $0.createdAt < $1.createdAt }
-                self.isLoading = false
+                self.comments = fetchedComments // Update comments on the main thread
+                self.isLoading = false          // Reset loading state when fetching completes
             }
         } catch {
             DispatchQueue.main.async {
-                self.errorMessage = "Failed to fetch comments: \(error.localizedDescription)"
+                self.errorMessage = "Failed to load comments: \(error.localizedDescription)"  // Handle fetch errors
                 self.isLoading = false
             }
-        }
-        
-        DispatchQueue.main.async {
-            self.isLoading = false
         }
     }
     
