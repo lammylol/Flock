@@ -106,11 +106,7 @@ class PostUpdateHelper {
         // For resetting latest date and latest text.
         let latestUpdate = getLatestUpdate(post: post, updates: updatesArray) // logic to determine the latest update date, text, and type by comparing against the full array of updates.
         if latestUpdate.0 < post.latestUpdateDatePosted {
-            if lastSeenNotificationCount > 0 {
-                lastSeenNotificationCount -= 1
-            } else {
-                lastSeenNotificationCount = 0 // Ensuring it's not negative
-            }
+            lastSeenNotificationCount = max(post.lastSeenNotificationCount - 1, 0) // ensures if it's negative, it returns 0.
         }
         let latestUpdateDatePosted = latestUpdate.0
         let latestUpdateText = latestUpdate.1

@@ -45,7 +45,8 @@ extension Post {
             latestUpdateDatePosted: Date(),
             latestUpdateType: "Update",
             privacy: "private",
-            isPinned: true
+            isPinned: true,
+            lastSeenNotificationCount: 1
         )
         return item
     }

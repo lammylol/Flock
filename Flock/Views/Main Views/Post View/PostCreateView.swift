@@ -159,7 +159,7 @@ struct PostCreateView: View {
                     dismiss()
                 }
             } catch {
-                ViewLogger.error("SubmitPostForm.submitPost failed \(error)")
+                ViewLogger.error("PostCreateView.submitPost failed \(error)")
             }
         }
     }

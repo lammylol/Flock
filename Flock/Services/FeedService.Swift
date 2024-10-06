@@ -182,4 +182,17 @@ class FeedService {
             NetworkingLogger.error("FeedService.publicToPrivate failed \(error)")
         }
     } // This function allows you to pass in a prayer request and delete that from friends' feeds if you have changed it from public to private.
+    
+    func updateLastSeenNotificationCount(post: Post, person: Person) async throws {
+        do {
+//            let lastSeenNotificationCount = max(post.lastSeenNotificationCount - 1, 0)
+            
+            let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
+            try await ref.setData([
+                "lastSeenNotificationCount": 0 // always return to 0 once it's seen, since user is pulling up the full update list
+            ])
+        } catch {
+            NetworkingLogger.error("FeedService.updateLastNotificationCount failed \(error)")
+        }
+    } // This function allows you to pass in a prayer request and delete that from friends' feeds if you have changed it from public to private.
 }
