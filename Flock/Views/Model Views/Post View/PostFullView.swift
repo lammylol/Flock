@@ -28,7 +28,7 @@ struct PostFullView: View {
     @State private var newCommentText = ""
     @FocusState private var isCommentFieldFocused: Bool
 
-    @State private var showComments = false
+    @State private var isPostLoaded = false
     @State private var scrollToComments = false
     
     var body: some View {
@@ -194,71 +194,43 @@ struct PostFullView: View {
                             .padding(.top, 7)
                     }
                     // Comment section
+                    VStack(alignment: .leading) {
+                        Text("Comments")
+                            .font(.headline)
+                            .padding(.top)
+
+                        if commentViewModel.isLoading {
+                            ProgressView()
+                        } else if commentViewModel.comments.isEmpty {
+                            Text("No comments yet.")
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(commentViewModel.comments) { comment in
+                                CommentRow(comment: comment)
+                            }
+                        }
+
                         HStack {
-                            Spacer()
-                            Button(action: {
-                                withAnimation {
-                                    showComments.toggle()
-                                    if showComments {
-                                        Task {
-                                            await commentViewModel.fetchComments(for: post.id)
-                                            scrollToComments = true
-                                        }
-                                    }
-                                }
-                            }) {
-                                HStack {
-                                    Image(systemName: "bubble.left")
-                                    Text(showComments ? "Hide Comments" : "Show Comments")
-                                }
-                                .font(.footnote)
-                                .padding(6)
-                                .background(Color.secondary.opacity(0.1))
-                                .cornerRadius(8)
+                            TextField("Add a comment", text: $newCommentText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .focused($isCommentFieldFocused)
+                            Button("Post") {
+                                postComment()
                             }
-                            .buttonStyle(PlainButtonStyle())
-                            .padding(.top, 7)
+                            .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
-
-                        if showComments {
-                            VStack(alignment: .leading) {
-                                Text("Comments")
-                                    .font(.headline)
-                                    .padding(.top)
-
-                                if commentViewModel.isLoading {
-                                    ProgressView()
-                                } else if commentViewModel.comments.isEmpty {
-                                    Text("No comments yet.")
-                                        .foregroundColor(.secondary)
-                                } else {
-                                    ForEach(commentViewModel.comments) { comment in
-                                        CommentRow(comment: comment)
-                                    }
-                                }
-
-                                HStack {
-                                    TextField("Add a comment", text: $newCommentText)
-                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                        .focused($isCommentFieldFocused)
-                                    Button("Post") {
-                                        postComment()
-                                    }
-                                    .disabled(newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                }
-                                .padding(.top)
-                            }
-                            .padding()
-                            .id("commentsSection")
-                        }
+                        .padding(.top)
                     }
-                }
-                .onChange(of: scrollToComments) { newValue in
-                    if newValue {
-                        withAnimation {
-                            scrollProxy.scrollTo("commentsSection", anchor: .top)
-                        }
-                        scrollToComments = false
+                    .padding()
+                    .id("commentsSection")
+                }   
+            }    
+            .onChange(of: scrollToComments) { newValue in
+                if newValue {
+                    withAnimation {
+                        scrollProxy.scrollTo("commentsSection", anchor: .top)
+                    }
+                    scrollToComments = false
                 }
             }
             .scrollIndicators(.hidden)
@@ -270,9 +242,7 @@ struct PostFullView: View {
         }
         .task {
             await loadPost()
-            if showComments {
-                scrollToComments = true
-            }
+            await commentViewModel.fetchComments(for: post.id)
         }
         .refreshable {
             await refreshPost()
@@ -281,7 +251,6 @@ struct PostFullView: View {
 
     private func refreshPost() async {
         await loadPost()
-        await commentViewModel.refreshComments()
     }
     
     private func postComment() {
@@ -292,6 +261,7 @@ struct PostFullView: View {
                 self.newCommentText = ""
                 self.isCommentFieldFocused = false
             }
+            await commentViewModel.fetchComments(for: post.id)
         }
     }
 
@@ -303,6 +273,7 @@ struct PostFullView: View {
                 self.originalPost = loadedPost
                 self.originalPrivacy = loadedPost.privacy
             }
+            await commentViewModel.fetchComments(for: loadedPost.id)
         } catch {
             DispatchQueue.main.async {
                 self.dismiss()

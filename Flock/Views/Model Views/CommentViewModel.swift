@@ -29,11 +29,13 @@ class CommentViewModel: ObservableObject {
         do {
             let fetchedComments = try await commentHelper.getComments(for: postID)
             DispatchQueue.main.async {
-                self.comments = fetchedComments
+                self.comments = fetchedComments.sorted { $0.createdAt < $1.createdAt }
+                self.isLoading = false
             }
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Failed to fetch comments: \(error.localizedDescription)"
+                self.isLoading = false
             }
         }
         
