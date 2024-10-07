@@ -35,6 +35,7 @@ struct FeedView: View {
                             }
                         }
                     })
+                    .padding(.horizontal, 25)
             }
             .refreshable {
                 Task {

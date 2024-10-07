@@ -206,7 +206,6 @@ struct PostRow: View {
             .foregroundStyle(Color.primary)
         }
         .id(UUID())
-        .padding([.leading, .trailing], 30)
         .padding([.top, .bottom], 15)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
