@@ -94,12 +94,8 @@ struct PostEditView: View {
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: savePost) {
-                    tagModelView(textLabel: "Save", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                    tagModelView(textLabel: "Save", textSize: 14, foregroundColor: .white, backgroundColor: .blue, cornerRadius: 15)
                 }
-//                    .font(.system(size: 14).bold())
-//                    .foregroundColor(.white)
-//                    .padding(5)
-//                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.blue))
             }
         }
     }
@@ -130,7 +126,10 @@ struct PostEditView: View {
                     try await FeedService().publicToPrivate(post: post, friendsList: friendRequestListener.acceptedFriendRequests)
                 }
                 try await PostOperationsService().editPost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
-                dismiss()
+                
+                DispatchQueue.main.async {
+                    dismiss()
+                }
             } catch {
                 ViewLogger.error("Error saving post: \(error)")
             }
@@ -142,7 +141,10 @@ struct PostEditView: View {
             do {
                 try await PostOperationsService().deletePost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
                 userHolder.refresh = true
-                dismiss()
+                
+                DispatchQueue.main.async {
+                    dismiss()
+                }
             } catch {
                 ViewLogger.error("Error deleting post: \(error)")
             }
