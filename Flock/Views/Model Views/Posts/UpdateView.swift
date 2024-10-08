@@ -14,7 +14,7 @@ struct UpdateView: View {
     @State private var expandUpdate: Bool = false
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             ScrollView {
                 VStack {
                     if prayerRequestUpdates.count > 0 {

@@ -26,7 +26,7 @@ struct PostRow: View {
     
     var body: some View {
         NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post)) {
-            LazyVStack{
+            LazyVStack {
                 HStack {
                     if viewModel.profileOrFeed == "feed" { //feed used in the feed view
                         VStack() {
@@ -94,7 +94,7 @@ struct PostRow: View {
                     Group {
                         // Latest Update Banner.
                         if post.latestUpdateText != "" {
-                            VStack (alignment: .leading) {
+                            VStack (alignment: .leading, spacing: 10) {
                                 HStack {
                                     Text("**Latest \(post.latestUpdateType)**:")
                                         .padding(.bottom, -4)
@@ -124,13 +124,11 @@ struct PostRow: View {
                                         }
                                 }
                                 .font(.system(size: 16))
-                                .padding(.top, 7)
                                 .multilineTextAlignment(.leading)
                                 
                                 if isTruncated {
-                                    NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post, lineLimit: .max)) {
+                                    NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post)) {
                                         Text(expandUpdate ? "Show Less" : "Show More")
-                                            .italic()
                                             .foregroundStyle(Color.blue)
                                             .font(.system(size: 14))
                                     }
@@ -140,8 +138,8 @@ struct PostRow: View {
                             .padding(.all, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(scheme == .light ? .gray : .clear)
-                                    .stroke(scheme == .light ? .clear : .white, lineWidth: 2)
+                                    .fill(scheme == .light ? Color.gray : Color.clear) // Use Color to conform to ShapeStyle
+                                    .stroke(scheme == .light ? Color.clear : Color.white, lineWidth: 2)
                                     .opacity(0.06)
                             )
                             .foregroundStyle(Color.primary)

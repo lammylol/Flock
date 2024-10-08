@@ -20,6 +20,7 @@ import FirebaseFirestore
     var viewState: ViewState?
     var queryCount: Int = 0
     var profileOrFeed: String = ""
+//    var pinnedPosts: [Post] = []
     
     var feedService = FeedService()
     
@@ -55,10 +56,10 @@ import FirebaseFirestore
 //        self.selectedStatus = option
         self.lastDocument = nil
         self.prayerRequests = []
-        await self.getPrayerRequests(user: user, person: person)
+        await self.getPosts(user: user, person: person)
     }
     
-    func getPrayerRequests(user: Person, person: Person) async {
+    func getPosts(user: Person, person: Person) async {
         do {
             viewState = .loading
             defer { viewState = .finished }
@@ -72,13 +73,27 @@ import FirebaseFirestore
                 self.lastDocument = lastDocument
             }
             
-            ModelLogger.debug("FeedViewModel.getPrayerRequest last document \(lastDocument?.documentID ?? "n/a")")
+            ModelLogger.debug("FeedViewModel.getPost last document \(lastDocument?.documentID ?? "n/a")")
         } catch {
-            ModelLogger.error("FeedViewModel.getPrayerRequest failed \(error)")
+            ModelLogger.error("FeedViewModel.getPosts failed \(error)")
         }
     }
     
-    func getNextPrayerRequests(user: Person, person: Person, profileOrFeed: String) async {
+//    func getPinnedPosts(user: Person, person: Person) async {
+//        do {
+//            let (newPosts, lastDocument) = try await feedService.getPostFeed(user: user, person: person, answeredFilter: "pinned", count: 100, lastDocument: nil, profileOrFeed: profileOrFeed)
+//            
+//            pinnedPosts = newPosts
+//            // not adding 'last document' yet. Assuming pinned posts will never get that long.
+//            
+//            ModelLogger.debug("FeedViewModel.getPinnedPosts last document \(lastDocument?.documentID ?? "n/a")")
+//        } catch {
+//            ModelLogger.error("FeedViewModel.getPinnedPosts failed \(error)")
+//        }
+//        
+//    }
+    
+    func getNextPosts(user: Person, person: Person, profileOrFeed: String) async {
         
         guard queryCount == 10 else { return }
             

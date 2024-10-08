@@ -18,6 +18,7 @@ struct ProfileView: View {
     @State public var person: Person
     @State private var showSubmit = false
     @State private var viewModel = FeedViewModel(profileOrFeed: "profile")
+    @State private var pinnedPostsViewModel = FeedViewModel(profileOrFeed: "profile")
     @State private var navigationPath = NavigationPath()
     @State private var addFriendConfirmation = false
     
@@ -83,7 +84,7 @@ struct ProfileView: View {
             }
             VStack {
                 HStack {
-                    sectionHeader(title: person.username == userHolder.person.username ? "My Posts" : "\(person.firstName)'s Posts")
+                    sectionHeader(systemImage: Image(systemName: "newspaper.fill"), title: person.username == userHolder.person.username ? "My Posts" : "\(person.firstName)'s Posts", fontWeight: .medium)
                     Spacer()
                     HStack {
                         if viewModel.selectedStatus == .noLongerNeeded {
@@ -99,7 +100,7 @@ struct ProfileView: View {
                             .onChange(of: viewModel.selectedStatus, {
                                 Task {
                                     if !viewModel.isFetching || !viewModel.isLoading {
-                                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                                        await viewModel.getPosts(user: userHolder.person, person: person)
                                     }
                                 }
                             })
@@ -235,7 +236,7 @@ struct ProfileView: View {
     
     private func refreshPosts() async {
         if viewModel.isFinished {
-            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+            await viewModel.getPosts(user: userHolder.person, person: person)
         }
     }
     
@@ -255,7 +256,7 @@ struct ProfileView: View {
         Task {
             friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
             person.friendState = "approved"
-            await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+            await viewModel.getPosts(user: userHolder.person, person: person)
         }
     }
     

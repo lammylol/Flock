@@ -35,7 +35,7 @@ struct PostsFeed: View {
                         }
                         .task {
                             if viewModel.hasReachedEnd(of: prayerRequest) && !viewModel.isFetching {
-                                await viewModel.getNextPrayerRequests(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
+                                await viewModel.getNextPosts(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
                             }
                         }
                     }
@@ -49,7 +49,7 @@ struct PostsFeed: View {
                     if person.friendState == "sent" || person.friendState == "pending" {
                         return
                     }
-                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                    await viewModel.getPosts(user: userHolder.person, person: person)
                     self.viewModel.prayerRequests = viewModel.prayerRequests
                 }
             }
@@ -135,7 +135,7 @@ struct PostsFeed: View {
                     self.person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        await viewModel.getPosts(user: userHolder.person, person: person)
                         self.viewModel.prayerRequests = viewModel.prayerRequests
                     }
                 } catch {

@@ -29,7 +29,7 @@ struct PostCard: View {
                     Text(post.postTitle)
                         .font(.system(size: 16))
                         .multilineTextAlignment(.leading)
-                        .bold()
+                        .fontWeight(.medium)
                     Spacer()
                 }
                 Spacer()
@@ -78,8 +78,8 @@ struct PostCard: View {
         }
     }
 }
-
-#Preview {
-    PostCard(post: Post.preview)
-        .environment(UserProfileHolder())
-}
+//
+//#Preview {
+//    PostCard(post: Post.preview)
+//        .environment(UserProfileHolder())
+//}

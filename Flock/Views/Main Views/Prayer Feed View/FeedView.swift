@@ -31,7 +31,7 @@ struct FeedView: View {
                     .onChange(of: viewModel.selectedStatus, {
                         Task {
                             if !viewModel.isFetching || !viewModel.isLoading {
-                                await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                                await viewModel.getPosts(user: userHolder.person, person: person)
                             }
                         }
                     })
@@ -40,14 +40,14 @@ struct FeedView: View {
             .refreshable {
                 Task {
                     if viewModel.isFinished {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        await viewModel.getPosts(user: userHolder.person, person: person)
                     }
                 }
             }
             .sheet(isPresented: $showSubmit, onDismiss: {
                 Task {
                     if viewModel.isFinished {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        await viewModel.getPosts(user: userHolder.person, person: person)
                     }
                 }
             }, content: {
