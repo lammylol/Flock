@@ -9,22 +9,29 @@ import SwiftUI
 
 struct PostCard: View {
     @Environment(UserProfileHolder.self) var userHolder
-    var post: Post
+    
+    @State var post: Post
+    
     var feedService = FeedService()
     
     var body: some View {
         ZStack {
             VStack {
                 HStack {
-                    ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 18, fontSize: 8)
+                    ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 24, fontSize: 12)
                     Text(post.firstName.capitalized)
                         .bold()
-                        .font(.system(size: 14))
+                        .font(.system(size: 16))
                     Spacer()
                 }
                 .padding(.bottom, 10)
-                Text(post.postTitle)
-                    .font(.system(size: 12))
+                HStack{
+                    Text(post.postTitle)
+                        .font(.system(size: 16))
+                        .multilineTextAlignment(.leading)
+                        .bold()
+                    Spacer()
+                }
                 Spacer()
                 if post.lastSeenNotificationCount > 0 {
                     NavigationLink(destination: UpdateView(post: post, person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName))
@@ -36,30 +43,29 @@ struct PostCard: View {
                     }
                 }
             }
-            .frame(width: 117, height: 160)
-            .padding(.horizontal, 15)
-            .padding(.vertical, 15)
+            .frame(width: 110, height: 150)
+            .padding(15)
             
-            HStack {
+            if post.lastSeenNotificationCount > 0 {
                 Text("\(post.lastSeenNotificationCount)")
                     .font(.system(size: 16))
-                    .padding(.all, 10)
+                    .padding(10)
                     .background {
                         Circle()
                             .fill(.red)
                             .frame(width: 32, height: 32)
                     }
                     .foregroundStyle(.white)
+                    .offset(x: 65, y: -90)
             }
-            .offset(x: 65, y: -90)
-            
         }
         .background {
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.gray)
                 .opacity(0.10)
         }
-        .padding(.top, 20)
+        .frame(maxWidth: .infinity)
+        .frame(height: 200)
     }
     
     func updateLastSeenNotificationCount() {

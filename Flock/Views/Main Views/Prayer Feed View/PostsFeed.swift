@@ -22,7 +22,7 @@ struct PostsFeed: View {
         ZStack {
             (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea() // sets background color.
                 
-            if viewModel.isLoading/* && !userHolder.refresh*/ {
+            if viewModel.isLoading {
                 ProgressView()
             } else {
                 LazyVStack {
