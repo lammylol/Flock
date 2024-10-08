@@ -142,7 +142,7 @@ struct CreateProfileView: View {
                     
                     if error != nil {
                         errorMessage = error!.localizedDescription
-                        ViewLogger.error("CreateProfileViews \(error!.localizedDescription.localizedLowercase)")
+                        ViewLogger.error("CreateProfileViews create profile error: \(error)")
                     } else {
                         Task {
                             userHolder.viewState = .loading
