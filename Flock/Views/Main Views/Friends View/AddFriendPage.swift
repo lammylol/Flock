@@ -26,7 +26,7 @@ struct AddFriendPage: View {
     var preName: String = ""
     
     var body: some View {
-        NavigationStack{
+        NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 15) {
                     // Public Friend - Search by Username
@@ -243,6 +243,7 @@ struct AddFriendPage: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden(true)
             .padding(.horizontal, 20)
+            .scrollIndicators(.hidden)
         }
     }
     

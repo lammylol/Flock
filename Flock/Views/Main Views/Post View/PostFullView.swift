@@ -14,7 +14,7 @@ struct PostFullView: View {
     
     @State var postUpdates: [PostUpdate] = []
     @State var person: Person
-    @State var post: Post = Post.blank
+    @State var post: Post = Post()
     @State var lineLimit: Int = 6
     @Binding var originalPost: Post
     @State var showAddUpdateView: Bool = false
@@ -35,8 +35,8 @@ struct PostFullView: View {
                     Spacer()
                 }
             }
-            .task(loadPost)
-            .refreshable(action: refreshPost)
+            .task{ loadPost() }
+            .refreshable(action: refreshPost )
             .scrollIndicators(.hidden)
             .padding(.horizontal, 20)
             .padding(.vertical, 15)
@@ -111,7 +111,10 @@ struct PostFullView: View {
     private func postOptionsMenu() -> some View {
         Menu {
             if person.userID == userHolder.person.userID {
-                NavigationLink(destination: PostEditView(person: person, post: post)) {
+                NavigationLink(destination: PostEditView(person: person, post: post)
+                    .onDisappear {
+                        refreshPost()
+                }) {
                     Label("Edit Post", systemImage: "pencil")
                 }
             }
@@ -157,13 +160,7 @@ struct PostFullView: View {
     }
     
     private func loadPost() {
-        Task {
-            do {
-                post = try await PostOperationsService().getPost(prayerRequest: originalPost)
-                originalPost = post
-                originalPrivacy = post.privacy
-            } catch { dismiss() }
-        }
+        post = originalPost
     }
     
     private func refreshPost() {

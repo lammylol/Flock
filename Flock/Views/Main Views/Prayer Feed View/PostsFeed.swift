@@ -49,7 +49,11 @@ struct PostsFeed: View {
                     if person.friendState == "sent" || person.friendState == "pending" {
                         return
                     }
-                    await viewModel.getPosts(user: userHolder.person, person: person)
+                    do {
+                        try await viewModel.getPosts(user: userHolder.person, person: person)
+                    } catch {
+                        ViewLogger.error("PostsFeed viewModel.getPosts \(error.localizedDescription)")
+                    }
                     self.viewModel.prayerRequests = viewModel.prayerRequests
                 }
             }
@@ -135,7 +139,7 @@ struct PostsFeed: View {
                     self.person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
-                        await viewModel.getPosts(user: userHolder.person, person: person)
+                        try await viewModel.getPosts(user: userHolder.person, person: person)
                         self.viewModel.prayerRequests = viewModel.prayerRequests
                     }
                 } catch {
