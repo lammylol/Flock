@@ -47,7 +47,6 @@ class UserService { // Functions related to user information
             friendState = "private"
         } else { // If username exists, then request user document from firestore off of the username.
             do {
-//                let ref = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").whereField("username", isEqualTo: person.username).getDocuments()
                 let document = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").document(person.userID).getDocument()
                 
 //                for document in ref.documents {
