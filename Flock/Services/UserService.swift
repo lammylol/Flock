@@ -57,7 +57,7 @@ class UserService { // Functions related to user information
                     lastName = document.get("lastName") as? String ?? ""
                     friendState = document.get("state") as? String ?? ""
                 } else {
-                    throw PrayerPersonRetrievalError.noUsername
+                    throw PersonRetrievalError.noUsername
                 }
 //                }
             } catch {

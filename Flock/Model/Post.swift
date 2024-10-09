@@ -10,20 +10,20 @@ import SwiftUI
 
 struct Post : Identifiable, Observable, Hashable {
     var id: String = ""
-    var date: Date
-    var userID: String
-    var username: String
-    var firstName: String
-    var lastName: String
-    var postTitle: String
-    var postText: String
-    var postType: String
-    var status: String
-    var latestUpdateText: String
-    var latestUpdateDatePosted: Date
-    var latestUpdateType: String
-    var privacy: String
-    var isPinned: Bool
+    var date: Date = Date()
+    var userID: String = ""
+    var username: String = ""
+    var firstName: String = ""
+    var lastName: String = ""
+    var postTitle: String = ""
+    var postText: String = ""
+    var postType: String = ""
+    var status: String = ""
+    var latestUpdateText: String = ""
+    var latestUpdateDatePosted: Date = Date()
+    var latestUpdateType: String = ""
+    var privacy: String = ""
+    var isPinned: Bool = false
     var lastSeenNotificationCount: Int = 0
 }
 

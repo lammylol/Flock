@@ -92,7 +92,7 @@ struct PrayerNameInputView: View {
                 
                 try await submitPrayerList(inputText: prayerList, prayStartDate: prayStartDate, userHolder: userHolder, existingInput: userHolder.prayerList)
                 
-            } catch PrayerPersonRetrievalError.incorrectUsername {
+            } catch PersonRetrievalError.incorrectUsername {
                 saved = "invalid username entered"
             } catch {
                 ViewLogger.error("PrayerNameInputView error: \(error.localizedDescription)")
@@ -130,7 +130,7 @@ struct PrayerNameInputView: View {
             if !usernameOrName.contains("/") {
                 do {
                     try await userService.retrieveUserInfoFromUserID(person: Person(username: usernameOrName), userHolder: userHolder)
-                } catch PrayerPersonRetrievalError.noUsername {
+                } catch PersonRetrievalError.noUsername {
                     saved = "\(String(usernameOrName.split(separator: "/").first ?? "")) has not been added as a friend yet. Please add them first as a friend before adding them to your calendar."
                 } catch {
                     ViewLogger.error("PrayerNameInputView submitPrayerList\(error)")

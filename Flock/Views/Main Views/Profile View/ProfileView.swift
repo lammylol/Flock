@@ -100,7 +100,7 @@ struct ProfileView: View {
                             .onChange(of: viewModel.selectedStatus, {
                                 Task {
                                     if !viewModel.isFetching || !viewModel.isLoading {
-                                        await viewModel.getPosts(user: userHolder.person, person: person)
+                                        try await viewModel.getPosts(user: userHolder.person, person: person)
                                     }
                                 }
                             })
@@ -236,7 +236,11 @@ struct ProfileView: View {
     
     private func refreshPosts() async {
         if viewModel.isFinished {
-            await viewModel.getPosts(user: userHolder.person, person: person)
+            do {
+                try await viewModel.getPosts(user: userHolder.person, person: person)
+            } catch {
+                ViewLogger.error("ProfileView \(error)")
+            }
         }
     }
     
@@ -256,7 +260,7 @@ struct ProfileView: View {
         Task {
             friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
             person.friendState = "approved"
-            await viewModel.getPosts(user: userHolder.person, person: person)
+            try await viewModel.getPosts(user: userHolder.person, person: person)
         }
     }
     

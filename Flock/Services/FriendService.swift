@@ -28,7 +28,7 @@ class FriendService {
                 }
             }
         } catch {
-            throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
+            throw PersonRetrievalError.errorRetrievingFromFirebase
         }
     }
     
@@ -95,7 +95,7 @@ class FriendService {
         var pendingFriendsList: [Person] = []
         
         guard userID != "" else {
-            throw PrayerPersonRetrievalError.noUserID
+            throw PersonRetrievalError.noUserID
         }
         
         let friendsListRef = db.collection("users").document(userID).collection("friendsList")
