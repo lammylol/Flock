@@ -9,7 +9,7 @@
 
 import Foundation
 
-enum PrayerPersonRetrievalError: Error {
+enum PersonRetrievalError: Error {
     case noUsername
     case incorrectUsername
     case errorRetrievingFromFirebase

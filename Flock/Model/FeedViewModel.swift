@@ -56,13 +56,18 @@ import FirebaseFirestore
 //        self.selectedStatus = option
         self.lastDocument = nil
         self.prayerRequests = []
-        await self.getPosts(user: user, person: person)
+        try await self.getPosts(user: user, person: person)
     }
     
-    func getPosts(user: Person, person: Person) async {
+    func getPosts(user: Person, person: Person) async throws {
         do {
             viewState = .loading
             defer { viewState = .finished }
+            
+            // Validate user ID or person ID before making Firestore calls
+            guard !user.userID.isEmpty else {
+                throw PersonRetrievalError.noUserID
+            }
             
             let (newPrayerRequests, lastDocument) = try await feedService.getPostFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: nil, profileOrFeed: profileOrFeed)
             
