@@ -41,7 +41,7 @@ class UserService { // Functions related to user information
         var firstName = person.firstName
         var lastName = person.lastName
         var friendState = person.friendState
-    
+        
         if person.isPrivateFriend || person.username == "" { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
             userID = userHolder.person.userID
             friendState = "private"
@@ -55,10 +55,7 @@ class UserService { // Functions related to user information
                     firstName = document.get("firstName") as? String ?? ""
                     lastName = document.get("lastName") as? String ?? ""
                     friendState = document.get("state") as? String ?? ""
-                } else {
-                    throw PersonRetrievalError.noUsername
                 }
-//                }
             } catch {
                 NetworkingLogger.error("userService.retrieveUserInfoFromUserID failed \(error)")
             }
