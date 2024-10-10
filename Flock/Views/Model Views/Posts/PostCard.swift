@@ -27,15 +27,18 @@ struct PostCard: View {
                     Text(post.firstName.capitalized)
                         .bold()
                         .font(.system(size: 16))
+                        .minimumScaleFactor(0.2)
+                        .lineLimit(1)
                     Spacer()
                     if isPinned { Image(systemName: "pin.fill").font(.system(size: 12))}
                 }
                 .padding(.bottom, 10)
                 HStack{
                     Text(post.postTitle)
-                        .font(.system(size: 16))
+                        .font(.system(size: 18))
                         .multilineTextAlignment(.leading)
-                        .fontWeight(.medium)
+                        .fontWeight(.regular)
+                        .minimumScaleFactor(0.5)
                     Spacer()
                 }
                 Spacer()

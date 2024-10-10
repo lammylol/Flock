@@ -21,7 +21,7 @@ struct PostCardLayout: View {
     var body: some View {
         if !isExpanded {
             ScrollView (.horizontal) {
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     ForEach(posts) { post in
                         Button {
                             // Navigate to post detail

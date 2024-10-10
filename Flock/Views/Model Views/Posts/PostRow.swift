@@ -136,12 +136,7 @@ struct PostRow: View {
                                 
                             }
                             .padding(.all, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(scheme == .light ? Color.gray : Color.clear) // Use Color to conform to ShapeStyle
-                                    .stroke(scheme == .light ? Color.clear : Color.white, lineWidth: 2)
-                                    .opacity(0.06)
-                            )
+                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.gray).opacity(0.06))
                             .foregroundStyle(Color.primary)
                             .padding(.vertical, 7)// Group for latest banner with truncation methodology.
                         }
