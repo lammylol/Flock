@@ -50,8 +50,10 @@ struct PostRow: View {
                     }
                     
                     VStack(alignment: .leading) {
-                        HStack() {
-                            Text(post.firstName.capitalized + " " + post.lastName.capitalized).font(.system(size: 18)).bold()
+                        HStack {
+                            Text(post.firstName.capitalized + " " + post.lastName.capitalized)
+                                .font(.system(size: 18))
+                                .bold()
                             Spacer()
                             if post.isPinned == true {
                                 Image(systemName: "pin.fill")
@@ -79,6 +81,7 @@ struct PostRow: View {
                         }
                         .font(.system(size: 13))
                         .padding(.bottom, 2)
+                        
                         HStack {
                             if post.postType == "Prayer Request" {
                                 Text("Prayer Request: ").font(.system(size: 12)) + Text(post.status.capitalized).font(.system(size: 12)).bold()
@@ -212,6 +215,7 @@ struct PostRow: View {
                     }
                 }
             }
+            .foregroundStyle(Color.primary) // make all text primary, instead of traditional 'blue' provided by Swift for Navigation Links.
         }
         .id(UUID())
         .padding([.top, .bottom], 15)
