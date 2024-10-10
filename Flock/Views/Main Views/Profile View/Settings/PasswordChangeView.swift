@@ -39,7 +39,6 @@ struct ProfileSettingsChangePasswordView: View {
                         try changePassword(currentPassword: currentPassword, newPassword: newPassword)
                         userHolder.userPassword = newPassword
                         errorText = "Password successfully changed."
-                        print("Password successfully changed.")
                         currentPassword = ""
                         newPassword = ""
                     } catch PasswordChangeError.wrongCurrentPassword {
@@ -47,7 +46,7 @@ struct ProfileSettingsChangePasswordView: View {
                     } catch PasswordChangeError.invalidNewPasswordLength {
                         errorText = "New password must be longer than 8 letters."
                     } catch {
-                        print(error)
+                        ViewLogger.error("PasswordChangeView failed to change password \(error)")
                     }
                 }) {
                     Text("Change Password")

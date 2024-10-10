@@ -9,7 +9,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct SubmitPostForm: View {
+struct PostCreateView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.colorScheme) var colorScheme
@@ -150,7 +150,6 @@ struct SubmitPostForm: View {
                     postType: postType,
                     friendsList: friendRequestListener.acceptedFriendRequests)
                 userHolder.refresh = true
-                print("Saved")
                 
                 clearDraft()
                 isDraftSaved = true
@@ -160,7 +159,7 @@ struct SubmitPostForm: View {
                     dismiss()
                 }
             } catch {
-                print(error)
+                ViewLogger.error("PostCreateView.submitPost failed \(error)")
             }
         }
     }
@@ -172,9 +171,8 @@ struct SubmitPostForm: View {
                 content: postText,
                 selectedTags: [postType, privacy]
             )
-            print("Draft saved")
         } else {
-            print("No content to save as draft")
+            ViewLogger.info("SubmitPostForm.saveDraft No content to save as draft")
         }
     }
 
@@ -186,13 +184,11 @@ struct SubmitPostForm: View {
                 postType = draft.selectedTags[0]
                 privacy = draft.selectedTags[1]
             }
-            print("Draft loaded")
         }
     }
 
     private func clearDraft() {
         userHolder.draftPost = nil
-        print("Draft cleared")
     }
     
     @ViewBuilder

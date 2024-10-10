@@ -18,19 +18,17 @@ class FriendService {
         do {
             //user is retrieving prayer requests of the friend: person.userID and person: person.
             let posts = try await PostOperationsService().getPosts(userID: friend.userID, person: friend)
-            
-            print("posts: \(posts.map( {$0.id}).joined(separator: ", "))")
-            print("user: \(user.userID)")
+
             //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
             for post in posts {
                 do {
                     try await FeedService().updateFriendsFeed(post: post, person: friend, friend: user, updateFriend: true)
                 } catch {
-                    print(error.localizedDescription)
+                    NetworkingLogger.error("FriendService.updateFriendHistoricalPostsIntoFeed \(error.localizedDescription)")
                 }
             }
         } catch {
-            throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
+            throw PersonRetrievalError.errorRetrievingFromFirebase
         }
     }
     
@@ -97,7 +95,7 @@ class FriendService {
         var pendingFriendsList: [Person] = []
         
         guard userID != "" else {
-            throw PrayerPersonRetrievalError.noUserID
+            throw PersonRetrievalError.noUserID
         }
         
         let friendsListRef = db.collection("users").document(userID).collection("friendsList")
@@ -212,7 +210,7 @@ class FriendService {
             try await updateFriendHistoricalPostsIntoFeed(user: friend, friend: user) // load historical posts into that friend's feed once you approve.
             
         } catch {
-            print(error)
+            NetworkingLogger.error("FriendService.approveFriend failed \(error)")
         }
     }
     
@@ -228,7 +226,7 @@ class FriendService {
                 try await document.reference.delete()
             }
         } catch{
-            print("Error removing posts: \(error.localizedDescription)")
+            NetworkingLogger.error("FriendService.removeFriendPostsFromUserFeed Error \(error.localizedDescription)")
         }
 
     }
@@ -274,7 +272,7 @@ class FriendService {
 //                }
             }
         } catch {
-            print(error)
+            NetworkingLogger.error("FriendService.deleteFriend failed \(error)")
         }
     }
     
@@ -288,7 +286,7 @@ class FriendService {
             let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
             try await refUser.delete()
         } catch {
-            print(error)
+            NetworkingLogger.error("FriendService.dismissFriendRequest failed \(error)")
         }
     }
     
@@ -316,7 +314,7 @@ class FriendService {
                 ])
             }
         } catch {
-            print(error)
+            NetworkingLogger.error("FriendService.addFriendToCalendarIndicator failed \(error)")
         }
     }
     
@@ -346,12 +344,20 @@ class FriendService {
                 }
             }
         } catch {
-            print(error)
+            NetworkingLogger.error("FriendService.validateFriendUsername failed \(error)")
         }
         return (check, person)
     }
     
     func addPrivateFriend(firstName: String, lastName: String, user: Person) async throws {
+        guard firstName != "" && lastName != "" else {
+            throw AddFriendError.missingName
+        }
+
+        guard (firstName.lowercased()+lastName.lowercased()) != (user.firstName.lowercased() + user.lastName.lowercased()) else {
+            throw AddFriendError.invalidName
+        }
+            
         let ref = db.collection("users").document(user.userID).collection("friendsList").document()
         
         try await ref.setData([

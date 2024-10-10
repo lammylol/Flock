@@ -9,7 +9,7 @@
 
 import Foundation
 
-enum PrayerPersonRetrievalError: Error {
+enum PersonRetrievalError: Error {
     case noUsername
     case incorrectUsername
     case errorRetrievingFromFirebase
@@ -27,6 +27,7 @@ enum AddFriendError: LocalizedError {
     case invalidUsername
     case missingName
     case friendAddedAlready
+    case invalidName
     
     var errorDescription: String? {
         switch self {
@@ -36,6 +37,8 @@ enum AddFriendError: LocalizedError {
             return NSLocalizedString("Either the first name or last name is blank. Make sure you enter in a value for both first name and last name to add a user.", comment: "Missing First Name or Last Name")
         case .friendAddedAlready:
             return NSLocalizedString("This friend has already been added, or a request is pending.", comment: "Friend Already Exists")
+        case .invalidName:
+            return NSLocalizedString("Sorry, you can't add a person with this name. The name you have entered is invalid.", comment: "Invalid Name")
         }
     }
     
@@ -47,6 +50,8 @@ enum AddFriendError: LocalizedError {
             return NSLocalizedString("Missing Name", comment: "Missing Name")
         case .friendAddedAlready:
             return NSLocalizedString("Friend Already Added", comment: "Friend Already Added")
+        case .invalidName:
+        return NSLocalizedString("Invalid Name", comment: "Invalid Name")
         }
     }
 }

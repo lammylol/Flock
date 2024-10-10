@@ -154,7 +154,7 @@ struct FriendsPageView: View {
                         friendRequestListener.acceptedFriendRequests = friends.0
                         friendRequestListener.pendingFriendRequests = friends.1
                     } catch {
-                        print(error)
+                        ViewLogger.error("FriendsPageView \(error)")
                     }
                 }
             })

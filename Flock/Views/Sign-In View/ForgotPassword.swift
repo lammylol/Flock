@@ -43,7 +43,8 @@ struct ForgotPassword: View {
                 
                 HStack {
                     Text("Email: ")
-                    MyTextView(placeholder: "", text: $email, textPrompt: "email", textFieldType: "text")
+                    MyTextField(placeholder: "", text: $email, textPrompt: "email", textFieldType: "text")
+                        .textContentType(.emailAddress)
                 }
                 .padding([.leading, .trailing], 40)
                 
@@ -111,7 +112,7 @@ struct ForgotPassword: View {
         Auth.auth().sendPasswordReset(withEmail: email) { error in
             if error != nil {
                 errorMessage = error!.localizedDescription
-                print(errorMessage)
+                ViewLogger.error("reset password error: \(errorMessage)")
             } else {
                 successMessage = "A link to reset password has been sent to your email!"
                 errorMessage = ""

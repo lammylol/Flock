@@ -19,7 +19,7 @@ class FriendHelper {
             do {
                 try await friendService.acceptOrDenyFriendRequest(acceptOrDeny: true, user: user, friend: friend)
             } catch {
-                print(error)
+                NetworkingLogger.error("error accepting friend reqeuest \(user.userID, privacy: .private) \(friend.userID, privacy: .private)")
             }
         }
     }
@@ -27,14 +27,13 @@ class FriendHelper {
     func denyFriendRequest(friendState: String, user: Person, friend: Person) {
         Task {
             guard friendState == "pending" else {
-                print("No action pending")
                 return
             }
             
             do {
                 try await friendService.acceptOrDenyFriendRequest(acceptOrDeny: false, user: user, friend: friend)
             } catch {
-                print(error)
+                NetworkingLogger.error("error declining friend reqeuest \(user.userID, privacy: .private) \(friend.userID, privacy: .private)")
             }
         }
     }

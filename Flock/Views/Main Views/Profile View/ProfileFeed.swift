@@ -55,7 +55,7 @@ struct ProfileFeed: View {
                         .onChange(of: viewModel.selectedStatus, {
                             Task {
                                 if !viewModel.isFetching || !viewModel.isLoading {
-                                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                                    try await viewModel.getPosts(user: userHolder.person, person: person)
                                 }
                             }
                         })
@@ -66,24 +66,19 @@ struct ProfileFeed: View {
             
             PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile")
         }
-        .task {
-            print(viewModel.selectedStatus.rawValue)
-            print("Success retrieving prayer requests for \(person.userID)")
-        }
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
                 do {
-                    if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                    if viewModel.posts.isEmpty || userHolder.refresh == true {
+                        try await viewModel.getPosts(user: userHolder.person, person: person)
                     } else {
-                        self.viewModel.prayerRequests = viewModel.prayerRequests
+                        self.viewModel.posts = viewModel.posts
                         self.height = height
                     }
-                    print("Success retrieving prayer requests for \(person.userID)")
                 }
             }
         }, content: {
-            SubmitPostForm(person: person)
+            PostCreateView(person: person)
         })
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
