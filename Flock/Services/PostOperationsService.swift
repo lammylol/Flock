@@ -163,7 +163,8 @@ class PostOperationsService {
                 "prayerRequestTitle": postTitle,
                 "latestUpdateText": "",
                 "latestUpdateDatePosted": datePosted,
-                "latestUpdateType": ""
+                "latestUpdateType": "",
+                "isPinned": false
             ])
             
             prayerRequestID = ref.documentID
@@ -212,7 +213,8 @@ class PostOperationsService {
                 "prayerRequestTitle": postTitle,
                 "latestUpdateText": "",
                 "latestUpdateDatePosted": datePosted,
-                "latestUpdateType": ""
+                "latestUpdateType": "",
+                "isPinned": false
             ]) // if the prayer is for a local user, it will update your own feed.
             NetworkingLogger.debug("postOperations.createPost.addToPrayerFeed added to prayerFeed")
         }catch{

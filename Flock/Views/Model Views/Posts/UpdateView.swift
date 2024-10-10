@@ -36,6 +36,7 @@ struct UpdateView: View {
                                     .foregroundStyle(Color.primary)
                                     .padding(.bottom, 5)
                                 Text(update.prayerUpdateText)
+                                    .font(.system(size: 16))
                                     .multilineTextAlignment(.leading)
                                     .lineLimit({
                                         if expandUpdate == false {

@@ -69,10 +69,10 @@ struct ProfileFeed: View {
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
                 do {
-                    if viewModel.prayerRequests.isEmpty || userHolder.refresh == true {
+                    if viewModel.posts.isEmpty || userHolder.refresh == true {
                         try await viewModel.getPosts(user: userHolder.person, person: person)
                     } else {
-                        self.viewModel.prayerRequests = viewModel.prayerRequests
+                        self.viewModel.posts = viewModel.posts
                         self.height = height
                     }
                 }

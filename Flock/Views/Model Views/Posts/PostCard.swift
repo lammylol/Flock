@@ -11,6 +11,11 @@ struct PostCard: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     @State var post: Post
+    @State private var isPinned: Bool = true
+    
+    var isYourself: Bool {
+        post.firstName == userHolder.person.firstName && post.lastName == userHolder.person.lastName
+    }
     
     var feedService = FeedService()
     
@@ -23,6 +28,7 @@ struct PostCard: View {
                         .bold()
                         .font(.system(size: 16))
                     Spacer()
+                    if isPinned { Image(systemName: "pin.fill").font(.system(size: 12))}
                 }
                 .padding(.bottom, 10)
                 HStack{
@@ -43,7 +49,7 @@ struct PostCard: View {
                     }
                 }
             }
-            .frame(width: 110, height: 150)
+            .frame(width: UISizing.PostCard().width, height: UISizing.PostCard().insideFrameHeight)
             .padding(15)
             
             if post.lastSeenNotificationCount > 0 {
@@ -65,7 +71,7 @@ struct PostCard: View {
                 .opacity(0.10)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 200)
+        .frame(height: UISizing.PostCard().outsideFrameHeight)
     }
     
     func updateLastSeenNotificationCount() {

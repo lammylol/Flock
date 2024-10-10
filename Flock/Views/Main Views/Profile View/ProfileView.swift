@@ -18,7 +18,7 @@ struct ProfileView: View {
     @State public var person: Person
     @State private var showSubmit = false
     @State private var viewModel = FeedViewModel(profileOrFeed: "profile")
-    @State private var pinnedPostsViewModel = FeedViewModel(profileOrFeed: "profile")
+    @State private var pinnedPostsViewModel = PinnedFeedViewModel(profileOrFeed: "profile")
     @State private var navigationPath = NavigationPath()
     @State private var addFriendConfirmation = false
     
@@ -28,33 +28,31 @@ struct ProfileView: View {
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            ZStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        profileHeader
-                        postSections
-                    }
-                    .padding(.top, -8)
-                    .padding([.leading, .trailing], 23)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    profileHeader
+                    postSections
                 }
-                .task { await loadProfile() }
-                .refreshable { await refreshPosts() }
-                .navigationTitle(person.fullName)
-                .navigationBarTitleDisplayMode(.large)
-                .toolbar { profileToolbar }
-                .sheet(isPresented: $showSubmit, onDismiss: {
-                    Task { await refreshPosts() }
-                }, content: {
-                    PostCreateView(person: person)
-                })
-                .alert(isPresented: $addFriendConfirmation, content: friendRequestAlert)
-                .navigationDestination(for: String.self, destination: navigationDestination)
-                .navigationDestination(for: Post.self) { post in
-                    PostFullView(
-                        person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                        originalPost: .constant(post) // Pass binding for post
-                    )
-                }
+                .padding(.top, -8)
+                .padding([.leading, .trailing], 23)
+            }
+            .task { await loadProfile() }
+            .refreshable { await refreshPosts() }
+            .navigationTitle(person.fullName.capitalized)
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar { profileToolbar }
+            .sheet(isPresented: $showSubmit, onDismiss: {
+                Task { await refreshPosts() }
+            }, content: {
+                PostCreateView(person: person)
+            })
+            .alert(isPresented: $addFriendConfirmation, content: friendRequestAlert)
+            .navigationDestination(for: String.self, destination: navigationDestination)
+            .navigationDestination(for: Post.self) { post in
+                PostFullView(
+                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
+                    originalPost: .constant(post) // Pass binding for post
+                )
             }
         }
     }
@@ -77,10 +75,17 @@ struct ProfileView: View {
     private var postSections: some View {
         LazyVStack (spacing: 15) {
             VStack (spacing: 0) {
-                sectionHeader(systemImage: Image(systemName: "pin.fill"), title: "Pinned", fontWeight: .medium, fontSize: 16)
-                HorizontalScrollingPostCards(navigationPath: $navigationPath, posts: viewModel.prayerRequests)
+                if !pinnedPostsViewModel.isLoading && !pinnedPostsViewModel.posts.isEmpty {
+                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Posts", fontWeight: .medium)
+                }
+                PostCardLayout(navigationPath: $navigationPath, viewModel: $pinnedPostsViewModel, posts: pinnedPostsViewModel.posts)
                     .padding(.leading, 0) // Padding on leading
                     .padding(.trailing, -25)
+                    .task {
+                        if pinnedPostsViewModel.posts.isEmpty {
+                            await loadPinnedPosts()
+                        }
+                    }
             }
             VStack {
                 HStack {
@@ -234,10 +239,19 @@ struct ProfileView: View {
         }
     }
     
+    private func loadPinnedPosts() async {
+        do {
+            try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
+        } catch {
+            ViewLogger.error("ProfileView Pinned Posts \(error)")
+        }
+    }
+    
     private func refreshPosts() async {
         if viewModel.isFinished {
             do {
                 try await viewModel.getPosts(user: userHolder.person, person: person)
+                try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }

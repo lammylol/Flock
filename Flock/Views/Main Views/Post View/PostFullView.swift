@@ -60,9 +60,12 @@ struct PostFullView: View {
                 Text(usernameDisplay()).font(.system(size: 14))
             }
             Spacer()
-            if post.isPinned { Image(systemName: "pin.fill") }
-            Privacy(rawValue: post.privacy)?.systemImage
-            postOptionsMenu()
+            HStack {
+                if post.isPinned { Image(systemName: "pin.fill") }
+                Privacy(rawValue: post.privacy)?.systemImage
+                postOptionsMenu()
+            }
+            .font(.system(size: 13))
         }
         .padding(.bottom, 10)
     }
@@ -94,9 +97,9 @@ struct PostFullView: View {
     private func postContentView() -> some View {
         VStack(alignment: .leading) {
             HStack {
-                Text(post.postType == "Prayer Request" ? "Prayer Request: " : post.postType == "Praise" ? "Praise 🙌" : "Post 📝")
-                    + Text(post.status.capitalized).bold()
+                Text(post.postType == "Prayer Request" ? "Prayer Request: \(Text(post.status.capitalized).bold())" : post.postType == "Praise" ? "Praise 🙌" : "Post 📝")
             }
+            .font(.system(size: 16))
             Divider().padding(.vertical, 5)
             Text(post.postTitle).font(.system(size: 18)).bold().padding(.top, 7)
             Text(post.date, style: .date).font(.system(size: 14))

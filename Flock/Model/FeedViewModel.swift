@@ -9,8 +9,8 @@ import Foundation
 import SwiftUI
 import FirebaseFirestore
 
-@Observable final class FeedViewModel {
-    var prayerRequests: [Post] = []
+@Observable class FeedViewModel {
+    var posts: [Post] = []
     var lastDocument: DocumentSnapshot? = nil
     var selectedStatus: statusFilter = .current
     var person: Person = Person()
@@ -52,26 +52,33 @@ import FirebaseFirestore
         }
     }
     
+    // Fetch posts based on the filter
+    @MainActor
     func statusFilter(option: statusFilter, user: Person, person: Person, profileOrFeed: String) async throws {
 //        self.selectedStatus = option
         self.lastDocument = nil
-        self.prayerRequests = []
+        self.posts = []
         try await self.getPosts(user: user, person: person)
     }
     
+    // Main function to get posts
+    @MainActor
     func getPosts(user: Person, person: Person) async throws {
         do {
-            viewState = .loading
-            defer { viewState = .finished }
+            self.viewState = .loading
+            
+            defer {
+                self.viewState = .finished
+            }
             
             // Validate user ID or person ID before making Firestore calls
-            guard !user.userID.isEmpty else {
+            guard !user.userID.isEmpty || !person.userID.isEmpty else {
                 throw PersonRetrievalError.noUserID
             }
             
             let (newPrayerRequests, lastDocument) = try await feedService.getPostFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: nil, profileOrFeed: profileOrFeed)
             
-            self.prayerRequests = newPrayerRequests
+            self.posts = newPrayerRequests
             self.queryCount = newPrayerRequests.count
             
             if lastDocument != nil {
@@ -98,18 +105,22 @@ import FirebaseFirestore
 //        
 //    }
     
+    // Fetch more posts for pagination
+    @MainActor
     func getNextPosts(user: Person, person: Person, profileOrFeed: String) async {
+        self.viewState = .fetching
+        
+        defer {
+            self.viewState = .finished
+        }
         
         guard queryCount == 10 else { return }
-            
-        viewState = .fetching
-        defer { viewState = .finished }
         
         do {
             let (newPrayerRequests, lastDocument) = try await feedService.getPostFeed(user: user, person: person, answeredFilter: selectedStatus.statusKey, count: 10, lastDocument: lastDocument, profileOrFeed: profileOrFeed)
             
             self.queryCount = newPrayerRequests.count
-            self.prayerRequests.append(contentsOf: newPrayerRequests)
+            self.posts.append(contentsOf: newPrayerRequests)
             
             if lastDocument != nil {
                 self.lastDocument = lastDocument
@@ -122,7 +133,7 @@ import FirebaseFirestore
     }
     
     func hasReachedEnd(of prayerRequest: Post) -> Bool {
-        prayerRequests.last?.id == prayerRequest.id
+        posts.last?.id == prayerRequest.id
     }
 }
 
@@ -132,4 +143,13 @@ extension FeedViewModel {
         case loading
         case finished
     }
+}
+
+@Observable final class PinnedFeedViewModel: FeedViewModel {
+    override init(profileOrFeed: String = "") {
+        super.init(profileOrFeed: profileOrFeed)
+        self.selectedStatus = .pinned // Initialize with pinned status
+    }
+
+    // You can add any additional functionality specific to pinned posts here
 }
