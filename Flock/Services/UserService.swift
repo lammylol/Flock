@@ -41,13 +41,12 @@ class UserService { // Functions related to user information
         var firstName = person.firstName
         var lastName = person.lastName
         var friendState = person.friendState
-    
+        
         if person.isPrivateFriend || person.username == "" { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
             userID = userHolder.person.userID
             friendState = "private"
         } else { // If username exists, then request user document from firestore off of the username.
             do {
-//                let ref = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").whereField("username", isEqualTo: person.username).getDocuments()
                 let document = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").document(person.userID).getDocument()
                 
 //                for document in ref.documents {
@@ -56,10 +55,7 @@ class UserService { // Functions related to user information
                     firstName = document.get("firstName") as? String ?? ""
                     lastName = document.get("lastName") as? String ?? ""
                     friendState = document.get("state") as? String ?? ""
-                } else {
-                    throw PrayerPersonRetrievalError.noUsername
                 }
-//                }
             } catch {
                 NetworkingLogger.error("userService.retrieveUserInfoFromUserID failed \(error)")
             }

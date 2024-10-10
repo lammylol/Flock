@@ -26,7 +26,7 @@ struct AddFriendPage: View {
     var preName: String = ""
     
     var body: some View {
-        NavigationStack{
+        NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 15) {
                     // Public Friend - Search by Username
@@ -243,6 +243,7 @@ struct AddFriendPage: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden(true)
             .padding(.horizontal, 20)
+            .scrollIndicators(.hidden)
         }
     }
     
@@ -269,13 +270,17 @@ struct AddFriendPage: View {
                     // guard to make sure firstName and lastName are entered. If already exists, need support use case.
                     // add friend and add user's ID to the private card.
                     
-                    guard firstName != "" && lastName != "" else {
-                        throw AddFriendError.missingName
-                    }
-                    
-                    let person = Person(username: username, firstName: firstName, lastName: lastName)
-                    
-                    try await friendService.addFriend(user: userHolder.person, friend: person) // add friend, but need to wait for approval before historical posts are loaded.
+//                    guard firstName != "" && lastName != "" else {
+//                        throw AddFriendError.missingName
+//                    }
+//                    
+//                    guard (firstName.lowercased()+lastName.lowercased()) != (userHolder.person.firstName.lowercased() + userHolder.person.lastName.lowercased()) else {
+//                        throw AddFriendError.invalidName
+//                    }
+//                    
+//                    let person = Person(username: username, firstName: firstName, lastName: lastName)
+//                    
+//                    try await friendService.addFriend(user: userHolder.person, friend: person) // add friend, but need to wait for approval before historical posts are loaded.
                 }
                 
                 confirmation = true
@@ -293,8 +298,17 @@ struct AddFriendPage: View {
     
     func addPrivateFriend(firstName: String, lastName: String) {
         Task {
-            try await friendService.addPrivateFriend(firstName: firstName.lowercased(), lastName: lastName.lowercased(), user: userHolder.person)
-            privateConfirmation = true
+            do {
+                try await friendService.addPrivateFriend(firstName: firstName.lowercased(), lastName: lastName.lowercased(), user: userHolder.person)
+                privateConfirmation = true
+            } catch let AddFriendError as AddFriendError {
+                self.errorType = AddFriendError
+                errorAlert = true
+            } catch {
+                ViewLogger.error("AddFriendPage \(error)")
+                errorAlert = true
+                self.errorType = nil
+            }
         }
     }
     

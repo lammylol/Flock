@@ -31,26 +31,27 @@ struct FeedView: View {
                     .onChange(of: viewModel.selectedStatus, {
                         Task {
                             if !viewModel.isFetching || !viewModel.isLoading {
-                                await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                                try await viewModel.getPosts(user: userHolder.person, person: person)
                             }
                         }
                     })
+                    .padding(.horizontal, 23)
             }
             .refreshable {
                 Task {
                     if viewModel.isFinished {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        try await viewModel.getPosts(user: userHolder.person, person: person)
                     }
                 }
             }
             .sheet(isPresented: $showSubmit, onDismiss: {
                 Task {
                     if viewModel.isFinished {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
+                        try await viewModel.getPosts(user: userHolder.person, person: person)
                     }
                 }
             }, content: {
-                SubmitPostForm(person: person)
+                PostCreateView(person: person)
             })
             .toolbar() {
                 ToolbarItem(placement: .topBarLeading) {

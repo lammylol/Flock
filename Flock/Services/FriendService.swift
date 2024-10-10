@@ -28,7 +28,7 @@ class FriendService {
                 }
             }
         } catch {
-            throw PrayerPersonRetrievalError.errorRetrievingFromFirebase
+            throw PersonRetrievalError.errorRetrievingFromFirebase
         }
     }
     
@@ -95,7 +95,7 @@ class FriendService {
         var pendingFriendsList: [Person] = []
         
         guard userID != "" else {
-            throw PrayerPersonRetrievalError.noUserID
+            throw PersonRetrievalError.noUserID
         }
         
         let friendsListRef = db.collection("users").document(userID).collection("friendsList")
@@ -350,6 +350,14 @@ class FriendService {
     }
     
     func addPrivateFriend(firstName: String, lastName: String, user: Person) async throws {
+        guard firstName != "" && lastName != "" else {
+            throw AddFriendError.missingName
+        }
+
+        guard (firstName.lowercased()+lastName.lowercased()) != (user.firstName.lowercased() + user.lastName.lowercased()) else {
+            throw AddFriendError.invalidName
+        }
+            
         let ref = db.collection("users").document(user.userID).collection("friendsList").document()
         
         try await ref.setData([

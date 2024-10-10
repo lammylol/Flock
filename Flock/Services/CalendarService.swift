@@ -17,7 +17,7 @@ class CalendarService {
         var prayerList: String = ""
         
         guard userID != "" else {
-            throw PrayerPersonRetrievalError.noUserID
+            throw PersonRetrievalError.noUserID
         }
             
         let ref = db.collection("users").document(userID)

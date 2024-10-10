@@ -39,7 +39,7 @@ struct CreateProfileView: View {
                 HStack {
                     Text("First Name: ")
                         .padding(.leading, 40)
-                    MyTextView(placeholder: "", text: $firstName, textPrompt: "first name", textFieldType: "text")
+                    MyTextField(placeholder: "", text: $firstName, textPrompt: "first name", textFieldType: "text")
                 }
                 
                 Rectangle()
@@ -49,7 +49,7 @@ struct CreateProfileView: View {
                 HStack {
                     Text("Last Name: ")
                         .padding(.leading, 40)
-                    MyTextView(placeholder: "", text: $lastName, textPrompt: "last name", textFieldType: "text")
+                    MyTextField(placeholder: "", text: $lastName, textPrompt: "last name", textFieldType: "text")
                 }
                 
                 Rectangle()
@@ -59,7 +59,7 @@ struct CreateProfileView: View {
                 HStack {
                     Text("Email: ")
                         .padding(.leading, 40)
-                    MyTextView(placeholder: "", text: $email, textPrompt: "enter email", textFieldType: "text")
+                    MyTextField(placeholder: "", text: $email, textPrompt: "enter email", textFieldType: "text").textContentType(.emailAddress)
                 }
                 
                 Rectangle()
@@ -69,7 +69,7 @@ struct CreateProfileView: View {
                 HStack {
                     Text("Username: ")
                         .padding(.leading, 40)
-                    MyTextView(placeholder: "", text: $username, textPrompt: "enter username", textFieldType: "text")
+                    MyTextField(placeholder: "", text: $username, textPrompt: "enter username", textFieldType: "text")
                 }
                 
                 Rectangle()
@@ -79,7 +79,7 @@ struct CreateProfileView: View {
                 HStack {
                     Text("Password: ")
                         .padding(.leading, 40)
-                    MyTextView(placeholder: "", text: $password, textPrompt: "enter password", textFieldType: "secure")
+                    MyTextField(placeholder: "", text: $password, textPrompt: "enter password", textFieldType: "secure").textContentType(.password)
                 }
                 
                 Rectangle()

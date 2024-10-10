@@ -18,7 +18,7 @@ class PostHelper {
         ])
         
         if person.userID == post.userID {
-            let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document(post.id)
+            let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
             try await ref2.updateData([
                 "isPinned": toggle
             ])

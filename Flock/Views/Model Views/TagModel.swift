@@ -15,6 +15,7 @@ struct tagModelView: View {
     var backgroundColor: Color
     var opacity: CGFloat = 1.00
     var boldBool: Bool = true
+    var cornerRadius: CGFloat = 5
     
     var body: some View {
         HStack {
@@ -35,7 +36,7 @@ struct tagModelView: View {
         .padding([.vertical], 5)
         .padding([.horizontal], 10)
         .background {
-            RoundedRectangle(cornerRadius: 5)
+            RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(backgroundColor)
                 .opacity(opacity)
         }
