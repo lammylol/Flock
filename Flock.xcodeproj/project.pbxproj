@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A399F4C2CB8BC20001F3932 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A399F4B2CB8BC1C001F3932 /* AppDelegate.swift */; };
 		3A628DAD2CA90444004FDDD3 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A628DAC2CA90440004FDDD3 /* Logging.swift */; };
 		3A785D072C5A0DBA00299EC9 /* PostOperationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A785D052C5A0DBA00299EC9 /* PostOperationsService.swift */; };
 		3ABC0AA62C4DD9BC000AFFD1 /* UserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */; };
@@ -89,6 +90,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3A399F4B2CB8BC1C001F3932 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3A628DAC2CA90440004FDDD3 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		3A785D052C5A0DBA00299EC9 /* PostOperationsService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PostOperationsService.swift; sourceTree = "<group>"; };
 		3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserService.swift; sourceTree = "<group>"; };
@@ -383,6 +385,7 @@
 		7A4F25F72AD0D23900FB086C /* Flock */ = {
 			isa = PBXGroup;
 			children = (
+				3A399F4B2CB8BC1C001F3932 /* AppDelegate.swift */,
 				7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */,
 				3ABC0ABD2C509485000AFFD1 /* ErrorHandling */,
 				3ABC0AA42C4DD8F4000AFFD1 /* Services */,
@@ -505,7 +508,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					7A4F25F42AD0D23900FB086C = {
 						CreatedOnToolsVersion = 15.0;
@@ -606,6 +609,7 @@
 				7A4F26352AD0D2B600FB086C /* ProfileView.swift in Sources */,
 				7A92577C2B686BCF00D5EF35 /* ProfilePictureAvatar.swift in Sources */,
 				7AD808D12AD6F9E000A0ECA6 /* ContentView.swift in Sources */,
+				3A399F4C2CB8BC20001F3932 /* AppDelegate.swift in Sources */,
 				7A3440832C5ABE6E0041156F /* ContactRow.swift in Sources */,
 				E0564A0A2BB379DE00D21DB3 /* Tab.swift in Sources */,
 				7A66A0C52B0B24BC000CA93E /* PostHelper.swift in Sources */,
@@ -905,7 +909,6 @@
 		7A4F26202AD0D23B00FB086C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -929,7 +932,6 @@
 		7A4F26212AD0D23B00FB086C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -953,7 +955,6 @@
 		7A4F26232AD0D23B00FB086C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
@@ -976,7 +977,6 @@
 		7A4F26242AD0D23B00FB086C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
