@@ -110,26 +110,17 @@ struct PrayerNameInputView: View {
         
         let prayerNamesNew = await calendarService.retrieveCalendarPersonArray(prayerList: inputText).map {formatPostName($0)} // reference to new state of prayer list.
         
-        var linkedFriends: [String] = []
-        
         let insertions = Array(Set(prayerNamesNew).subtracting(Set(prayerNamesOld)))
-        let removals = Array(Set(prayerNamesOld).subtracting(Set(prayerNamesNew)))
         
         // Removals MUST come prior to insertion. This is due to the edge case that you have a user that you are adding a username to. If so, you want to delete any request in the feed pertaining to the first name and last name (which was originally a private account you created), prior to inserting history for a username. If you allow insertions to come first, the deletion of 'first name_ last name' of that new public user will occur immediately after adding their posts to you feed. Ex. remove [Matt_Lam], insert [lammylol]. Not insert [lammylol], remove [Matt_lam] which will force all messages with 'matt lam' as first and last name to delete.
-        
-        for usernameOrName in removals {
-//            if usernameOrName.contains("/") {
-//                await friendService.removeFriendPostsFromUserFeed(userID: userHolder.person.userID, friendUsernameToRemove: usernameOrName) // remove friends only for private friends in calendar. Keeping this function available for now.
-//            }
-        }
-        
         
         // for each person in prayerList who has a username (aka a linked account), check if the user already exists in the prayerList person's friendsList. If not, add their name and update all historical prayer feeds as well.
         for usernameOrName in insertions { // keeping this available to add private names you have added which do not have a username; under your account and not linked.
             
             if !usernameOrName.contains("/") {
                 do {
-                    try await userService.retrieveUserInfoFromUserID(person: Person(username: usernameOrName), userHolder: userHolder)
+                    let user = try await userService.retrieveUserInfoFromUserID(person: Person(username: usernameOrName), userHolder: userHolder)
+                    ViewLogger.info("Retrieved \(user.firstName) \(user.lastName): \(user.userID)")
                 } catch PersonRetrievalError.noUsername {
                     saved = "\(String(usernameOrName.split(separator: "/").first ?? "")) has not been added as a friend yet. Please add them first as a friend before adding them to your calendar."
                 } catch {

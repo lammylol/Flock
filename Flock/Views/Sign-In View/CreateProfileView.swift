@@ -138,51 +138,57 @@ struct CreateProfileView: View {
             
             // Task to set data.
             else {
-                Auth.auth().createUser(withEmail: email, password: password) { result, error in
-                    
-                    if error != nil {
-                        errorMessage = error!.localizedDescription
-                        ViewLogger.error("CreateProfileViews create profile error: \(error)")
-                    } else {
-                        Task {
-                            userHolder.viewState = .loading
-                            defer { userHolder.viewState = .finished }
-                            
-                            do {
-                                let userID = result?.user.uid
-                                
-                                let db = Firestore.firestore()
-                                let ref = db.collection("users").document("\(userID ?? "")")
-                                
-                                try await ref.setData(
-                                    ["email": email,
-                                     "userID": userID ?? "",
-                                     "username": username.lowercased(),
-                                     "firstName": firstName.lowercased(),
-                                     "lastName": lastName.lowercased()]
-                                )
-                                
-                                let refUsernames = db.collection("usernames").document("\(username)")
-                                try await refUsernames.setData(
-                                    ["userID": userID ?? "",
-                                     "username": username.lowercased()]
-                                )
-                                
-                                ViewLogger.info("Account successfully created.")
-                                await setInfo()
-                                errorMessage = ""
-                                
-                                // DispatchQueue ensures that dismiss happens on the main thread.
-                                DispatchQueue.main.async {
-                                    dismiss()
-                                }
-                            } catch {
-                                ViewLogger.error("CreateProfileView \(error)")
-                            }
-                        }
-                    }
+                do{
+                    try await createUserInFirestore(email: email, password: password)
+                }catch{
+                    errorMessage = error.localizedDescription
+                    ViewLogger.error("CreateProfileViews create profile error: \(error)")
                 }
             }
+        }
+    }
+    
+    func createUserInFirestore(email: String, password: String) async throws {
+        do{
+            let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
+            Task {
+                userHolder.viewState = .loading
+                defer { userHolder.viewState = .finished }
+                
+                do {
+                    let userID = authResult.user.uid
+                    
+                    let db = Firestore.firestore()
+                    let ref = db.collection("users").document("\(userID)")
+                    
+                    try await ref.setData(
+                        ["email": email,
+                         "userID": userID,
+                         "username": username.lowercased(),
+                         "firstName": firstName.lowercased(),
+                         "lastName": lastName.lowercased()]
+                    )
+                    
+                    let refUsernames = db.collection("usernames").document("\(username)")
+                    try await refUsernames.setData(
+                        ["userID": userID,
+                         "username": username.lowercased()]
+                    )
+                    
+                    ViewLogger.info("Account successfully created.")
+                    await setInfo()
+                    errorMessage = ""
+                    
+                    // DispatchQueue ensures that dismiss happens on the main thread.
+                    DispatchQueue.main.async {
+                        dismiss()
+                    }
+                } catch {
+                    ViewLogger.error("CreateProfileView \(error)")
+                }
+            }
+        }catch{
+            throw error
         }
     }
     

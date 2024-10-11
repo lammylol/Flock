@@ -8,6 +8,7 @@
 
 import SwiftUI
 
+@MainActor
 struct PostFullView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.dismiss) var dismiss
@@ -166,10 +167,14 @@ struct PostFullView: View {
         post = originalPost
     }
     
-    private func refreshPost() {
+    @Sendable nonisolated private func refreshPost() {
         Task {
-            post = try await PostOperationsService().getPost(prayerRequest: post)
-            originalPost = post
+            let updatedPost = try await PostOperationsService().getPost(prayerRequest: post)
+            
+            await MainActor.run {
+                post = updatedPost
+                originalPost = post
+            }
         }
     }
     
