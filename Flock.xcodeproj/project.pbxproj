@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A399F4C2CB8BC20001F3932 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A399F4B2CB8BC1C001F3932 /* AppDelegate.swift */; };
 		3A628DAD2CA90444004FDDD3 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A628DAC2CA90440004FDDD3 /* Logging.swift */; };
 		3A785D072C5A0DBA00299EC9 /* PostOperationsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A785D052C5A0DBA00299EC9 /* PostOperationsService.swift */; };
 		3ABC0AA62C4DD9BC000AFFD1 /* UserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */; };
@@ -95,6 +96,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3A399F4B2CB8BC1C001F3932 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3A628DAC2CA90440004FDDD3 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		3A785D052C5A0DBA00299EC9 /* PostOperationsService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PostOperationsService.swift; sourceTree = "<group>"; };
 		3ABC0AA52C4DD9BC000AFFD1 /* UserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserService.swift; sourceTree = "<group>"; };
@@ -410,6 +412,7 @@
 		7A4F25F72AD0D23900FB086C /* Flock */ = {
 			isa = PBXGroup;
 			children = (
+				3A399F4B2CB8BC1C001F3932 /* AppDelegate.swift */,
 				7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */,
 				3ABC0ABD2C509485000AFFD1 /* ErrorHandling */,
 				3ABC0AA42C4DD8F4000AFFD1 /* Services */,
@@ -597,7 +600,8 @@
 			inputFileListPaths = (
 			);
 			inputPaths = (
-				"${PROJECT_DIR}/${TARGET_NAME}/Firebase/GoogleService-Info.plist",
+				"$(SRCROOT)/Firebase/dev/GoogleService-Info.plist",
+				"$(SRCROOT)/Firebase/prod/GoogleService-Info.plist",
 			);
 			name = "Copy GoogleService-Info.plist";
 			outputFileListPaths = (
@@ -606,7 +610,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Name of the resource we're selectively copying\nGOOGLESERVICE_INFO_PLIST=GoogleService-Info.plist\n\n# Get references to dev and prod versions of the GoogleService-Info.plist\n# NOTE: These should only live on the file system and should NOT be part of the target (since we'll be adding them to the target manually)\nGOOGLESERVICE_INFO=${PROJECT_DIR}/${TARGET_NAME}/Firebase/${GOOGLESERVICE_INFO_PLIST}\n\n# Make sure the dev version of GoogleService-Info.plist exists\necho \"Looking for ${GOOGLESERVICE_INFO_PLIST} in ${GOOGLESERVICE_INFO}\"\nif [ ! -f $GOOGLESERVICE_INFO ]\nthen\n    echo \"No Development GoogleService-Info.plist found. Please ensure it's in the proper directory.\"\n    exit 1\nfi\n\n# Get a reference to the destination location for the GoogleService-Info.plist\nPLIST_DESTINATION=${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\necho \"Will copy ${GOOGLESERVICE_INFO_PLIST} to final destination: ${PLIST_DESTINATION}\"\n\necho \"Using ${GOOGLESERVICE_INFO}\"\ncp \"${GOOGLESERVICE_INFO}\" \"${PLIST_DESTINATION}\"\n";
+			shellScript = "# Name of the resource we're selectively copying\nGOOGLESERVICE_INFO_PLIST=GoogleService-Info.plist\n\n# Get references to dev and prod versions of the GoogleService-Info.plist\n# NOTE: These should only live on the file system and should NOT be part of the target (since we'll be adding them to the target manually)\nGOOGLESERVICE_INFO_DEV=${PROJECT_DIR}/${TARGET_NAME}/Firebase/dev/${GOOGLESERVICE_INFO_PLIST}\nGOOGLESERVICE_INFO_PROD=${PROJECT_DIR}/${TARGET_NAME}/Firebase/prod/${GOOGLESERVICE_INFO_PLIST}\n\n# Make sure the dev version of GoogleService-Info.plist exists\necho \"Looking for ${GOOGLESERVICE_INFO_PLIST} in ${GOOGLESERVICE_INFO_DEV}\"\nif [ ! -f $GOOGLESERVICE_INFO ]\nthen\n    echo \"No Development GoogleService-Info.plist found. Please ensure it's in the proper directory.\"\n    exit 1\nfi\necho \"Looking for ${GOOGLESERVICE_INFO_PLIST} in ${GOOGLESERVICE_INFO_PROD}\"\nif [ ! -f $GOOGLESERVICE_INFO ]\nthen\n    echo \"No Prod GoogleService-Info.plist found. Please ensure it's in the proper directory.\"\n    exit 1\nfi\n\n# Get a reference to the destination location for the GoogleService-Info.plist\nPLIST_DESTINATION=${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\n# Copy over the prod GoogleService-Info.plist for Release builds\nif [ \"${CONFIGURATION}\" == \"Release\" ]\nthen\n    echo \"Using ${GOOGLESERVICE_INFO_PROD}\"\n    cp \"${GOOGLESERVICE_INFO_PROD}\" \"${PLIST_DESTINATION}\"\nelse\n    echo \"Using ${GOOGLESERVICE_INFO_DEV}\"\n    cp \"${GOOGLESERVICE_INFO_DEV}\" \"${PLIST_DESTINATION}\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -624,6 +628,7 @@
 				7A4F26352AD0D2B600FB086C /* ProfileView.swift in Sources */,
 				7A92577C2B686BCF00D5EF35 /* ProfilePictureAvatar.swift in Sources */,
 				7AD808D12AD6F9E000A0ECA6 /* ContentView.swift in Sources */,
+				3A399F4C2CB8BC20001F3932 /* AppDelegate.swift in Sources */,
 				7A3440832C5ABE6E0041156F /* ContactRow.swift in Sources */,
 				E0564A0A2BB379DE00D21DB3 /* Tab.swift in Sources */,
 				7A66A0C52B0B24BC000CA93E /* PostHelper.swift in Sources */,

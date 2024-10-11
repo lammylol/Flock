@@ -12,9 +12,7 @@ import FirebaseCore
 struct FlockApp: App {
     @State private var friendRequestListener = FriendRequestListener()
     
-    init(){
-        FirebaseApp.configure()
-    }
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
         WindowGroup {
