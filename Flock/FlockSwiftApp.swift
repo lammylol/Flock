@@ -11,6 +11,7 @@ import FirebaseCore
 @main
 struct FlockApp: App {
     @State private var friendRequestListener = FriendRequestListener()
+    @StateObject var authViewModel = AuthViewModel()
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
