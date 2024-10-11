@@ -2,9 +2,9 @@ name: iOS starter workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -20,6 +20,10 @@ jobs:
           default=$(echo $scheme_list | ruby -e "require 'json'; puts JSON.parse(STDIN.gets)['project']['targets'][0]")
           echo $default | cat >default
           echo Using default scheme: $default
+
+      - name: Resolve Swift Package Manager dependencies
+        run: xcodebuild -resolvePackageDependencies -project Flock.xcodeproj
+
       - name: Build
         env:
           scheme: ${{ 'default' }}
