@@ -162,19 +162,36 @@ struct FriendsPageView: View {
             .navigationTitle("Friends")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showAddFriend.toggle()
-                    } label: {
-                        Image(systemName: "plus.circle")
-                    }
-                }
+                frieldToolbar
             }
         }
         .background(.windowBackground)
         .scrollContentBackground(.hidden)
     }
     
+    private var frieldToolbar: some ToolbarContent {
+        Group {
+            ToolbarItem(placement: .topBarLeading) {
+                HStack {
+                    if buildConfiguration == DEVELOPMENT {
+                        Text("DEVELOPMENT")
+                            .font(.title2)
+                            .bold()
+                            .padding(.leading, 10) // Moved padding here
+                    }
+                }
+                .frame(maxWidth: .infinity) // Moved the frame modifier here
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showAddFriend.toggle()
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+            }
+        }
+    }
 }
 
 //#Preview {

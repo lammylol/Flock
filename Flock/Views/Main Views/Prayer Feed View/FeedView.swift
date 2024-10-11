@@ -24,6 +24,7 @@ struct FeedView: View {
     
     @State var person: Person
     
+    let headerText = "Flock \(buildConfiguration == DEVELOPMENT ? "DEV" : "")"
     var body: some View {
         NavigationStack {
             ScrollView(.vertical) {
@@ -56,7 +57,7 @@ struct FeedView: View {
             .toolbar() {
                 ToolbarItem(placement: .topBarLeading) {
                     HStack {
-                        Text("Flock")
+                        Text(headerText)
                             .font(.title2)
                             .bold()
                         StatusPicker(viewModel: viewModel)

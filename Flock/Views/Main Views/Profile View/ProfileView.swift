@@ -163,15 +163,34 @@ struct ProfileView: View {
     
     // Profile toolbar
     private var profileToolbar: some ToolbarContent {
-        ToolbarItemGroup(placement: .topBarTrailing) {
-            if person.userID == userHolder.person.userID {
-                Button(action: { navigationPath.append("settings") }) { Image(systemName: "gear")
-                        .padding(.trailing, -18)
-                        .padding(.top, 3) }
-                Button(action: { showSubmit.toggle() }) { Image(systemName: "square.and.pencil") }
+        Group {
+            ToolbarItem(placement: .topBarLeading) {
+                HStack {
+                    if buildConfiguration == DEVELOPMENT {
+                        Text("DEVELOPMENT")
+                            .font(.title2)
+                            .bold()
+                            .padding(.leading, 10) // Moved padding here
+                    }
+                }
+                .frame(maxWidth: .infinity) // Moved the frame modifier here
+            }
+            
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if person.userID == userHolder.person.userID {
+                    Button(action: { navigationPath.append("settings") }) {
+                        Image(systemName: "gear")
+                            .padding(.trailing, -18)
+                            .padding(.top, 3)
+                    }
+                    Button(action: { showSubmit.toggle() }) {
+                        Image(systemName: "square.and.pencil")
+                    }
+                }
             }
         }
     }
+
     
     // Friend request alert
     private func friendRequestAlert() -> Alert {
