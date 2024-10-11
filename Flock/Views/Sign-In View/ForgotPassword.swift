@@ -43,7 +43,8 @@ struct ForgotPassword: View {
                 
                 HStack {
                     Text("Email: ")
-                    MyTextView(placeholder: "", text: $email, textPrompt: "email", textFieldType: "text")
+                    MyTextField(placeholder: "", text: $email, textPrompt: "email", textFieldType: "text")
+                        .textContentType(.emailAddress)
                 }
                 .padding([.leading, .trailing], 40)
                 

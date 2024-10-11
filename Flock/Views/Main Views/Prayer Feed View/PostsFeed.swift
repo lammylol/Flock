@@ -22,11 +22,11 @@ struct PostsFeed: View {
         ZStack {
             (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea() // sets background color.
                 
-            if viewModel.isLoading/* && !userHolder.refresh*/ {
-                ProgressView()
-            } else {
+//            if viewModel.isLoading {
+//                ProgressView()
+//            } else {
                 LazyVStack {
-                    ForEach($viewModel.prayerRequests) { $prayerRequest in
+                    ForEach($viewModel.posts) { $prayerRequest in
                         VStack {
                             PostRow(viewModel: viewModel, post: $prayerRequest, person: person)
                             Rectangle()
@@ -35,22 +35,26 @@ struct PostsFeed: View {
                         }
                         .task {
                             if viewModel.hasReachedEnd(of: prayerRequest) && !viewModel.isFetching {
-                                await viewModel.getNextPrayerRequests(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
+                                await viewModel.getNextPosts(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
                             }
                         }
                     }
                 }
                 .scrollContentBackground(.hidden)
-            }
+//            }
         }
         .task {
-            if viewModel.prayerRequests.isEmpty {
+            if viewModel.posts.isEmpty {
                 if !viewModel.isFetching || !viewModel.isLoading {
                     if person.friendState == "sent" || person.friendState == "pending" {
                         return
                     }
-                    await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-                    self.viewModel.prayerRequests = viewModel.prayerRequests
+                    do {
+                        try await viewModel.getPosts(user: userHolder.person, person: person)
+                        self.viewModel.posts = viewModel.posts
+                    } catch {
+                        ViewLogger.error("PostsFeed viewModel.getPosts \(error.localizedDescription)")
+                    }
                 }
             }
         }
@@ -67,7 +71,7 @@ struct PostsFeed: View {
                     .offset(y: 140)
                     Spacer()
                 }
-            } else if viewModel.prayerRequests.isEmpty && viewModel.isFinished { // overlay for 'no posts available'
+            } else if viewModel.posts.isEmpty && viewModel.isFinished { // overlay for 'no posts available'
                 VStack{
                     ContentUnavailableView {
                         Label("No Posts Available...Yet!", systemImage: "list.bullet.rectangle.portrait")
@@ -135,15 +139,15 @@ struct PostsFeed: View {
                     self.person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
                     
                     if !viewModel.isFetching || !viewModel.isLoading {
-                        await viewModel.getPrayerRequests(user: userHolder.person, person: person)
-                        self.viewModel.prayerRequests = viewModel.prayerRequests
+                        try await viewModel.getPosts(user: userHolder.person, person: person)
+                        self.viewModel.posts = viewModel.posts
                     }
                 } catch {
                     ViewLogger.error("PostsFeed \(error.localizedDescription)")
                 }
             }
         }, content: {
-            SubmitPostForm(person: person)
+            PostCreateView(person: person)
         })
     }
 }

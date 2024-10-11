@@ -9,7 +9,7 @@
 import SwiftUI
 import FirebaseFirestore
 
-struct SubmitPostForm: View {
+struct PostCreateView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
     @Environment(\.colorScheme) var colorScheme
@@ -159,7 +159,7 @@ struct SubmitPostForm: View {
                     dismiss()
                 }
             } catch {
-                ViewLogger.error("SubmitPostForm.submitPost failed \(error)")
+                ViewLogger.error("PostCreateView.submitPost failed \(error)")
             }
         }
     }

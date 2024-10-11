@@ -14,7 +14,7 @@ struct UpdateView: View {
     @State private var expandUpdate: Bool = false
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             ScrollView {
                 VStack {
                     if prayerRequestUpdates.count > 0 {
@@ -36,6 +36,7 @@ struct UpdateView: View {
                                     .foregroundStyle(Color.primary)
                                     .padding(.bottom, 5)
                                 Text(update.prayerUpdateText)
+                                    .font(.system(size: 16))
                                     .multilineTextAlignment(.leading)
                                     .lineLimit({
                                         if expandUpdate == false {
