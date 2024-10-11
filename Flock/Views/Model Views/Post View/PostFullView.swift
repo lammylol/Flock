@@ -193,11 +193,12 @@ struct PostFullView: View {
                             .multilineTextAlignment(/*@START_MENU_TOKEN@*/.leading/*@END_MENU_TOKEN@*/)
                             .padding(.top, 7)
                     }
+                    
                     // Comment section
                         if isPostLoaded {
-                            CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
-                                .padding()
-                                .id("commentsSection")
+                                CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
+                                    .padding()
+                                    .id("commentsSection")
                         }
                     }
                 }

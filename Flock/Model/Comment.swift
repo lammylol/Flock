@@ -25,3 +25,16 @@ struct Comment: Identifiable, Codable {
         case createdAt
     }
 }
+
+extension Comment {
+    static var preview: Comment {
+        let item = Comment(
+            postID: "123",
+            userID: "345",
+            username: "jimmy",
+            text: "This is a comment",
+            createdAt: Date()
+        )
+        return item
+    }
+}

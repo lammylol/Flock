@@ -21,20 +21,7 @@ struct CommentsView: View {
     @State private var viewModelUpdateCounter = 0
     
     var body: some View {
-        VStack {
-            if isInSheet {
-                HStack {
-                    Button("Close") {
-                        presentationMode.wrappedValue.dismiss()
-                    }
-                    Spacer()
-                    Text("Comments")
-                        .font(.headline)
-                    Spacer()
-                }
-                .padding()
-            }
-            
+        VStack (alignment: .leading) {
             commentsList
             
             errorView
@@ -71,15 +58,15 @@ struct CommentsView: View {
                     .foregroundColor(.secondary)
                     .padding()
             } else {
-                List {
+                VStack(alignment: .leading) {
                     ForEach(viewModel.comments) { comment in
                         CommentRow(comment: comment)
                     }
-                }
-                .listStyle(PlainListStyle())
-                .refreshable {
-                    Task {
-                        await viewModel.refreshComments()
+                    .listStyle(PlainListStyle())
+                    .refreshable {
+                        Task {
+                            await viewModel.refreshComments()
+                        }
                     }
                 }
             }
