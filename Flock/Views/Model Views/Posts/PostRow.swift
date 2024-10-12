@@ -22,9 +22,6 @@ struct PostRow: View {
     // For Main Text
     @State private var postExpandUpdate: Bool = false
     @State private var postIsTruncated: Bool = false
-
-    @StateObject private var commentViewModel = CommentViewModel()
-    @State private var showComments = false
     
     var body: some View {
         NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post)) {
@@ -197,39 +194,24 @@ struct PostRow: View {
                                 .font(.system(size: 12))
                                 .padding(.top, 7)
                             Spacer()
-                            Button(action: {
-                                showComments = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "bubble.left")
-                                    Text("Comments")
-                                }
-                                .font(.footnote)
-                                .padding(6)
-                                .background(Color.secondary.opacity(0.1))
-                                .cornerRadius(8)
+                            HStack {
+                                Image(systemName: "bubble.left")
+                                Text("Comments")
                             }
-                            .buttonStyle(PlainButtonStyle())
+                            .font(.footnote)
+                            .padding(6)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(8)
                             .padding(.top, 7)
                         }
                     }
                 }
             }
-            .foregroundStyle(Color.primary) // make all text primary, instead of traditional 'blue' provided by Swift for Navigation Links.
+            .foregroundStyle(Color.primary)
         }
         .id(UUID())
         .padding([.top, .bottom], 15)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .sheet(isPresented: $showComments) {
-            CommentsView(postID: post.id, isInSheet: true, viewModel: commentViewModel)
-        }
-        .onChange(of: showComments) { newValue in
-            if newValue {
-                Task {
-                    await commentViewModel.fetchComments(for: post.id)
-                }
-            }
-        }
     }
     
     func pinPost(){
