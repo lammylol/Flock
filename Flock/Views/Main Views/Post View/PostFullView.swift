@@ -33,17 +33,21 @@ struct PostFullView: View {
                         latestUpdateView()
                     }
                     postContentView()
-                    Spacer()
+                    Spacer(minLength: 20)
+
                     // Comment section
-                    CommentsView(postID: post.id, isInSheet: true, viewModel: commentViewModel)
-                        .padding()
+                    Text("Comments")
+                        .font(.headline)
+                        .padding(.bottom, 10)
+
+                    CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
                         .id("commentsSection")
                 }
+                .padding(.horizontal, 20)
             }
-            .task{ loadPost() }
-            .refreshable(action: refreshPost )
+            .task { loadPost() }
+            .refreshable(action: refreshPost)
             .scrollIndicators(.hidden)
-            .padding(.horizontal, 20)
             .padding(.vertical, 15)
         }
         .navigationTitle("Post")
