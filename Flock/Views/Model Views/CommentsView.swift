@@ -29,24 +29,24 @@ struct CommentsView: View {
             commentInputField
         }
         .navigationTitle(isInSheet ? "" : "Comments")
-        .onAppear {
-            print("CommentsView appeared for post \(postID)")
-            fetchCommentsIfNeeded()
+        .task {
+            print("CommentsView task started for post \(postID)")
+            await fetchCommentsIfNeeded()
         }
         .onChange(of: postID) { newID in
             print("PostID changed to: \(newID)")
-            fetchCommentsIfNeeded()
+            Task {
+                await fetchCommentsIfNeeded()
+            }
         }
     }
 
-    private func fetchCommentsIfNeeded() {
+    private func fetchCommentsIfNeeded() async {
         guard !postID.isEmpty else {
             print("PostID is empty, not fetching comments")
             return
         }
-        Task {
-            await viewModel.fetchComments(for: postID)
-        }
+        await viewModel.fetchComments(for: postID)
     }
     
     private var commentsList: some View {
