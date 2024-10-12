@@ -23,9 +23,7 @@ struct CommentsView: View {
     var body: some View {
         VStack (alignment: .leading) {
             commentsList
-            
             errorView
-            
             commentInputField
         }
         .navigationTitle(isInSheet ? "" : "Comments")
@@ -60,14 +58,13 @@ struct CommentsView: View {
             } else {
                 VStack(alignment: .leading) {
                     ForEach(viewModel.comments) { comment in
-                        CommentRow(comment: comment)
-                    }
-                    .listStyle(PlainListStyle())
-                    .refreshable {
-                        Task {
-                            await viewModel.refreshComments()
+                        CommentRow(comment: comment, currentUserID: userHolder.person.userID) {
+                            Task {
+                                await deleteComment(comment)
+                            }
                         }
                     }
+                    .listStyle(PlainListStyle())
                 }
             }
         }
@@ -118,21 +115,54 @@ struct CommentsView: View {
         isCommentFieldFocused = false
         await viewModel.fetchComments(for: postID)
     }
+
+    private func deleteComment(_ comment: Comment) async {
+        if let commentID = comment.id {
+            await viewModel.deleteComment(postID: postID, commentID: commentID)
+        } else {
+            print("Cannot delete comment: Invalid comment ID")
+        }
+    }
 }
 
 struct CommentRow: View {
     let comment: Comment
+    let currentUserID: String
+    var onDelete: () -> Void
+
+    @State private var showDeleteConfirmation = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(comment.username)
-                .font(.headline)
-            Text(comment.text)
-                .font(.body)
-            Text(comment.createdAt, style: .relative)
-                .font(.caption)
-                .foregroundColor(.secondary)
+        HStack {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(comment.username)
+                    .font(.headline)
+                Text(comment.text)
+                    .font(.body)
+                Text(comment.createdAt, style: .relative)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+            if comment.userID == currentUserID {
+                Button(action: {
+                    showDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                }
+            }
         }
         .padding(.vertical, 5)
+        .confirmationDialog(
+            "Confirm delete?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive, action: onDelete)
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This action cannot be undone.")
+        }
     }
 }
