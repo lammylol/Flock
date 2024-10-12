@@ -271,7 +271,7 @@ class PostOperationsService {
                         try await FeedService().updateFriendsFeed(post: post, person: person, friend: friend, updateFriend: true)
                     }
                 }
-                try await FeedService().updateFriendsFeed(post: post, person: person, friend: Person(), updateFriend: false)
+                try await FeedService().updateFriendsFeed(post: post, person: person, friend: Person(), updateFriend: false) // Update your own feed.
                 
                 // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
                 try await updatePostsDataCollection(prayerRequest: post, person: person)
