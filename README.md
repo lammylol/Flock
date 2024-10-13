@@ -4,6 +4,14 @@
 **Vision:** To become a centralized hub for prayer, inspiring the act of prayer across the globe among both big and small communities.
 
 ###
+>**Key Features:**
+>- Add posts and share prayer requests, with select privacy settings.
+>- Provide updates to existing prayers.
+>- Add real friends and receive updates through a feed.
+>- Track prayers and prayer requests for family & friends who aren't using the app.
+>- Record and send a prayer directly to someone.
+>- Group functionality for small groups and/or communities.
+>- Analytics on trends and historical insights.
 
 > **Key Features:**
 >

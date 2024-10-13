@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-
 struct PostRow: View {
     @State var viewModel: FeedViewModel
     @Environment(\.colorScheme) private var scheme
@@ -48,8 +47,10 @@ struct PostRow: View {
                     }
                     
                     VStack(alignment: .leading) {
-                        HStack() {
-                            Text(post.firstName.capitalized + " " + post.lastName.capitalized).font(.system(size: 18)).bold()
+                        HStack {
+                            Text(post.firstName.capitalized + " " + post.lastName.capitalized)
+                                .font(.system(size: 18))
+                                .bold()
                             Spacer()
                             if post.isPinned == true {
                                 Image(systemName: "pin.fill")
@@ -77,6 +78,7 @@ struct PostRow: View {
                         }
                         .font(.system(size: 13))
                         .padding(.bottom, 2)
+                        
                         HStack {
                             if post.postType == "Prayer Request" {
                                 Text("Prayer Request: ").font(.system(size: 12)) + Text(post.status.capitalized).font(.system(size: 12)).bold()
@@ -186,14 +188,23 @@ struct PostRow: View {
                             // technically no need for navigation link since you just click to go to the next page anyways.
                         } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
                         
+                        //comments
                         HStack {
                             Text(post.date, style: .date)
                                 .font(.system(size: 12))
                                 .padding(.top, 7)
                             Spacer()
+                            HStack {
+                                Image(systemName: "bubble.left")
+                                Text("Comments")
+                            }
+                            .font(.footnote)
+                            .padding(6)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(8)
+                            .padding(.top, 7)
                         }
                     }
-                    .padding(.top, 7)
                 }
             }
             .foregroundStyle(Color.primary)

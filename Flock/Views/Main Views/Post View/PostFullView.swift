@@ -22,6 +22,7 @@ struct PostFullView: View {
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
+    @State private var commentViewModel = CommentViewModel()
     
     var body: some View {
         NavigationView {
@@ -32,13 +33,21 @@ struct PostFullView: View {
                         latestUpdateView()
                     }
                     postContentView()
-                    Spacer()
+                    Spacer(minLength: 20)
+
+                    // Comment section
+                    Text("Comments")
+                        .font(.headline)
+                        .padding(.bottom, 10)
+
+                    CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
+                        .id("commentsSection")
                 }
+                .padding(.horizontal, 20)
             }
-            .task{ loadPost() }
-            .refreshable(action: refreshPost )
+            .task { loadPost() }
+            .refreshable(action: refreshPost)
             .scrollIndicators(.hidden)
-            .padding(.horizontal, 20)
             .padding(.vertical, 15)
         }
         .navigationTitle("Post")
@@ -163,7 +172,10 @@ struct PostFullView: View {
     }
     
     private func loadPost() {
-        post = originalPost
+        Task {
+            post = originalPost
+            await commentViewModel.fetchComments(for: post.id)
+        }
     }
     
     private func refreshPost() {
