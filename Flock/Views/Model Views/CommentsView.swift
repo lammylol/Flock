@@ -9,7 +9,6 @@ import SwiftUI
 
 struct CommentsView: View {
     let postID: String
-    // @StateObject private var viewModel: CommentViewModel
     var isInSheet: Bool
     @ObservedObject var viewModel: CommentViewModel
     
@@ -26,7 +25,6 @@ struct CommentsView: View {
             errorView
             commentInputField
         }
-        .navigationTitle(isInSheet ? "" : "Comments")
         .task {
             print("CommentsView task started for post \(postID)")
             await fetchCommentsIfNeeded()
@@ -54,7 +52,7 @@ struct CommentsView: View {
             } else if viewModel.comments.isEmpty {
                 Text("No comments yet. Be the first to comment!")
                     .foregroundColor(.secondary)
-                    .padding()
+                    .font(.system(size: 16))
             } else {
                 VStack(alignment: .leading) {
                     ForEach(viewModel.comments) { comment in
@@ -85,7 +83,7 @@ struct CommentsView: View {
             TextField("Add a comment", text: $newCommentText)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .focused($isCommentFieldFocused)
-                .submitLabel(.send)
+                .submitLabel(.return)
                 .onSubmit {
                     Task {
                         await postComment()
@@ -100,8 +98,6 @@ struct CommentsView: View {
             .disabled(isCommentTextEmpty)
         }
         .padding()
-        .background(Color(.systemBackground))
-        .shadow(radius: 2)
     }
     
     private var isCommentTextEmpty: Bool {
@@ -138,7 +134,7 @@ struct CommentRow: View {
                 Text(comment.username)
                     .font(.headline)
                 Text(comment.text)
-                    .font(.body)
+                    .font(.system(size: 16))
                 Text(comment.createdAt, style: .relative)
                     .font(.caption)
                     .foregroundColor(.secondary)
