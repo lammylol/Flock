@@ -85,7 +85,7 @@ struct PostRow: View {
                             } else if post.postType == "Praise" {
                                 Text("Praise 🙌").font(.system(size: 12))
                             } else {
-                                Text("Post 📝").font(.system(size: 12))
+                                Text("Note 📝").font(.system(size: 12))
                             }
                             Spacer()
                         }

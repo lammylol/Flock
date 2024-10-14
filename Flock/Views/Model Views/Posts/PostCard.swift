@@ -62,10 +62,9 @@ struct PostCard: View {
                     .background {
                         Circle()
                             .fill(.red)
-                            .frame(width: 32, height: 32)
                     }
                     .foregroundStyle(.white)
-                    .offset(x: 65, y: -90)
+                    .offset(x: 62, y: -80)
             }
         }
         .background {
@@ -81,6 +80,7 @@ struct PostCard: View {
         Task {
             do {
                 try await feedService.updateLastSeenNotificationCount(post: post, person: userHolder.person)
+                self.post.lastSeenNotificationCount = 0
             } catch {
                 ViewLogger.error("PostCard.viewUpdate failed \(error)")
             }

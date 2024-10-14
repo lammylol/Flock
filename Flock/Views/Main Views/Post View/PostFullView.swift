@@ -106,7 +106,7 @@ struct PostFullView: View {
     private func postContentView() -> some View {
         VStack(alignment: .leading) {
             HStack {
-                Text(post.postType == "Prayer Request" ? "Prayer Request: \(Text(post.status.capitalized).bold())" : post.postType == "Praise" ? "Praise 🙌" : "Post 📝")
+                Text(post.postType == "Prayer Request" ? "Prayer Request: \(Text(post.status.capitalized).bold())" : post.postType == "Praise" ? "Praise 🙌" : "Note 📝")
             }
             .font(.system(size: 16))
             Divider().padding(.vertical, 5)
