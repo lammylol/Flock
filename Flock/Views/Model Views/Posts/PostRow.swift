@@ -154,6 +154,7 @@ struct PostRow: View {
                                 Spacer()
                             }
                         }
+                        .padding(.top, 7)
                         
                         VStack {
                             Text("\(post.postText)")
