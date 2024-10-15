@@ -38,6 +38,14 @@ struct CommentsView: View {
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
+        .gesture(
+             DragGesture()
+                 .onEnded { value in
+                     if value.translation.height > 0 {
+                         isCommentFieldFocused = false // Dismiss the keyboard when swiping up
+                     }
+                 }
+         )
     }
 
     private func fetchCommentsIfNeeded() async {
@@ -89,6 +97,7 @@ struct CommentsView: View {
                     .frame(maxWidth: .infinity)
                     .font(.system(size: 16))
                     .padding(.leading, 5)
+                    .focused($isCommentFieldFocused)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray, lineWidth: 0.5)
