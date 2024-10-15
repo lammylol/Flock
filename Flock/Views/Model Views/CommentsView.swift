@@ -10,7 +10,7 @@ import SwiftUI
 struct CommentsView: View {
     let postID: String
     var isInSheet: Bool
-    @Binding var viewModel: CommentViewModel
+    @State var viewModel: CommentViewModel
     
     @State private var newCommentText = ""
     @FocusState private var isCommentFieldFocused: Bool
@@ -97,13 +97,13 @@ struct CommentsView: View {
                     .frame(maxWidth: .infinity)
                     .font(.system(size: 16))
                     .padding(.leading, 5)
-                    .focused($isCommentFieldFocused)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray, lineWidth: 0.5)
                     )
                     .background(Color.white) // Ensure background color is clickable and matches
                     .cornerRadius(8)
+                    .focused($isCommentFieldFocused)
                 
                 // Placeholder
                 if newCommentText.isEmpty {

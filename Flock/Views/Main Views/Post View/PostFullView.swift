@@ -30,7 +30,7 @@ struct PostFullView: View {
         NavigationView {
             ScrollViewReader { scrollViewProxy in
                 ScrollView {
-                    LazyVStack {
+                    VStack {
                         postHeaderView()
                         if post.latestUpdateText != "" {
                             latestUpdateView()
@@ -140,7 +140,7 @@ struct PostFullView: View {
             }
             
             if showComments {
-                CommentsView(postID: post.id, isInSheet: false, viewModel: $commentViewModel)
+                CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
                     .id("commentsSection")
             }
         }
