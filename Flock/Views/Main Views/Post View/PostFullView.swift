@@ -12,6 +12,7 @@ struct PostFullView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.dismiss) var dismiss
     
+    @State var postHelper = PostHelper()
     @State var postUpdates: [PostUpdate] = []
     @State var person: Person
     @State var post: Post = Post()
@@ -23,27 +24,34 @@ struct PostFullView: View {
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
     @State private var commentViewModel = CommentViewModel()
+    @State private var showComments: Bool = true
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                LazyVStack {
-                    postHeaderView()
-                    if post.latestUpdateText != "" {
-                        latestUpdateView()
+            ScrollViewReader { scrollViewProxy in
+                ScrollView {
+                    LazyVStack {
+                        postHeaderView()
+                        if post.latestUpdateText != "" {
+                            latestUpdateView()
+                        }
+                        postContentView()
+                        Spacer(minLength: 20)
+                        
+                        commentsSectionView()
+                        
                     }
-                    postContentView()
-                    Spacer(minLength: 20)
-
-                    // Comment section
-                    Text("Comments")
-                        .font(.headline)
-                        .padding(.bottom, 10)
-
-                    CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
-                        .id("commentsSection")
+                    .padding(.horizontal, 20)
+                    .id("TextEditorBottom")
                 }
-                .padding(.horizontal, 20)
+                .onChange(of: commentViewModel.scrollToEnd) {
+                    if commentViewModel.scrollToEnd {
+                        withAnimation {
+                            scrollViewProxy.scrollTo("TextEditorBottom", anchor: .bottom)
+                        }
+                        commentViewModel.scrollToEnd = false // Reset the flag
+                    }
+                }
             }
             .task { loadPost() }
             .refreshable(action: refreshPost)
@@ -104,21 +112,40 @@ struct PostFullView: View {
     
     // MARK: - Post Content View
     private func postContentView() -> some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Text(post.postType == "Prayer Request" ? "Prayer Request: \(Text(post.status.capitalized).bold())" : post.postType == "Praise" ? "Praise 🙌" : "Note 📝")
-            }
-            .font(.system(size: 16))
-            Divider().padding(.vertical, 5)
-            Text(post.postTitle).font(.system(size: 18)).bold().padding(.top, 7)
-            Text(post.date, style: .date).font(.system(size: 14))
+        VStack(alignment: .leading, spacing: 15) {
+            Text(post.postTitle).font(.system(size: 18)).bold()
+            Text(post.postType == "Prayer Request" ? "Prayer Request: \(Text(post.status.capitalized).bold())" : post.postType == "Praise" ? "Praise 🙌" : "Note 📝").font(.system(size: 14))
+            Divider()
             Text(post.postText)
                 .font(.system(size: 16))
                 .multilineTextAlignment(.leading)
-                .padding(.top, 7)
+            Text("\(postHelper.timeStringFull(for: post.date))")
+                .font(.system(size: 14))
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
     
+    // MARK: - Comment Section View
+    private func commentsSectionView() -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Comment section
+            HStack {
+                Text("Comments")
+                    .font(.system(size: 16))
+                    .fontWeight(.medium)
+                Button { showComments.toggle() }
+                label: { Image(systemName: (showComments ? "chevron.up" : "chevron.down")).foregroundStyle(Color.primary).fontWeight(.medium) }
+                Spacer()
+            }
+            
+            if showComments {
+                CommentsView(postID: post.id, isInSheet: false, viewModel: $commentViewModel)
+                    .id("commentsSection")
+            }
+        }
+    }
+
     // MARK: - Helper Views & Methods
     private func postOptionsMenu() -> some View {
         Menu {

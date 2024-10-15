@@ -13,6 +13,8 @@ struct Comment: Identifiable, Codable {
     var postID: String
     var userID: String
     var username: String
+    var firstName: String
+    var lastName: String
     var text: String
     var createdAt: Date
     
@@ -21,6 +23,8 @@ struct Comment: Identifiable, Codable {
         case postID
         case userID
         case username
+        case firstName
+        case lastName
         case text
         case createdAt
     }
@@ -32,6 +36,8 @@ extension Comment {
             postID: "123",
             userID: "345",
             username: "jimmy",
+            firstName: "Jimmy",
+            lastName: "J-boy",
             text: "This is a comment",
             createdAt: Date()
         )
