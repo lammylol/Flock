@@ -14,8 +14,12 @@ import FirebaseFirestore
     var acceptedFriendRequests: [Person] = []
     var privateFriends: [Person] = []
     
-    func setUpListener(userID: String) async {
+    func setUpListener(userID: String) async throws {
         let db = Firestore.firestore()
+        
+        guard userID != "" else {
+            throw PrayerRequestRetrievalError.noUserID
+        }
         
         friendRequestListener = db.collection("users").document(userID).collection("friendsList")/*.whereField("state", isEqualTo: "pending")*/
             .addSnapshotListener { querySnapshot, error in

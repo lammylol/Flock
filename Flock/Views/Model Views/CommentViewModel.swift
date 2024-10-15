@@ -9,11 +9,12 @@ import Foundation
 import Combine
 import SwiftUI
 
-class CommentViewModel: ObservableObject {
+@Observable class CommentViewModel {
     private let commentHelper = CommentHelper()
-    @Published var comments: [Comment] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    var comments: [Comment] = []
+    var isLoading = false
+    var errorMessage: String?
+    var scrollToEnd: Bool = false
     
     private var currentPostID: String?
     
@@ -73,6 +74,8 @@ class CommentViewModel: ObservableObject {
             postID: postID,
             userID: person.userID,
             username: person.username,
+            firstName: person.firstName,
+            lastName: person.lastName,
             text: text,
             createdAt: Date()
         )

@@ -20,7 +20,7 @@ struct PostCreateView: View {
     @State private var status: String = "Current"
     @State private var postText: String = ""
     @State private var postTitle: String = ""
-    @State private var postType: String = "Default"
+    @State private var postType: String = "Note"
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     
@@ -48,14 +48,14 @@ struct PostCreateView: View {
                         }
                         .padding(.bottom, -4)
                         Picker("Type", selection: $postType) {
-                            Text("Default (Post)").tag("Default")
+                            Text("Default (Note)").tag("Note")
                             Text("Praise").tag("Praise")
                             Text("Prayer Request").tag("Prayer Request")
                         }
                         ZStack(alignment: .topLeading) {
                             if postText.isEmpty {
                                 HStack{
-                                    if postType == "Default" {
+                                    if postType == "Note" {
                                         Text("Share what's on your mind. It can be a thought, an encouragement, or anything that God has placed on your heart.")
                                     } else if postType == "Praise" {
                                         Text("Share a praise report! What have seen God do in your life or in the lives of those around you?")

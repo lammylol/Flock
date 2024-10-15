@@ -200,10 +200,11 @@ struct SignInView: View {
             // This sets firstName, lastName, username, and userID for UserHolder
             
             // Turn on friend listener function. Enabled at start of app, and turned off when user exists app. Must exist throughout app active state so that if a friend is added when a user posts, it gets sent to all friends including new.
-            await friendRequestListener.setUpListener(userID: userHolder.person.userID)
+            try await friendRequestListener.setUpListener(userID: userHolder.person.userID)
         } catch {
             resetInfo()
             userHolder.isLoggedIn = .notAuthenticated
+            ViewLogger.error("SignInView \(error)")
         }
     }
 }

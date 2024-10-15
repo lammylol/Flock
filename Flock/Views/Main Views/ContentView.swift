@@ -52,7 +52,11 @@ struct ContentView: View {
             oldPhase, newPhase in
                 if newPhase == .active {
                     Task {
-                        await friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                        do {
+                            try await friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                        } catch {
+                            ViewLogger.error("ContentView: friendRequestListener \(error)")
+                        }
                     }
                 } else if newPhase == .inactive {
                     friendRequestListener.removeListener()

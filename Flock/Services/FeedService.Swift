@@ -110,48 +110,105 @@ class FeedService {
     // This function updates the prayer feed of all users who are friends of the person.
     func updateFriendsFeed(post: Post, person: Person, friend: Person, updateFriend: Bool) async throws {
         do {
-            if updateFriend {
-                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                
-                try await ref.setData([
-                    "datePosted": post.date,
-                    "firstName": post.firstName,
-                    "lastName": post.lastName,
-                    "status": post.status,
-                    "prayerRequestText": post.postText,
-                    "postType": post.postType,
-                    "userID": person.userID,
-                    "username": person.username,
-                    "privacy": post.privacy,
-                    "prayerRequestTitle": post.postTitle,
-                    "latestUpdateText": post.latestUpdateText,
-                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
-                    "latestUpdateType": post.latestUpdateType
-                ])
+            let userID = updateFriend ? friend.userID : person.userID
+            let ref = db.collection("prayerFeed").document(userID).collection("prayerRequests").document(post.id)
 
+            let data: [String: Any] = [
+                "datePosted": post.date,
+                "firstName": post.firstName,
+                "lastName": post.lastName,
+                "status": post.status,
+                "prayerRequestText": post.postText,
+                "postType": post.postType,
+                "userID": person.userID,
+                "username": person.username,
+                "privacy": post.privacy,
+                "prayerRequestTitle": post.postTitle,
+                "latestUpdateText": post.latestUpdateText,
+                "latestUpdateDatePosted": post.latestUpdateDatePosted,
+                "latestUpdateType": post.latestUpdateType,
+                "lastSeenNotificationCount": 1
+            ]
+
+            if updateFriend {
+                if try await ref.getDocument().exists {
+                    // Update only relevant fields for existing post
+                    try await ref.updateData(data)
+                } else {
+                    // Add additional fields for new post
+                    var newPostData = data
+                    newPostData["isPinned"] = false
+                    try await ref.setData(newPostData)
+                }
             } else {
-                let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-                 try await ref.setData([
-                    "datePosted": post.date,
-                    "firstName": post.firstName,
-                    "lastName": post.lastName,
-                    "status": post.status,
-                    "prayerRequestText": post.postText,
-                    "postType": post.postType,
-                    "userID": person.userID,
-                    "username": person.username,
-                    "privacy": post.privacy,
-                    "prayerRequestTitle": post.postTitle,
-                    "latestUpdateText": post.latestUpdateText,
-                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
-                    "latestUpdateType": post.latestUpdateType,
-                    "isPinned": post.isPinned
-                ])
+                // Set data for the person’s own post
+                var ownPostData = data
+                ownPostData["isPinned"] = post.isPinned
+                try await ref.setData(ownPostData)
             }
+
         } catch {
-            NetworkingLogger.error("FeedService.udpateFriendsFeed failed \(error)")
+            NetworkingLogger.error("FeedService.updateFriendsFeed failed \(error)")
         }
     }
+    
+//    func updateFriendsFeed(post: Post, person: Person, friend: Person, updateFriend: Bool) async throws {
+//        do {
+//            if updateFriend {
+//                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
+//                
+//                if ref.getDocument().exists {
+//                    try await ref.updateData([
+//                        "status": post.status,
+//                        "prayerRequestText": post.postText,
+//                        "postType": post.postType,
+//                        "privacy": post.privacy,
+//                        "prayerRequestTitle": post.postTitle,
+//                        "lastSeenNotificationCount": 1,
+//                    ])
+//
+//                } else {
+//                    try await ref.setData([
+//                        "datePosted": post.date,
+//                        "firstName": post.firstName,
+//                        "lastName": post.lastName,
+//                        "status": post.status,
+//                        "prayerRequestText": post.postText,
+//                        "postType": post.postType,
+//                        "userID": person.userID,
+//                        "username": person.username,
+//                        "privacy": post.privacy,
+//                        "prayerRequestTitle": post.postTitle,
+//                        "latestUpdateText": post.latestUpdateText,
+//                        "latestUpdateDatePosted": post.latestUpdateDatePosted,
+//                        "latestUpdateType": post.latestUpdateType,
+//                        "lastSeenNotificationCount": 1,
+//                    ])
+//                }
+//
+//            } else {
+//                let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
+//                 try await ref.setData([
+//                    "datePosted": post.date,
+//                    "firstName": post.firstName,
+//                    "lastName": post.lastName,
+//                    "status": post.status,
+//                    "prayerRequestText": post.postText,
+//                    "postType": post.postType,
+//                    "userID": person.userID,
+//                    "username": person.username,
+//                    "privacy": post.privacy,
+//                    "prayerRequestTitle": post.postTitle,
+//                    "latestUpdateText": post.latestUpdateText,
+//                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
+//                    "latestUpdateType": post.latestUpdateType,
+//                    "isPinned": post.isPinned
+//                ])
+//            }
+//        } catch {
+//            NetworkingLogger.error("FeedService.udpateFriendsFeed failed \(error)")
+//        }
+//    }
 
     // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
     func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) async throws {
@@ -184,7 +241,7 @@ class FeedService {
                     try await ref2.delete()
                 }
             }
-        }catch{
+        } catch{
             NetworkingLogger.error("FeedService.publicToPrivate failed \(error)")
         }
     } // This function allows you to pass in a prayer request and delete that from friends' feeds if you have changed it from public to private.
@@ -194,7 +251,7 @@ class FeedService {
 //            let lastSeenNotificationCount = max(post.lastSeenNotificationCount - 1, 0)
             
             let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-            try await ref.setData([
+            try await ref.updateData([
                 "lastSeenNotificationCount": 0 // always return to 0 once it's seen, since user is pulling up the full update list
             ])
         } catch {

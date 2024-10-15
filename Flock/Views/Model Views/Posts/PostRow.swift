@@ -14,6 +14,7 @@ struct PostRow: View {
     @Binding var post: Post
     @State var person: Person = Person()
     @Environment(UserProfileHolder.self) var userHolder
+    @State var postHelper = PostHelper()
     
     // For Update
     @State private var expandUpdate: Bool = false
@@ -85,7 +86,7 @@ struct PostRow: View {
                             } else if post.postType == "Praise" {
                                 Text("Praise 🙌").font(.system(size: 12))
                             } else {
-                                Text("Post 📝").font(.system(size: 12))
+                                Text("Note 📝").font(.system(size: 12))
                             }
                             Spacer()
                         }
@@ -154,6 +155,7 @@ struct PostRow: View {
                                 Spacer()
                             }
                         }
+                        .padding(.top, 7)
                         
                         VStack {
                             Text("\(post.postText)")
@@ -190,8 +192,10 @@ struct PostRow: View {
                         
                         //comments
                         HStack {
-                            Text(post.date, style: .date)
+                            Text(postHelper.relativeTimeStringFull(for: post.date))
                                 .font(.system(size: 12))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                                 .padding(.top, 7)
                             Spacer()
                             HStack {
