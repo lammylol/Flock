@@ -56,7 +56,8 @@ struct PostFullView: View {
             .task { loadPost() }
             .refreshable(action: refreshPost)
             .scrollIndicators(.hidden)
-            .padding(.vertical, 15)
+            .padding(.bottom, 15)
+            .clipped()
         }
         .navigationTitle("Post")
         .navigationBarTitleDisplayMode(.inline)
