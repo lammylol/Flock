@@ -62,7 +62,7 @@ class FeedService {
                 lastName: data["lastName"] as? String ?? "",
                 postTitle: data["prayerRequestTitle"] as? String ?? "",
                 postText: data["prayerRequestText"] as? String ?? "",
-                postType: data["postType"] as? String ?? "",
+                postType: data["postType"] as? String ?? "note",
                 status: data["status"] as? String ?? "",
                 latestUpdateText: data["latestUpdateText"] as? String ?? "",
                 latestUpdateDatePosted: updateTimestamp.dateValue(),
