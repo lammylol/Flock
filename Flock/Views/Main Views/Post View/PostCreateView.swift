@@ -20,7 +20,7 @@ struct PostCreateView: View {
     @State private var status: String = "Current"
     @State private var postText: String = ""
     @State private var postTitle: String = ""
-    @State private var postType: String = "Note"
+    @State private var postType: Post.PostType = .note
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     
@@ -48,16 +48,16 @@ struct PostCreateView: View {
                         }
                         .padding(.bottom, -4)
                         Picker("Type", selection: $postType) {
-                            Text("Default (Note)").tag("Note")
-                            Text("Praise").tag("Praise")
-                            Text("Prayer Request").tag("Prayer Request")
+                            ForEach(Post.PostType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(type.rawValue)
+                            }
                         }
                         ZStack(alignment: .topLeading) {
                             if postText.isEmpty {
                                 HStack{
-                                    if postType == "Note" {
+                                    if postType == .note {
                                         Text("Share what's on your mind. It can be a thought, an encouragement, or anything that God has placed on your heart.")
-                                    } else if postType == "Praise" {
+                                    } else if postType == .praise {
                                         Text("Share a praise report! What have seen God do in your life or in the lives of those around you?")
                                     } else {
                                         Text("Share a prayer request. Consider sharing your post in the form of a prayer so that readers can join with you in prayer as they read it.")
@@ -77,11 +77,6 @@ struct PostCreateView: View {
                             Text("Privacy")
                             Spacer()
                             PrivacyView(person: person, privacySetting: $privacy)
-//                                .task {
-//                                    if person.isPrivateFriend {
-//                                        privacy = "private"
-//                                    }
-//                                }
                                 .onChange(of: privacy, {
                                     if privacy == "public" {
                                         isPresentingFriends = true
@@ -147,7 +142,7 @@ struct PostCreateView: View {
                     postText: postText,
                     postTitle: postTitle,
                     privacy: privacy,
-                    postType: postType,
+                    postType: postType.rawValue,
                     friendsList: friendRequestListener.acceptedFriendRequests)
                 userHolder.refresh = true
                 
@@ -169,7 +164,8 @@ struct PostCreateView: View {
             userHolder.draftPost = UserProfileHolder.DraftPost(
                 title: postTitle,
                 content: postText,
-                selectedTags: [postType, privacy]
+                postType: postType,
+                privacy: privacy
             )
         } else {
             ViewLogger.info("SubmitPostForm.saveDraft No content to save as draft")
@@ -180,10 +176,8 @@ struct PostCreateView: View {
         if let draft = userHolder.draftPost {
             postTitle = draft.title
             postText = draft.content
-            if draft.selectedTags.count >= 2 {
-                postType = draft.selectedTags[0]
-                privacy = draft.selectedTags[1]
-            }
+            postType = draft.postType
+            privacy = draft.privacy
         }
     }
 
