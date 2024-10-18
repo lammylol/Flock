@@ -10,32 +10,43 @@ import SwiftUI
 struct TodayView: View {
     @Environment(UserProfileHolder.self) var userHolder
     
-    @State private var viewModel = FeedViewModel(profileOrFeed: "profile")
-    @State private var pinnedPostsViewModel = PinnedFeedViewModel(profileOrFeed: "profile")
+    @State private var myFriendsPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myFriendPostsPinned)
+    @State private var myPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myPosts)
     @State private var navigationPath = NavigationPath()
     
     @State private var date: Date = Date()
     @State private var post: Post = Post()
     @State private var postText: String = ""
-    @State private var postType: Post.PostType = .note
+    @State private var postType: Post.PostType = .prayerRequest
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
-        ScrollView {
-            VStack (alignment: .leading, spacing: 25) {
-                headerView()
-                addPostView()
-                myPrayersView()
-                Spacer()
+        NavigationStack(path: $navigationPath) {
+            ScrollView {
+                VStack (alignment: .leading, spacing: 20) {
+                    headerView()
+                    addPostView()
+                    myPrayersView()
+                    myFriendsView()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 20)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 20)
+            .clipped(antialiased: true)
+            .scrollDismissesKeyboard(.automatic)
+            .scrollIndicators(.hidden)
+            .refreshable(action: { Task { refreshPosts } })
+            .navigationDestination(for: Post.self) { post in
+                PostFullView(
+                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
+                    originalPost: .constant(post) // Pass binding for post
+                )
+            }
+            .toolbarBackground(Color.primary, for: .bottomBar)
         }
-        .clipped()
-        .scrollDismissesKeyboard(.automatic)
     }
     
     // MARK: - Header View
@@ -50,7 +61,7 @@ struct TodayView: View {
                     .fontWeight(.light)
                 Spacer()
             }
-            .padding(.top, 10)
+            .padding(.top, 20)
         }
     }
     
@@ -122,16 +133,32 @@ struct TodayView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    // MARK: - My Prayers View
-    private func myPrayersView() -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Pinned Prayers")
+    // MARK: - Friend Prayers View
+    private func myFriendsView() -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Friend's Prayers")
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: $pinnedPostsViewModel, posts: pinnedPostsViewModel.posts)
+            PostCardLayout(navigationPath: $navigationPath, viewModel: $myFriendsPostsViewModel, posts: myFriendsPostsViewModel.posts)
                 .padding(.leading, 0) // Padding on leading
                 .padding(.trailing, -25)
                 .task {
-                    if pinnedPostsViewModel.posts.isEmpty {
+                    if myFriendsPostsViewModel.posts.isEmpty {
+                        await loadPinnedPosts()
+                    }
+                }
+        }
+    }
+    
+    // MARK: - My Prayers View
+    private func myPrayersView() -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Prayers")
+            
+            PostCardLayout(navigationPath: $navigationPath, viewModel: $myPostsViewModel, posts: myPostsViewModel.posts)
+                .padding(.leading, 0) // Padding on leading
+                .padding(.trailing, -25)
+                .task {
+                    if myPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
                     }
                 }
@@ -190,17 +217,18 @@ struct TodayView: View {
     
     private func loadPinnedPosts() async {
         do {
-            try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
+            try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
+            try await myPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
         } catch {
             ViewLogger.error("ProfileView Pinned Posts \(error)")
         }
     }
     
     private func refreshPosts() async {
-        if viewModel.isFinished {
+        if myPostsViewModel.isFinished && myFriendsPostsViewModel.isFinished {
             do {
-                try await viewModel.getPosts(user: userHolder.person, person: userHolder.person)
-                try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
+                try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
+                try await myPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }

@@ -81,6 +81,8 @@ extension Post {
     }
 }
 
+// MARK: - PostUpdates
+
 struct PostUpdate : Identifiable {
     var id: String = ""
     var postID: String = "" // original identifier

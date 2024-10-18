@@ -23,7 +23,7 @@ struct PostCreateView: View {
     @State private var postType: Post.PostType = .note
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
-    
+
     @State private var isDraftSaved = false
 
     var friendService = FriendService()
