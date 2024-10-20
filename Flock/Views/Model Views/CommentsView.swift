@@ -10,7 +10,7 @@ import SwiftUI
 struct CommentsView: View {
     let postID: String
     var isInSheet: Bool
-    @ObservedObject var viewModel: CommentViewModel
+    @State var viewModel: CommentViewModel
     
     @State private var newCommentText = ""
     @FocusState private var isCommentFieldFocused: Bool
@@ -20,7 +20,7 @@ struct CommentsView: View {
     @State private var viewModelUpdateCounter = 0
     
     var body: some View {
-        VStack (alignment: .leading) {
+        VStack (alignment: .leading, spacing: 15) {
             commentsList
             errorView
             commentInputField
@@ -35,6 +35,17 @@ struct CommentsView: View {
                 await fetchCommentsIfNeeded()
             }
         }
+        .onChange(of: newCommentText) {
+            viewModel.scrollToEnd = true
+        }
+        .gesture(
+             DragGesture()
+                 .onEnded { value in
+                     if value.translation.height > 0 {
+                         isCommentFieldFocused = false // Dismiss the keyboard when swiping up
+                     }
+                 }
+         )
     }
 
     private func fetchCommentsIfNeeded() async {
@@ -52,7 +63,7 @@ struct CommentsView: View {
             } else if viewModel.comments.isEmpty {
                 Text("No comments yet. Be the first to comment!")
                     .foregroundColor(.secondary)
-                    .font(.system(size: 16))
+                    .font(.system(size: 14))
             } else {
                 VStack(alignment: .leading) {
                     ForEach(viewModel.comments) { comment in
@@ -79,25 +90,41 @@ struct CommentsView: View {
     }
     
     private var commentInputField: some View {
-        HStack {
-            TextField("Add a comment", text: $newCommentText)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .focused($isCommentFieldFocused)
-                .submitLabel(.return)
-                .onSubmit {
-                    Task {
-                        await postComment()
-                    }
-                }
-            
-            Button("Post") {
-                Task {
-                    await postComment()
+        HStack (alignment: .top) {
+            ZStack (alignment: .leading) {
+                TextEditor(text: $newCommentText)
+                    .frame(minHeight: 35)
+                    .frame(maxWidth: .infinity)
+                    .font(.system(size: 16))
+                    .padding(.leading, 5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray, lineWidth: 0.5)
+                    )
+                    .background(Color.white) // Ensure background color is clickable and matches
+                    .cornerRadius(8)
+                    .focused($isCommentFieldFocused)
+                
+                // Placeholder
+                if newCommentText.isEmpty {
+                    Text("Add a comment...")
+                        .foregroundColor(.gray)
+                        .padding(.leading, 10)
+                        .font(.system(size: 14))
+                        .allowsHitTesting(false) // Make sure the placeholder doesn't block touches
                 }
             }
-            .disabled(isCommentTextEmpty)
+            
+            if !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Button { Task { await postComment() } }
+                label: {
+                    tagModelView(textLabel: "Post", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                }
+                .disabled(isCommentTextEmpty)
+                .padding(.leading, 1)
+            }
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var isCommentTextEmpty: Bool {
@@ -130,14 +157,25 @@ struct CommentRow: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(comment.username)
-                    .font(.headline)
-                Text(comment.text)
-                    .font(.system(size: 16))
-                Text(comment.createdAt, style: .relative)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 7) {
+                HStack (alignment: .top) {
+                    ProfilePictureAvatar(firstName: comment.firstName, lastName: comment.lastName, imageSize: 35, fontSize: 16)
+                    VStack (alignment: .leading, spacing: 10) {
+                        HStack (spacing: 5) {
+                            Text((comment.firstName + " " + comment.lastName)
+                                .capitalized)
+                                .fontWeight(.medium)
+                                .font(.system(size: 14))
+                            Text(PostHelper().relativeTimeStringAbbrev(for: comment.createdAt))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                        }
+                        Text(comment.text)
+                            .font(.system(size: 16))
+                    }
+                }
+                
             }
             Spacer()
             if comment.userID == currentUserID {
