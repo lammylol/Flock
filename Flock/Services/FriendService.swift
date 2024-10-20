@@ -51,11 +51,7 @@ class FriendService {
                 // delete from friend's feed
                 if friendsList.isEmpty == false {
                     for friend in friendsList {
-                        let prayerRequests = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-                        
-                        for request in prayerRequests.documents {
-                            try await request.reference.delete()
-                        }
+                        try await deleteFriend(user: user, friend: friend)
                     }
                 }
                 
@@ -84,7 +80,7 @@ class FriendService {
                 try await Auth.auth().currentUser?.delete()
                 
             } catch {
-                throw error
+                NetworkingLogger.error("FriendService.deleteAccount \(error.localizedDescription)")
             }
         }
     }
@@ -248,7 +244,7 @@ class FriendService {
                 let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
                 try await refUser.delete()
                 
-                // Update your prayer feed to remove that person's prayer requests from your current feed.
+                // Update your prayer feed to remove your prayer requests from the friend's current feed.
                 let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
                 for document in refDeleteUser.documents {
                     try await document.reference.delete()
@@ -263,13 +259,6 @@ class FriendService {
                 for document in refUser.documents {
                     try await document.reference.delete()
                 }
-                
-//                // Update your prayer feed to remove that person's prayer requests from your current feed. Current functionality - don't delete historical posts.
-//                let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-//                
-//                for document in refDeleteUser.documents {
-//                    try await document.reference.delete()
-//                }
             }
         } catch {
             NetworkingLogger.error("FriendService.deleteFriend failed \(error)")
