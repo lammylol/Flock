@@ -46,11 +46,12 @@ struct ProfileSettingsView: View {
     }
     
     func signOut() {
-        // Sign out from firebase and change loggedIn to return to SignInView.
         Task {
             if userHolder.isFinished {
                 do {
-                    friendRequestListener.removeListener()
+                    resetInfo()
+                    await friendRequestListener.removeListener()
+                    navigationPath.append("SignIn")
                     try Auth.auth().signOut()
                 } catch {
                     ViewLogger.error("ProfileSettingsView signOut failed \(error)")
