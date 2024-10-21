@@ -46,12 +46,11 @@ struct ProfileSettingsView: View {
     }
     
     func signOut() {
+        // Sign out from firebase and change loggedIn to return to SignInView.
         Task {
             if userHolder.isFinished {
                 do {
-                    resetInfo()
-                    await friendRequestListener.removeListener()
-                    navigationPath.append("SignIn")
+                    friendRequestListener.removeListener()
                     try Auth.auth().signOut()
                 } catch {
                     ViewLogger.error("ProfileSettingsView signOut failed \(error)")
@@ -67,6 +66,8 @@ struct DeleteButton: View {
     @State private var isPresentingConfirm: Bool = false
     private var friendService = FriendService()
     
+    @State private var navigationPath: [String] = []
+    
     var body: some View {
         Button("Delete Account", role: .destructive) {
             isPresentingConfirm = true
@@ -75,10 +76,10 @@ struct DeleteButton: View {
                             isPresented: $isPresentingConfirm) {
             Button("Delete Account and Sign Out", role: .destructive) {
                 Task {
-//                    defer { signOut() }
+                    //                    defer { signOut() }
                     do {
                         if userHolder.isFinished {
-
+                            
                             try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
                         }
                     } catch {
@@ -92,10 +93,20 @@ struct DeleteButton: View {
     }
     
     func signOut() {
-        // Sign out from firebase and change loggedIn to return to SignInView.
-        try? Auth.auth().signOut()
+        Task {
+            if userHolder.isFinished {
+                do {
+                    resetInfo()
+                    await friendRequestListener.removeListener()
+                    navigationPath.append("SignIn")
+                    try Auth.auth().signOut()
+                } catch {
+                    ViewLogger.error("ProfileSettingsView signOut failed \(error)")
+                }
+            }
+        }
     }
-
+    
     func resetInfo() {
         friendRequestListener.acceptedFriendRequests = []
         friendRequestListener.pendingFriendRequests = []
