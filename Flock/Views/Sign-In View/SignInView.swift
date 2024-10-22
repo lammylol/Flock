@@ -183,11 +183,6 @@ struct SignInView: View {
         Task {
             await UserService().resetInfoOnSignout(listener: friendRequestListener, userHolder: userHolder)
         }
-//        friendRequestListener.acceptedFriendRequests = []
-//        friendRequestListener.pendingFriendRequests = []
-//        userHolder.person.userID = ""
-//        userHolder.prayerList = ""
-//        userHolder.prayStartDate = Date()
     }
     
     private func setInfo() async {
@@ -200,6 +195,8 @@ struct SignInView: View {
             
             let userID = Auth.auth().currentUser?.uid ?? ""
             userHolder.person = try await UserService().getBasicUserInfo(userID: userID)
+            email = ""
+            password = ""
             // This sets firstName, lastName, username, and userID for UserHolder
             
             // Turn on friend listener function. Enabled at start of app, and turned off when user exists app. Must exist throughout app active state so that if a friend is added when a user posts, it gets sent to all friends including new.
