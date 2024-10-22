@@ -39,9 +39,16 @@ import FirebaseFirestore
     
     var isLoggedIn: Authenticated = .undefined
     
-    init(){
+    init() {
+        if Auth.auth().currentUser == nil {
+            isLoggedIn = .notAuthenticated
+            person = Person(username: "")
+        } else {
+            isLoggedIn = .authenticated
+        }
+        
         Auth.auth().addStateDidChangeListener { auth, user in
-                self.isLoggedIn = user != nil ? .authenticated : .notAuthenticated
+            self.isLoggedIn = user != nil ? .authenticated : .notAuthenticated
         }
     }
     

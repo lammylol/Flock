@@ -78,6 +78,8 @@ struct DeleteButton: View {
     @State private var isPresentingConfirm: Bool = false
     private var friendService = FriendService()
     
+    @State private var navigationPath: [String] = []
+    
     var body: some View {
         Button("Delete Account", role: .destructive) {
             isPresentingConfirm = true
@@ -102,19 +104,24 @@ struct DeleteButton: View {
     
     func signOut() {
         // Sign out from firebase and change loggedIn to return to SignInView.
-        resetInfo()
-        try? Auth.auth().signOut()
+        Task {
+            if userHolder.isFinished {
+                do {
+                    resetInfo()
+                    friendRequestListener.removeListener()
+                    navigationPath.append("SignIn")
+                    try Auth.auth().signOut()
+                } catch {
+                    ViewLogger.error("ProfileSettingsView signOut failed \(error)")
+                }
+            }
+        }
     }
-
+    
     func resetInfo() {
         Task {
             await UserService().resetInfoOnSignout(listener: friendRequestListener, userHolder: userHolder)
         }
-//        friendRequestListener.acceptedFriendRequests = []
-//        friendRequestListener.pendingFriendRequests = []
-//        userHolder.person.userID = ""
-//        userHolder.prayerList = ""
-//        userHolder.prayStartDate = Date()
     }
 }
 
