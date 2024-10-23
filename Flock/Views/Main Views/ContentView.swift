@@ -19,13 +19,20 @@ struct ContentView: View {
     var body: some View {
         //Tabs for each view. Adds bottom icons.
         TabView(selection: $selection) {
-            FeedView(person: userHolder.person)
+            TodayView()
                 .tabItem {
                     Image(systemName: "house.fill")
                         .imageScale(.large)
-                    Text("Feed")
+                    Text("Home")
                 }
                 .tag(1)
+            FeedView(person: userHolder.person)
+                .tabItem {
+                    Image(systemName: "newspaper.fill")
+                        .imageScale(.large)
+                    Text("Feed")
+                }
+                .tag(2)
             
             FriendsPageView()
                 .tabItem {
@@ -33,7 +40,7 @@ struct ContentView: View {
                         .imageScale(.large)
                     Text("Friends")
                 }
-                .tag(2)
+                .tag(3)
 //            PrayerCalendarView()
 //                .tabItem {
 //                    Image(systemName: "calendar")
@@ -46,7 +53,7 @@ struct ContentView: View {
                         .imageScale(.large)
                     Text("Profile")
                 }
-                .tag(3)
+                .tag(4)
         }
         .onChange(of: scenePhase) { 
             oldPhase, newPhase in

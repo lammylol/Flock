@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-@MainActor
 struct FriendsPageView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener

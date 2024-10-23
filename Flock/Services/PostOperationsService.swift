@@ -17,11 +17,21 @@ class PostOperationsService {
         var profiles: Query
         
         do {
-                profiles = db.collection("prayerRequests")
+//            if fetchOnlyPublic {
+                profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests")
                     .whereField("status", in: ["Current", "Answered"])
-                    .whereField("userID", isEqualTo: userID)
                     .whereField("privacy", isEqualTo: "public")
                     .order(by: "latestUpdateDatePosted", descending: true)
+//            }
+//            } else {
+//                if status == "isPinned" {
+//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("isPinned", isEqualTo: true).order(by: "latestUpdateDatePosted", descending: true)
+//                } else if status != nil { // if a status is passed, retrieve prayer list with status filtered.
+//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("status", isEqualTo: status!).order(by: "latestUpdateDatePosted", descending: true)
+//                } else { // if a status is not passed, retrieve all prayers.
+//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").order(by: "latestUpdateDatePosted", descending: true)
+//                }
+//            }
             
             let querySnapshot = try await profiles.getDocuments()
             
@@ -36,7 +46,7 @@ class PostOperationsService {
                 let lastName = document.data()["lastName"] as? String ?? ""
                 let postTitle = document.data()["prayerRequestTitle"] as? String ?? ""
                 let postText = document.data()["prayerRequestText"] as? String ?? ""
-                let postType = document.data()["postType"] as? String ?? ""
+                let postType = document.data()["postType"] as? String ?? "note"
                 let status = document.data()["status"] as? String ?? ""
                 let userID = document.data()["userID"] as? String ?? ""
                 let username = document.data()["username"] as? String ?? ""
@@ -98,7 +108,7 @@ class PostOperationsService {
                 let lastName = document.data()?["lastName"] as? String ?? ""
                 let postTitle = document.data()?["prayerRequestTitle"] as? String ?? ""
                 let postText = document.data()?["prayerRequestText"] as? String ?? ""
-                let postType = document.data()?["postType"] as? String ?? ""
+                let postType = document.data()?["postType"] as? String ?? "note"
                 let status = document.data()?["status"] as? String ?? ""
                 let userID = document.data()?["userID"] as? String ?? ""
                 let username = document.data()?["username"] as? String ?? ""

@@ -28,7 +28,7 @@ struct PostRow: View {
         NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), originalPost: $post)) {
             LazyVStack {
                 HStack {
-                    if viewModel.profileOrFeed == "feed" { //feed used in the feed view
+                    if viewModel.viewType == .feed { //feed used in the feed view
                         VStack() {
                             NavigationLink(destination: ProfileView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName))) {
                                 ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
@@ -221,13 +221,10 @@ struct PostRow: View {
     func pinPost(){
         Task {
             do {
-                var isPinnedToggle = post.isPinned
-                isPinnedToggle.toggle()
-                self.post.isPinned = isPinnedToggle
-                
-                try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: isPinnedToggle)
+                post.isPinned.toggle()
+                try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: post.isPinned)
             } catch {
-                ModelLogger.error("pinPost failed \(error)")
+                ModelLogger.error("PostRow.pinPost \(error)")
             }
         }
     }

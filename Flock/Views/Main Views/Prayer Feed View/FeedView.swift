@@ -19,7 +19,7 @@ struct FeedView: View {
     @State var prayerRequestVar: Post = Post.blank
     
     @Environment(UserProfileHolder.self) var userHolder
-    @State var viewModel: FeedViewModel = FeedViewModel(profileOrFeed: "feed")
+    @State var viewModel: FeedViewModel = FeedViewModel(viewType: .feed)
     @Environment(\.colorScheme) private var scheme
     
     @State var person: Person

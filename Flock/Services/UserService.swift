@@ -41,12 +41,7 @@ class UserService { // Functions related to user information
         var firstName = person.firstName
         var lastName = person.lastName
         var friendState = person.friendState
-        
-        // Ensure user is still authenticated before running the task
-        guard Auth.auth().currentUser != nil else {
-            ViewLogger.info("User is not authenticated. Aborting fetch of user info.")
-            return Person()
-        }
+        var username = person.username
         
         if person.isPrivateFriend || person.username == "" { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
             userID = userHolder.person.userID
@@ -60,6 +55,7 @@ class UserService { // Functions related to user information
                     userID = document.get("userID") as? String ?? ""
                     firstName = document.get("firstName") as? String ?? ""
                     lastName = document.get("lastName") as? String ?? ""
+                    username = document.get("username") as? String ?? ""
                     friendState = document.get("state") as? String ?? ""
                 }
             } catch {
@@ -67,7 +63,7 @@ class UserService { // Functions related to user information
             }
         }
         NetworkingLogger.debug("userService.retrieveUserInfoFromUserID got \(person.userID, privacy: .private)")
-        return Person(userID: userID, username: person.username, firstName: firstName, lastName: lastName, friendState: friendState)
+        return Person(userID: userID, username: username, firstName: firstName, lastName: lastName, friendState: friendState)
     }
     
     func checkIfUsernameExists(username: String) async -> Bool {
@@ -86,10 +82,5 @@ class UserService { // Functions related to user information
             check = false
         }
         return check
-    }
-    
-    func resetInfoOnSignout(listener: FriendRequestListener, userHolder: UserProfileHolder) async {
-        await listener.resetListener()
-        await userHolder.resetUserProfileHolder()
     }
 }

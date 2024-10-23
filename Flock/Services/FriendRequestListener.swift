@@ -8,7 +8,6 @@
 import Foundation
 import FirebaseFirestore
 
-@MainActor
 @Observable class FriendRequestListener {
     private var friendRequestListener: ListenerRegistration?
     var pendingFriendRequests: [Person] = []
@@ -22,17 +21,12 @@ import FirebaseFirestore
             throw PrayerRequestRetrievalError.noUserID
         }
         
-        friendRequestListener = db.collection("users").document(userID).collection("friendsList")/*.whereField("state", isEqualTo: "pending")*/
+        friendRequestListener = db.collection("users").document(userID).collection("friendsList")
             .addSnapshotListener { querySnapshot, error in
                 guard let documents = querySnapshot?.documents else {
                     NetworkingLogger.error("FriendRequestListener.setUpListener Error fetching friendRequests: \(error!)")
                     return
                 }
-                
-//                // Check if the snapshot has changes or if it comes from the server
-//                guard !(querySnapshot?.metadata.hasPendingWrites)! && querySnapshot?.metadata.isFromCache == false else {
-//                    return
-//                }
                 
                 var newPendingFriendRequests: [Person] = []
                 var newAcceptedFriendRequests: [Person] = []
@@ -77,13 +71,5 @@ import FirebaseFirestore
     func removeListener() {
         friendRequestListener?.remove()
         NetworkingLogger.info("FriendRequestListener turned off.")
-    }
-    
-    @MainActor // ensure runs on main thread.
-    func resetListener() {
-        self.pendingFriendRequests = []
-        self.acceptedFriendRequests = []
-        self.privateFriends = []
-        NetworkingLogger.info("FriendRequestListener arrays have been reset.")
     }
 }

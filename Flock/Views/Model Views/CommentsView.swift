@@ -101,7 +101,7 @@ struct CommentsView: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray, lineWidth: 0.5)
                     )
-                    .background(Color.white) // Ensure background color is clickable and matches
+                    .background(Color.clear) // Ensure background color is clickable and matches
                     .cornerRadius(8)
                     .focused($isCommentFieldFocused)
                 

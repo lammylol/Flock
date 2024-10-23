@@ -66,8 +66,8 @@ class PostHelper {
     func timeStringFull(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mma · MM/dd/yy" // Adds a dot between the time and the date
-        formatter.amSymbol = "am"
-        formatter.pmSymbol = "pm"
+        formatter.amSymbol = "AM"
+        formatter.pmSymbol = "PM"
         
         return formatter.string(from: date)
     }

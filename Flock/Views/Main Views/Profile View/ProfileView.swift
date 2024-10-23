@@ -17,8 +17,8 @@ struct ProfileView: View {
     
     @State public var person: Person
     @State private var showSubmit = false
-    @State private var viewModel = FeedViewModel(profileOrFeed: "profile")
-    @State private var pinnedPostsViewModel = PinnedFeedViewModel(profileOrFeed: "profile")
+    @State private var viewModel = FeedViewModel(viewType: .profile, selectionType: .myPosts)
+    @State private var pinnedPostsViewModel = FeedViewModel(viewType: .profile, selectionType: .myPostsPinned)
     @State private var navigationPath = NavigationPath()
     @State private var addFriendConfirmation = false
     
@@ -36,7 +36,7 @@ struct ProfileView: View {
                 .padding(.top, -8)
                 .padding([.leading, .trailing], 23)
             }
-            .task { loadProfile() }
+            .task { await loadProfile() }
             .refreshable { await refreshPosts() }
             .navigationTitle(person.fullName.capitalized)
             .navigationBarTitleDisplayMode(.large)
@@ -76,7 +76,7 @@ struct ProfileView: View {
         LazyVStack (spacing: 15) {
             VStack (spacing: 0) {
                 if !pinnedPostsViewModel.isLoading && !pinnedPostsViewModel.posts.isEmpty {
-                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Posts", fontWeight: .medium)
+                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Prayers", fontWeight: .medium)
                 }
                 PostCardLayout(navigationPath: $navigationPath, viewModel: $pinnedPostsViewModel, posts: pinnedPostsViewModel.posts)
                     .padding(.leading, 0) // Padding on leading
@@ -89,7 +89,7 @@ struct ProfileView: View {
             }
             VStack {
                 HStack {
-                    sectionHeader(systemImage: Image(systemName: "newspaper.fill"), title: person.username == userHolder.person.username ? "My Posts" : "\(person.firstName)'s Posts", fontWeight: .medium)
+                    sectionHeader(systemImage: Image(systemName: "newspaper.fill"), title: person.username == userHolder.person.username ? "My Posts" : "\(person.firstName.capitalized)'s Posts", fontWeight: .medium)
                     Spacer()
                     HStack {
                         if viewModel.selectedStatus == .noLongerNeeded {
@@ -205,9 +205,7 @@ struct ProfileView: View {
     private func navigationDestination(for value: String) -> some View {
         switch value {
         case "settings":
-            return AnyView(ProfileSettingsView(navigationPath: $navigationPath))
-        case "signIn":
-            return AnyView(SignInView())
+            return AnyView(ProfileSettingsView())
         default:
             return AnyView(EmptyView()) // Provide an empty view for other cases
         }
@@ -241,24 +239,22 @@ struct ProfileView: View {
         tagModelView(textLabel: "T", textSize: 14, foregroundColor: .clear, backgroundColor: .clear)
     }
     
-    private func loadProfile() {
-        Task {
-            // Start loading
+    private func loadProfile() async {
+        // Start loading
+        DispatchQueue.main.async {
+            userHolder.profileViewIsLoading = true
+        }
+        
+        defer {
             DispatchQueue.main.async {
-                userHolder.profileViewIsLoading = true
+                userHolder.profileViewIsLoading = false
             }
-            
-            defer {
-                DispatchQueue.main.async {
-                    userHolder.profileViewIsLoading = false
-                }
-            }
-            
-            do {
-                person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
-            } catch {
-                ViewLogger.error("ProfileView \(error)")
-            }
+        }
+        
+        do {
+            person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
+        } catch {
+            ViewLogger.error("ProfileView \(error)")
         }
     }
     

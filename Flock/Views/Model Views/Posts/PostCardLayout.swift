@@ -13,7 +13,7 @@ struct PostCardLayout: View {
     
     // Pass in the NavigationPath from parent
     @Binding var navigationPath: NavigationPath
-    @Binding var viewModel: PinnedFeedViewModel
+    @Binding var viewModel: FeedViewModel
     
     var posts: [Post]
     var isExpanded: Bool = false
