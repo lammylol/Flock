@@ -76,7 +76,7 @@ struct ProfileView: View {
         LazyVStack (spacing: 15) {
             VStack (spacing: 0) {
                 if !pinnedPostsViewModel.isLoading && !pinnedPostsViewModel.posts.isEmpty {
-                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Posts", fontWeight: .medium)
+                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Prayers", fontWeight: .medium)
                 }
                 PostCardLayout(navigationPath: $navigationPath, viewModel: $pinnedPostsViewModel, posts: pinnedPostsViewModel.posts)
                     .padding(.leading, 0) // Padding on leading

@@ -11,7 +11,7 @@ struct TodayView: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     @State private var myFriendsPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myFriendPostsPinned)
-    @State private var myPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myPosts)
+    @State private var myPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myPostsPinned)
     @State private var navigationPath = NavigationPath()
     
     @State private var date: Date = Date()
@@ -152,7 +152,7 @@ struct TodayView: View {
     // MARK: - My Prayers View
     private func myPrayersView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Prayers")
+            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Pinned Prayers")
             
             PostCardLayout(navigationPath: $navigationPath, viewModel: $myPostsViewModel, posts: myPostsViewModel.posts)
                 .padding(.leading, 0) // Padding on leading
