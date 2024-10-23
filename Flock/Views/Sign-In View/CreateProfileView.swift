@@ -21,7 +21,6 @@ struct CreateProfileView: View {
     
     let userService = UserService()
     let calendarService = CalendarService()
-    let friendRequestListener = FriendRequestListener()
     
     var body: some View {
         NavigationView{
@@ -197,25 +196,10 @@ struct CreateProfileView: View {
             userHolder.prayStartDate = postList.0 // set Start Date
             userHolder.prayerList = postList.1 // set Prayer List
             
-            try await createFriendsListandSetUpListener(userID: userID)
             self.userHolder.person = userHolder.person
         } catch {
             userHolder.isLoggedIn = .notAuthenticated
         }
-    }
-    
-    func createFriendsListandSetUpListener(userID: String) async throws {
-        let db = Firestore.firestore()
-        
-        // Ensure the friendsList collection is created
-        let userRef = db.collection("users").document(userID).collection("friendsList")
-        
-        // Add an empty initial document if needed
-        let initialData: [String: Any] = ["state": "initialized"]
-        try await userRef.document("initialFriendList").setData(initialData)
-        
-        //set up listener
-        try await friendRequestListener.setUpListener(userID: userID)
     }
 }
 
