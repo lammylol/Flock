@@ -103,25 +103,6 @@ struct TodayView: View {
                             .frame(height: 80) // Fix background height to 80
                     }
             }
-            
-//            HStack (alignment: .center) {
-//                PrivacyView(person: userHolder.person, privacySetting: $privacy)
-//                    .onChange(of: privacy, {
-//                        if privacy == "public" {
-//                            isPresentingFriends = true
-//                        }
-//                    })
-//                Spacer()
-//                tagModelView(textLabel: "Post", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
-//            }
-//            .padding(.top, 3)
-//            
-//            if privacy == "public" {
-//                HStack {
-//                    friendsList()
-//                    Spacer()
-//                }
-//            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
