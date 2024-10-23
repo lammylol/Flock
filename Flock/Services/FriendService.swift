@@ -40,6 +40,7 @@ class FriendService {
             do {
                 // delete from prayer requests list.
                 let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+                
                 if !prayerRequests.isEmpty {
                     for request in prayerRequests.documents {
                         try await request.reference.delete()
@@ -48,14 +49,15 @@ class FriendService {
                 
                 // delete user's feed
                 let prayerFeedRef = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").getDocuments()
-                  for request in prayerFeedRef.documents {
-                      try await request.reference.delete()
-                  }
+                    for request in prayerFeedRef.documents {
+                        try await request.reference.delete()
+                    }
                 
                 // delete from friend's feed
                 if !friendsList.isEmpty {
-                  for friend in friendsList {
-                    try await deleteFriend(user: user, friend: friend)
+                    for friend in friendsList {
+                        try await deleteFriend(user: user, friend: friend)
+                    }
                 }
                 
                 // delete user's info data.
