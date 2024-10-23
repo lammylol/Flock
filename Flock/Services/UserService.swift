@@ -43,12 +43,6 @@ class UserService { // Functions related to user information
         var friendState = person.friendState
         var username = person.username
         
-        // Ensure user is still authenticated before running the task
-        guard Auth.auth().currentUser != nil else {
-            ViewLogger.info("User is not authenticated. Aborting fetch of user info.")
-            return Person()
-        }
-        
         if person.isPrivateFriend || person.username == "" { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
             userID = userHolder.person.userID
             friendState = "private"
@@ -88,10 +82,5 @@ class UserService { // Functions related to user information
             check = false
         }
         return check
-    }
-    
-    func resetInfoOnSignout(listener: FriendRequestListener, userHolder: UserProfileHolder) async {
-        await listener.resetListener()
-        await userHolder.resetUserProfileHolder()
     }
 }

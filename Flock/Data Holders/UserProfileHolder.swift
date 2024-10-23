@@ -13,6 +13,8 @@ import FirebaseFirestore
 @Observable class UserProfileHolder {
     // after sign-in, the 'person' will include userID, username, firstName, and lastName
     var person: Person = Person(username: "")
+//    var friendsList: [Person] = []
+//    var pendingFriendsList: [Person] = []
     var userPassword: String = ""
     var refresh: Bool = false
     var viewState: ViewState?
@@ -50,16 +52,6 @@ import FirebaseFirestore
         Auth.auth().addStateDidChangeListener { auth, user in
             self.isLoggedIn = user != nil ? .authenticated : .notAuthenticated
         }
-    }
-    
-    @MainActor
-    func resetUserProfileHolder() {
-        person = Person()
-        userPassword = ""
-        prayerList = ""
-        prayerListArray = []
-        prayStartDate = Date()
-        email = ""
     }
 }
 

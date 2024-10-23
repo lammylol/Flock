@@ -204,7 +204,7 @@ struct CreateProfileView: View {
             userHolder.isLoggedIn = .notAuthenticated
         }
     }
-    
+
     func createFriendsListandSetUpListener(userID: String) async throws {
         Task {
 //            let db = Firestore.firestore()

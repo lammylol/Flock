@@ -34,73 +34,57 @@ class FriendService {
     
     // Account settings
     func deletePerson(user: Person, friendsList: [Person]) async throws {
-        do {
-            // delete from prayer requests list.
-            let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-            if !prayerRequests.isEmpty {
-                for request in prayerRequests.documents {
-                    try await request.reference.delete()
-                }
-            }
-            
             // delete from friend's feed
-            if !friendsList.isEmpty {
-                for friend in friendsList {
+
+        Task {
+            do {
+                // delete from prayer requests list.
+                let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+                if !prayerRequests.isEmpty {
+                    for request in prayerRequests.documents {
+                        try await request.reference.delete()
+                    }
+                }
+                
+                // delete user's feed
+                let prayerFeedRef = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").getDocuments()
+                  for request in prayerFeedRef.documents {
+                      try await request.reference.delete()
+                  }
+                
+                // delete from friend's feed
+                if !friendsList.isEmpty {
+                  for friend in friendsList {
                     try await deleteFriend(user: user, friend: friend)
                 }
-            }
-            
-            // delete user's feed
-            let prayerFeedRef = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").getDocuments()
-            
-            if !prayerFeedRef.isEmpty {
-                for request in prayerFeedRef.documents {
-                    try await request.reference.delete()
-                }
-            }
-            
-            // delete user's friends list
-            let userFriendsListRef = try await db.collection("users").document(user.userID).collection("friendsList").getDocuments()
-            if !userFriendsListRef.isEmpty {
+                
+                // delete user's info data.
+                let userFriendsListRef = try await db.collection("users").document(user.userID).collection("friendsList").getDocuments()
                 for request in userFriendsListRef.documents {
                     try await request.reference.delete()
                 }
-            }
-            
-            // delete user's prayer list
-            let userPrayerListRef = try await db.collection("users").document(user.userID).collection("prayerList").getDocuments()
-
-            if !userPrayerListRef.isEmpty {
+                
+                let userPrayerListRef = try await db.collection("users").document(user.userID).collection("prayerList").getDocuments()
                 for person in userPrayerListRef.documents {
-                    print("Deleting prayer list for person: \(person.documentID)")
-                    
-                    // Fetch prayer requests in the person's collection
                     let prayerRequests = try await person.reference.collection("prayerRequests").getDocuments()
-                    
-                    if !prayerRequests.isEmpty {
-                        for request in prayerRequests.documents {
-                            print("Deleting prayer request: \(request.documentID)")
-                            try await request.reference.delete()
-                        }
+                    for request in prayerRequests.documents {
+                        try await request.reference.delete()
                     }
-                    
-//                    // Delete the person document
-//                    print("Deleting person document: \(person.documentID)")
-//                    try await person.reference.delete()
+                    try await person.reference.delete()
                 }
+                
+                let usersRef = db.collection("users").document(user.userID)
+                try await usersRef.delete()
+                
+                let usernameRef = db.collection("usernames").document(user.username)
+                try await usernameRef.delete()
+                
+                // remove firebase account
+                try await Auth.auth().currentUser?.delete()
+                
+            } catch {
+                throw error
             }
-           
-            // delete user's main document
-            let usersRef = db.collection("users").document(user.userID)
-            try await usersRef.delete()
-            
-            // delete username document
-            let usernameRef = db.collection("usernames").document(user.username)
-            try await usernameRef.delete()
-            
-        } catch {
-            NetworkingLogger.error("FriendService.deleteAccount \(error.localizedDescription)")
-            throw error
         }
     }
         
@@ -263,7 +247,7 @@ class FriendService {
                 let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
                 try await refUser.delete()
                 
-                // Update your prayer feed to remove your prayer requests from the friend's current feed.
+                // Update your prayer feed to remove that person's prayer requests from your current feed.
                 let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
                 for document in refDeleteUser.documents {
                     try await document.reference.delete()
@@ -278,6 +262,13 @@ class FriendService {
                 for document in refUser.documents {
                     try await document.reference.delete()
                 }
+                
+//                // Update your prayer feed to remove that person's prayer requests from your current feed. Current functionality - don't delete historical posts.
+//                let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+//                
+//                for document in refDeleteUser.documents {
+//                    try await document.reference.delete()
+//                }
             }
         } catch {
             NetworkingLogger.error("FriendService.deleteFriend failed \(error)")
