@@ -29,11 +29,11 @@ struct PostEditView: View {
                     Section(header: Text("Title")) {
                         TextField("Title", text: $post.postTitle)
                         Picker("Type", selection: $post.postType) {
-                            Text("Note").tag("Note")
-                            Text("Praise").tag("Praise")
-                            Text("Prayer Request").tag("Prayer Request")
+                            ForEach(Post.PostType.allCases, id: \.self) { type in
+                                Text(type.rawValue).tag(type.rawValue)
+                            }
                         }
-                        if post.postType == "Prayer Request" {
+                        if post.postType == "prayerRequest" {
                             Picker("Status", selection: $post.status) {
                                 Text("Current").tag("Current")
                                 Text("Answered").tag("Answered")

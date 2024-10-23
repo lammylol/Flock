@@ -59,7 +59,8 @@ extension UserProfileHolder {
     struct DraftPost {
         var title: String
         var content: String
-        var selectedTags: [String]
+        var postType: Post.PostType
+        var privacy: String
     }
 }
 

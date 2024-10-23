@@ -14,8 +14,6 @@ enum Privacy: String, CaseIterable, Identifiable {
     }
     
     case isPublic = "public"
-    // TODO mattlam
-    //    case isFriends = "Friends" -- to be added later
     case isPrivate = "private"
     
     var statusKey: String {
@@ -26,9 +24,6 @@ enum Privacy: String, CaseIterable, Identifiable {
         switch self {
             case .isPublic:
                 return Image(systemName: "globe.europe.africa.fill")
-        // TODO mattlam
-        //    case .isFriends:
-        //        return Image(systemName: "person.2.fill")
             case .isPrivate:
                 return Image(systemName: "lock.fill")
         }

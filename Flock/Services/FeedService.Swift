@@ -12,37 +12,78 @@ import FirebaseFirestore
 class FeedService {
     private let db = Firestore.firestore()
 
-    private func collectionPath(for user: Person, person: Person, profileOrFeed: String) -> CollectionReference {
-        if profileOrFeed == "feed" || person.userID != user.userID { // if it's your feed, or a friend's user profile, fetch their posts from your feed.
-            return db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
-        } else {
+    private func collectionPath(for user: Person, person: Person?, viewType: FeedViewModel.ViewType) -> CollectionReference {
+        if let person = person, viewType == .profile, person.userID == user.userID {
             let personDocID = "\(person.firstName.lowercased())_\(person.lastName.lowercased())"
             return db.collection("users").document(person.userID).collection("prayerList").document(personDocID).collection("prayerRequests")
+        } else {
+            return db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
         }
-    
     }
+            
+//        if profileOrFeed == "feed" || person?.userID != user.userID { // if it's your feed, or a friend's user profile, fetch their posts from your feed.
+//            return db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
+//        } else {
+//            let personDocID = "\(person?.firstName.lowercased())_\(person?.lastName.lowercased())"
+//            return db.collection("users").document(person.userID).collection("prayerList").document(personDocID).collection("prayerRequests")
+//        }
+//    
+//    }
 
-    func getAllPostsQuery(user: Person, person: Person, profileOrFeed: String) -> Query {
-        let collection = collectionPath(for: user, person: person, profileOrFeed: profileOrFeed)
-        var query = collection.order(by: "latestUpdateDatePosted", descending: true)
+    func getAllPostsQuery(user: Person, person: Person?, status: FeedViewModel.StatusFilter, viewType: FeedViewModel.ViewType, selectionType: FeedViewModel.SelectionType) -> Query {
+        let collection = collectionPath(for: user, person: person, viewType: viewType)
+        var query: Query
         
-        if person.userID != user.userID {
-            query = collection.whereField("userID", isEqualTo: person.userID)
+        query = collection.whereField("status", isEqualTo: status.statusKey.capitalized)
+
+        // Additional filters based on viewType and selectionType
+        switch viewType {
+        case .today:
+            if selectionType == .myFriendPostsPinned {
+                query = query.whereField("isPinned", isEqualTo: true)
+                             .whereField("lastName", isNotEqualTo: user.lastName)
+            } else if selectionType == .myPostsPinned {
+                query = query.whereField("isPinned", isEqualTo: true)
+                             .whereField("userID", isEqualTo: user.userID)
+                             .whereField("firstName", isEqualTo: user.firstName)
+                             .whereField("lastName", isEqualTo: user.lastName)
+            } else if selectionType == .myPosts {
+                query = query.whereField("userID", isEqualTo: user.userID)
+                             .whereField("firstName", isEqualTo: user.firstName)
+                             .whereField("lastName", isEqualTo: user.lastName)
+            }
+
+        case .profile:
+            if let person = person {
+                if selectionType == .myPostsPinned {
+                    query = query.whereField("isPinned", isEqualTo: true)
+                        .whereField("userID", isEqualTo: person.userID)
+                        .whereField("firstName", isEqualTo: person.firstName)
+                        .whereField("lastName", isEqualTo: person.lastName)
+                } else if selectionType == .myPosts {
+                    query = query.whereField("userID", isEqualTo: person.userID)
+                                 .whereField("firstName", isEqualTo: person.firstName)
+                                 .whereField("lastName", isEqualTo: person.lastName)
+                }
+            }
+
+        default:
+            break
         }
         
-        return query
+        return query.order(by: "latestUpdateDatePosted", descending: true)
     }
-
-    func getAllPostsByStatusQuery(user: Person, person: Person, status: String, profileOrFeed: String) -> Query {
-        let collection = collectionPath(for: user, person: person, profileOrFeed: profileOrFeed)
-        var query = collection.whereField("status", isEqualTo: status).order(by: "latestUpdateDatePosted", descending: true)
-
-        if person.userID != user.userID {
-            query = query.whereField("userID", isEqualTo: person.userID)
-        }
-
-        return query
-    }
+//
+//    func getAllPostsByStatusQuery(user: Person, person: Person?, status: FeedViewModel.StatusFilter, viewType: FeedViewModel.ViewType) -> Query {
+//        let collection = collectionPath(for: user, person: person ?? nil, viewType: viewType)
+//        var query = collection.whereField("status", isEqualTo: status.statusKey).order(by: "latestUpdateDatePosted", descending: true)
+//
+//        if let person = person, person.userID != user.userID {
+//            query = query.whereField("userID", isEqualTo: person.userID)
+//        }
+//
+//        return query
+//    }
 
     func getPosts(querySnapshot: QuerySnapshot) -> ([Post], DocumentSnapshot?) {
         var posts = [Post]()
@@ -62,7 +103,7 @@ class FeedService {
                 lastName: data["lastName"] as? String ?? "",
                 postTitle: data["prayerRequestTitle"] as? String ?? "",
                 postText: data["prayerRequestText"] as? String ?? "",
-                postType: data["postType"] as? String ?? "",
+                postType: data["postType"] as? String ?? "note",
                 status: data["status"] as? String ?? "",
                 latestUpdateText: data["latestUpdateText"] as? String ?? "",
                 latestUpdateDatePosted: updateTimestamp.dateValue(),
@@ -79,29 +120,17 @@ class FeedService {
         return (posts, lastDocument)
     }
 
-    func getPostFeed(user: Person, person: Person, answeredFilter: String, count: Int, lastDocument: DocumentSnapshot?, profileOrFeed: String) async throws -> ([Post], DocumentSnapshot?) {
-        let prayerFeed: Query
-
-        switch answeredFilter {
-        case "answered":
-            prayerFeed = getAllPostsByStatusQuery(user: user, person: person, status: "Answered", profileOrFeed: profileOrFeed)
-        case "current":
-            prayerFeed = getAllPostsByStatusQuery(user: user, person: person, status: "Current", profileOrFeed: profileOrFeed)
-        case "no longer needed":
-            prayerFeed = getAllPostsByStatusQuery(user: user, person: person, status: "No Longer Needed", profileOrFeed: profileOrFeed)
-        case "pinned":
-            prayerFeed = getAllPostsQuery(user: user, person: person, profileOrFeed: profileOrFeed)
-                .whereField("isPinned", isEqualTo: true)
-        default:
-            prayerFeed = getAllPostsQuery(user: user, person: person, profileOrFeed: profileOrFeed)
-        }
+    func getPostFeed(user: Person, person: Person?, statusFilter: FeedViewModel.StatusFilter, count: Int, lastDocument: DocumentSnapshot?, viewType: FeedViewModel.ViewType, selectionType: FeedViewModel.SelectionType) async throws -> ([Post], DocumentSnapshot?) {
+        let postFeed: Query
+        
+        postFeed = getAllPostsQuery(user: user, person: person ?? nil, status: statusFilter, viewType: viewType, selectionType: selectionType)
 
         let querySnapshot: QuerySnapshot
 
         if let lastDoc = lastDocument {
-            querySnapshot = try await prayerFeed.start(afterDocument: lastDoc).limit(to: count).getDocuments()
+            querySnapshot = try await postFeed.start(afterDocument: lastDoc).limit(to: count).getDocuments()
         } else {
-            querySnapshot = try await prayerFeed.limit(to: count).getDocuments()
+            querySnapshot = try await postFeed.limit(to: count).getDocuments()
         }
 
         return getPosts(querySnapshot: querySnapshot)
@@ -152,64 +181,6 @@ class FeedService {
         }
     }
     
-//    func updateFriendsFeed(post: Post, person: Person, friend: Person, updateFriend: Bool) async throws {
-//        do {
-//            if updateFriend {
-//                let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-//                
-//                if ref.getDocument().exists {
-//                    try await ref.updateData([
-//                        "status": post.status,
-//                        "prayerRequestText": post.postText,
-//                        "postType": post.postType,
-//                        "privacy": post.privacy,
-//                        "prayerRequestTitle": post.postTitle,
-//                        "lastSeenNotificationCount": 1,
-//                    ])
-//
-//                } else {
-//                    try await ref.setData([
-//                        "datePosted": post.date,
-//                        "firstName": post.firstName,
-//                        "lastName": post.lastName,
-//                        "status": post.status,
-//                        "prayerRequestText": post.postText,
-//                        "postType": post.postType,
-//                        "userID": person.userID,
-//                        "username": person.username,
-//                        "privacy": post.privacy,
-//                        "prayerRequestTitle": post.postTitle,
-//                        "latestUpdateText": post.latestUpdateText,
-//                        "latestUpdateDatePosted": post.latestUpdateDatePosted,
-//                        "latestUpdateType": post.latestUpdateType,
-//                        "lastSeenNotificationCount": 1,
-//                    ])
-//                }
-//
-//            } else {
-//                let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
-//                 try await ref.setData([
-//                    "datePosted": post.date,
-//                    "firstName": post.firstName,
-//                    "lastName": post.lastName,
-//                    "status": post.status,
-//                    "prayerRequestText": post.postText,
-//                    "postType": post.postType,
-//                    "userID": person.userID,
-//                    "username": person.username,
-//                    "privacy": post.privacy,
-//                    "prayerRequestTitle": post.postTitle,
-//                    "latestUpdateText": post.latestUpdateText,
-//                    "latestUpdateDatePosted": post.latestUpdateDatePosted,
-//                    "latestUpdateType": post.latestUpdateType,
-//                    "isPinned": post.isPinned
-//                ])
-//            }
-//        } catch {
-//            NetworkingLogger.error("FeedService.udpateFriendsFeed failed \(error)")
-//        }
-//    }
-
     // This function is used only for deleting from prayer feed. ie. No longer needed, or deleted prayer request.
     func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) async throws {
         do{

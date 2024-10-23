@@ -34,29 +34,28 @@ class FriendService {
     
     // Account settings
     func deletePerson(user: Person, friendsList: [Person]) async throws {
+            // delete from friend's feed
+
         Task {
             do {
                 // delete from prayer requests list.
                 let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-                for request in prayerRequests.documents {
-                    try await request.reference.delete()
+                if !prayerRequests.isEmpty {
+                    for request in prayerRequests.documents {
+                        try await request.reference.delete()
+                    }
                 }
                 
                 // delete user's feed
                 let prayerFeedRef = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").getDocuments()
-                for request in prayerFeedRef.documents {
-                    try await request.reference.delete()
-                }
+                  for request in prayerFeedRef.documents {
+                      try await request.reference.delete()
+                  }
                 
                 // delete from friend's feed
-                if friendsList.isEmpty == false {
-                    for friend in friendsList {
-                        let prayerRequests = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-                        
-                        for request in prayerRequests.documents {
-                            try await request.reference.delete()
-                        }
-                    }
+                if !friendsList.isEmpty {
+                  for friend in friendsList {
+                    try await deleteFriend(user: user, friend: friend)
                 }
                 
                 // delete user's info data.

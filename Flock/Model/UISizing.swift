@@ -10,7 +10,7 @@ import UIKit
 
 class UISizing {
     struct PostCard {
-        var insideFrameHeight: CGFloat = 130
+        var insideFrameHeight: CGFloat = 120
         var outsideFrameHeight: CGFloat { insideFrameHeight * 1.5 }
         var width: CGFloat = 100
     }

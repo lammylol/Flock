@@ -17,8 +17,8 @@ struct ProfileView: View {
     
     @State public var person: Person
     @State private var showSubmit = false
-    @State private var viewModel = FeedViewModel(profileOrFeed: "profile")
-    @State private var pinnedPostsViewModel = PinnedFeedViewModel(profileOrFeed: "profile")
+    @State private var viewModel = FeedViewModel(viewType: .profile, selectionType: .myPosts)
+    @State private var pinnedPostsViewModel = FeedViewModel(viewType: .profile, selectionType: .myPostsPinned)
     @State private var navigationPath = NavigationPath()
     @State private var addFriendConfirmation = false
     
@@ -76,7 +76,7 @@ struct ProfileView: View {
         LazyVStack (spacing: 15) {
             VStack (spacing: 0) {
                 if !pinnedPostsViewModel.isLoading && !pinnedPostsViewModel.posts.isEmpty {
-                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Posts", fontWeight: .medium)
+                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Prayers", fontWeight: .medium)
                 }
                 PostCardLayout(navigationPath: $navigationPath, viewModel: $pinnedPostsViewModel, posts: pinnedPostsViewModel.posts)
                     .padding(.leading, 0) // Padding on leading
@@ -89,7 +89,7 @@ struct ProfileView: View {
             }
             VStack {
                 HStack {
-                    sectionHeader(systemImage: Image(systemName: "newspaper.fill"), title: person.username == userHolder.person.username ? "My Posts" : "\(person.firstName)'s Posts", fontWeight: .medium)
+                    sectionHeader(systemImage: Image(systemName: "newspaper.fill"), title: person.username == userHolder.person.username ? "My Posts" : "\(person.firstName.capitalized)'s Posts", fontWeight: .medium)
                     Spacer()
                     HStack {
                         if viewModel.selectedStatus == .noLongerNeeded {

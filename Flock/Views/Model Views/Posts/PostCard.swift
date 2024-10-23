@@ -64,7 +64,7 @@ struct PostCard: View {
                             .fill(.red)
                     }
                     .foregroundStyle(.white)
-                    .offset(x: 62, y: -80)
+                    .offset(x: 62, y: -75)
             }
         }
         .background {
