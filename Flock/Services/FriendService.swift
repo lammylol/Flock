@@ -37,8 +37,10 @@ class FriendService {
         do {
             // delete from prayer requests list.
             let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-            for request in prayerRequests.documents {
-                try await request.reference.delete()
+            if !prayerRequests.isEmpty {
+                for request in prayerRequests.documents {
+                    try await request.reference.delete()
+                }
             }
             
             // delete from friend's feed
