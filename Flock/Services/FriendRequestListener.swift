@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 
+@MainActor
 @Observable class FriendRequestListener {
     private var friendRequestListener: ListenerRegistration?
     var pendingFriendRequests: [Person] = []
@@ -76,5 +77,13 @@ import FirebaseFirestore
     func removeListener() {
         friendRequestListener?.remove()
         NetworkingLogger.info("FriendRequestListener turned off.")
+    }
+    
+    @MainActor // ensure runs on main thread.
+    func resetListener() {
+        self.pendingFriendRequests = []
+        self.acceptedFriendRequests = []
+        self.privateFriends = []
+        NetworkingLogger.info("FriendRequestListener arrays have been reset.")
     }
 }
