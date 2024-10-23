@@ -20,6 +20,7 @@ struct TodayView: View {
     @State private var postType: Post.PostType = .prayerRequest
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
+    @State private var showCreatePost: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
     
@@ -46,6 +47,9 @@ struct TodayView: View {
                 )
             }
             .toolbarBackground(Color.primary, for: .bottomBar)
+            .sheet(isPresented: $showCreatePost) {
+                PostCreateView(person: userHolder.person, postType: postType)
+            }
         }
     }
     
@@ -84,51 +88,40 @@ struct TodayView: View {
                 }
                 Spacer()
             }
+            .padding(.leading, 10)
             
-            ZStack (alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(UIColor.systemGray6))
-                    .frame(maxWidth: .infinity, minHeight: 80)
-                
-                TextEditor(text: $postText)
-                    .font(.system(size: 16))
-                    .focused($isTextFieldFocused)
-                    .scrollContentBackground(.hidden)
-                    .padding(.horizontal, 5)
-                
-                if postText.isEmpty {
-                    placeHolder()
-                        .padding(.all, 8)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .gesture(
-                DragGesture()
-                    .onEnded { value in
-                        if value.translation.height > 0 {
-                            isTextFieldFocused = false // Dismiss the keyboard when swiping up
-                        }
+            Button {
+                showCreatePost.toggle()
+            } label: {
+                postTextView()
+                    .padding(.all, 10)
+                    .frame(maxWidth: .infinity, minHeight: 80, alignment: .topLeading) // Constraint the text to max height of 80
+                    .background {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(UIColor.systemGray6))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 80) // Fix background height to 80
                     }
-            )
-            
-            HStack (alignment: .center) {
-                PrivacyView(person: userHolder.person, privacySetting: $privacy)
-                    .onChange(of: privacy, {
-                        if privacy == "public" {
-                            isPresentingFriends = true
-                        }
-                    })
-                Spacer()
-                tagModelView(textLabel: "Post", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
             }
-            .padding(.top, 3)
             
-            if privacy == "public" {
-                HStack {
-                    friendsList()
-                    Spacer()
-                }
-            }
+//            HStack (alignment: .center) {
+//                PrivacyView(person: userHolder.person, privacySetting: $privacy)
+//                    .onChange(of: privacy, {
+//                        if privacy == "public" {
+//                            isPresentingFriends = true
+//                        }
+//                    })
+//                Spacer()
+//                tagModelView(textLabel: "Post", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+//            }
+//            .padding(.top, 3)
+//            
+//            if privacy == "public" {
+//                HStack {
+//                    friendsList()
+//                    Spacer()
+//                }
+//            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -176,19 +169,19 @@ struct TodayView: View {
         }
     }
     
-    private func placeHolder() -> some View {
-        HStack {
+    private func postTextView() -> some View {
+        HStack (alignment: .top) {
             if postType == .note {
                 Text("Share what's on your mind. It can be a thought, an encouragement, or anything that God has placed on your heart.")
             } else if postType == .praise {
                 Text("Share a praise report! What have seen God do in your life or in the lives of those around you?")
             } else {
-                Text("Share a prayer request. Consider sharing your post in the form of a prayer so that readers can join with you in prayer as they read it.")
+                Text("Enter a prayer request. You can track this privately or have the option to share with others.")
             }
         }
         .foregroundColor(.gray)
         .font(.system(size: 16))
-        .allowsHitTesting(false) // Make sure the placeholder doesn't block touches
+        .multilineTextAlignment(.leading)
     }
     
     private func friendsList() -> some View {
@@ -229,6 +222,8 @@ struct TodayView: View {
             do {
                 try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
                 try await myPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
+                self.myFriendsPostsViewModel.posts = myFriendsPostsViewModel.posts
+                self.myPostsViewModel.posts = myPostsViewModel.posts
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }
