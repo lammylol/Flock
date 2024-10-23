@@ -18,6 +18,7 @@ struct PostEditView: View {
     @State var post: Post
     @State var showAddUpdateView = false
     @State private var originalPrivacy = ""
+    @State private var isPresentingConfirm = false
     
     var body: some View {
         NavigationView {
@@ -26,6 +27,10 @@ struct PostEditView: View {
                     .ignoresSafeArea()
                 
                 Form {
+                    Section {
+                        isPinnedView()
+                    }
+                    
                     Section(header: Text("Title")) {
                         TextField("Title", text: $post.postTitle)
                         Picker("Type", selection: $post.postType) {
@@ -55,7 +60,7 @@ struct PostEditView: View {
                                     .foregroundStyle(Color.gray)
                             }
                             TextEditor(text: $post.postText)
-                                .offset(y: 2)
+                                .offset(x: -3, y: 2)
                             Text(post.postText)
                                 .hidden() //this is a swift workaround to dynamically expand textEditor.
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -72,11 +77,19 @@ struct PostEditView: View {
                     }
                     
                     Section {
-                        Button("Add Update or Testimony") {
+                        Button("Add Update") {
                             showAddUpdateView.toggle()
                         }
                         Button("Delete Post", role: .destructive) {
-                            deletePost()
+                            isPresentingConfirm = true
+                        }
+                        .confirmationDialog("Are you sure?",
+                                            isPresented: $isPresentingConfirm) {
+                            Button("Delete Post", role: .destructive) {
+                                deletePost()
+                            }
+                        } message: {
+                            Text("This post and all its updates will be permanently deleted.")
                         }
                     }
                 }
@@ -147,6 +160,14 @@ struct PostEditView: View {
                 }
             } catch {
                 ViewLogger.error("Error deleting post: \(error)")
+            }
+        }
+    }
+    
+    private func isPinnedView() -> some View {
+        HStack {
+            Toggle(isOn: $post.isPinned){
+                Text("Pin to Prayer List")
             }
         }
     }

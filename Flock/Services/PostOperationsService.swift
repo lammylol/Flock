@@ -132,7 +132,7 @@ class PostOperationsService {
     }
 
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
-    func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [Person]) async throws {
+    func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [Person], isPinned: Bool) async throws {
         
         let postTitle = postTitle.capitalized
         var prayerRequestID = ""
@@ -154,7 +154,7 @@ class PostOperationsService {
                 "latestUpdateText": "",
                 "latestUpdateDatePosted": datePosted,
                 "latestUpdateType": "",
-                "isPinned": false
+                "isPinned": isPinned
             ])
             
             prayerRequestID = ref.documentID
@@ -204,7 +204,7 @@ class PostOperationsService {
                 "latestUpdateText": "",
                 "latestUpdateDatePosted": datePosted,
                 "latestUpdateType": "",
-                "isPinned": false
+                "isPinned": isPinned
             ]) // if the prayer is for a local user, it will update your own feed.
             NetworkingLogger.debug("postOperations.createPost.addToPrayerFeed added to prayerFeed")
         }catch{
@@ -248,7 +248,8 @@ class PostOperationsService {
                 "postType": post.postType,
                 "prayerRequestText": post.postText,
                 "privacy": post.privacy,
-                "prayerRequestTitle": post.postTitle
+                "prayerRequestTitle": post.postTitle,
+                "isPinned": post.isPinned
             ])
             
             // Add PrayerRequestID to prayerFeed/{userID}

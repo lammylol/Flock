@@ -274,6 +274,7 @@ struct ProfileView: View {
             do {
                 try await viewModel.getPosts(user: userHolder.person, person: person)
                 try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
+                self.pinnedPostsViewModel.posts = pinnedPostsViewModel.posts
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }
