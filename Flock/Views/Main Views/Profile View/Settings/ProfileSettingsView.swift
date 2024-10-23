@@ -13,8 +13,11 @@ import FirebaseAuth
 struct ProfileSettingsView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
+    
+    @Binding var navigationPath: NavigationPath
 
     var body: some View {
+        NavigationView {
             Form {
                 Section {
                     HStack (alignment: .center) {
@@ -43,6 +46,7 @@ struct ProfileSettingsView: View {
                 .frame(alignment: .center)
             }
             .navigationTitle("Settings")
+        }
     }
     
     func signOut() {
@@ -79,7 +83,7 @@ struct DeleteButton: View {
                     //                    defer { signOut() }
                     do {
                         if userHolder.isFinished {
-                            
+
                             try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
                         }
                     } catch {
@@ -98,7 +102,7 @@ struct DeleteButton: View {
                 do {
                     resetInfo()
                     await friendRequestListener.removeListener()
-                    navigationPath.append("SignIn")
+                    navigationPath.append("SignIn") // Force return to SignIn view. This is due to an issue where profile view is firing off tasks still after signing out from ProfileSettingsView.
                     try Auth.auth().signOut()
                 } catch {
                     ViewLogger.error("ProfileSettingsView signOut failed \(error)")
@@ -108,11 +112,9 @@ struct DeleteButton: View {
     }
     
     func resetInfo() {
-        friendRequestListener.acceptedFriendRequests = []
-        friendRequestListener.pendingFriendRequests = []
-        userHolder.person.userID = ""
-        userHolder.prayerList = ""
-        userHolder.prayStartDate = Date()
+        Task {
+            await UserService().resetInfoOnSignout(listener: friendRequestListener, userHolder: userHolder)
+        }
     }
 }
 
@@ -136,10 +138,10 @@ struct AccountSettings: View {
     }
 }
 
-#Preview {
-    ProfileSettingsView()
-        .environment(UserProfileHolder.Blank())
-}
+//#Preview {
+//    ProfileSettingsView()
+//        .environment(UserProfileHolder.Blank())
+//}
 //
 //#Preview {
 //    ProfileSettingsSignIn(userHolder: UserProfileHolder())

@@ -72,4 +72,12 @@ import FirebaseFirestore
         friendRequestListener?.remove()
         NetworkingLogger.info("FriendRequestListener turned off.")
     }
+    
+    @MainActor // ensure runs on main thread.
+    func resetListener() {
+        self.pendingFriendRequests = []
+        self.acceptedFriendRequests = []
+        self.privateFriends = []
+        NetworkingLogger.info("FriendRequestListener arrays have been reset.")
+    }
 }

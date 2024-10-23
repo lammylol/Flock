@@ -17,21 +17,11 @@ class PostOperationsService {
         var profiles: Query
         
         do {
-//            if fetchOnlyPublic {
-                profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests")
-                    .whereField("status", in: ["Current", "Answered"])
-                    .whereField("privacy", isEqualTo: "public")
-                    .order(by: "latestUpdateDatePosted", descending: true)
-//            }
-//            } else {
-//                if status == "isPinned" {
-//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("isPinned", isEqualTo: true).order(by: "latestUpdateDatePosted", descending: true)
-//                } else if status != nil { // if a status is passed, retrieve prayer list with status filtered.
-//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").whereField("status", isEqualTo: status!).order(by: "latestUpdateDatePosted", descending: true)
-//                } else { // if a status is not passed, retrieve all prayers.
-//                    profiles = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").order(by: "latestUpdateDatePosted", descending: true)
-//                }
-//            }
+            profiles = db.collection("prayerRequests")
+                .whereField("status", in: ["Current", "Answered"])
+                .whereField("userID", isEqualTo: userID)
+                .whereField("privacy", isEqualTo: "public")
+                .order(by: "latestUpdateDatePosted", descending: true)
             
             let querySnapshot = try await profiles.getDocuments()
             

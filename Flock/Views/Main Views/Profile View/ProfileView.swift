@@ -205,7 +205,9 @@ struct ProfileView: View {
     private func navigationDestination(for value: String) -> some View {
         switch value {
         case "settings":
-            return AnyView(ProfileSettingsView())
+            return AnyView(ProfileSettingsView(navigationPath: $navigationPath))
+         case "signIn":
+             return AnyView(SignInView())
         default:
             return AnyView(EmptyView()) // Provide an empty view for other cases
         }
@@ -255,6 +257,7 @@ struct ProfileView: View {
             person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
         } catch {
             ViewLogger.error("ProfileView \(error)")
+            userHolder.profileViewIsLoading = false
         }
     }
     
