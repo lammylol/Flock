@@ -36,7 +36,7 @@ struct ProfileView: View {
                 .padding(.top, -8)
                 .padding([.leading, .trailing], 23)
             }
-            .task { loadProfile() }
+            .task { await loadProfile() }
             .refreshable { await refreshPosts() }
             .navigationTitle(person.fullName.capitalized)
             .navigationBarTitleDisplayMode(.large)
@@ -205,9 +205,7 @@ struct ProfileView: View {
     private func navigationDestination(for value: String) -> some View {
         switch value {
         case "settings":
-            return AnyView(ProfileSettingsView(navigationPath: $navigationPath))
-        case "signIn":
-            return AnyView(SignInView())
+            return AnyView(ProfileSettingsView())
         default:
             return AnyView(EmptyView()) // Provide an empty view for other cases
         }
@@ -241,24 +239,22 @@ struct ProfileView: View {
         tagModelView(textLabel: "T", textSize: 14, foregroundColor: .clear, backgroundColor: .clear)
     }
     
-    private func loadProfile() {
-        Task {
-            // Start loading
+    private func loadProfile() async {
+        // Start loading
+        DispatchQueue.main.async {
+            userHolder.profileViewIsLoading = true
+        }
+        
+        defer {
             DispatchQueue.main.async {
-                userHolder.profileViewIsLoading = true
+                userHolder.profileViewIsLoading = false
             }
-            
-            defer {
-                DispatchQueue.main.async {
-                    userHolder.profileViewIsLoading = false
-                }
-            }
-            
-            do {
-                person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
-            } catch {
-                ViewLogger.error("ProfileView \(error)")
-            }
+        }
+        
+        do {
+            person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
+        } catch {
+            ViewLogger.error("ProfileView \(error)")
         }
     }
     
