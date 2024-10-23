@@ -92,6 +92,9 @@ struct DeleteButton: View {
                         if userHolder.isFinished {
                             try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
                         }
+                    // remove Firebase account
+                    try await Auth.auth().currentUser?.delete()
+                        
                     } catch {
                         ViewLogger.error("ProfileSettingsView DeleteAndSignout error \(error)")
                     }
