@@ -77,8 +77,7 @@ class PostOperationsService {
         }
         
         let ref = db.collection("prayerFeed").document(user.userID).collection("prayerRequests").document(prayerRequest.id)
-//        let ref = db.collection("prayerRequests").document(prayerRequest.id)
-//        let isPinned = prayerRequest.isPinned // Need to save separately because isPinned is not stored in larger 'prayer requests' collection. Only within a user's feed.
+        
         var prayerRequest = Post.blank
         
         do {

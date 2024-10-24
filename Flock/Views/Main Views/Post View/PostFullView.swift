@@ -79,7 +79,7 @@ struct PostFullView: View {
                 Text(usernameDisplay()).font(.system(size: 14))
             }
             Spacer()
-            HStack {
+            HStack (alignment: .center) {
                 if post.isPinned { Image(systemName: "pin.fill") }
                 Privacy(rawValue: post.privacy)?.systemImage
                 postOptionsMenu()
