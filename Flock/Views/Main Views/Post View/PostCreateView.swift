@@ -17,13 +17,14 @@ struct PostCreateView: View {
     @Environment(\.dismiss) var dismiss
     
     @State var person: Person
+    @State var postType: Post.PostType? = .note
     @State private var datePosted = Date()
     @State private var status: String = "Current"
     @State private var postText: String = ""
     @State private var postTitle: String = ""
-    @State private var postType: Post.PostType = .note
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
+    @State private var isPinned: Bool = false
 
     @State private var isDraftSaved = false
 
@@ -49,8 +50,9 @@ struct PostCreateView: View {
                         }
                         .padding(.bottom, -4)
                         Picker("Type", selection: $postType) {
+//                            Text("Select Type").tag(Post.PostType?.none) // Default empty option
                             ForEach(Post.PostType.allCases, id: \.self) { type in
-                                Text(type.rawValue).tag(type.rawValue)
+                                Text(type.rawValue).tag(type)
                             }
                         }
                         ZStack(alignment: .topLeading) {
@@ -59,9 +61,9 @@ struct PostCreateView: View {
                                     if postType == .note {
                                         Text("Share what's on your mind. It can be a thought, an encouragement, or anything that God has placed on your heart.")
                                     } else if postType == .praise {
-                                        Text("Share a praise report! What have seen God do in your life or in the lives of those around you?")
+                                        Text("Write a praise report! What have seen God do in your life or in the lives of those around you?")
                                     } else {
-                                        Text("Share a prayer request. Consider sharing your post in the form of a prayer so that readers can join with you in prayer as they read it.")
+                                        Text("Enter a prayer request. Consider writing it in the form of a prayer. Or, if you plan to share it with others, make sure you give enough detail so others can know what they can be praying for.")
                                     }
                                 }
                                 .padding(.leading, 0)
@@ -89,6 +91,9 @@ struct PostCreateView: View {
                             friendsList()
                                 .padding(.top, 10)
                         }
+                    }
+                    Section {
+                        isPinnedView()
                     }
                 }
             }
@@ -143,8 +148,9 @@ struct PostCreateView: View {
                     postText: postText,
                     postTitle: postTitle,
                     privacy: privacy,
-                    postType: postType.rawValue,
-                    friendsList: friendRequestListener.acceptedFriendRequests)
+                    postType: postType?.rawValue ?? "note",
+                    friendsList: friendRequestListener.acceptedFriendRequests,
+                    isPinned: isPinned)
                 userHolder.refresh = true
                 
                 clearDraft()
@@ -165,7 +171,7 @@ struct PostCreateView: View {
             userHolder.draftPost = UserProfileHolder.DraftPost(
                 title: postTitle,
                 content: postText,
-                postType: postType,
+                postType: postType ?? .note,
                 privacy: privacy
             )
         } else {
@@ -202,6 +208,14 @@ struct PostCreateView: View {
             }
             .font(.system(size: 12))
             .padding(.bottom, 10)
+        }
+    }
+    
+    private func isPinnedView() -> some View {
+        HStack {
+            Toggle(isOn: $isPinned){
+                Text("Pin to Prayer List")
+            }
         }
     }
 }

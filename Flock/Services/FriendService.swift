@@ -12,120 +12,7 @@ import FirebaseFirestore
 class FriendService {
     let db = Firestore.firestore() // initiaties Firestore
     
-    //Adding a friend - this updates the historical prayer feed
-    func updateFriendHistoricalPostsIntoFeed(user: Person, friend: Person) async throws {
-        //In this scenario, userID is the userID of the person retrieving data from the 'person'.
-        do {
-            //user is retrieving prayer requests of the friend: person.userID and person: person.
-            let posts = try await PostOperationsService().getPosts(userID: friend.userID, person: friend)
-
-            //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
-            for post in posts {
-                do {
-                    try await FeedService().updateFriendsFeed(post: post, person: friend, friend: user, updateFriend: true)
-                } catch {
-                    NetworkingLogger.error("FriendService.updateFriendHistoricalPostsIntoFeed \(error.localizedDescription)")
-                }
-            }
-        } catch {
-            throw PersonRetrievalError.errorRetrievingFromFirebase
-        }
-    }
-    
-    // Account settings
-    func deletePerson(user: Person, friendsList: [Person]) async throws {
-            // delete from friend's feed
-
-        Task {
-            do {
-                // delete from prayer requests list.
-                let prayerRequests = try await db.collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-                
-                if !prayerRequests.isEmpty {
-                    for request in prayerRequests.documents {
-                        try await request.reference.delete()
-                    }
-                }
-                
-                // delete user's feed
-                let prayerFeedRef = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").getDocuments()
-                    for request in prayerFeedRef.documents {
-                        try await request.reference.delete()
-                    }
-                
-                // delete from friend's feed
-                if !friendsList.isEmpty {
-                    for friend in friendsList {
-                        try await deleteFriend(user: user, friend: friend)
-                    }
-                }
-                
-                // delete user's info data.
-                let userFriendsListRef = try await db.collection("users").document(user.userID).collection("friendsList").getDocuments()
-                for request in userFriendsListRef.documents {
-                    try await request.reference.delete()
-                }
-                
-                let userPrayerListRef = try await db.collection("users").document(user.userID).collection("prayerList").getDocuments()
-                for person in userPrayerListRef.documents {
-                    let prayerRequests = try await person.reference.collection("prayerRequests").getDocuments()
-                    for request in prayerRequests.documents {
-                        try await request.reference.delete()
-                    }
-                    try await person.reference.delete()
-                }
-                
-                let usersRef = db.collection("users").document(user.userID)
-                try await usersRef.delete()
-                
-                let usernameRef = db.collection("usernames").document(user.username)
-                try await usernameRef.delete()
-                
-                // remove firebase account
-                try await Auth.auth().currentUser?.delete()
-                
-            } catch {
-                throw error
-            }
-        }
-    }
-        
-    // Login functions:
-    func getFriendsList(userID: String) async throws -> ([Person], [Person]) {
-        var friendsList: [Person] = []
-        var pendingFriendsList: [Person] = []
-        
-        guard userID != "" else {
-            throw PersonRetrievalError.noUserID
-        }
-        
-        let friendsListRef = db.collection("users").document(userID).collection("friendsList")
-        
-        let querySnapshot = try await friendsListRef.getDocuments()
-        
-        //append FriendsListArray in userHolder
-        for document in querySnapshot.documents {
-            if document.exists {
-                let userID = document.get("userID") as? String ?? ""
-                let username = document.get("username") as? String ?? ""
-                let email = document.get("email") as? String ?? ""
-                let firstName = document.get("firstName") as? String ?? ""
-                let lastName = document.get("lastName") as? String ?? ""
-                let state = document.get("state") as? String ?? ""
-//                let prayerCalendarInd = document.get("prayerCalendarInd") as? Bool ?? false
-                
-                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: state/*, prayerCalendarInd: prayerCalendarInd*/)
-                
-                if state == "pending" {
-                    pendingFriendsList.append(person)
-                } else if state == "approved" {
-                    friendsList.append(person)
-                }
-            }
-        }
-        
-        return (friendsList, pendingFriendsList)
-    }
+    // MARK: - Add Friend Functions
     
     func addFriend(user: Person, friend: Person) async throws {
         // Update the friends list of the person who you have now added to your list. Their friends list is updated, so that when they post, it will add to your feed. At the same time, any of their existing requests will also populate into your feed.
@@ -158,10 +45,6 @@ class FriendService {
         // Update user's personal friends list with state of 'sent'
         let refUserFriends = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
         let userFriendsDocument = try await refUserFriends.getDocument()
-        
-//            guard !document.exists else {
-//                placeholder for after friends get transferred
-//            }
         
         if userFriendsDocument.exists { // only applies for initial beta launch of friends page, where some friends have documents but without a state.
             if userFriendsDocument.get("state") == nil {
@@ -232,6 +115,89 @@ class FriendService {
 
     }
     
+    func dismissFriendRequest(user: Person, friend: Person) async throws {
+        do {
+            // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
+            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+            try await refFriends.delete()
+            
+            // Update user's personal friends list and delete historical posts.
+            let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+            try await refUser.delete()
+        } catch {
+            NetworkingLogger.error("FriendService.dismissFriendRequest failed \(error)")
+        }
+    }
+    
+    func acceptOrDenyFriendRequest(acceptOrDeny: Bool, user: Person, friend: Person) async throws {
+        if acceptOrDeny {
+            try await approveFriend(user: user, friend: friend)
+        } else {
+            try await dismissFriendRequest(user: user, friend: friend) // temp swapped friend and user to not screw up existing feed.
+        }
+    }
+    
+    //Function to update the historical prayer feed
+    func updateFriendHistoricalPostsIntoFeed(user: Person, friend: Person) async throws {
+        //In this scenario, userID is the userID of the person retrieving data from the 'person'.
+        do {
+            //user is retrieving prayer requests of the friend: person.userID and person: person.
+            let posts = try await PostOperationsService().getPosts(userID: friend.userID, person: friend)
+
+            //for each prayer request, user is taking the friend's prayer request and updating them to their own feed. The user becomes the 'friend' of the person.
+            for post in posts {
+                do {
+                    try await FeedService().updateFriendsFeed(post: post, person: friend, friend: user, updateFriend: true)
+                } catch {
+                    NetworkingLogger.error("FriendService.updateFriendHistoricalPostsIntoFeed \(error.localizedDescription)")
+                }
+            }
+        } catch {
+            throw PersonRetrievalError.errorRetrievingFromFirebase
+        }
+    }
+    
+    func addPrivateFriend(firstName: String, lastName: String, user: Person) async throws {
+        guard firstName != "" && lastName != "" else {
+            throw AddFriendError.missingName
+        }
+
+        guard (firstName.lowercased()+lastName.lowercased()) != (user.firstName.lowercased() + user.lastName.lowercased()) else {
+            throw AddFriendError.invalidName
+        }
+            
+        let ref = db.collection("users").document(user.userID).collection("friendsList").document()
+        
+        try await ref.setData([
+            "username": user.username,
+            "userID": user.userID,
+            "firstName": firstName,
+            "lastName": lastName,
+            "email": "",
+            "state": "private"
+        ])
+    }
+    
+    // MARK: - Helper Functions for Deleting a Person and Documents
+    
+    // Account settings
+    // Helper to delete documents in a collection based on user ID
+    func deleteDocuments(from collection: String, where field: String, isEqualTo value: Any) async throws {
+        let documents = try await db.collection(collection).whereField(field, isEqualTo: value).getDocuments()
+        for document in documents.documents {
+            try await document.reference.delete()
+        }
+    }
+
+    // Helper to delete a user's subcollections
+    func deleteSubcollection(from collection: String, documentID: String, subcollection: String) async throws {
+        let subcollectionRef = try await db.collection(collection).document(documentID).collection(subcollection).getDocuments()
+        for document in subcollectionRef.documents {
+            try await document.reference.delete()
+        }
+    }
+
+    // Helper to delete a user from friend's feed
     func deleteFriend(user: Person, friend: Person) async throws {
         do {
             if friend.isPublic {
@@ -264,40 +230,90 @@ class FriendService {
                 for document in refUser.documents {
                     try await document.reference.delete()
                 }
-                
-//                // Update your prayer feed to remove that person's prayer requests from your current feed. Current functionality - don't delete historical posts.
-//                let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-//                
-//                for document in refDeleteUser.documents {
-//                    try await document.reference.delete()
-//                }
+        
             }
         } catch {
             NetworkingLogger.error("FriendService.deleteFriend failed \(error)")
         }
     }
-    
-    func dismissFriendRequest(user: Person, friend: Person) async throws {
-        do {
-            // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
-            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
-            try await refFriends.delete()
-            
-            // Update user's personal friends list and delete historical posts.
-            let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
-            try await refUser.delete()
-        } catch {
-            NetworkingLogger.error("FriendService.dismissFriendRequest failed \(error)")
+
+    // Main function to delete user data
+    func deletePerson(user: Person, friendsList: [Person]) async throws {
+        Task {
+            do {
+                // Delete user's prayer requests and feed
+                try await deleteDocuments(from: "prayerRequests", where: "userID", isEqualTo: user.userID)
+                try await deleteSubcollection(from: "prayerFeed", documentID: user.userID, subcollection: "prayerRequests")
+                
+                // Delete from each friend's feed
+                for friend in friendsList {
+                    try await deleteFriend(user: user, friend: friend)
+                }
+
+                // Delete user's friends list and prayer list
+                try await deleteSubcollection(from: "users", documentID: user.userID, subcollection: "friendsList")
+                try await deleteSubcollection(from: "users", documentID: user.userID, subcollection: "prayerList")
+                
+                // Delete user's profile and username
+                let usersRef = db.collection("users").document(user.userID)
+                if try await usersRef.getDocument().exists {
+                    try await usersRef.delete()
+                }
+                
+                let usernameRef = db.collection("usernames").document(user.username)
+                if try await usernameRef.getDocument().exists {
+                    try await usernameRef.delete()
+                }
+
+                // Remove Firebase account
+                try await Auth.auth().currentUser?.delete()
+
+            } catch {
+                NetworkingLogger.error("FriendService.deleteAccount \(error.localizedDescription)")
+                throw error
+            }
         }
     }
-    
-    func acceptOrDenyFriendRequest(acceptOrDeny: Bool, user: Person, friend: Person) async throws {
-        if acceptOrDeny {
-            try await approveFriend(user: user, friend: friend)
-        } else {
-            try await dismissFriendRequest(user: user, friend: friend) // temp swapped friend and user to not screw up existing feed.
+        
+    // MARK: - Login Functions
+    // Login functions:
+    func getFriendsList(userID: String) async throws -> ([Person], [Person]) {
+        var friendsList: [Person] = []
+        var pendingFriendsList: [Person] = []
+        
+        guard userID != "" else {
+            throw PersonRetrievalError.noUserID
         }
+        
+        let friendsListRef = db.collection("users").document(userID).collection("friendsList")
+        
+        let querySnapshot = try await friendsListRef.getDocuments()
+        
+        //append FriendsListArray in userHolder
+        for document in querySnapshot.documents {
+            if document.exists {
+                let userID = document.get("userID") as? String ?? ""
+                let username = document.get("username") as? String ?? ""
+                let email = document.get("email") as? String ?? ""
+                let firstName = document.get("firstName") as? String ?? ""
+                let lastName = document.get("lastName") as? String ?? ""
+                let state = document.get("state") as? String ?? ""
+//                let prayerCalendarInd = document.get("prayerCalendarInd") as? Bool ?? false
+                
+                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: state/*, prayerCalendarInd: prayerCalendarInd*/)
+                
+                if state == "pending" {
+                    pendingFriendsList.append(person)
+                } else if state == "approved" {
+                    friendsList.append(person)
+                }
+            }
+        }
+        
+        return (friendsList, pendingFriendsList)
     }
+    
+    // MARK: - Other Friend Helper Functions
     
     func addFriendtoCalendarIndicator(user: Person, friend: Person) async throws {
         // Update the friend document in firebase with a calendar indicator as true.
@@ -331,7 +347,6 @@ class FriendService {
             //append FriendsListArray in userHolder
             for document in querySnapshot.documents {
                 if document.exists {
-//                    if document.get("username") as! String == username.lowercased() && document.get("firstName") as! String == firstName.capitalized && document.get("lastName") as! String == lastName.capitalized {
                         check = true
                         
                         let firstName = document.get("firstName") as? String ?? ""
@@ -348,26 +363,5 @@ class FriendService {
             NetworkingLogger.error("FriendService.validateFriendUsername failed \(error)")
         }
         return (check, person)
-    }
-    
-    func addPrivateFriend(firstName: String, lastName: String, user: Person) async throws {
-        guard firstName != "" && lastName != "" else {
-            throw AddFriendError.missingName
-        }
-
-        guard (firstName.lowercased()+lastName.lowercased()) != (user.firstName.lowercased() + user.lastName.lowercased()) else {
-            throw AddFriendError.invalidName
-        }
-            
-        let ref = db.collection("users").document(user.userID).collection("friendsList").document()
-        
-        try await ref.setData([
-            "username": user.username,
-            "userID": user.userID,
-            "firstName": firstName,
-            "lastName": lastName,
-            "email": "",
-            "state": "private"
-        ])
     }
 }
