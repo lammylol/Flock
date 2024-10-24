@@ -20,15 +20,6 @@ class FeedService {
             return db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
         }
     }
-            
-//        if profileOrFeed == "feed" || person?.userID != user.userID { // if it's your feed, or a friend's user profile, fetch their posts from your feed.
-//            return db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
-//        } else {
-//            let personDocID = "\(person?.firstName.lowercased())_\(person?.lastName.lowercased())"
-//            return db.collection("users").document(person.userID).collection("prayerList").document(personDocID).collection("prayerRequests")
-//        }
-//    
-//    }
 
     func getAllPostsQuery(user: Person, person: Person?, status: FeedViewModel.StatusFilter, viewType: FeedViewModel.ViewType, selectionType: FeedViewModel.SelectionType) -> Query {
         let collection = collectionPath(for: user, person: person, viewType: viewType)
@@ -73,17 +64,6 @@ class FeedService {
         
         return query.order(by: "latestUpdateDatePosted", descending: true)
     }
-//
-//    func getAllPostsByStatusQuery(user: Person, person: Person?, status: FeedViewModel.StatusFilter, viewType: FeedViewModel.ViewType) -> Query {
-//        let collection = collectionPath(for: user, person: person ?? nil, viewType: viewType)
-//        var query = collection.whereField("status", isEqualTo: status.statusKey).order(by: "latestUpdateDatePosted", descending: true)
-//
-//        if let person = person, person.userID != user.userID {
-//            query = query.whereField("userID", isEqualTo: person.userID)
-//        }
-//
-//        return query
-//    }
 
     func getPosts(querySnapshot: QuerySnapshot) -> ([Post], DocumentSnapshot?) {
         var posts = [Post]()

@@ -41,7 +41,7 @@ struct TodayView: View {
             .clipped(antialiased: true)
             .scrollDismissesKeyboard(.automatic)
             .scrollIndicators(.hidden)
-            .refreshable(action: { Task { refreshPosts } })
+            .refreshable { await refreshPosts() }
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
@@ -210,7 +210,7 @@ struct TodayView: View {
     private func loadPinnedPosts() async {
         do {
             try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
-            try await myPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
+            try await myPostsViewModel.getPosts(user: userHolder.person)
         } catch {
             ViewLogger.error("ProfileView Pinned Posts \(error)")
         }
@@ -220,9 +220,7 @@ struct TodayView: View {
         if myPostsViewModel.isFinished && myFriendsPostsViewModel.isFinished {
             do {
                 try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
-                try await myPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
-                self.myFriendsPostsViewModel.posts = myFriendsPostsViewModel.posts
-                self.myPostsViewModel.posts = myPostsViewModel.posts
+                try await myPostsViewModel.getPosts(user: userHolder.person)
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }

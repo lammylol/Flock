@@ -144,12 +144,3 @@ extension FeedViewModel {
         case finished
     }
 }
-//
-//@Observable final class PinnedFeedViewModel: FeedViewModel {
-//    override init(viewType: viewType = .profile, selectionType: selectionType = .) {
-//        super.init(viewType: viewType)
-//        self.selectedStatus = .pinned // Initialize with pinned status
-//    }
-
-    // You can add any additional functionality specific to pinned posts here
-//}
