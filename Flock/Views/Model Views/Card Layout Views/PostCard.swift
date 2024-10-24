@@ -13,6 +13,12 @@ struct PostCard: View {
     @State var post: Post
     @State private var isPinned: Bool = true
     
+    var postCardSmallorLarge: Bool? = false // false is default which is large.
+    
+    var postCardSize: UISizing.PostCard {
+        .init(smallVsLarge: postCardSmallorLarge ?? false)
+    }
+    
     var isYourself: Bool {
         post.firstName == userHolder.person.firstName && post.lastName == userHolder.person.lastName
     }
@@ -20,7 +26,7 @@ struct PostCard: View {
     var feedService = FeedService()
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topTrailing) {
             VStack {
                 HStack {
                     ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 24, fontSize: 12)
@@ -52,7 +58,7 @@ struct PostCard: View {
                     }
                 }
             }
-            .frame(width: UISizing.PostCard().width, height: UISizing.PostCard().insideFrameHeight)
+            .frame(width: postCardSize.width, height: postCardSize.insideFrameHeight)
             .padding(15)
             
             if post.lastSeenNotificationCount > 0 {
@@ -64,7 +70,9 @@ struct PostCard: View {
                             .fill(.red)
                     }
                     .foregroundStyle(.white)
-                    .offset(x: 62, y: -75)
+//                    .offset(x: 62, y: -75)
+                    .padding(.trailing, -10)
+                    .padding(.top, -18)
             }
         }
         .background {
@@ -73,7 +81,7 @@ struct PostCard: View {
                 .opacity(0.10)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: UISizing.PostCard().outsideFrameHeight)
+        .frame(height: postCardSize.outsideFrameHeight)
     }
     
     func updateLastSeenNotificationCount() {

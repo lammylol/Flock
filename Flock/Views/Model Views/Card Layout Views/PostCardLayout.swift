@@ -1,0 +1,101 @@
+//
+//  HorizontalScrollingPostCards.swift
+//  Flock
+//
+//  Created by Matt Lam on 10/5/24.
+//
+
+import SwiftUI
+import UIKit
+
+struct PostCardLayout: View {
+    @Environment(UserProfileHolder.self) var userHolder
+    @Environment(UISizing.self) var uiSize
+    
+    // Pass in the NavigationPath from parent
+    @Binding var navigationPath: NavigationPath
+    @Binding var viewModel: FeedViewModel
+    
+    var posts: [Post]
+    var isExpanded: Bool = false
+
+    var body: some View {
+        VStack {
+            if !isExpanded {
+                horizontalScrollingPosts
+                    .transition(.slide)
+            } else if !posts.isEmpty {
+                gridLayout()
+                    .transition(.slide)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Horizontal Scroll for Condensed Layout
+    private var horizontalScrollingPosts: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 8) {
+                ForEach(posts) { post in
+                    Button {
+                        navigationPath.append(post)
+                    } label: {
+                        PostCard(post: post, postCardSmallorLarge: false)
+                    }
+                    .foregroundStyle(Color.primary)
+                    .task {
+                        await fetchNextPostsIfNeeded(for: post)
+                    }
+                }
+            }
+            .padding(.trailing, 23) // Adjust padding for leading and trailing
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .scrollIndicators(.hidden)
+        .padding(.trailing, -25)
+    }
+
+    // MARK: - Grid Layout for Expanded Layout
+    private func gridLayout() -> some View {
+        let gridColumnCount = calculateGridColumnCount(for: UIScreen.main.bounds.width)
+        let gridRowCount = calculateGridRowCount(columnCount: gridColumnCount)
+
+        return Grid {
+            ForEach(0..<gridRowCount, id: \.self) { row in
+                GridRow {
+                    ForEach(0..<gridColumnCount, id: \.self) { col in
+                        let index = col * gridRowCount + row
+                        if index < posts.count {
+                            PostCard(post: posts[index], postCardSmallorLarge: true)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.top, 8)
+    }
+
+    // MARK: - Helper Functions
+    private func calculateGridColumnCount(for width: CGFloat) -> Int {
+        Int(floor((width-100) / (UISizing.PostCard(smallVsLarge: true).width + 5))) // Adjust padding
+    }
+
+    private func calculateGridRowCount(columnCount: Int) -> Int {
+        Int(ceil(Double(posts.count) / Double(columnCount)))
+    }
+
+    private func fetchNextPostsIfNeeded(for post: Post) async {
+        if viewModel.hasReachedEnd(of: post) && !viewModel.isFetching {
+            await viewModel.getNextPosts(user: userHolder.person, person: userHolder.person, profileOrFeed: "profile")
+        }
+    }
+}
+//
+//#Preview {
+//    @Previewable @State var navigationPath = NavigationPath()
+//    @Previewable @State var viewModel = FeedViewModel()
+//
+//    PostCardLayout(navigationPath: $navigationPath, viewModel: $viewModel, posts: [Post.preview, Post.preview, Post.preview, Post.preview], isExpanded: true)
+//        .environment(UserProfileHolder())
+//}

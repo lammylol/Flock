@@ -21,6 +21,8 @@ struct TodayView: View {
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     @State private var showCreatePost: Bool = false
+    @State private var seeAllFriendsPosts: Bool = false
+    @State private var seeAllMyPosts: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
     
@@ -110,33 +112,49 @@ struct TodayView: View {
     // MARK: - Friend Prayers View
     private func myFriendsView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Friend's Prayers")
+            HStack {
+                sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Friend's Prayers")
+                Spacer()
+                Button {
+                    seeAllFriendsPosts.toggle()
+                } label: {
+                    Text(seeAllFriendsPosts ? "Show Less" : "Show All")
+                        .font(.system(size: 16))
+                }
+            }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: $myFriendsPostsViewModel, posts: myFriendsPostsViewModel.posts)
-                .padding(.leading, 0) // Padding on leading
-                .padding(.trailing, -25)
+            PostCardLayout(navigationPath: $navigationPath, viewModel: $myFriendsPostsViewModel, posts: myFriendsPostsViewModel.posts, isExpanded: seeAllFriendsPosts)
                 .task {
                     if myFriendsPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
                     }
                 }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - My Prayers View
     private func myPrayersView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Pinned Prayers")
+            HStack {
+                sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Pinned Prayers")
+                Spacer()
+                Button {
+                    seeAllMyPosts.toggle()
+                } label: {
+                    Text(seeAllMyPosts ? "Show Less" : "Show All")
+                        .font(.system(size: 16))
+                }
+            }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: $myPostsViewModel, posts: myPostsViewModel.posts)
-                .padding(.leading, 0) // Padding on leading
-                .padding(.trailing, -25)
+            PostCardLayout(navigationPath: $navigationPath, viewModel: $myPostsViewModel, posts: myPostsViewModel.posts, isExpanded: seeAllMyPosts)
                 .task {
                     if myPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
                     }
                 }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Helper Views & Functions

@@ -8,15 +8,33 @@
 import Foundation
 import UIKit
 
-class UISizing {
-    struct PostCard {
-        var insideFrameHeight: CGFloat = 120
-        var outsideFrameHeight: CGFloat { insideFrameHeight * 1.5 }
-        var width: CGFloat = 100
+@Observable class UISizing {
+    var view: UIView = UIView()
+    var screenSize: ScreenSize {
+        ScreenSize(view: view)
+    }
+
+    struct ScreenSize {
+        var view: UIView
+        
+        var screenHeight: CGFloat {
+            return view.window?.screen.bounds.height ?? 0
+        }
+        
+        var screenWidth: CGFloat {
+            return view.window?.screen.bounds.width ?? 0
+        }
     }
     
-//    struct ScreenSize {
-//        var screenHeight = view.window?.screen.bounds.height
-//        var screenWidth = view.window?.screen.bounds.width
-//    }
+    struct PostCard {
+        var smallVsLarge: Bool
+        
+        var insideFrameHeight: CGFloat {
+            smallVsLarge ? 100 : 120
+        }
+        var outsideFrameHeight: CGFloat { insideFrameHeight * 1.5 }
+        var width: CGFloat {
+            smallVsLarge ? 80 : 100
+        }
+    }
 }
