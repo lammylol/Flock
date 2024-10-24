@@ -54,8 +54,9 @@ struct PostFullView: View {
                 }
             }
             .task { loadPost() }
-            .refreshable(action: refreshPost)
+            .refreshable { refreshPost() }
             .scrollIndicators(.hidden)
+            .scrollDismissesKeyboard(.immediately)
             .padding(.bottom, 15)
             .clipped()
         }
@@ -82,6 +83,7 @@ struct PostFullView: View {
                 if post.isPinned { Image(systemName: "pin.fill") }
                 Privacy(rawValue: post.privacy)?.systemImage
                 postOptionsMenu()
+                    .highPriorityGesture(TapGesture())
             }
             .font(.system(size: 13))
         }
@@ -135,13 +137,13 @@ struct PostFullView: View {
                 Text("Comments")
                     .font(.system(size: 16))
                     .fontWeight(.medium)
-                Button { showComments.toggle() }
-                label: { Image(systemName: (showComments ? "chevron.up" : "chevron.down")).foregroundStyle(Color.primary).fontWeight(.medium) }
+                Button { showComments.toggle()
+                } label: { Image(systemName: (showComments ? "chevron.up" : "chevron.down")).foregroundStyle(Color.primary).fontWeight(.medium) }
                 Spacer()
             }
             
             if showComments {
-                CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
+                CommentsView(postID: originalPost.id, isInSheet: false, viewModel: commentViewModel)
                     .id("commentsSection")
             }
         }
@@ -162,9 +164,16 @@ struct PostFullView: View {
                 Label(post.isPinned ? "Unpin prayer request" : "Pin to feed", systemImage: post.isPinned ? "pin.slash" : "pin.fill")
             }
         } label: {
-            Label("", systemImage: "ellipsis")
+            HStack (alignment: .center) {
+                Label("", systemImage: "ellipsis")
+                    .background {
+                        Rectangle()
+                            .fill(.clear)
+                    }
+                    .frame(maxHeight: .infinity)
+                    .foregroundStyle(Color.primary)
+            }
         }
-        .highPriorityGesture(TapGesture())
     }
     
     private func seeAllUpdatesButton() -> some View {
@@ -202,13 +211,13 @@ struct PostFullView: View {
     private func loadPost() {
         Task {
             post = originalPost
-            await commentViewModel.fetchComments(for: post.id)
+//            await commentViewModel.fetchComments(for: post.id)
         }
     }
     
     private func refreshPost() {
         Task {
-            post = try await PostOperationsService().getPost(prayerRequest: post)
+            post = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             originalPost = post
         }
     }
