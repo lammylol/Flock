@@ -29,23 +29,15 @@ struct CommentsView: View {
             print("CommentsView task started for post \(postID)")
             await fetchCommentsIfNeeded()
         }
-        .onChange(of: postID) { newID in
-            print("PostID changed to: \(newID)")
-            Task {
-                await fetchCommentsIfNeeded()
-            }
-        }
+//        .onChange(of: postID) { newID in
+//            print("PostID changed to: \(newID)")
+//            Task {
+//                await fetchCommentsIfNeeded()
+//            }
+//        }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
-        .gesture(
-             DragGesture()
-                 .onEnded { value in
-                     if value.translation.height > 0 {
-                         isCommentFieldFocused = false // Dismiss the keyboard when swiping up
-                     }
-                 }
-         )
     }
 
     private func fetchCommentsIfNeeded() async {
