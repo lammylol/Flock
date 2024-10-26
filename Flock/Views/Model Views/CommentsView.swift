@@ -179,11 +179,18 @@ struct CommentRow: View {
             }
             Spacer()
             if comment.userID == currentUserID {
-                Button(action: {
-                    showDeleteConfirmation = true
-                }) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
+                Menu {
+                    // Future menu items can be added here
+                    Button(role: .destructive) {
+                        showDeleteConfirmation = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .foregroundColor(.gray.opacity(0.6))
+                        .font(.system(size: 16))
+                        .padding(8)
                 }
             }
         }
