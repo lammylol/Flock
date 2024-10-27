@@ -10,7 +10,9 @@ import SwiftUI
 struct PostCard: View {
     @Environment(UserProfileHolder.self) var userHolder
     
-    @State var post: Post
+    @Binding var post: Post
+    @Binding var navigationPath: NavigationPath
+    
     @State private var isPinned: Bool = true
     
     var postCardSmallorLarge: Bool? = false // false is default which is large.
@@ -27,37 +29,42 @@ struct PostCard: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            VStack {
-                HStack {
-                    ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 24, fontSize: 12)
-                    Text(post.firstName.capitalized)
-                        .bold()
-                        .font(.system(size: 16))
-                        .minimumScaleFactor(0.2)
-                        .lineLimit(1)
-                    Spacer()
-                    if isPinned { Image(systemName: "pin.fill").font(.system(size: 12))}
-                }
-                .padding(.bottom, 10)
-                HStack{
-                    Text(post.postTitle)
-                        .font(.system(size: 18))
-                        .multilineTextAlignment(.leading)
-                        .fontWeight(.regular)
-                        .minimumScaleFactor(0.5)
-                    Spacer()
-                }
-                Spacer()
-                if post.lastSeenNotificationCount > 0 {
-                    NavigationLink(destination: UpdateView(post: post, person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName))
-                        .onAppear {
-                            updateLastSeenNotificationCount()
-                        })
-                    {
-                        tagModelView(textLabel: "View Update", textSize: 12, foregroundColor: .white, backgroundColor: .red)
+            Button {
+                navigationPath.append(post)
+            } label: {
+                VStack {
+                    HStack {
+                        ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 24, fontSize: 12)
+                        Text(post.firstName.capitalized)
+                            .bold()
+                            .font(.system(size: 16))
+                            .minimumScaleFactor(0.2)
+                            .lineLimit(1)
+                        Spacer()
+                        if isPinned { Image(systemName: "pin.fill").font(.system(size: 12))}
                     }
-                }
+                    .padding(.bottom, 10)
+                    HStack{
+                        Text(post.postTitle)
+                            .font(.system(size: 18))
+                            .multilineTextAlignment(.leading)
+                            .fontWeight(.regular)
+                            .minimumScaleFactor(0.5)
+                        Spacer()
+                    }
+                    Spacer()
+    //                if post.lastSeenNotificationCount > 0 {
+    //                    NavigationLink(destination: UpdateView(post: post, person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName))
+    //                        .onAppear {
+    //                            updateLastSeenNotificationCount()
+    //                        })
+    //                    {
+    //                        tagModelView(textLabel: "View", textSize: 12, foregroundColor: .white, backgroundColor: .blue)
+    //                    }
+    //                }
             }
+            }
+            .foregroundStyle(Color.primary)
             .frame(width: postCardSize.width, height: postCardSize.insideFrameHeight)
             .padding(15)
             
@@ -67,7 +74,7 @@ struct PostCard: View {
                     .padding(10)
                     .background {
                         Circle()
-                            .fill(.red)
+                            .fill(.blue)
                     }
                     .foregroundStyle(.white)
 //                    .offset(x: 62, y: -75)

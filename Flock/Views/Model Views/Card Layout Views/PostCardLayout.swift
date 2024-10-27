@@ -14,9 +14,9 @@ struct PostCardLayout: View {
     
     // Pass in the NavigationPath from parent
     @Binding var navigationPath: NavigationPath
-    @Binding var viewModel: FeedViewModel
-    
-    var posts: [Post]
+    @State var viewModel: FeedViewModel
+//
+//    var viewModel.posts: [Post]
     var isExpanded: Bool = false
 
     var body: some View {
@@ -24,7 +24,7 @@ struct PostCardLayout: View {
             if !isExpanded {
                 horizontalScrollingPosts
                     .transition(.slide)
-            } else if !posts.isEmpty {
+            } else if !viewModel.posts.isEmpty {
                 gridLayout()
                     .transition(.slide)
             }
@@ -36,16 +36,12 @@ struct PostCardLayout: View {
     private var horizontalScrollingPosts: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
-                ForEach(posts) { post in
-                    Button {
-                        navigationPath.append(post)
-                    } label: {
-                        PostCard(post: post, postCardSmallorLarge: false)
-                    }
-                    .foregroundStyle(Color.primary)
+                ForEach($viewModel.posts) { $post in
+                    PostCard(post: $post, navigationPath: $navigationPath, postCardSmallorLarge: false)
                     .task {
                         await fetchNextPostsIfNeeded(for: post)
                     }
+                    .id(post.id)
                 }
             }
             .padding(.trailing, 23) // Adjust padding for leading and trailing
@@ -65,8 +61,12 @@ struct PostCardLayout: View {
                 GridRow {
                     ForEach(0..<gridColumnCount, id: \.self) { col in
                         let index = col * gridRowCount + row
-                        if index < posts.count {
-                            PostCard(post: posts[index], postCardSmallorLarge: true)
+                        if index < $viewModel.posts.count {
+                            PostCard(post: $viewModel.posts[index], navigationPath: $navigationPath, postCardSmallorLarge: true)
+                            .task {
+                                await fetchNextPostsIfNeeded(for: viewModel.posts[index])
+                            }
+                            .id(viewModel.posts[index].id)
                         }
                     }
                 }
@@ -82,7 +82,7 @@ struct PostCardLayout: View {
     }
 
     private func calculateGridRowCount(columnCount: Int) -> Int {
-        Int(ceil(Double(posts.count) / Double(columnCount)))
+        Int(ceil(Double(viewModel.posts.count) / Double(columnCount)))
     }
 
     private func fetchNextPostsIfNeeded(for post: Post) async {

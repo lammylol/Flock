@@ -45,7 +45,7 @@ struct TodayView: View {
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    originalPost: .constant(post) // Pass binding for post
+                    post: .constant(post) // Pass binding for post
                 )
             }
             .toolbarBackground(Color.primary, for: .bottomBar)
@@ -123,7 +123,7 @@ struct TodayView: View {
                 }
             }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: $myFriendsPostsViewModel, posts: myFriendsPostsViewModel.posts, isExpanded: seeAllFriendsPosts)
+            PostCardLayout(navigationPath: $navigationPath, viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
                 .task {
                     if myFriendsPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
@@ -147,7 +147,7 @@ struct TodayView: View {
                 }
             }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: $myPostsViewModel, posts: myPostsViewModel.posts, isExpanded: seeAllMyPosts)
+            PostCardLayout(navigationPath: $navigationPath, viewModel: myPostsViewModel, isExpanded: seeAllMyPosts)
                 .task {
                     if myPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()

@@ -52,7 +52,7 @@ struct ProfileView: View {
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    originalPost: .constant(post) // Pass binding for post
+                    post: .constant(post) // Pass binding for post
                 )
             }
             .scrollIndicators(.hidden)
@@ -89,7 +89,7 @@ struct ProfileView: View {
                         }
                     }
                 }
-                PostCardLayout(navigationPath: $navigationPath, viewModel: $pinnedPostsViewModel, posts: pinnedPostsViewModel.posts, isExpanded: seeAllMyPosts)
+                PostCardLayout(navigationPath: $navigationPath, viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
                     .task {
                         if pinnedPostsViewModel.posts.isEmpty {
                             await loadPinnedPosts()

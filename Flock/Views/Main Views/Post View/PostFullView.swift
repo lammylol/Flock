@@ -15,9 +15,9 @@ struct PostFullView: View {
     @State var postHelper = PostHelper()
     @State var postUpdates: [PostUpdate] = []
     @State var person: Person
-    @State var post: Post = Post()
+    @State var newPost: Post = Post()
     @State var lineLimit: Int = 6
-    @Binding var originalPost: Post
+    @Binding var post: Post
     @State var showAddUpdateView: Bool = false
     
     @State private var originalPrivacy: String = ""
@@ -26,13 +26,15 @@ struct PostFullView: View {
     @State private var commentViewModel = CommentViewModel()
     @State private var showComments: Bool = true
     
+    var feedService = FeedService()
+    
     var body: some View {
         NavigationView {
             ScrollViewReader { scrollViewProxy in
                 ScrollView {
                     VStack {
                         postHeaderView()
-                        if post.latestUpdateText != "" {
+                        if newPost.latestUpdateText != "" {
                             latestUpdateView()
                         }
                         postContentView()
@@ -53,7 +55,11 @@ struct PostFullView: View {
                     }
                 }
             }
-            .task { loadPost() }
+            .task {
+                loadPost()
+                updateNotificationSeenIfNotificationCountExisted()
+                self.post = newPost
+            }
             .refreshable { refreshPost() }
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)
@@ -68,20 +74,20 @@ struct PostFullView: View {
     private func postHeaderView() -> some View {
         HStack {
             NavigationLink(destination: ProfileView(person: person)) {
-                ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
+                ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.primary)
             }
             .id(UUID())
             VStack(alignment: .leading) {
-                Text("\(post.firstName.capitalized) \(post.lastName.capitalized)")
+                Text("\(newPost.firstName.capitalized) \(newPost.lastName.capitalized)")
                     .font(.system(size: 18)).bold()
                 Text(usernameDisplay()).font(.system(size: 14))
             }
             Spacer()
             HStack (alignment: .center) {
-                if post.isPinned { Image(systemName: "pin.fill") }
-                Privacy(rawValue: post.privacy)?.systemImage
+                if newPost.isPinned { Image(systemName: "pin.fill") }
+                Privacy(rawValue: newPost.privacy)?.systemImage
                 postOptionsMenu()
                     .highPriorityGesture(TapGesture())
             }
@@ -95,12 +101,12 @@ struct PostFullView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 VStack(alignment: .leading) {
-                    Text("**Latest \(post.latestUpdateType)**:")
-                    Text(post.latestUpdateDatePosted.formatted(date: .abbreviated, time: .omitted))
+                    Text("**Latest \(newPost.latestUpdateType)**:")
+                    Text(newPost.latestUpdateDatePosted.formatted(date: .abbreviated, time: .omitted))
                         .font(.system(size: 14))
                 }
                 Spacer()
-                NavigationLink(destination: UpdateView(post: post, person: person)) {
+                NavigationLink(destination: UpdateView(post: newPost, person: person)) {
                     seeAllUpdatesButton()
                 }
                 .id(UUID())
@@ -116,13 +122,13 @@ struct PostFullView: View {
     // MARK: - Post Content View
     private func postContentView() -> some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text(post.postTitle).font(.system(size: 18)).bold()
-            Text(post.postType == "Prayer Request" ? "Prayer Request: \(Text(post.status.capitalized).bold())" : post.postType == "Praise" ? "Praise 🙌" : "Note 📝").font(.system(size: 14))
+            Text(newPost.postTitle).font(.system(size: 18)).bold()
+            Text(newPost.postType == "Prayer Request" ? "Prayer Request: \(Text(newPost.status.capitalized).bold())" : newPost.postType == "Praise" ? "Praise 🙌" : "Note 📝").font(.system(size: 14))
             Divider()
-            Text(post.postText)
+            Text(newPost.postText)
                 .font(.system(size: 16))
                 .multilineTextAlignment(.leading)
-            Text("\(postHelper.timeStringFull(for: post.date))")
+            Text("\(postHelper.timeStringFull(for: newPost.date))")
                 .font(.system(size: 14))
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -143,7 +149,7 @@ struct PostFullView: View {
             }
             
             if showComments {
-                CommentsView(postID: originalPost.id, isInSheet: false, viewModel: commentViewModel)
+                CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
                     .id("commentsSection")
             }
         }
@@ -153,7 +159,7 @@ struct PostFullView: View {
     private func postOptionsMenu() -> some View {
         Menu {
             if person.userID == userHolder.person.userID {
-                NavigationLink(destination: PostEditView(person: person, post: post)
+                NavigationLink(destination: PostEditView(person: person, post: newPost)
                     .onDisappear {
                         refreshPost()
                 }) {
@@ -161,7 +167,7 @@ struct PostFullView: View {
                 }
             }
             Button(action: togglePinPost) {
-                Label(post.isPinned ? "Unpin prayer request" : "Pin to feed", systemImage: post.isPinned ? "pin.slash" : "pin.fill")
+                Label(newPost.isPinned ? "Unpin prayer request" : "Pin to feed", systemImage: newPost.isPinned ? "pin.slash" : "pin.fill")
             }
         } label: {
             HStack (alignment: .center) {
@@ -186,11 +192,11 @@ struct PostFullView: View {
     }
     
     private func updateTextView() -> some View {
-        Text(post.latestUpdateText)
+        Text(newPost.latestUpdateText)
             .lineLimit(expandUpdate ? nil : lineLimit)
             .background(
                 ViewThatFits(in: .vertical) {
-                    Text(post.latestUpdateText).hidden()
+                    Text(newPost.latestUpdateText).hidden()
                     Color.clear.onAppear { isTruncated = true }
                 }
             )
@@ -210,23 +216,31 @@ struct PostFullView: View {
     
     private func loadPost() {
         Task {
-            post = originalPost
-//            await commentViewModel.fetchComments(for: post.id)
+            newPost = post
+        }
+    }
+    
+    private func updateNotificationSeenIfNotificationCountExisted() {
+        // This function will update lastSeenNotificationCount to 0 only if notification exists.
+        Task {
+            if newPost.lastSeenNotificationCount > 0 {
+                try await feedService.updateLastSeenNotificationCount(post: post, person: userHolder.person)
+            }
         }
     }
     
     private func refreshPost() {
         Task {
-            post = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
-            originalPost = post
+            newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
+            post = newPost
         }
     }
     
     private func togglePinPost() {
         Task {
             do {
-                post.isPinned.toggle()
-                try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: post.isPinned)
+                newPost.isPinned.toggle()
+                try await PostHelper().togglePinned(person: userHolder.person, post: newPost, toggle: newPost.isPinned)
             } catch {
                 ViewLogger.error("PostFullView.pinPost \(error)")
             }
