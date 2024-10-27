@@ -10,6 +10,28 @@ import FirebaseFirestore
 
 class PostHelper {
     let db = Firestore.firestore()
+
+    func getPost(postID: String) async throws -> Post? {
+        // Try to find the post in the prayerFeed collection
+        let snapshot = try await db.collection("prayerFeed")
+            .document(postID.components(separatedBy: "_").first ?? "") // Get userID part
+            .collection("prayerRequests")
+            .document(postID)
+            .getDocument()
+            
+        if let post = try? snapshot.data(as: Post.self) {
+            return post
+        }
+        
+        // If not found, try in the user's personal collection
+        let query = try await db.collection("users")
+            .document(postID.components(separatedBy: "_").first ?? "") // Get userID part
+            .collection("prayerList")
+            .document(postID)
+            .getDocument()
+            
+        return try? query.data(as: Post.self)
+    }
     
     func togglePinned(person: Person, post: Post, toggle: Bool) async throws {
         let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)

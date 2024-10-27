@@ -6,11 +6,12 @@
 // Created by Ramon Jiang 09/011/24
 
 import SwiftUI
+import Observation
 
 struct CommentsView: View {
     let postID: String
     var isInSheet: Bool
-    @State var viewModel: CommentViewModel
+    var viewModel: CommentViewModel
     
     @State private var newCommentText = ""
     @FocusState private var isCommentFieldFocused: Bool
@@ -133,19 +134,18 @@ struct CommentsView: View {
         newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
+    // Update the postComment function
     private func postComment() async {
         guard !isCommentTextEmpty else { return }
-        await viewModel.addComment(to: postID, text: newCommentText, person: userHolder.person)
+        try? await viewModel.addComment(postID: postID, text: newCommentText)
         newCommentText = ""
         isCommentFieldFocused = false
-        await viewModel.fetchInitialComments(for: postID)
     }
-
+    
+    // Update comment deletion
     private func deleteComment(_ comment: Comment) async {
         if let commentID = comment.id {
             await viewModel.deleteComment(postID: postID, commentID: commentID)
-        } else {
-            print("Cannot delete comment: Invalid comment ID")
         }
     }
 }

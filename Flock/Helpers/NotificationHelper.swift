@@ -22,14 +22,17 @@ class NotificationHelper {
             postID: comment.postID,
             postTitle: postTitle,
             senderID: comment.userID,
-            senderName: comment.userName,
+            senderName: "\(comment.firstName) \(comment.lastName)",
             recipientID: recipientID,
             type: .newComment,
             timestamp: Date(),
             isRead: false
         )
         
-        try await db.collection(notificationsCollection).addDocument(from: notification)
+        try await db.collection(notificationsCollection)
+            .document(recipientID)
+            .collection("userNotifications")
+            .addDocument(from: notification)
     }
     
     static func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) {

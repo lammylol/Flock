@@ -23,8 +23,15 @@ struct PostFullView: View {
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
-    @State private var commentViewModel = CommentViewModel()
+    @State private var commentViewModel: CommentViewModel
     @State private var showComments: Bool = true
+
+    init(originalPost: Binding<Post>, person: Person) {
+        _originalPost = originalPost
+        self.person = person
+        // Initialize CommentViewModel directly
+        self._commentViewModel = State(initialValue: CommentViewModel(person: person))
+    }
     
     var body: some View {
         NavigationView {

@@ -42,8 +42,8 @@ struct TodayView: View {
             .refreshable(action: { Task { refreshPosts } })
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    originalPost: .constant(post) // Pass binding for post
+                    originalPost: .constant(post),
+                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName)
                 )
             }
             .toolbarBackground(Color.primary, for: .bottomBar)

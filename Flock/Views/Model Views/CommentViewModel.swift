@@ -9,9 +9,12 @@ import SwiftUI
 import FirebaseFirestore
 import Foundation
 import Combine
+import Observation
 
 @Observable class CommentViewModel {
     private let commentHelper = CommentHelper()
+    private let postHelper = PostHelper()
+    private let person: Person
     var comments: [Comment] = []
     var isLoading = false
     var isLoadingMore = false
@@ -23,6 +26,10 @@ import Combine
     private var currentPostID: String?
     private var lastCommentSnapshot: QueryDocumentSnapshot?
     
+    init(person: Person) {
+        self.person = person
+    }
+
     func fetchInitialComments(for postID: String) async {
         guard !postID.isEmpty else {
             print("Attempted to fetch comments with empty postID")
@@ -106,7 +113,8 @@ import Combine
         }
     }
     
-    func addComment(to postID: String, text: String, person: Person) async {
+    func addComment(postID: String, text: String) async throws {
+        // Input validation
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             print("Attempted to add empty comment")
             DispatchQueue.main.async {
@@ -134,31 +142,35 @@ import Combine
         do {
             try await commentHelper.addComment(to: postID, comment: newComment)
             print("Comment added successfully")
-            await fetchInitialComments(for: postID)  // Changed from fetchComments
+            
+            guard let post = try await postHelper.getPost(postID: postID) else {
+                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Post not found"])
+            }
+            
+            let previousCommenters = Set(comments.map { $0.userID })
+            
+            // Change these two notification blocks to use static methods:
+            if post.userID != person.userID {
+                try await NotificationHelper.createNotification(  // Changed to static call
+                    for: newComment,
+                    postTitle: post.postTitle,
+                    recipientID: post.userID
+                )
+            }
+            
+            for commenterID in previousCommenters where commenterID != person.userID {
+                try await NotificationHelper.createNotification(  // Changed to static call
+                    for: newComment,
+                    postTitle: post.postTitle,
+                    recipientID: commenterID
+                )
+            }
+            
+            await fetchInitialComments(for: postID)
         } catch {
             print("Error adding comment: \(error)")
             DispatchQueue.main.async {
                 self.errorMessage = "Failed to add comment: \(error.localizedDescription)"
-                self.isLoading = false
-            }
-        }
-    }
-    
-    func deleteComment(postID: String, commentID: String) async {
-        print("Deleting comment: \(commentID) from post: \(postID)")
-        DispatchQueue.main.async {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
-        
-        do {
-            try await commentHelper.deleteComment(postID: postID, commentID: commentID)
-            print("Comment deleted successfully")
-            await fetchInitialComments(for: postID)  // Changed from fetchComments
-        } catch {
-            print("Error deleting comment: \(error)")
-            DispatchQueue.main.async {
-                self.errorMessage = "Failed to delete comment: \(error.localizedDescription)"
                 self.isLoading = false
             }
         }
@@ -191,5 +203,25 @@ import Combine
         }
         print("Refreshing comments for post: \(postID)")
         await fetchInitialComments(for: postID)  // Changed from fetchComments
+    }
+
+    func deleteComment(postID: String, commentID: String) async {
+        print("Deleting comment: \(commentID) from post: \(postID)")
+        DispatchQueue.main.async {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
+        
+        do {
+            try await commentHelper.deleteComment(postID: postID, commentID: commentID)
+            print("Comment deleted successfully")
+            await fetchInitialComments(for: postID)
+        } catch {
+            print("Error deleting comment: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to delete comment: \(error.localizedDescription)"
+                self.isLoading = false
+            }
+        }
     }
 }
