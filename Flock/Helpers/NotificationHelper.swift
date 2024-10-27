@@ -14,10 +14,10 @@ enum NotificationError: Error {
 }
 
 class NotificationHelper {
-    private static let db = Firestore.firestore()
-    private static let notificationsCollection = "notifications"
+    private let db = Firestore.firestore()
+    private let notificationsCollection = "notifications"
     
-    static func createNotification(for comment: Comment, postTitle: String, recipientID: String) async throws {
+    func createNotification(for comment: Comment, postTitle: String, recipientID: String) async throws {
         let notification = Notification(
             postID: comment.postID,
             postTitle: postTitle,
@@ -35,9 +35,10 @@ class NotificationHelper {
             .addDocument(from: notification)
     }
     
-    static func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) {
+    func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) {
         db.collection(notificationsCollection)
-            .whereField("recipientID", isEqualTo: userID)
+            .document(userID)
+            .collection("userNotifications")
             .addSnapshotListener { snapshot, error in
                 if let error = error {
                     completion(.failure(.firestoreError(error)))
@@ -57,16 +58,17 @@ class NotificationHelper {
             }
     }
     
-    static func markNotificationAsRead(notificationID: String) async {
+    func markNotificationAsRead(notificationID: String) async {
         try? await db.collection(notificationsCollection)
             .document(notificationID)
             .updateData(["isRead": true])
     }
     
-    static func markAllNotificationsAsRead(userID: String) async {
+    func markAllNotificationsAsRead(userID: String) async {
         let batch = db.batch()
         let notifications = try? await db.collection(notificationsCollection)
-            .whereField("recipientID", isEqualTo: userID)
+            .document(userID)
+            .collection("userNotifications")
             .whereField("isRead", isEqualTo: false)
             .getDocuments()
         

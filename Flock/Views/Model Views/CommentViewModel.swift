@@ -14,6 +14,7 @@ import Observation
 @Observable class CommentViewModel {
     private let commentHelper = CommentHelper()
     private let postHelper = PostHelper()
+    private let notificationHelper = NotificationHelper()
     private let person: Person
     var comments: [Comment] = []
     var isLoading = false
@@ -147,11 +148,12 @@ import Observation
                 throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Post not found"])
             }
             
+            // Get unique previous commenters
             let previousCommenters = Set(comments.map { $0.userID })
             
-            // Change these two notification blocks to use static methods:
+            // 1. Notify post owner if they're not the commenter
             if post.userID != person.userID {
-                try await NotificationHelper.createNotification(  // Changed to static call
+                try await notificationHelper.createNotification(
                     for: newComment,
                     postTitle: post.postTitle,
                     recipientID: post.userID
@@ -159,7 +161,7 @@ import Observation
             }
             
             for commenterID in previousCommenters where commenterID != person.userID {
-                try await NotificationHelper.createNotification(  // Changed to static call
+                try await notificationHelper.createNotification(
                     for: newComment,
                     postTitle: post.postTitle,
                     recipientID: commenterID

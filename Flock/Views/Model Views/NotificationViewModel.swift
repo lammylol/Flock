@@ -15,21 +15,23 @@ class NotificationViewModel: ObservableObject {
     @Published var unreadCount: Int = 0
     private var cancellables = Set<AnyCancellable>()
     private let userID: String
+    private let notificationHelper = NotificationHelper() // Create an instance
     
     init(userID: String) {
         self.userID = userID
         setupNotificationListener()
         
-        // Update unread count whenever notifications change
+        // Fix the $notification syntax error
         $notifications
             .map { notifications in
-                notifications.filter { !$notification.isRead }.count
+                notifications.filter { !$0.isRead }.count // Changed $notification to $0
             }
             .assign(to: &$unreadCount)
     }
     
     private func setupNotificationListener() {
-        NotificationHelper.listenForNotifications(userID: userID) { [weak self] result in
+        // Use the instance method
+        notificationHelper.listenForNotifications(userID: userID) { [weak self] result in
             switch result {
             case .success(let notifications):
                 self?.notifications = notifications.sorted(by: { $0.timestamp > $1.timestamp })
@@ -40,10 +42,12 @@ class NotificationViewModel: ObservableObject {
     }
     
     func markAsRead(notificationID: String) async {
-        await NotificationHelper.markNotificationAsRead(notificationID: notificationID)
+        // Use the instance method
+        await notificationHelper.markNotificationAsRead(notificationID: notificationID)
     }
     
     func markAllAsRead() async {
-        await NotificationHelper.markAllNotificationsAsRead(userID: userID)
+        // Use the instance method
+        await notificationHelper.markAllNotificationsAsRead(userID: userID)
     }
 }

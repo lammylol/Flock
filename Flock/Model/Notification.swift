@@ -6,10 +6,9 @@
 // Created by Ramon Jiang 10/26/24
 
 import Foundation
-import FirebaseFirestoreSwift
 
 struct Notification: Identifiable, Codable {
-    @DocumentID var id: String?
+    var id: String?
     let postID: String
     let postTitle: String
     let senderID: String

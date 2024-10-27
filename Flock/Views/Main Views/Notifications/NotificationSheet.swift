@@ -11,6 +11,7 @@ struct NotificationSheet: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: NotificationViewModel
     @State private var selectedNotification: Notification?
+    @Environment(UserProfileHolder.self) var userHolder // Add this to get user info
     
     var body: some View {
         NavigationView {
@@ -47,12 +48,22 @@ struct NotificationSheet: View {
             }
         }
         .sheet(item: $selectedNotification) { notification in
-            PostFullView(postID: notification.postID)
-                .task {
-                    if let id = notification.id {
-                        await viewModel.markAsRead(notificationID: id)
-                    }
+            // Create a constant Post for binding
+            let dummyPost = Post()
+            PostFullView(
+                originalPost: .constant(dummyPost),
+                person: Person(
+                    userID: notification.senderID,
+                    username: "",
+                    firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                    lastName: notification.senderName.components(separatedBy: " ").last ?? ""
+                )
+            )
+            .task {
+                if let id = notification.id {
+                    await viewModel.markAsRead(notificationID: id)
                 }
+            }
         }
     }
     
