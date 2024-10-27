@@ -202,7 +202,7 @@ struct PostFullView: View {
     private func loadPost() {
         Task {
             post = originalPost
-            await commentViewModel.fetchComments(for: post.id)
+            await commentViewModel.fetchInitialComments(for: post.id)  // Changed from fetchComments
         }
     }
     

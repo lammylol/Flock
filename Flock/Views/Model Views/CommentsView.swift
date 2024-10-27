@@ -17,65 +17,68 @@ struct CommentsView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.presentationMode) var presentationMode
     
-    @State private var viewModelUpdateCounter = 0
-    
     var body: some View {
-        VStack (alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 15) {
             commentsList
             errorView
             commentInputField
         }
         .task {
             print("CommentsView task started for post \(postID)")
-            await fetchCommentsIfNeeded()
+            await viewModel.fetchInitialComments(for: postID)
         }
         .onChange(of: postID) { newID in
             print("PostID changed to: \(newID)")
             Task {
-                await fetchCommentsIfNeeded()
+                await viewModel.fetchInitialComments(for: newID)
             }
         }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
-        .gesture(
-             DragGesture()
-                 .onEnded { value in
-                     if value.translation.height > 0 {
-                         isCommentFieldFocused = false // Dismiss the keyboard when swiping up
-                     }
-                 }
-         )
-    }
-
-    private func fetchCommentsIfNeeded() async {
-        guard !postID.isEmpty else {
-            print("PostID is empty, not fetching comments")
-            return
-        }
-        await viewModel.fetchComments(for: postID)
     }
     
     private var commentsList: some View {
-        Group {
-            if viewModel.isLoading {
-                ProgressView()
-            } else if viewModel.comments.isEmpty {
+        if viewModel.isLoading && viewModel.comments.isEmpty {
+            AnyView(ProgressView())
+        } else if viewModel.comments.isEmpty {
+            AnyView(
                 Text("No comments yet. Be the first to comment!")
                     .foregroundColor(.secondary)
                     .font(.system(size: 14))
-            } else {
-                VStack(alignment: .leading) {
+            )
+        } else {
+            AnyView(
+                VStack(spacing: 0) {
                     ForEach(viewModel.comments) { comment in
                         CommentRow(comment: comment, currentUserID: userHolder.person.userID) {
                             Task {
                                 await deleteComment(comment)
                             }
                         }
+                        
+                        Divider()
+                            .opacity(comment.id == viewModel.comments.last?.id ? 0 : 1)
                     }
-                    .listStyle(PlainListStyle())
+                    
+                    if viewModel.isLoadingMore {
+                        ProgressView()
+                            .padding(.vertical, 10)
+                    } else {
+                        Button {
+                            Task {
+                                await viewModel.fetchMoreComments()
+                            }
+                        } label: {
+                            Text(viewModel.hasMoreComments ? "Load more comments" : "You are viewing all comments")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+                        }
+                        .disabled(!viewModel.hasMoreComments)
+                        .padding(.vertical, 10)
+                    }
                 }
-            }
+            )
         }
     }
     
@@ -90,8 +93,8 @@ struct CommentsView: View {
     }
     
     private var commentInputField: some View {
-        HStack (alignment: .top) {
-            ZStack (alignment: .leading) {
+        HStack(alignment: .top) {
+            ZStack(alignment: .leading) {
                 TextEditor(text: $newCommentText)
                     .frame(minHeight: 35)
                     .frame(maxWidth: .infinity)
@@ -101,17 +104,16 @@ struct CommentsView: View {
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(Color.gray, lineWidth: 0.5)
                     )
-                    .background(Color.clear) // Ensure background color is clickable and matches
+                    .background(Color.clear)
                     .cornerRadius(8)
                     .focused($isCommentFieldFocused)
                 
-                // Placeholder
                 if newCommentText.isEmpty {
                     Text("Add a comment...")
                         .foregroundColor(.gray)
                         .padding(.leading, 10)
                         .font(.system(size: 14))
-                        .allowsHitTesting(false) // Make sure the placeholder doesn't block touches
+                        .allowsHitTesting(false)
                 }
             }
             
@@ -136,7 +138,7 @@ struct CommentsView: View {
         await viewModel.addComment(to: postID, text: newCommentText, person: userHolder.person)
         newCommentText = ""
         isCommentFieldFocused = false
-        await viewModel.fetchComments(for: postID)
+        await viewModel.fetchInitialComments(for: postID)
     }
 
     private func deleteComment(_ comment: Comment) async {
@@ -175,12 +177,10 @@ struct CommentRow: View {
                             .font(.system(size: 16))
                     }
                 }
-                
             }
             Spacer()
             if comment.userID == currentUserID {
                 Menu {
-                    // Future menu items can be added here
                     Button(role: .destructive) {
                         showDeleteConfirmation = true
                     } label: {
@@ -194,7 +194,6 @@ struct CommentRow: View {
                 }
             }
         }
-        .padding(.vertical, 5)
         .confirmationDialog(
             "Confirm delete?",
             isPresented: $showDeleteConfirmation,
