@@ -70,7 +70,7 @@ struct PostEditView: View {
                     
                     ForEach(prayerRequestUpdates) { update in
                         Section(header: Text("\(update.updateType): \(update.datePosted, style: .date)")) {
-                            NavigationLink(destination: EditPrayerUpdate(person: person, prayerRequest: post, prayerRequestUpdates: prayerRequestUpdates, update: update)) {
+                            NavigationLink(destination: EditPrayerUpdate(person: person, post: post, postUpdates: prayerRequestUpdates, update: update)) {
                                 Text(update.prayerUpdateText)
                             }
                         }

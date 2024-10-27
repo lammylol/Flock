@@ -43,7 +43,7 @@ class PostUpdateHelper {
     }
     
     // this function enables the creation of an 'update' for an existing prayer request.
-    func addPrayerRequestUpdate(datePosted: Date, post: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [Person] /*friendID: String, updateFriend: Bool*/) async throws {
+    func addPrayerRequestUpdate(datePosted: Date, post: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [Person]) async throws {
         let db = Firestore.firestore()
         
         // Add prayer request update into prayer request collection.
@@ -99,12 +99,15 @@ class PostUpdateHelper {
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
-    func deletePostUpdate(post: Post, prayerRequestUpdate: PostUpdate, updatesArray: [PostUpdate], person: Person, friendsList: [Person]) async throws {
+    func deletePostUpdate(post: Post, update: PostUpdate, updatesArray: [PostUpdate], person: Person, friendsList: [Person]) async throws {
         let db = Firestore.firestore()
+        
         var lastSeenNotificationCount = post.lastSeenNotificationCount
-
+        var updates = updatesArray
+        updates.removeAll(where: {$0.id == update.id}) // must come first in order to make sure the prayer request last date posted can be factored correctly.
+        
         // For resetting latest date and latest text.
-        let latestUpdate = getLatestUpdate(post: post, updates: updatesArray) // logic to determine the latest update date, text, and type by comparing against the full array of updates.
+        let latestUpdate = getLatestUpdate(post: post, updates: updates) // logic to determine the latest update date, text, and type by comparing against the full array of updates.
         if latestUpdate.0 < post.latestUpdateDatePosted {
             lastSeenNotificationCount = max(post.lastSeenNotificationCount - 1, 0) // ensures if it's negative, it returns 0.
         }
@@ -156,7 +159,7 @@ class PostUpdateHelper {
         
         // Delete prayer update from prayerRequests/{prayerRequestID}
         let refUpdate =
-        db.collection("prayerRequests").document(post.id).collection("updates").document(prayerRequestUpdate.id)
+        db.collection("prayerRequests").document(post.id).collection("updates").document(update.id)
         
         try await refUpdate.delete()
     }
@@ -170,6 +173,10 @@ class PostUpdateHelper {
         if updates.count >= 1 {
             // if there are more than 1 updates, then get datePosted of the latest update.
             // assume the array is sorted already on getPrayerUpdates
+            let updates = updates.sorted(by: {$0.datePosted > $1.datePosted})
+            print("getLatestUpdate - original latest update: \(post.latestUpdateDatePosted)")
+            print("postUpdates: \(updates.map({$0.datePosted}).description)")
+            
             latestUpdateDatePosted = updates.first?.datePosted ?? Date() // first since it's the earliest date
             latestUpdateText = updates.first?.prayerUpdateText ?? ""
             latestUpdateType = updates.first?.updateType ?? ""
@@ -182,36 +189,6 @@ class PostUpdateHelper {
         
         return (latestUpdateDatePosted, latestUpdateText, latestUpdateType)
     }
-    
-//    func getLatestUpdateText(prayerRequest: Post, updates: [PostUpdate]) -> String {
-//        var latestUpdateText = ""
-//        
-//        if updates.count >= 1 {
-//            // if there are more than 1 updates, then get datePosted of the latest update.
-//            // assume the array is sorted already on getPrayerUpdates
-//            latestUpdateText = updates.first?.prayerUpdateText ?? "" // first since it's the earliest date
-//        } else {
-//            // if either there are no updates, or there will be no updates after delete, then get datePosted of the original prayer request.
-//            latestUpdateText = ""
-//        }
-//        
-//        return latestUpdateText
-//    }
-//    
-//    func getLatestUpdateType(prayerRequest: Post, updates: [PostUpdate]) -> String {
-//        var latestUpdateType = ""
-//        
-//        if updates.count >= 1 {
-//            // if there are more than 1 updates, then get datePosted of the latest update.
-//            // assume the array is sorted already on getPrayerUpdates
-//            latestUpdateType = updates.first?.updateType ?? "" // first since it's the earliest date
-//        } else {
-//            // if either there are no updates, or there will be no updates after delete, then get datePosted of the original prayer request.
-//            latestUpdateType = ""
-//        }
-//        
-//        return latestUpdateType
-//    }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
     func editPrayerUpdate(prayerRequest: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [Person], updatesArray: [PostUpdate]) async throws {
