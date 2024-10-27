@@ -107,6 +107,7 @@ class PostOperationsService {
                 let latestUpdateText = document.data()?["latestUpdateText"] as? String ?? ""
                 let latestUpdateType = document.data()?["latestUpdateType"] as? String ?? ""
                 let isPinned = document.data()?["isPinned"] as? Bool ?? false
+                let lastSeenNotificationCount = document.data()?["lastSeenNotificationCount"] as? Int ?? 0
             
                 prayerRequest = Post(id: documentID, 
                                      date: datePosted,

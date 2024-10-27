@@ -136,7 +136,7 @@ class FeedService {
                 "latestUpdateText": post.latestUpdateText,
                 "latestUpdateDatePosted": post.latestUpdateDatePosted,
                 "latestUpdateType": post.latestUpdateType,
-                "lastSeenNotificationCount": 1
+                "lastSeenNotificationCount": 0
             ]
 
             if updateFriend {
@@ -199,12 +199,11 @@ class FeedService {
     
     func updateLastSeenNotificationCount(post: Post, person: Person) async throws {
         do {
-//            let lastSeenNotificationCount = max(post.lastSeenNotificationCount - 1, 0)
-            
             let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
             try await ref.updateData([
                 "lastSeenNotificationCount": 0 // always return to 0 once it's seen, since user is pulling up the full update list
             ])
+            NetworkingLogger.info("FeedService.updateLastNotificationCount: updated last seen notification count to 0")
         } catch {
             NetworkingLogger.error("FeedService.updateLastNotificationCount failed \(error)")
         }
