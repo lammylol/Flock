@@ -38,7 +38,7 @@ struct PostEditView: View {
                                 Text(type.rawValue).tag(type.rawValue)
                             }
                         }
-                        if post.postType == "prayerRequest" {
+                        if post.postType == "Prayer Request" {
                             Picker("Status", selection: $post.status) {
                                 Text("Current").tag("Current")
                                 Text("Answered").tag("Answered")
