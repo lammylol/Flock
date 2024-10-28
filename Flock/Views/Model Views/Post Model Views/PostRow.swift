@@ -26,7 +26,6 @@ struct PostRow: View {
     @State private var postIsTruncated: Bool = false
     
     var body: some View {
-//        NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), post: $post)) {
         Button {
             navigationPath.append(post)
         } label: {
@@ -134,7 +133,9 @@ struct PostRow: View {
                                 .multilineTextAlignment(.leading)
                                 
                                 if isTruncated {
-                                    NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), post: $post)) {
+                                    Button {
+                                        navigationPath.append(post)
+                                    } label: {
                                         Text(expandUpdate ? "Show Less" : "Show More")
                                             .foregroundStyle(Color.blue)
                                             .font(.system(size: 14))
@@ -188,7 +189,6 @@ struct PostRow: View {
                         
                         if postIsTruncated {
                             Text(postExpandUpdate ? "Show Less" : "Show More")
-                                .italic()
                                 .foregroundStyle(Color.blue)
                                 .font(.system(size: 14))
                             // technically no need for navigation link since you just click to go to the next page anyways.
