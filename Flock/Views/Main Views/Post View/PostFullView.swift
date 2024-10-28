@@ -192,14 +192,17 @@ struct PostFullView: View {
     }
     
     private func updateTextView() -> some View {
-        Text(newPost.latestUpdateText)
-            .lineLimit(expandUpdate ? nil : lineLimit)
-            .background(
-                ViewThatFits(in: .vertical) {
-                    Text(newPost.latestUpdateText).hidden()
-                    Color.clear.onAppear { isTruncated = true }
-                }
-            )
+        VStack {
+            Text(newPost.latestUpdateText)
+                .lineLimit(expandUpdate ? nil : lineLimit)
+                .background(
+                    ViewThatFits(in: .vertical) {
+                        Text(newPost.latestUpdateText).hidden()
+                        Color.clear.onAppear { isTruncated = true }
+                    }
+                )
+        }
+        .font(.system(size: 16))
     }
     
     private func expandButton() -> some View {
