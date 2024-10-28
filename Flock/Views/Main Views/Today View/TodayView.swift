@@ -23,6 +23,13 @@ struct TodayView: View {
     @State private var showCreatePost: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
+
+    @StateObject private var notificationViewModel: NotificationViewModel
+    @State private var isPresentingNotifications: Bool = false
+
+    init() {
+        _notificationViewModel = StateObject(wrappedValue: NotificationViewModel(userID: ""))
+    }
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -49,6 +56,17 @@ struct TodayView: View {
             .toolbarBackground(Color.primary, for: .bottomBar)
             .sheet(isPresented: $showCreatePost) {
                 PostCreateView(person: userHolder.person, postType: postType)
+            }
+        .sheet(isPresented: $isPresentingNotifications) {
+            NotificationSheet(viewModel: notificationViewModel)
+            }
+            .onAppear {
+                // Update without optional binding since userID is non-optional
+                notificationViewModel.updateUserID(userHolder.person.userID)
+            }
+            .onChange(of: userHolder.person.userID) { _, newValue in
+                // Update directly without optional binding
+                notificationViewModel.updateUserID(newValue)
             }
         }
     }
@@ -141,12 +159,34 @@ struct TodayView: View {
     
     // MARK: - Helper Views & Functions
     private func sectionHeader(systemImage: Image, text: String) -> some View {
-        HStack (alignment: .center, spacing: 5) {
+        HStack(alignment: .center, spacing: 5) {
             systemImage
             Text(text)
                 .font(.system(size: 20))
                 .fontWeight(.medium)
             Spacer()
+            
+            if text == "What's On Your Mind?" {
+                Button {
+                    isPresentingNotifications.toggle()
+                } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.primary)
+                        
+                        if notificationViewModel.unreadCount > 0 {
+                            Text("\(notificationViewModel.unreadCount)")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(Color.blue)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10)
+                        }
+                    }
+                }
+            }
         }
     }
     

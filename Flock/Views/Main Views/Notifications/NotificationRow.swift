@@ -11,23 +11,39 @@ struct NotificationRow: View {
     let notification: Notification
     
     var body: some View {
-        HStack {
-            Circle()
-                .fill(notification.isRead ? Color.gray.opacity(0.3) : Color.blue)
-                .frame(width: 8, height: 8)
+        HStack(spacing: 12) {
+            ProfilePictureAvatar(
+                firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                lastName: notification.senderName.components(separatedBy: " ").last ?? "",
+                imageSize: 35,
+                fontSize: 16
+            )
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(notification.senderName) commented on this post")
-                    .font(.subheadline)
-                    .foregroundColor(.primary)
+                HStack(spacing: 5) {
+                    Text(notification.senderName)
+                        .fontWeight(.medium)
+                        .font(.system(size: 14))
+                    
+                    Text(PostHelper().relativeTimeStringAbbrev(for: notification.timestamp))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
-                Text(notification.timestamp, style: .relative)
-                    .font(.caption)
+                Text("commented on '\(notification.postTitle)'")
+                    .font(.system(size: 14))
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
             }
             
             Spacer()
+            
+            Circle()
+                .fill(notification.isRead ? Color.clear : Color.blue)
+                .frame(width: 8, height: 8)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .contentShape(Rectangle())
     }
 }

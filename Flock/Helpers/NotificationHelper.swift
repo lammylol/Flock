@@ -18,64 +18,97 @@ class NotificationHelper {
     private let notificationsCollection = "notifications"
     
     func createNotification(for comment: Comment, postTitle: String, recipientID: String) async throws {
-        let notification = Notification(
-            postID: comment.postID,
-            postTitle: postTitle,
-            senderID: comment.userID,
-            senderName: "\(comment.firstName) \(comment.lastName)",
-            recipientID: recipientID,
-            type: .newComment,
-            timestamp: Date(),
-            isRead: false
-        )
+        guard !recipientID.isEmpty else { return }
         
-        try await db.collection(notificationsCollection)
-            .document(recipientID)
-            .collection("userNotifications")
-            .addDocument(from: notification)
+        let notificationData: [String: Any] = [
+            "postID": comment.postID,
+            "postTitle": postTitle,
+            "senderID": comment.userID,
+            "senderName": "\(comment.firstName) \(comment.lastName)",
+            "recipientID": recipientID,
+            "type": "new_comment",
+            "timestamp": FieldValue.serverTimestamp(),
+            "isRead": false
+        ]
+        
+        do {
+            try await db.collection(notificationsCollection)
+                .document(recipientID)
+                .collection("userNotifications")
+                .addDocument(data: notificationData)
+        } catch {
+            print("Error creating notification: \(error)")
+            throw error
+        }
     }
     
     func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) {
+        guard !userID.isEmpty else {
+            completion(.failure(NotificationError.invalidData))
+            return
+        }
+        
         db.collection(notificationsCollection)
             .document(userID)
             .collection("userNotifications")
+            .order(by: "timestamp", descending: true)
             .addSnapshotListener { snapshot, error in
                 if let error = error {
-                    completion(.failure(.firestoreError(error)))
+                    completion(.failure(NotificationError.firestoreError(error)))
                     return
                 }
                 
                 guard let documents = snapshot?.documents else {
-                    completion(.failure(.invalidData))
+                    completion(.failure(NotificationError.invalidData))
                     return
                 }
                 
                 let notifications = documents.compactMap { document -> Notification? in
-                    try? document.data(as: Notification.self)
+                    var data = document.data()
+                    if let timestamp = data["timestamp"] as? Timestamp {
+                        data["timestamp"] = timestamp
+                    } else {
+                        data["timestamp"] = Timestamp(date: Date())
+                    }
+                    return Notification(id: document.documentID, data: data)
                 }
                 
                 completion(.success(notifications))
             }
     }
     
-    func markNotificationAsRead(notificationID: String) async {
-        try? await db.collection(notificationsCollection)
-            .document(notificationID)
-            .updateData(["isRead": true])
+    func markNotificationAsRead(notificationID: String, userID: String) async {
+        guard !notificationID.isEmpty, !userID.isEmpty else { return }
+        
+        do {
+            try await db.collection(notificationsCollection)
+                .document(userID)
+                .collection("userNotifications")
+                .document(notificationID)
+                .updateData(["isRead": true])
+        } catch {
+            print("Error marking notification as read: \(error)")
+        }
     }
     
     func markAllNotificationsAsRead(userID: String) async {
-        let batch = db.batch()
-        let notifications = try? await db.collection(notificationsCollection)
-            .document(userID)
-            .collection("userNotifications")
-            .whereField("isRead", isEqualTo: false)
-            .getDocuments()
+        guard !userID.isEmpty else { return }
         
-        notifications?.documents.forEach { document in
-            batch.updateData(["isRead": true], forDocument: document.reference)
+        do {
+            let snapshot = try await db.collection(notificationsCollection)
+                .document(userID)
+                .collection("userNotifications")
+                .whereField("isRead", isEqualTo: false)
+                .getDocuments()
+            
+            let batch = db.batch()
+            snapshot.documents.forEach { document in
+                batch.updateData(["isRead": true], forDocument: document.reference)
+            }
+            
+            try await batch.commit()
+        } catch {
+            print("Error marking all notifications as read: \(error)")
         }
-        
-        try? await batch.commit()
     }
 }

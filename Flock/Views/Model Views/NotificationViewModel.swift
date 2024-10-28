@@ -7,47 +7,55 @@
 
 import Foundation
 import FirebaseFirestore
-import Combine
+import SwiftUI
 
 @MainActor
 class NotificationViewModel: ObservableObject {
     @Published var notifications: [Notification] = []
     @Published var unreadCount: Int = 0
-    private var cancellables = Set<AnyCancellable>()
-    private let userID: String
-    private let notificationHelper = NotificationHelper() // Create an instance
+    @Published private(set) var userID: String
+    private let notificationHelper = NotificationHelper()
     
     init(userID: String) {
         self.userID = userID
         setupNotificationListener()
+    }
+    
+    func updateUserID(_ newUserID: String) {
+        // Only update and refresh if userID is not empty
+        guard !newUserID.isEmpty else { return }
         
-        // Fix the $notification syntax error
-        $notifications
-            .map { notifications in
-                notifications.filter { !$0.isRead }.count // Changed $notification to $0
-            }
-            .assign(to: &$unreadCount)
+        userID = newUserID
+        notifications = []
+        unreadCount = 0
+        setupNotificationListener()
+    }
+    
+    private func updateUnreadCount() {
+        unreadCount = notifications.filter { !$0.isRead }.count
     }
     
     private func setupNotificationListener() {
-        // Use the instance method
-        notificationHelper.listenForNotifications(userID: userID) { [weak self] result in
+        notificationHelper.listenForNotifications(userID: userID) { [weak self] (result: Result<[Notification], NotificationError>) in
+            guard let self = self else { return }
+            
             switch result {
             case .success(let notifications):
-                self?.notifications = notifications.sorted(by: { $0.timestamp > $1.timestamp })
+                Task { @MainActor in
+                    self.notifications = notifications.sorted(by: { $0.timestamp > $1.timestamp })
+                    self.updateUnreadCount()
+                }
             case .failure(let error):
-                print("Error fetching notifications: \(error.localizedDescription)")
+                print("Error fetching notifications: \(error)")
             }
         }
     }
     
     func markAsRead(notificationID: String) async {
-        // Use the instance method
-        await notificationHelper.markNotificationAsRead(notificationID: notificationID)
+        await notificationHelper.markNotificationAsRead(notificationID: notificationID, userID: userID)
     }
     
     func markAllAsRead() async {
-        // Use the instance method
         await notificationHelper.markAllNotificationsAsRead(userID: userID)
     }
 }

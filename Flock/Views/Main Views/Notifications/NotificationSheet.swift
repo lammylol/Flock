@@ -11,7 +11,7 @@ struct NotificationSheet: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: NotificationViewModel
     @State private var selectedNotification: Notification?
-    @Environment(UserProfileHolder.self) var userHolder // Add this to get user info
+    @Environment(UserProfileHolder.self) var userHolder
     
     var body: some View {
         NavigationView {
@@ -20,6 +20,7 @@ struct NotificationSheet: View {
                     Section {
                         ForEach(notifications) { notification in
                             NotificationRow(notification: notification)
+                                .listRowInsets(EdgeInsets())
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     selectedNotification = notification
@@ -27,9 +28,12 @@ struct NotificationSheet: View {
                         }
                     } header: {
                         Text(notifications.first?.postTitle ?? "")
+                            .font(.system(size: 14))
+                            .fontWeight(.medium)
                     }
                 }
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Notifications")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -44,14 +48,14 @@ struct NotificationSheet: View {
                             await viewModel.markAllAsRead()
                         }
                     }
+                    .foregroundColor(.blue)
                 }
             }
         }
         .sheet(item: $selectedNotification) { notification in
-            // Create a constant Post for binding
-            let dummyPost = Post()
+            let post = Post()
             PostFullView(
-                originalPost: .constant(dummyPost),
+                originalPost: .constant(post),
                 person: Person(
                     userID: notification.senderID,
                     username: "",
@@ -60,9 +64,8 @@ struct NotificationSheet: View {
                 )
             )
             .task {
-                if let id = notification.id {
-                    await viewModel.markAsRead(notificationID: id)
-                }
+                // Remove the optional binding since id is non-optional
+                await viewModel.markAsRead(notificationID: notification.id)
             }
         }
     }
