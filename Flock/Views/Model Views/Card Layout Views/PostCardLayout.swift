@@ -19,16 +19,19 @@ struct PostCardLayout: View {
     var isExpanded: Bool = false
 
     var body: some View {
-        VStack {
-            if !isExpanded {
-                horizontalScrollingPosts
-                    .transition(.slide)
-            } else if !viewModel.posts.isEmpty {
-                gridLayout()
-                    .transition(.slide)
+        if viewModel.posts.isEmpty && !viewModel.isLoading {
+            noPostsView()
+        } else {
+            VStack {
+                if !isExpanded {
+                    horizontalScrollingPosts
+                        .transition(.slide)
+                } else if !viewModel.posts.isEmpty {
+                    gridLayout()
+                        .transition(.slide)
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Horizontal Scroll for Condensed Layout
@@ -73,6 +76,21 @@ struct PostCardLayout: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.top, 8)
+    }
+    
+    // MARK: - Empty Posts Overlay
+    
+    private func noPostsView() -> some View {
+        HStack (alignment: .center) {
+            Image(systemName: "pin")
+            Text("No pinned posts to feature. Pin an existing post from your feed to add it to your today page.")
+                .multilineTextAlignment(.leading)
+                .font(.system(size: 14))
+        }
+        .foregroundStyle(Color.secondary)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 10)
+        .frame(maxHeight: .infinity)
     }
 
     // MARK: - Helper Functions

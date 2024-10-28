@@ -75,7 +75,7 @@ struct TodayView: View {
     private func addPostView() -> some View {
         VStack (alignment: .leading, spacing: 5) {
             
-            sectionHeader(systemImage: Image(systemName: "arrow.up.right.square.fill"), text: "What's On Your Mind?")
+            sectionHeader(systemImage: Image(systemName: "ellipsis.message.fill"), text: "What's On Your Mind?")
             
             HStack (spacing: -5) {
                 Text("Add a")
@@ -109,42 +109,11 @@ struct TodayView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    // MARK: - Friend Prayers View
-    private func myFriendsView() -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack {
-                sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Friend's Prayers")
-                Spacer()
-                if myFriendsPostsViewModel.posts.count > 2 { // temporary static 2 for now.
-                    Button {
-                        seeAllFriendsPosts.toggle()
-                    } label: {
-                        Text(seeAllFriendsPosts ? "Show Less" : "Show All")
-                            .font(.system(size: 16))
-                    }
-                }
-            }
-            
-            PostCardLayout(navigationPath: $navigationPath, viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
-                .task {
-                    if myFriendsPostsViewModel.posts.isEmpty {
-                        await loadPinnedPosts()
-                    }
-                }
-                .overlay {
-                    if myFriendsPostsViewModel.posts.isEmpty && !myFriendsPostsViewModel.isLoading {
-                        noPostsView()
-                    }
-                }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
     // MARK: - My Prayers View
     private func myPrayersView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Pinned Prayers")
+                sectionHeader(systemImage: Image(systemName: "person.fill"), text: "My Pinned Prayers")
                 Spacer()
                 if myPostsViewModel.posts.count > 2 { // temporary static 2 for now.
                     Button {
@@ -162,29 +131,34 @@ struct TodayView: View {
                         await loadPinnedPosts()
                     }
                 }
-                .overlay {
-                    if myPostsViewModel.posts.isEmpty && !myPostsViewModel.isLoading {
-                        noPostsView()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Friend Prayers View
+    private func myFriendsView() -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                sectionHeader(systemImage: Image(systemName: "person.2.fill"), text: "My Friend's Prayers")
+                Spacer()
+                if myFriendsPostsViewModel.posts.count > 2 { // temporary static 2 for now.
+                    Button {
+                        seeAllFriendsPosts.toggle()
+                    } label: {
+                        Text(seeAllFriendsPosts ? "Show Less" : "Show All")
+                            .font(.system(size: 16))
+                    }
+                }
+            }
+            
+            PostCardLayout(navigationPath: $navigationPath, viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
+                .task {
+                    if myFriendsPostsViewModel.posts.isEmpty {
+                        await loadPinnedPosts()
                     }
                 }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    // MARK: - Empty Posts Overlay
-    
-    private func noPostsView() -> some View {
-        VStack {
-            Spacer()
-            Text("No pinned posts to feature. Pin an existing post from your feed to add it to your today page.")
-                .multilineTextAlignment(.leading)
-                .font(.system(size: 14))
-                .foregroundStyle(Color.secondary)
-        }
-        .padding(.horizontal, 3)
-        .padding(.vertical, 7)
-        .frame(height: 75)  // Set desired height for overlay
-//        .background(Color.white.opacity(0.8))
     }
     
     // MARK: - Helper Views & Functions

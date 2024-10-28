@@ -81,20 +81,23 @@ struct ProfileView: View {
                     HStack {
                         sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Prayers", fontWeight: .medium)
                         Spacer()
-                        Button {
-                            seeAllMyPosts.toggle()
-                        } label: {
-                            Text(seeAllMyPosts ? "Show Less" : "Show All")
-                                .font(.system(size: 16))
+                        if pinnedPostsViewModel.posts.count > 2 { // temporary static 2 for now.
+                            Button {
+                                seeAllMyPosts.toggle()
+                            } label: {
+                                Text(seeAllMyPosts ? "Show Less" : "Show All")
+                                    .font(.system(size: 16))
+                            }
                         }
                     }
+                    
+                    PostCardLayout(navigationPath: $navigationPath, viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
                 }
-                PostCardLayout(navigationPath: $navigationPath, viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
-                    .task {
-                        if pinnedPostsViewModel.posts.isEmpty {
-                            await loadPinnedPosts()
-                        }
-                    }
+            }
+            .task {
+                if pinnedPostsViewModel.posts.isEmpty {
+                    await loadPinnedPosts()
+                }
             }
             VStack {
                 HStack {
