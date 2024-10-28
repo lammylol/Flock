@@ -15,6 +15,7 @@ struct PostsFeed: View {
     @Binding var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
+    @Binding var navigationPath: NavigationPath
     
     var userService = UserService()
     
@@ -23,15 +24,15 @@ struct PostsFeed: View {
             (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea() // sets background color.
                 
             LazyVStack {
-                ForEach($viewModel.posts) { $prayerRequest in
+                ForEach($viewModel.posts) { $post in
                     VStack {
-                        PostRow(viewModel: viewModel, post: $prayerRequest, person: person)
+                        PostRow(viewModel: viewModel, post: $post, person: person, navigationPath: $navigationPath)
                         Rectangle()
                             .frame(height: 4)
                             .foregroundStyle(.bar)
                     }
                     .task {
-                        if viewModel.hasReachedEnd(of: prayerRequest) && !viewModel.isFetching {
+                        if viewModel.hasReachedEnd(of: post) && !viewModel.isFetching {
                             await viewModel.getNextPosts(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
                         }
                     }

@@ -16,7 +16,6 @@ struct PostCardLayout: View {
     @Binding var navigationPath: NavigationPath
     @State var viewModel: FeedViewModel
 //
-//    var viewModel.posts: [Post]
     var isExpanded: Bool = false
 
     var body: some View {

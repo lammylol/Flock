@@ -15,6 +15,7 @@ struct PostRow: View {
     @State var person: Person = Person()
     @Environment(UserProfileHolder.self) var userHolder
     @State var postHelper = PostHelper()
+    @Binding var navigationPath: NavigationPath
     
     // For Update
     @State private var expandUpdate: Bool = false
@@ -25,7 +26,10 @@ struct PostRow: View {
     @State private var postIsTruncated: Bool = false
     
     var body: some View {
-        NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), post: $post)) {
+//        NavigationLink(destination: PostFullView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName), post: $post)) {
+        Button {
+            navigationPath.append(post)
+        } label: {
             LazyVStack {
                 HStack {
                     if viewModel.viewType == .feed { //feed used in the feed view
@@ -213,7 +217,7 @@ struct PostRow: View {
             }
             .foregroundStyle(Color.primary)
         }
-        .id(UUID())
+        .id(post.id)
         .padding([.top, .bottom], 15)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
