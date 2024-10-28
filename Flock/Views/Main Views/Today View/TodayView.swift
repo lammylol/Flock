@@ -115,11 +115,13 @@ struct TodayView: View {
             HStack {
                 sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Friend's Prayers")
                 Spacer()
-                Button {
-                    seeAllFriendsPosts.toggle()
-                } label: {
-                    Text(seeAllFriendsPosts ? "Show Less" : "Show All")
-                        .font(.system(size: 16))
+                if myFriendsPostsViewModel.posts.count > 2 { // temporary static 2 for now.
+                    Button {
+                        seeAllFriendsPosts.toggle()
+                    } label: {
+                        Text(seeAllFriendsPosts ? "Show Less" : "Show All")
+                            .font(.system(size: 16))
+                    }
                 }
             }
             
@@ -127,6 +129,11 @@ struct TodayView: View {
                 .task {
                     if myFriendsPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
+                    }
+                }
+                .overlay {
+                    if myFriendsPostsViewModel.posts.isEmpty && !myFriendsPostsViewModel.isLoading {
+                        noPostsView()
                     }
                 }
         }
@@ -139,11 +146,13 @@ struct TodayView: View {
             HStack {
                 sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Pinned Prayers")
                 Spacer()
-                Button {
-                    seeAllMyPosts.toggle()
-                } label: {
-                    Text(seeAllMyPosts ? "Show Less" : "Show All")
-                        .font(.system(size: 16))
+                if myPostsViewModel.posts.count > 2 { // temporary static 2 for now.
+                    Button {
+                        seeAllMyPosts.toggle()
+                    } label: {
+                        Text(seeAllMyPosts ? "Show Less" : "Show All")
+                            .font(.system(size: 16))
+                    }
                 }
             }
             
@@ -153,8 +162,29 @@ struct TodayView: View {
                         await loadPinnedPosts()
                     }
                 }
+                .overlay {
+                    if myPostsViewModel.posts.isEmpty && !myPostsViewModel.isLoading {
+                        noPostsView()
+                    }
+                }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Empty Posts Overlay
+    
+    private func noPostsView() -> some View {
+        VStack {
+            Spacer()
+            Text("No pinned posts to feature. Pin an existing post from your feed to add it to your today page.")
+                .multilineTextAlignment(.leading)
+                .font(.system(size: 14))
+                .foregroundStyle(Color.secondary)
+        }
+        .padding(.horizontal, 3)
+        .padding(.vertical, 7)
+        .frame(height: 75)  // Set desired height for overlay
+//        .background(Color.white.opacity(0.8))
     }
     
     // MARK: - Helper Views & Functions
