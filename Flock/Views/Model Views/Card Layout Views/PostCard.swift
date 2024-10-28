@@ -41,7 +41,7 @@ struct PostCard: View {
                             .minimumScaleFactor(0.2)
                             .lineLimit(1)
                         Spacer()
-                        if isPinned { Image(systemName: "pin.fill").font(.system(size: 12))}
+                        if isPinned, (postCardSmallorLarge ?? false == false) { Image(systemName: "pin.fill").font(.system(size: 12))} // if the postCard is small / expanded, remove the pin to make priority space for name.
                     }
                     .padding(.bottom, 10)
                     HStack{
