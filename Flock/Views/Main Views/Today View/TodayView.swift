@@ -67,7 +67,7 @@ struct TodayView: View {
                     .fontWeight(.light)
                 Spacer()
             }
-            .padding(.top, 20)
+            .padding(.top, 30)
         }
     }
     

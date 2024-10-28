@@ -20,10 +20,17 @@ enum Privacy: String, CaseIterable, Identifiable {
         return self.rawValue.description
     }
     
+    var displayName: String { // temporary while testing friends.
+        switch self {
+        case .isPublic: return "friends"
+        case .isPrivate: return "private"
+        }
+    }
+    
     var systemImage: Image {
         switch self {
             case .isPublic:
-                return Image(systemName: "globe.europe.africa.fill")
+                return Image(systemName: "person.2.fill")
             case .isPrivate:
                 return Image(systemName: "lock.fill")
         }

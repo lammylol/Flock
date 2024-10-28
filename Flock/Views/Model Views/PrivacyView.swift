@@ -11,7 +11,12 @@ struct PrivacyView: View {
     @Environment(UserProfileHolder.self) var userHolder
     var person: Person
     let privacyOptions = Privacy.allCases
+    
     @Binding var privacySetting: String
+    
+    var displayName: String {
+        if privacySetting == "public" { "friends" } else { "private" }
+    }
     
     var body: some View {
         Menu {
@@ -22,7 +27,7 @@ struct PrivacyView: View {
                     } label: {
                         HStack{
                             privacy.systemImage
-                            Text(privacy.statusKey.capitalized)
+                            Text(privacy.displayName.capitalized)
                         }
                     }
                 }
@@ -33,7 +38,7 @@ struct PrivacyView: View {
                     } label: {
                         HStack{
                             privacy.systemImage
-                            Text(privacy.statusKey.capitalized)
+                            Text(privacy.displayName.capitalized)
                         }
                     }
                 }
@@ -42,7 +47,7 @@ struct PrivacyView: View {
             HStack{
                 if person.username != "" && person.userID == userHolder.person.userID {
                     Privacy(rawValue: privacySetting)?.systemImage
-                    Text(privacySetting.capitalized)
+                    Text(displayName.capitalized)
                 } else {
                     Privacy(rawValue: "private")?.systemImage
                     Text("Private")
