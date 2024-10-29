@@ -114,6 +114,47 @@ import Observation
         }
     }
     
+    func fetchMoreComments() async {
+        guard let postID = currentPostID,
+              !isLoadingMore,
+              hasMoreComments,
+              let lastSnapshot = lastCommentSnapshot else {
+            print("Skipping fetchMoreComments - conditions not met")
+            return
+        }
+        
+        print("Fetching more comments after \(comments.count) comments")
+        
+        DispatchQueue.main.async {
+            self.isLoadingMore = true
+        }
+        
+        do {
+            let result = try await commentHelper.getComments(
+                for: postID,
+                limit: commentsPerPage,
+                lastCommentSnapshot: lastSnapshot
+            )
+            
+            print("Fetched additional \(result.comments.count) comments")
+            
+            DispatchQueue.main.async {
+                if self.currentPostID == postID {
+                    self.comments.append(contentsOf: result.comments)
+                    self.lastCommentSnapshot = result.lastSnapshot
+                    self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
+                }
+                self.isLoadingMore = false
+            }
+        } catch {
+            print("Error fetching more comments: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to fetch more comments: \(error.localizedDescription)"
+                self.isLoadingMore = false
+            }
+        }
+    }
+    
     func addComment(postID: String, text: String) async throws {
         // Input validation
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {

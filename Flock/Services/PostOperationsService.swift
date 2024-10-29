@@ -72,17 +72,13 @@ class PostOperationsService {
         return prayerRequests
     }
 
-    func getPost(prayerRequest: Post) async throws -> Post {
-        print("GetPost Debug:")
-        print("Current Auth UID: \(Auth.auth().currentUser?.uid ?? "none")")
-        print("Post ID: \(prayerRequest.id)")
-        print("Post userID: \(prayerRequest.userID)")
+    func getPost(prayerRequest: Post, user: Person) async throws -> Post {
         guard prayerRequest.id != "" else {
             throw PrayerRequestRetrievalError.noPrayerRequestID
         }
         
-        let ref = db.collection("prayerRequests").document(prayerRequest.id)
-        let isPinned = prayerRequest.isPinned // Need to save separately because isPinned is not stored in larger 'prayer requests' collection. Only within a user's feed.
+        let ref = db.collection("prayerFeed").document(user.userID).collection("prayerRequests").document(prayerRequest.id)
+        
         var prayerRequest = Post.blank
         
         do {
@@ -111,6 +107,8 @@ class PostOperationsService {
                 let documentID = document.documentID as String
                 let latestUpdateText = document.data()?["latestUpdateText"] as? String ?? ""
                 let latestUpdateType = document.data()?["latestUpdateType"] as? String ?? ""
+                let isPinned = document.data()?["isPinned"] as? Bool ?? false
+                let lastSeenNotificationCount = document.data()?["lastSeenNotificationCount"] as? Int ?? 0
             
                 prayerRequest = Post(id: documentID, 
                                      date: datePosted,

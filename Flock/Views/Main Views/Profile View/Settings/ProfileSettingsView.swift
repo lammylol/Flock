@@ -83,7 +83,6 @@ struct DeleteButton: View {
                     //                    defer { signOut() }
                     do {
                         if userHolder.isFinished {
-
                             try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
                         }
                     } catch {

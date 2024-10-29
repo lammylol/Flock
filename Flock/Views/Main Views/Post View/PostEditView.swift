@@ -70,7 +70,7 @@ struct PostEditView: View {
                     
                     ForEach(prayerRequestUpdates) { update in
                         Section(header: Text("\(update.updateType): \(update.datePosted, style: .date)")) {
-                            NavigationLink(destination: EditPrayerUpdate(person: person, prayerRequest: post, prayerRequestUpdates: prayerRequestUpdates, update: update)) {
+                            NavigationLink(destination: EditPrayerUpdate(person: person, post: post, postUpdates: prayerRequestUpdates, update: update)) {
                                 Text(update.prayerUpdateText)
                             }
                         }
@@ -115,7 +115,7 @@ struct PostEditView: View {
     
     func loadPostAndUpdates() async {
         do {
-            post = try await PostOperationsService().getPost(prayerRequest: post)
+            post = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
             originalPrivacy = post.privacy
         } catch {
@@ -126,7 +126,7 @@ struct PostEditView: View {
     func refreshUpdates() async {
         do {
             prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
-            post = try await PostOperationsService().getPost(prayerRequest: post)
+            post = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
         } catch {
             ViewLogger.error("Error refreshing updates: \(error)")
         }

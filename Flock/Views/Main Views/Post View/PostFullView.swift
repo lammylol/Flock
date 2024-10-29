@@ -15,9 +15,9 @@ struct PostFullView: View {
     @State var postHelper = PostHelper()
     @State var postUpdates: [PostUpdate] = []
     @State var person: Person
-    @State var post: Post = Post()
+    @State var newPost: Post = Post()
     @State var lineLimit: Int = 6
-    @Binding var originalPost: Post
+    @Binding var post: Post
     @State var showAddUpdateView: Bool = false
     
     @State private var originalPrivacy: String = ""
@@ -33,13 +33,15 @@ struct PostFullView: View {
         self._commentViewModel = State(initialValue: CommentViewModel(person: person))
     }
     
+    var feedService = FeedService()
+    
     var body: some View {
         NavigationView {
             ScrollViewReader { scrollViewProxy in
                 ScrollView {
                     VStack {
                         postHeaderView()
-                        if post.latestUpdateText != "" {
+                        if newPost.latestUpdateText != "" {
                             latestUpdateView()
                         }
                         postContentView()
@@ -60,9 +62,14 @@ struct PostFullView: View {
                     }
                 }
             }
-            .task { loadPost() }
-            .refreshable(action: refreshPost)
+            .task {
+                loadPost()
+                updateNotificationSeenIfNotificationCountExisted()
+                self.post = newPost
+            }
+            .refreshable { refreshPost() }
             .scrollIndicators(.hidden)
+            .scrollDismissesKeyboard(.immediately)
             .padding(.bottom, 15)
             .clipped()
         }
@@ -74,21 +81,22 @@ struct PostFullView: View {
     private func postHeaderView() -> some View {
         HStack {
             NavigationLink(destination: ProfileView(person: person)) {
-                ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
+                ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.primary)
             }
             .id(UUID())
             VStack(alignment: .leading) {
-                Text("\(post.firstName.capitalized) \(post.lastName.capitalized)")
+                Text("\(newPost.firstName.capitalized) \(newPost.lastName.capitalized)")
                     .font(.system(size: 18)).bold()
                 Text(usernameDisplay()).font(.system(size: 14))
             }
             Spacer()
-            HStack {
-                if post.isPinned { Image(systemName: "pin.fill") }
-                Privacy(rawValue: post.privacy)?.systemImage
+            HStack (alignment: .center) {
+                if newPost.isPinned { Image(systemName: "pin.fill") }
+                Privacy(rawValue: newPost.privacy)?.systemImage
                 postOptionsMenu()
+                    .highPriorityGesture(TapGesture())
             }
             .font(.system(size: 13))
         }
@@ -100,12 +108,12 @@ struct PostFullView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 VStack(alignment: .leading) {
-                    Text("**Latest \(post.latestUpdateType)**:")
-                    Text(post.latestUpdateDatePosted.formatted(date: .abbreviated, time: .omitted))
+                    Text("**Latest \(newPost.latestUpdateType)**:")
+                    Text(newPost.latestUpdateDatePosted.formatted(date: .abbreviated, time: .omitted))
                         .font(.system(size: 14))
                 }
                 Spacer()
-                NavigationLink(destination: UpdateView(post: post, person: person)) {
+                NavigationLink(destination: UpdateView(post: newPost, person: person)) {
                     seeAllUpdatesButton()
                 }
                 .id(UUID())
@@ -121,13 +129,13 @@ struct PostFullView: View {
     // MARK: - Post Content View
     private func postContentView() -> some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text(post.postTitle).font(.system(size: 18)).bold()
-            Text(post.postType == "Prayer Request" ? "Prayer Request: \(Text(post.status.capitalized).bold())" : post.postType == "Praise" ? "Praise 🙌" : "Note 📝").font(.system(size: 14))
+            Text(newPost.postTitle).font(.system(size: 18)).bold()
+            Text(newPost.postType == "Prayer Request" ? "Prayer Request: \(Text(newPost.status.capitalized).bold())" : newPost.postType == "Praise" ? "Praise 🙌" : "Note 📝").font(.system(size: 14))
             Divider()
-            Text(post.postText)
+            Text(newPost.postText)
                 .font(.system(size: 16))
                 .multilineTextAlignment(.leading)
-            Text("\(postHelper.timeStringFull(for: post.date))")
+            Text("\(postHelper.timeStringFull(for: newPost.date))")
                 .font(.system(size: 14))
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -142,8 +150,8 @@ struct PostFullView: View {
                 Text("Comments")
                     .font(.system(size: 16))
                     .fontWeight(.medium)
-                Button { showComments.toggle() }
-                label: { Image(systemName: (showComments ? "chevron.up" : "chevron.down")).foregroundStyle(Color.primary).fontWeight(.medium) }
+                Button { showComments.toggle()
+                } label: { Image(systemName: (showComments ? "chevron.up" : "chevron.down")).foregroundStyle(Color.primary).fontWeight(.medium) }
                 Spacer()
             }
             
@@ -158,7 +166,7 @@ struct PostFullView: View {
     private func postOptionsMenu() -> some View {
         Menu {
             if person.userID == userHolder.person.userID {
-                NavigationLink(destination: PostEditView(person: person, post: post)
+                NavigationLink(destination: PostEditView(person: person, post: newPost)
                     .onDisappear {
                         refreshPost()
                 }) {
@@ -166,12 +174,19 @@ struct PostFullView: View {
                 }
             }
             Button(action: togglePinPost) {
-                Label(post.isPinned ? "Unpin prayer request" : "Pin to feed", systemImage: post.isPinned ? "pin.slash" : "pin.fill")
+                Label(newPost.isPinned ? "Unpin prayer request" : "Pin to feed", systemImage: newPost.isPinned ? "pin.slash" : "pin.fill")
             }
         } label: {
-            Label("", systemImage: "ellipsis")
+            HStack (alignment: .center) {
+                Label("", systemImage: "ellipsis")
+                    .background {
+                        Rectangle()
+                            .fill(.clear)
+                    }
+                    .frame(maxHeight: .infinity)
+                    .foregroundStyle(Color.primary)
+            }
         }
-        .highPriorityGesture(TapGesture())
     }
     
     private func seeAllUpdatesButton() -> some View {
@@ -184,14 +199,17 @@ struct PostFullView: View {
     }
     
     private func updateTextView() -> some View {
-        Text(post.latestUpdateText)
-            .lineLimit(expandUpdate ? nil : lineLimit)
-            .background(
-                ViewThatFits(in: .vertical) {
-                    Text(post.latestUpdateText).hidden()
-                    Color.clear.onAppear { isTruncated = true }
-                }
-            )
+        VStack {
+            Text(newPost.latestUpdateText)
+                .lineLimit(expandUpdate ? nil : lineLimit)
+                .background(
+                    ViewThatFits(in: .vertical) {
+                        Text(newPost.latestUpdateText).hidden()
+                        Color.clear.onAppear { isTruncated = true }
+                    }
+                )
+        }
+        .font(.system(size: 16))
     }
     
     private func expandButton() -> some View {
@@ -208,23 +226,31 @@ struct PostFullView: View {
     
     private func loadPost() {
         Task {
-            post = originalPost
-            await commentViewModel.fetchInitialComments(for: post.id)  // Changed from fetchComments
+            newPost = post
+        }
+    }
+    
+    private func updateNotificationSeenIfNotificationCountExisted() {
+        // This function will update lastSeenNotificationCount to 0 only if notification exists.
+        Task {
+            if newPost.lastSeenNotificationCount > 0 {
+                try await feedService.updateLastSeenNotificationCount(post: post, person: userHolder.person)
+            }
         }
     }
     
     private func refreshPost() {
         Task {
-            post = try await PostOperationsService().getPost(prayerRequest: post)
-            originalPost = post
+            newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
+            post = newPost
         }
     }
     
     private func togglePinPost() {
         Task {
             do {
-                post.isPinned.toggle()
-                try await PostHelper().togglePinned(person: userHolder.person, post: post, toggle: post.isPinned)
+                newPost.isPinned.toggle()
+                try await PostHelper().togglePinned(person: userHolder.person, post: newPost, toggle: newPost.isPinned)
             } catch {
                 ViewLogger.error("PostFullView.pinPost \(error)")
             }

@@ -13,8 +13,8 @@ struct EditPrayerUpdate: View {
     @Environment(\.dismiss) var dismiss
     
     var person: Person
-    @State var prayerRequest: Post
-    @State var prayerRequestUpdates: [PostUpdate] = []
+    @State var post: Post
+    @State var postUpdates: [PostUpdate] = []
     @State var update: PostUpdate
     
     var body: some View {
@@ -82,10 +82,7 @@ struct EditPrayerUpdate: View {
     func deleteUpdate() {
         Task {
             do {
-                var updates = prayerRequestUpdates.sorted(by: {$1.datePosted > $0.datePosted})
-                updates.removeAll(where: {$0.id == update.id}) // must come first in order to make sure the prayer request last date posted can be factored correctly.
-                
-                try await PostUpdateHelper().deletePostUpdate(post: prayerRequest, prayerRequestUpdate: update, updatesArray: updates, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
+                try await PostUpdateHelper().deletePostUpdate(post: post, update: update, updatesArray: postUpdates, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {
@@ -100,7 +97,7 @@ struct EditPrayerUpdate: View {
     func updatePrayerUpdate() {
         Task {
             do {
-                try await PostUpdateHelper().editPrayerUpdate(prayerRequest: prayerRequest, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests, updatesArray: prayerRequestUpdates)
+                try await PostUpdateHelper().editPrayerUpdate(prayerRequest: post, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests, updatesArray: postUpdates)
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {

@@ -21,6 +21,8 @@ struct TodayView: View {
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     @State private var showCreatePost: Bool = false
+    @State private var seeAllFriendsPosts: Bool = false
+    @State private var seeAllMyPosts: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
 
@@ -46,11 +48,11 @@ struct TodayView: View {
             .clipped(antialiased: true)
             .scrollDismissesKeyboard(.automatic)
             .scrollIndicators(.hidden)
-            .refreshable(action: { Task { refreshPosts } })
+            .refreshable { await refreshPosts() }
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
-                    originalPost: .constant(post),
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName)
+                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
+                    post: .constant(post) // Pass binding for post
                 )
             }
             .toolbarBackground(Color.primary, for: .bottomBar)
@@ -91,7 +93,7 @@ struct TodayView: View {
     private func addPostView() -> some View {
         VStack (alignment: .leading, spacing: 5) {
             
-            sectionHeader(systemImage: Image(systemName: "arrow.up.right.square.fill"), text: "What's On Your Mind?")
+            sectionHeader(systemImage: Image(systemName: "ellipsis.message.fill"), text: "What's On Your Mind?")
             
             HStack (spacing: -5) {
                 Text("Add a")
@@ -125,36 +127,56 @@ struct TodayView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    // MARK: - Friend Prayers View
-    private func myFriendsView() -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Friend's Prayers")
-            
-            PostCardLayout(navigationPath: $navigationPath, viewModel: $myFriendsPostsViewModel, posts: myFriendsPostsViewModel.posts)
-                .padding(.leading, 0) // Padding on leading
-                .padding(.trailing, -25)
-                .task {
-                    if myFriendsPostsViewModel.posts.isEmpty {
-                        await loadPinnedPosts()
-                    }
-                }
-        }
-    }
-    
     // MARK: - My Prayers View
     private func myPrayersView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), text: "My Pinned Prayers")
+            HStack {
+                sectionHeader(systemImage: Image(systemName: "person.fill"), text: "My Pinned Prayers")
+                Spacer()
+                if myPostsViewModel.posts.count > 2 { // temporary static 2 for now.
+                    Button {
+                        seeAllMyPosts.toggle()
+                    } label: {
+                        Text(seeAllMyPosts ? "Show Less" : "Show All")
+                            .font(.system(size: 16))
+                    }
+                }
+            }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: $myPostsViewModel, posts: myPostsViewModel.posts)
-                .padding(.leading, 0) // Padding on leading
-                .padding(.trailing, -25)
+            PostCardLayout(navigationPath: $navigationPath, viewModel: myPostsViewModel, isExpanded: seeAllMyPosts)
                 .task {
                     if myPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
                     }
                 }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Friend Prayers View
+    private func myFriendsView() -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack {
+                sectionHeader(systemImage: Image(systemName: "person.2.fill"), text: "My Friend's Prayers")
+                Spacer()
+                if myFriendsPostsViewModel.posts.count > 2 { // temporary static 2 for now.
+                    Button {
+                        seeAllFriendsPosts.toggle()
+                    } label: {
+                        Text(seeAllFriendsPosts ? "Show Less" : "Show All")
+                            .font(.system(size: 16))
+                    }
+                }
+            }
+            
+            PostCardLayout(navigationPath: $navigationPath, viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
+                .task {
+                    if myFriendsPostsViewModel.posts.isEmpty {
+                        await loadPinnedPosts()
+                    }
+                }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Helper Views & Functions
@@ -232,7 +254,7 @@ struct TodayView: View {
     private func loadPinnedPosts() async {
         do {
             try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
-            try await myPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
+            try await myPostsViewModel.getPosts(user: userHolder.person)
         } catch {
             ViewLogger.error("ProfileView Pinned Posts \(error)")
         }
@@ -242,9 +264,7 @@ struct TodayView: View {
         if myPostsViewModel.isFinished && myFriendsPostsViewModel.isFinished {
             do {
                 try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
-                try await myPostsViewModel.getPosts(user: userHolder.person, person: userHolder.person)
-                self.myFriendsPostsViewModel.posts = myFriendsPostsViewModel.posts
-                self.myPostsViewModel.posts = myPostsViewModel.posts
+                try await myPostsViewModel.getPosts(user: userHolder.person)
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }

@@ -13,6 +13,7 @@ import FirebaseFirestore
 struct ProfileFeed: View {
     @Environment(UserProfileHolder.self) var userHolder
     @State var viewModel: FeedViewModel
+    @Binding var navigationPath: NavigationPath
     
     @State var person: Person
     @State private var showSubmit: Bool = false
@@ -64,7 +65,7 @@ struct ProfileFeed: View {
             }
             Divider()
             
-            PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile")
+            PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile", navigationPath: $navigationPath)
         }
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {

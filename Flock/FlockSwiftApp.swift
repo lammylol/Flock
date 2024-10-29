@@ -21,6 +21,7 @@ struct FlockApp: App {
                 .environment(DateHolder())
                 .environment(FeedViewModel())
                 .environment(friendRequestListener)
+                .environment(UISizing())
         }
     }
 }

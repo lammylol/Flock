@@ -15,12 +15,6 @@ struct StatusPicker: View {
     var body: some View {
         Menu {
             Button {
-                viewModel.selectedStatus = .pinned
-                userHolder.refresh = true
-            } label: {
-                Text("Pinned")
-            }
-            Button {
                 viewModel.selectedStatus = .current
                 userHolder.refresh = true
             } label: {

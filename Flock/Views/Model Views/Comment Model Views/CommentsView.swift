@@ -1,5 +1,5 @@
 // CommentsView.swift
-// Flock 
+// Flock
 //
 // provides the UI for viewing and adding comments
 //
@@ -28,29 +28,38 @@ struct CommentsView: View {
             print("CommentsView task started for post \(postID)")
             await viewModel.fetchInitialComments(for: postID)
         }
-        .onChange(of: postID) { newID in
-            print("PostID changed to: \(newID)")
-            Task {
-                await viewModel.fetchInitialComments(for: newID)
-            }
-        }
+//        .onChange(of: postID) { newID in
+//            print("PostID changed to: \(newID)")
+//            Task {
+//                await viewModel.fetchInitialComments(for: newID)
+//                await fetchCommentsIfNeeded()
+//            }
+//        }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
     }
+
+    private func fetchCommentsIfNeeded() async {
+        guard !postID.isEmpty else {
+            print("PostID is empty, not fetching comments")
+            return
+        }
+        await viewModel.fetchInitialComments(for: postID)
+    }
     
     private var commentsList: some View {
-        if viewModel.isLoading && viewModel.comments.isEmpty {
-            AnyView(ProgressView())
-        } else if viewModel.comments.isEmpty {
-            AnyView(
-                Text("No comments yet. Be the first to comment!")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 14))
-            )
-        } else {
-            AnyView(
-                VStack(spacing: 0) {
+        VStack {
+            if viewModel.isLoading {
+                ProgressView()
+            } else if viewModel.comments.isEmpty {
+                VStack {
+                    Text("No comments yet. Be the first to comment!")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 14))
+                }
+            } else {
+                VStack (alignment: .leading) {
                     ForEach(viewModel.comments) { comment in
                         CommentRow(comment: comment, currentUserID: userHolder.person.userID) {
                             Task {
@@ -78,8 +87,32 @@ struct CommentsView: View {
                         .disabled(!viewModel.hasMoreComments)
                         .padding(.vertical, 10)
                     }
+                    
+                    if viewModel.hasMoreComments {
+                        fetchMoreCommentsView()
+                    }
                 }
             )
+        }
+    }
+    
+    private func fetchMoreCommentsView() -> some View {
+        VStack (alignment: .leading) {
+            if viewModel.isLoadingMore {
+                ProgressView()
+            } else {
+                Button {
+                    Task {
+                        await viewModel.fetchMoreComments()
+                    }
+                } label: {
+                    Text("Load more comments")
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                }
+                .disabled(!viewModel.hasMoreComments)
+                .padding(.vertical, 10)
+            }
         }
     }
     
@@ -140,6 +173,7 @@ struct CommentsView: View {
         try? await viewModel.addComment(postID: postID, text: newCommentText)
         newCommentText = ""
         isCommentFieldFocused = false
+        await viewModel.fetchInitialComments(for: postID)
     }
     
     // Update comment deletion
@@ -159,24 +193,23 @@ struct CommentRow: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 7) {
-                HStack (alignment: .top) {
-                    ProfilePictureAvatar(firstName: comment.firstName, lastName: comment.lastName, imageSize: 35, fontSize: 16)
-                    VStack (alignment: .leading, spacing: 10) {
-                        HStack (spacing: 5) {
-                            Text((comment.firstName + " " + comment.lastName)
-                                .capitalized)
-                                .fontWeight(.medium)
-                                .font(.system(size: 14))
-                            Text(PostHelper().relativeTimeStringAbbrev(for: comment.createdAt))
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Spacer()
-                        }
-                        Text(comment.text)
-                            .font(.system(size: 16))
+            HStack (alignment: .top) {
+                ProfilePictureAvatar(firstName: comment.firstName, lastName: comment.lastName, imageSize: 35, fontSize: 16)
+                VStack (alignment: .leading, spacing: 7) {
+                    HStack (spacing: 5) {
+                        Text((comment.firstName + " " + comment.lastName)
+                            .capitalized)
+                            .fontWeight(.bold)
+                            .font(.system(size: 14))
+                        Text(PostHelper().relativeTimeStringAbbrev(for: comment.createdAt))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
                     }
+                    Text(comment.text)
+                        .font(.system(size: 16))
                 }
+                Spacer()
             }
             Spacer()
             if comment.userID == currentUserID {
@@ -204,5 +237,7 @@ struct CommentRow: View {
         } message: {
             Text("This action cannot be undone.")
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.vertical, 5)
     }
 }
