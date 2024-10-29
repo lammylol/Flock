@@ -75,10 +75,10 @@ struct PostRow: View {
                                         Label("Unpin prayer request", systemImage: "pin.slash")
                                     }
                                 }
+                                .highPriorityGesture(TapGesture())
                             } label: {
                                 Label("", systemImage: "ellipsis")
                             }
-                            .highPriorityGesture(TapGesture())
                         }
                         .font(.system(size: 13))
                         .padding(.bottom, 2)
