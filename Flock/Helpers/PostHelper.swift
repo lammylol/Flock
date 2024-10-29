@@ -39,17 +39,15 @@ class PostHelper {
     }
     
     func togglePinned(person: Person, post: Post, toggle: Bool) async throws {
-        let ref = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
+        // Only update in prayerFeed
+        let ref = db.collection("prayerFeed")
+            .document(person.userID)
+            .collection("prayerRequests")
+            .document(post.id)
+            
         try await ref.updateData([
             "isPinned": toggle
         ])
-        
-        if person.userID == post.userID {
-            let ref2 = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
-            try await ref2.updateData([
-                "isPinned": toggle
-            ])
-        } // update data to personal profile feed if this is under your profile as well.
     }
     
     

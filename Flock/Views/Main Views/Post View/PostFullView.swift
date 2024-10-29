@@ -23,14 +23,12 @@ struct PostFullView: View {
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
-    @State private var commentViewModel: CommentViewModel
+    @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
 
     init(person: Person, post: Binding<Post>) {
         _post = post
         self.person = person
-        // Initialize CommentViewModel directly
-        self._commentViewModel = State(initialValue: CommentViewModel(person: userHolder.person))
     }
     
     var feedService = FeedService()
@@ -48,21 +46,24 @@ struct PostFullView: View {
                         Spacer(minLength: 20)
                         
                         commentsSectionView()
-                        
                     }
                     .padding(.horizontal, 20)
                     .id("TextEditorBottom")
                 }
-                .onChange(of: commentViewModel.scrollToEnd) {
-                    if commentViewModel.scrollToEnd {
+                .onChange(of: commentViewModel?.scrollToEnd ?? false) {
+                    if commentViewModel?.scrollToEnd == true {
                         withAnimation {
                             scrollViewProxy.scrollTo("TextEditorBottom", anchor: .bottom)
                         }
-                        commentViewModel.scrollToEnd = false // Reset the flag
+                        commentViewModel?.scrollToEnd = false
                     }
                 }
             }
             .task {
+                // Initialize commentViewModel here where we have access to environment values
+                if commentViewModel == nil {
+                    commentViewModel = CommentViewModel(person: userHolder.person)
+                }
                 loadPost()
                 updateNotificationSeenIfNotificationCountExisted()
                 self.post = newPost
@@ -145,7 +146,6 @@ struct PostFullView: View {
     // MARK: - Comment Section View
     private func commentsSectionView() -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Comment section
             HStack {
                 Text("Comments")
                     .font(.system(size: 16))
@@ -155,8 +155,8 @@ struct PostFullView: View {
                 Spacer()
             }
             
-            if showComments {
-                CommentsView(postID: post.id, isInSheet: false, viewModel: commentViewModel)
+            if showComments, let viewModel = commentViewModel {
+                CommentsView(postID: post.id, isInSheet: false, viewModel: viewModel)
                     .id("commentsSection")
             }
         }

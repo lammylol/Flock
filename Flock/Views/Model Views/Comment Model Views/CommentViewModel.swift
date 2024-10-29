@@ -13,7 +13,7 @@ import Observation
 
 @Observable class CommentViewModel {
     private let commentHelper = CommentHelper()
-    private let postHelper = PostHelper()
+    private let postOperationsService = PostOperationsService()
     private let notificationHelper = NotificationHelper()
     private let person: Person
     var comments: [Comment] = []
@@ -144,9 +144,10 @@ import Observation
             try await commentHelper.addComment(to: postID, comment: newComment)
             print("Comment added successfully")
             
-            guard let post = try await postHelper.getPost(postID: postID) else {
-                throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Post not found"])
-            }
+            // Use Post.blank and then set the ID
+            var tempPost = Post.blank
+            tempPost.id = postID
+            let post = try await postOperationsService.getPost(prayerRequest: tempPost, user: person)
             
             // Get unique previous commenters
             let previousCommenters = Set(comments.map { $0.userID })
