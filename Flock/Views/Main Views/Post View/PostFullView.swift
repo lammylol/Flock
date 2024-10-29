@@ -26,11 +26,11 @@ struct PostFullView: View {
     @State private var commentViewModel: CommentViewModel
     @State private var showComments: Bool = true
 
-    init(originalPost: Binding<Post>, person: Person) {
-        _originalPost = originalPost
+    init(person: Person, post: Binding<Post>) {
+        _post = post
         self.person = person
         // Initialize CommentViewModel directly
-        self._commentViewModel = State(initialValue: CommentViewModel(person: person))
+        self._commentViewModel = State(initialValue: CommentViewModel(person: userHolder.person))
     }
     
     var feedService = FeedService()
