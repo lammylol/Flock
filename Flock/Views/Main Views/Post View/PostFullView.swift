@@ -159,7 +159,7 @@ struct PostFullView: View {
     private func postOptionsMenu() -> some View {
         Menu {
             if person.userID == userHolder.person.userID {
-                NavigationLink(destination: PostEditView(person: person, post: newPost)
+                NavigationLink(destination: PostEditView(person: person, post: post)
                     .onDisappear {
                         refreshPost()
                 }) {

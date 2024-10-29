@@ -17,7 +17,7 @@ struct PostCreateView: View {
     @Environment(\.dismiss) var dismiss
     
     @State var person: Person
-    @State var postType: Post.PostType? = .note
+    @State var postType: Post.PostType? = .prayerRequest
     @State private var datePosted = Date()
     @State private var status: String = "Current"
     @State private var postText: String = ""
