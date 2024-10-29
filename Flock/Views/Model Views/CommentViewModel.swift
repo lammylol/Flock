@@ -5,52 +5,103 @@
 //
 // Created by Ramon Jiang 09/07/24
 
+import SwiftUI
+import FirebaseFirestore
 import Foundation
 import Combine
-import SwiftUI
 
 @Observable class CommentViewModel {
     private let commentHelper = CommentHelper()
     var comments: [Comment] = []
     var isLoading = false
+    var isLoadingMore = false
     var errorMessage: String?
     var scrollToEnd: Bool = false
+    var hasMoreComments = true
+    let commentsPerPage = 3  // Changed from private to public
     
     private var currentPostID: String?
+    private var lastCommentSnapshot: QueryDocumentSnapshot?
     
-    func fetchComments(for postID: String) async {
+    func fetchInitialComments(for postID: String) async {
         guard !postID.isEmpty else {
             print("Attempted to fetch comments with empty postID")
             return
         }
         
-        print("Fetching comments for post: \(postID)")
+        print("Fetching initial comments for post: \(postID)")
         DispatchQueue.main.async {
             self.isLoading = true
             self.errorMessage = nil
+            self.comments = []
+            self.hasMoreComments = true
+            self.lastCommentSnapshot = nil
         }
         currentPostID = postID
         
         do {
-            let fetchedComments = try await commentHelper.getComments(for: postID)
-            print("Fetched \(fetchedComments.count) comments for post \(postID)")
+            let result = try await commentHelper.getComments(
+                for: postID,
+                limit: commentsPerPage,
+                lastCommentSnapshot: nil
+            )
+            
+            print("Fetched initial \(result.comments.count) comments")
+            
             DispatchQueue.main.async {
-                // Only update if this is still the current post we're interested in
                 if self.currentPostID == postID {
-                    self.comments = fetchedComments.sorted { $0.createdAt < $1.createdAt }
+                    self.comments = result.comments
+                    self.lastCommentSnapshot = result.lastSnapshot
+                    self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
                     self.isLoading = false
-                    print("Updated comments in ViewModel: \(self.comments.count) for post \(postID)")
-                } else {
-                    print("Discarded fetched comments for post \(postID) as it's no longer current")
                 }
             }
         } catch {
-            print("Error fetching comments for post \(postID): \(error)")
+            print("Error fetching initial comments: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to fetch comments: \(error.localizedDescription)"
+                self.isLoading = false
+            }
+        }
+    }
+    
+    func fetchMoreComments() async {
+        guard let postID = currentPostID,
+              !isLoadingMore,
+              hasMoreComments,
+              let lastSnapshot = lastCommentSnapshot else {
+            print("Skipping fetchMoreComments - conditions not met")
+            return
+        }
+        
+        print("Fetching more comments after \(comments.count) comments")
+        
+        DispatchQueue.main.async {
+            self.isLoadingMore = true
+        }
+        
+        do {
+            let result = try await commentHelper.getComments(
+                for: postID,
+                limit: commentsPerPage,
+                lastCommentSnapshot: lastSnapshot
+            )
+            
+            print("Fetched additional \(result.comments.count) comments")
+            
             DispatchQueue.main.async {
                 if self.currentPostID == postID {
-                    self.errorMessage = "Failed to fetch comments: \(error.localizedDescription)"
-                    self.isLoading = false
+                    self.comments.append(contentsOf: result.comments)
+                    self.lastCommentSnapshot = result.lastSnapshot
+                    self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
                 }
+                self.isLoadingMore = false
+            }
+        } catch {
+            print("Error fetching more comments: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to fetch more comments: \(error.localizedDescription)"
+                self.isLoadingMore = false
             }
         }
     }
@@ -83,7 +134,7 @@ import SwiftUI
         do {
             try await commentHelper.addComment(to: postID, comment: newComment)
             print("Comment added successfully")
-            await fetchComments(for: postID)
+            await fetchInitialComments(for: postID)  // Changed from fetchComments
         } catch {
             print("Error adding comment: \(error)")
             DispatchQueue.main.async {
@@ -103,7 +154,7 @@ import SwiftUI
         do {
             try await commentHelper.deleteComment(postID: postID, commentID: commentID)
             print("Comment deleted successfully")
-            await fetchComments(for: postID)
+            await fetchInitialComments(for: postID)  // Changed from fetchComments
         } catch {
             print("Error deleting comment: \(error)")
             DispatchQueue.main.async {
@@ -123,7 +174,7 @@ import SwiftUI
         do {
             try await commentHelper.updateComment(postID: postID, comment: comment)
             print("Comment updated successfully")
-            await fetchComments(for: postID)
+            await fetchInitialComments(for: postID)  // Changed from fetchComments
         } catch {
             print("Error updating comment: \(error)")
             DispatchQueue.main.async {
@@ -139,6 +190,6 @@ import SwiftUI
             return 
         }
         print("Refreshing comments for post: \(postID)")
-        await fetchComments(for: postID)
+        await fetchInitialComments(for: postID)  // Changed from fetchComments
     }
 }

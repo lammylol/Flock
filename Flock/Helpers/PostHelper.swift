@@ -37,9 +37,9 @@ class PostHelper {
             formatter.unitsStyle = .abbreviated // This will display 'hours ago' when within 24 hours
             return formatter.localizedString(for: date, relativeTo: now)
         } else if timeInterval > 86400 {
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium // Shows days, months, years, etc.
-            return formatter.string(from: date)
+            let formatter = RelativeDateTimeFormatter()
+            formatter.unitsStyle = .abbreviated // This will display 'hours ago' when within 24 hours
+            return formatter.localizedString(for: date, relativeTo: now)
         } else {
             return "just posted"
         }
