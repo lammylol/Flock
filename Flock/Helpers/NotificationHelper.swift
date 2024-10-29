@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 enum NotificationError: Error {
     case firestoreError(Error)
@@ -18,7 +19,14 @@ class NotificationHelper {
     private let notificationsCollection = "notifications"
     
     func createNotification(for comment: Comment, postTitle: String, recipientID: String) async throws {
-        guard !recipientID.isEmpty else { return }
+        print("DEBUG: Creating notification")
+        print("DEBUG: RecipientID: \(recipientID)")
+        print("DEBUG: Comment UserID: \(comment.userID)")
+        
+        guard !recipientID.isEmpty else {
+            print("DEBUG: Empty recipientID provided")
+            return
+        }
         
         let notificationData: [String: Any] = [
             "postID": comment.postID,
@@ -36,8 +44,9 @@ class NotificationHelper {
                 .document(recipientID)
                 .collection("userNotifications")
                 .addDocument(data: notificationData)
+            print("DEBUG: Successfully created notification")
         } catch {
-            print("Error creating notification: \(error)")
+            print("DEBUG: Error creating notification: \(error)")
             throw error
         }
     }
