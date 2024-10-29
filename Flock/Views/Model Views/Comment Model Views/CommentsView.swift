@@ -71,28 +71,11 @@ struct CommentsView: View {
                             .opacity(comment.id == viewModel.comments.last?.id ? 0 : 1)
                     }
                     
-                    if viewModel.isLoadingMore {
-                        ProgressView()
-                            .padding(.vertical, 10)
-                    } else {
-                        Button {
-                            Task {
-                                await viewModel.fetchMoreComments()
-                            }
-                        } label: {
-                            Text(viewModel.hasMoreComments ? "Load more comments" : "You are viewing all comments")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gray)
-                        }
-                        .disabled(!viewModel.hasMoreComments)
-                        .padding(.vertical, 10)
-                    }
-                    
                     if viewModel.hasMoreComments {
                         fetchMoreCommentsView()
                     }
                 }
-            )
+            }
         }
     }
     

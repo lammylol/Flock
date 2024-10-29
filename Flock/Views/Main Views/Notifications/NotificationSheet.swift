@@ -55,13 +55,13 @@ struct NotificationSheet: View {
         .sheet(item: $selectedNotification) { notification in
             let post = Post()
             PostFullView(
-                originalPost: .constant(post),
                 person: Person(
                     userID: notification.senderID,
                     username: "",
                     firstName: notification.senderName.components(separatedBy: " ").first ?? "",
                     lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                )
+                ),
+                post: .constant(post)
             )
             .task {
                 // Remove the optional binding since id is non-optional
