@@ -25,17 +25,26 @@ struct CommentsView: View {
         }
         .task {
             print("CommentsView task started for post \(postID)")
-            await viewModel.fetchInitialComments(for: postID)
+            await fetchCommentsIfNeeded()
         }
 //        .onChange(of: postID) { newID in
 //            print("PostID changed to: \(newID)")
 //            Task {
 //                await viewModel.fetchInitialComments(for: newID)
+//                await fetchCommentsIfNeeded()
 //            }
 //        }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
+    }
+
+    private func fetchCommentsIfNeeded() async {
+        guard !postID.isEmpty else {
+            print("PostID is empty, not fetching comments")
+            return
+        }
+        await viewModel.fetchInitialComments(for: postID)
     }
     
     private var commentsList: some View {

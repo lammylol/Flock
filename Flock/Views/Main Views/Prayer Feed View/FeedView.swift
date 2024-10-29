@@ -21,14 +21,15 @@ struct FeedView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @State var viewModel: FeedViewModel = FeedViewModel(viewType: .feed)
     @Environment(\.colorScheme) private var scheme
+    @State private var navigationPath = NavigationPath()
     
     @State var person: Person
     
     let headerText = "Flock \(buildConfiguration == DEVELOPMENT ? "DEV" : "")"
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView(.vertical) {
-                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "feed")
+                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "feed", navigationPath: $navigationPath)
                     .onChange(of: viewModel.selectedStatus, {
                         Task {
                             if !viewModel.isFetching || !viewModel.isLoading {
@@ -74,6 +75,12 @@ struct FeedView: View {
                         Image(systemName: "square.and.pencil")
                     }
                 }
+            }
+            .navigationDestination(for: Post.self) { post in
+                PostFullView(
+                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
+                    post: .constant(post) // Pass binding for post
+                )
             }
             .clipped()
         }

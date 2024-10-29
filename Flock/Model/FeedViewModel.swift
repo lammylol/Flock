@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import FirebaseFirestore
 
+@MainActor
 @Observable class FeedViewModel {
     var posts: [Post] = []
     var lastDocument: DocumentSnapshot? = nil
@@ -98,7 +99,8 @@ import FirebaseFirestore
             if lastDocument != nil {
                 self.lastDocument = lastDocument
             }
-            
+    
+//            print(posts.map({$0.postTitle}))
             ModelLogger.debug("FeedViewModel.getPost last document \(lastDocument?.documentID ?? "n/a")")
         } catch {
             ModelLogger.error("FeedViewModel.getPosts failed \(error)")
@@ -144,12 +146,3 @@ extension FeedViewModel {
         case finished
     }
 }
-//
-//@Observable final class PinnedFeedViewModel: FeedViewModel {
-//    override init(viewType: viewType = .profile, selectionType: selectionType = .) {
-//        super.init(viewType: viewType)
-//        self.selectedStatus = .pinned // Initialize with pinned status
-//    }
-
-    // You can add any additional functionality specific to pinned posts here
-//}

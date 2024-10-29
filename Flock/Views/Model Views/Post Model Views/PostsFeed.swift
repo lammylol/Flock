@@ -15,6 +15,7 @@ struct PostsFeed: View {
     @Binding var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
+    @Binding var navigationPath: NavigationPath
     
     var userService = UserService()
     
@@ -22,26 +23,22 @@ struct PostsFeed: View {
         ZStack {
             (colorScheme == .dark ? Color.black : Color.white).ignoresSafeArea() // sets background color.
                 
-//            if viewModel.isLoading {
-//                ProgressView()
-//            } else {
-                LazyVStack {
-                    ForEach($viewModel.posts) { $prayerRequest in
-                        VStack {
-                            PostRow(viewModel: viewModel, post: $prayerRequest, person: person)
-                            Rectangle()
-                                .frame(height: 4)
-                                .foregroundStyle(.bar)
-                        }
-                        .task {
-                            if viewModel.hasReachedEnd(of: prayerRequest) && !viewModel.isFetching {
-                                await viewModel.getNextPosts(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
-                            }
+            LazyVStack {
+                ForEach($viewModel.posts) { $post in
+                    VStack {
+                        PostRow(viewModel: viewModel, post: $post, person: person, navigationPath: $navigationPath)
+                        Rectangle()
+                            .frame(height: 4)
+                            .foregroundStyle(.bar)
+                    }
+                    .task {
+                        if viewModel.hasReachedEnd(of: post) && !viewModel.isFetching {
+                            await viewModel.getNextPosts(user: userHolder.person, person: person, profileOrFeed: profileOrFeed)
                         }
                     }
                 }
-                .scrollContentBackground(.hidden)
-//            }
+            }
+            .scrollContentBackground(.hidden)
         }
         .task {
             if viewModel.posts.isEmpty {

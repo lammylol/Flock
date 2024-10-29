@@ -21,6 +21,7 @@ struct ProfileView: View {
     @State private var pinnedPostsViewModel = FeedViewModel(viewType: .profile, selectionType: .myPostsPinned)
     @State private var navigationPath = NavigationPath()
     @State private var addFriendConfirmation = false
+    @State private var seeAllMyPosts: Bool = false
     
     var userService = UserService()
     var friendService = FriendService()
@@ -31,10 +32,10 @@ struct ProfileView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     profileHeader
-                    postSections
+                    postSections()
                 }
                 .padding(.top, -8)
-                .padding([.leading, .trailing], 23)
+                .padding(.horizontal, 20)
             }
             .task { await loadProfile() }
             .refreshable { await refreshPosts() }
@@ -51,9 +52,10 @@ struct ProfileView: View {
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    originalPost: .constant(post) // Pass binding for post
+                    post: .constant(post) // Pass binding for post
                 )
             }
+            .scrollIndicators(.hidden)
         }
     }
     
@@ -72,20 +74,30 @@ struct ProfileView: View {
     }
     
     // Post sections
-    private var postSections: some View {
+    private func postSections() -> some View {
         LazyVStack (spacing: 15) {
             VStack (spacing: 0) {
                 if !pinnedPostsViewModel.isLoading && !pinnedPostsViewModel.posts.isEmpty {
-                    sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Prayers", fontWeight: .medium)
-                }
-                PostCardLayout(navigationPath: $navigationPath, viewModel: $pinnedPostsViewModel, posts: pinnedPostsViewModel.posts)
-                    .padding(.leading, 0) // Padding on leading
-                    .padding(.trailing, -25)
-                    .task {
-                        if pinnedPostsViewModel.posts.isEmpty {
-                            await loadPinnedPosts()
+                    HStack {
+                        sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Prayers", fontWeight: .medium)
+                        Spacer()
+                        if pinnedPostsViewModel.posts.count > 2 { // temporary static 2 for now.
+                            Button {
+                                seeAllMyPosts.toggle()
+                            } label: {
+                                Text(seeAllMyPosts ? "Show Less" : "Show All")
+                                    .font(.system(size: 16))
+                            }
                         }
                     }
+                    
+                    PostCardLayout(navigationPath: $navigationPath, viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
+                }
+            }
+            .task {
+                if pinnedPostsViewModel.posts.isEmpty {
+                    await loadPinnedPosts()
+                }
             }
             VStack {
                 HStack {
@@ -112,7 +124,7 @@ struct ProfileView: View {
                     }
                 }
                 Divider()
-                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile")
+                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile", navigationPath: $navigationPath)
             }
         }
     }

@@ -236,26 +236,28 @@
 			path = "Custom Tab Bar";
 			sourceTree = "<group>";
 		};
-		7A0FBB412C2A7DA10079ACEC /* Posts */ = {
+		7A0FBB412C2A7DA10079ACEC /* Post Model Views */ = {
 			isa = PBXGroup;
 			children = (
+				7AD28BF32BDF49B000F982C0 /* PostsFeed.swift */,
 				7A5C72322AFF5D9E00A75636 /* PostRow.swift */,
-				7A3D7B9A2CB1BB370043834C /* PostCard.swift */,
 				7AF31F2E2C07F5FC00FD111E /* UpdateView.swift */,
-				7A3D7B9D2CB24F030043834C /* PostCardLayout.swift */,
 			);
-			path = Posts;
+			path = "Post Model Views";
 			sourceTree = "<group>";
 		};
 		7A0FBB442C2A7F840079ACEC /* Model Views */ = {
 			isa = PBXGroup;
 			children = (
-				7A9CA7452CB863F40030E4CA /* CommentsView.swift */,
-				7A9CA7462CB863F40030E4CA /* CommentViewModel.swift */,
+				7A992AD92CC99B57009F0EAB /* Card Layout Views */,
+				7A0FBB412C2A7DA10079ACEC /* Post Model Views */,
+				7A992AD82CC99A78009F0EAB /* Friend Model Views */,
+				7A992AD72CC999D0009F0EAB /* Comment Model Views */,
 				7A92577B2B686BCF00D5EF35 /* ProfilePictureAvatar.swift */,
 				7AF957442C0D11DE00282639 /* StatusPicker.swift */,
 				7A362D492C8E14200010A12B /* TagModel.swift */,
-				7A0FBB412C2A7DA10079ACEC /* Posts */,
+				7ACECCDC2C014CF900E61837 /* PrivacyView.swift */,
+				7A0AFA842BB7773A0051A4E0 /* Custom Tab Bar */,
 			);
 			path = "Model Views";
 			sourceTree = "<group>";
@@ -322,10 +324,7 @@
 		7A285BA42B959B7B00BAF4C0 /* Prayer Feed View */ = {
 			isa = PBXGroup;
 			children = (
-				7A0AFA842BB7773A0051A4E0 /* Custom Tab Bar */,
 				7A8D40B42B44A9CF00B029E6 /* FeedView.swift */,
-				7AD28BF32BDF49B000F982C0 /* PostsFeed.swift */,
-				7ACECCDC2C014CF900E61837 /* PrivacyView.swift */,
 			);
 			path = "Prayer Feed View";
 			sourceTree = "<group>";
@@ -362,8 +361,8 @@
 		7A285BA82B959C7200BAF4C0 /* Main Views */ = {
 			isa = PBXGroup;
 			children = (
-				7A9CA7492CBF471A0030E4CA /* Today View */,
 				7AD808D02AD6F9E000A0ECA6 /* ContentView.swift */,
+				7A9CA7492CBF471A0030E4CA /* Today View */,
 				7A3D7B9C2CB1BBB90043834C /* Post View */,
 				7A3440852C5ABE790041156F /* Friends View */,
 				7A285BA32B959B6B00BAF4C0 /* Calendar View */,
@@ -377,7 +376,6 @@
 			isa = PBXGroup;
 			children = (
 				7A3440842C5ABE790041156F /* FriendsPageView.swift */,
-				7A3440822C5ABE6E0041156F /* ContactRow.swift */,
 				7AD363B62C62CDCE00EB7241 /* AddFriendPage.swift */,
 			);
 			path = "Friends View";
@@ -420,12 +418,12 @@
 			children = (
 				3A399F4B2CB8BC1C001F3932 /* AppDelegate.swift */,
 				7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */,
-				3ABC0ABD2C509485000AFFD1 /* ErrorHandling */,
-				3ABC0AA42C4DD8F4000AFFD1 /* Services */,
 				7A285BA22B959B5900BAF4C0 /* Views */,
 				7A285BA12B959B4D00BAF4C0 /* Model */,
 				7A285B9F2B959B1B00BAF4C0 /* Data Holders */,
+				3ABC0AA42C4DD8F4000AFFD1 /* Services */,
 				7A285BA02B959B3A00BAF4C0 /* Helpers */,
+				3ABC0ABD2C509485000AFFD1 /* ErrorHandling */,
 				7A4F25FE2AD0D23B00FB086C /* Assets.xcassets */,
 				7A4F26002AD0D23B00FB086C /* Flock.entitlements */,
 				7A4F26012AD0D23B00FB086C /* Preview Content */,
@@ -458,6 +456,32 @@
 				7A4F26182AD0D23B00FB086C /* Prayer_CalendarUITestsLaunchTests.swift */,
 			);
 			path = FlockUITests;
+			sourceTree = "<group>";
+		};
+		7A992AD72CC999D0009F0EAB /* Comment Model Views */ = {
+			isa = PBXGroup;
+			children = (
+				7A9CA7452CB863F40030E4CA /* CommentsView.swift */,
+				7A9CA7462CB863F40030E4CA /* CommentViewModel.swift */,
+			);
+			path = "Comment Model Views";
+			sourceTree = "<group>";
+		};
+		7A992AD82CC99A78009F0EAB /* Friend Model Views */ = {
+			isa = PBXGroup;
+			children = (
+				7A3440822C5ABE6E0041156F /* ContactRow.swift */,
+			);
+			path = "Friend Model Views";
+			sourceTree = "<group>";
+		};
+		7A992AD92CC99B57009F0EAB /* Card Layout Views */ = {
+			isa = PBXGroup;
+			children = (
+				7A3D7B9D2CB24F030043834C /* PostCardLayout.swift */,
+				7A3D7B9A2CB1BB370043834C /* PostCard.swift */,
+			);
+			path = "Card Layout Views";
 			sourceTree = "<group>";
 		};
 		7A9CA7492CBF471A0030E4CA /* Today View */ = {
