@@ -7,12 +7,17 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 class CommentHelper {
     private let db = Firestore.firestore()
     
     // Add a new comment to a post
     func addComment(to postID: String, comment: Comment) async throws {
+        print("AddComment Debug:")
+        print("Current Auth UID: \(Auth.auth().currentUser?.uid ?? "none")")
+        print("Post ID: \(postID)")
+        print("Comment creator ID: \(comment.userID)")
         try validatePostID(postID)
         
         let postRef = db.collection("prayerRequests").document(postID)

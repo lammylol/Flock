@@ -2,6 +2,7 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 class PostOperationsService {
     private let db = Firestore.firestore()
@@ -72,6 +73,10 @@ class PostOperationsService {
     }
 
     func getPost(prayerRequest: Post) async throws -> Post {
+        print("GetPost Debug:")
+        print("Current Auth UID: \(Auth.auth().currentUser?.uid ?? "none")")
+        print("Post ID: \(prayerRequest.id)")
+        print("Post userID: \(prayerRequest.userID)")
         guard prayerRequest.id != "" else {
             throw PrayerRequestRetrievalError.noPrayerRequestID
         }

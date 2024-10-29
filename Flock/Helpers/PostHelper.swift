@@ -7,11 +7,16 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 class PostHelper {
     let db = Firestore.firestore()
 
     func getPost(postID: String) async throws -> Post? {
+        print("PostHelper Debug:")
+        print("Current Auth UID: \(Auth.auth().currentUser?.uid ?? "none")")
+        print("Post ID: \(postID)")
+        print("Accessing userID part: \(postID.components(separatedBy: "_").first ?? "")")
         // Try to find the post in the prayerFeed collection
         let snapshot = try await db.collection("prayerFeed")
             .document(postID.components(separatedBy: "_").first ?? "") // Get userID part
