@@ -220,7 +220,6 @@ struct PostFullView: View {
     private func loadPost() {
         Task {
             newPost = post
-            await commentViewModel.fetchInitialComments(for: post.id)  // Changed from fetchComments
         }
     }
     
