@@ -51,21 +51,34 @@ struct NotificationSheet: View {
                     .foregroundColor(.blue)
                 }
             }
-        }
-        .sheet(item: $selectedNotification) { notification in
-            let post = Post()
-            PostFullView(
-                person: Person(
+            .sheet(item: $selectedNotification) { notification in
+                let post = Post(
+                    id: notification.postID,
+                    date: notification.timestamp,
                     userID: notification.senderID,
                     username: "",
                     firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                    lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                ),
-                post: .constant(post)
-            )
-            .task {
-                // Remove the optional binding since id is non-optional
-                await viewModel.markAsRead(notificationID: notification.id)
+                    lastName: notification.senderName.components(separatedBy: " ").last ?? "",
+                    postTitle: notification.postTitle,
+                    postText: "",
+                    postType: "Note",
+                    status: "Current",
+                    privacy: "public",
+                    isPinned: false,
+                    lastSeenNotificationCount: 0
+                )
+                PostFullView(
+                    person: Person(
+                        userID: notification.senderID,
+                        username: "",
+                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
+                    ),
+                    post: .constant(post)
+                )
+                .task {
+                    await viewModel.markAsRead(notificationID: notification.id)
+                }
             }
         }
     }

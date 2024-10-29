@@ -155,8 +155,8 @@ struct PostFullView: View {
                 Spacer()
             }
             
-            if showComments, let viewModel = commentViewModel {
-                CommentsView(postID: post.id, isInSheet: false, viewModel: viewModel)
+            if showComments, let viewModel = commentViewModel, !newPost.id.isEmpty {
+                CommentsView(postID: newPost.id, isInSheet: false, viewModel: viewModel)
                     .id("commentsSection")
             }
         }
