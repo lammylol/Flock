@@ -1,4 +1,4 @@
-# Flock | An application created to encourage prayer across the globe
+# Flock
 
 **Mission:** To ‘feed my sheep’ by supporting each other through the act of prayer, support, and encouragement. <br>
 **Vision:** To become a centralized hub for prayer, inspiring the act of prayer across the globe among both big and small communities.
