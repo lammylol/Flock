@@ -12,6 +12,7 @@ struct NotificationSheet: View {
     @ObservedObject var viewModel: NotificationViewModel
     @State private var selectedNotification: Notification?
     @Environment(UserProfileHolder.self) var userHolder
+    @Binding var navigationPath: NavigationPath
     
     var body: some View {
         NavigationView {
@@ -23,7 +24,7 @@ struct NotificationSheet: View {
                                 .listRowInsets(EdgeInsets())
                                 .contentShape(Rectangle())
                                 .onTapGesture {
-                                    selectedNotification = notification
+                                    navigationPath.append(notification)
                                 }
                         }
                     } header: {
@@ -33,52 +34,51 @@ struct NotificationSheet: View {
                     }
                 }
             }
-            .listStyle(.insetGrouped)
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Mark All Read") {
-                        Task {
-                            await viewModel.markAllAsRead()
-                        }
-                    }
-                    .foregroundColor(.blue)
-                }
+            .onAppear {
+                // Update without optional binding since userID is non-optional
+                viewModel.updateUserID(userHolder.person.userID)
             }
-            .sheet(item: $selectedNotification) { notification in
-                let post = Post(
-                    id: notification.postID,
-                    date: notification.timestamp,
+            .listStyle(.insetGrouped)
+        }
+        .navigationTitle("Notifications")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Mark All Read") {
+                    Task {
+                        await viewModel.markAllAsRead()
+                    }
+                }
+                .foregroundColor(.blue)
+            }
+        }
+        .sheet(item: $selectedNotification) { notification in
+            let post = Post(
+                id: notification.postID,
+                date: notification.timestamp,
+                userID: notification.senderID,
+                username: "",
+                firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                lastName: notification.senderName.components(separatedBy: " ").last ?? "",
+                postTitle: notification.postTitle,
+                postText: "",
+                postType: "Note",
+                status: "Current",
+                privacy: "public",
+                isPinned: false,
+                lastSeenNotificationCount: 0
+            )
+            PostFullView(
+                person: Person(
                     userID: notification.senderID,
                     username: "",
                     firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                    lastName: notification.senderName.components(separatedBy: " ").last ?? "",
-                    postTitle: notification.postTitle,
-                    postText: "",
-                    postType: "Note",
-                    status: "Current",
-                    privacy: "public",
-                    isPinned: false,
-                    lastSeenNotificationCount: 0
-                )
-                PostFullView(
-                    person: Person(
-                        userID: notification.senderID,
-                        username: "",
-                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                    ),
-                    post: .constant(post)
-                )
-                .task {
-                    await viewModel.markAsRead(notificationID: notification.id)
-                }
+                    lastName: notification.senderName.components(separatedBy: " ").last ?? ""
+                ),
+                post: .constant(post)
+            )
+            .task {
+                await viewModel.markAsRead(notificationID: notification.id)
             }
         }
     }

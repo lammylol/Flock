@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestore // Add this import
 
-struct Notification: Identifiable {
+struct Notification: Identifiable, Hashable {
     var id: String
     let postID: String
     let postTitle: String

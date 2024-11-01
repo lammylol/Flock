@@ -66,9 +66,6 @@ struct CommentsView: View {
                                 await deleteComment(comment)
                             }
                         }
-                        
-                        Divider()
-                            .opacity(comment.id == viewModel.comments.last?.id ? 0 : 1)
                     }
                     
                     if viewModel.hasMoreComments {
@@ -92,9 +89,8 @@ struct CommentsView: View {
                     Text("Load more comments")
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
-                }
-                .disabled(!viewModel.hasMoreComments)
-                .padding(.vertical, 10)
+                }                .disabled(!viewModel.hasMoreComments)
+                .padding(.vertical, 5)
             }
         }
     }
@@ -204,10 +200,13 @@ struct CommentRow: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
+                        .rotationEffect(.degrees(90))
                         .foregroundColor(.gray.opacity(0.6))
-                        .font(.system(size: 16))
+                        .font(.system(size: 14))
                         .padding(8)
                 }
+                .highPriorityGesture(TapGesture())
+
             }
         }
         .confirmationDialog(
