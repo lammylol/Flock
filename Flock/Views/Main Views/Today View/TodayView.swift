@@ -58,14 +58,6 @@ struct TodayView: View {
         .sheet(isPresented: $isPresentingNotifications) {
             NotificationSheet(viewModel: notificationViewModel)
             }
-            .onAppear {
-                // Update without optional binding since userID is non-optional
-                notificationViewModel.updateUserID(userHolder.person.userID)
-            }
-            .onChange(of: userHolder.person.userID) { _, newValue in
-                // Update directly without optional binding
-                notificationViewModel.updateUserID(newValue)
-            }
         }
     }
     

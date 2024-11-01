@@ -34,6 +34,10 @@ struct NotificationSheet: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .task {
+                // Initialize when sheet appears
+                viewModel.updateUserID(userHolder.person.userID)
+            }
             .navigationTitle("Notifications")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
