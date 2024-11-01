@@ -261,6 +261,7 @@ struct PostFullView: View {
     private func refreshPost() {
         Task {
             newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
+            await commentViewModel?.fetchInitialComments(for: newPost.id)
             post = newPost
         }
     }
