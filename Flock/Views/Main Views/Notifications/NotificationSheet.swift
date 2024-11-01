@@ -27,9 +27,24 @@ struct NotificationSheet: View {
                                 }
                         }
                     } header: {
-                        Text(notifications.first?.postTitle ?? "")
-                            .font(.system(size: 14))
-                            .fontWeight(.medium)
+                        HStack {
+                            Text(notifications.first?.postTitle ?? "")
+                                .font(.system(size: 14))
+                                .fontWeight(.medium)
+                            Spacer()
+                            Button {
+                                Task {
+                                    // Mark all notifications in this group as read
+                                    for notification in notifications {
+                                        await viewModel.markAsRead(notificationID: notification.id)
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 12))
+                            }
+                        }
                     }
                 }
             }

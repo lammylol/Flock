@@ -76,22 +76,20 @@ class NotificationViewModel {
         print("DEBUG: Marking notification as read - ID: \(notificationID)")
         await notificationHelper.markNotificationAsRead(notificationID: notificationID, userID: userID)
         
-        // Update local state
-        if let index = notifications.firstIndex(where: { $0.id == notificationID }) {
-            await MainActor.run {
-                notifications[index].isRead = true
-                updateUnreadCount()
-            }
+        // Remove this notification from the local array
+        await MainActor.run {
+            notifications.removeAll(where: { $0.id == notificationID })
+            updateUnreadCount()
         }
     }
-    
+
     func markAllAsRead() async {
         print("DEBUG: Marking all notifications as read for userID: \(userID)")
         await notificationHelper.markAllNotificationsAsRead(userID: userID)
         
-        // Update local state
+        // Clear all notifications from the local array
         await MainActor.run {
-            notifications = notifications.map { var notification = $0; notification.isRead = true; return notification }
+            notifications.removeAll()
             updateUnreadCount()
         }
     }
