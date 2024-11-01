@@ -114,7 +114,7 @@ import Observation
         }
     }
     
-    func addComment(postID: String, text: String) async throws {
+    func addComment(postID: String, text: String, postTitle: String) async throws {
         // Input validation
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             print("Attempted to add empty comment")
@@ -144,29 +144,18 @@ import Observation
             try await commentHelper.addComment(to: postID, comment: newComment)
             print("Comment added successfully")
             
-            // Use Post.blank and then set the ID
-            var tempPost = Post.blank
-            tempPost.id = postID
-            let post = try await postOperationsService.getPost(prayerRequest: tempPost, user: person)
-            
-            // Get unique previous commenters
-            let previousCommenters = Set(comments.map { $0.userID })
-            
-            // 1. Notify post owner if they're not the commenter
-            if post.userID != person.userID {
-                try await notificationHelper.createNotification(
-                    for: newComment,
-                    postTitle: post.postTitle,
-                    recipientID: post.userID
-                )
-            }
-            
-            for commenterID in previousCommenters where commenterID != person.userID {
-                try await notificationHelper.createNotification(
-                    for: newComment,
-                    postTitle: post.postTitle,
-                    recipientID: commenterID
-                )
+            // Get post owner and all unique commenters
+            if let postOwnerId = comments.first?.userID {
+                let uniqueRecipients = Set([postOwnerId] + comments.map { $0.userID })
+                
+                // Send notifications to everyone except the commenter
+                for recipientID in uniqueRecipients where recipientID != person.userID {
+                    try await notificationHelper.createNotification(
+                        for: newComment,
+                        postTitle: postTitle,  // Use the passed postTitle
+                        recipientID: recipientID
+                    )
+                }
             }
             
             await fetchInitialComments(for: postID)
@@ -176,6 +165,7 @@ import Observation
                 self.errorMessage = "Failed to add comment: \(error.localizedDescription)"
                 self.isLoading = false
             }
+            throw error  // Re-throw the error for the calling function to handle
         }
     }
     
@@ -189,7 +179,7 @@ import Observation
         do {
             try await commentHelper.updateComment(postID: postID, comment: comment)
             print("Comment updated successfully")
-            await fetchInitialComments(for: postID)  // Changed from fetchComments
+            await fetchInitialComments(for: postID)
         } catch {
             print("Error updating comment: \(error)")
             DispatchQueue.main.async {
@@ -205,7 +195,7 @@ import Observation
             return 
         }
         print("Refreshing comments for post: \(postID)")
-        await fetchInitialComments(for: postID)  // Changed from fetchComments
+        await fetchInitialComments(for: postID)
     }
 
     func deleteComment(postID: String, commentID: String) async {

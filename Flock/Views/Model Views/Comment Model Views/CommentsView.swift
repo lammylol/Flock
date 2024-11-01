@@ -10,6 +10,7 @@ import Observation
 
 struct CommentsView: View {
     let postID: String
+    let postTitle: String
     var isInSheet: Bool
     var viewModel: CommentViewModel
     
@@ -28,13 +29,6 @@ struct CommentsView: View {
             print("CommentsView task started for post \(postID)")
             await viewModel.fetchInitialComments(for: postID)
         }
-//        .onChange(of: postID) { newID in
-//            print("PostID changed to: \(newID)")
-//            Task {
-//                await viewModel.fetchInitialComments(for: newID)
-//                await fetchCommentsIfNeeded()
-//            }
-//        }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
@@ -146,16 +140,21 @@ struct CommentsView: View {
         newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    // Update the postComment function
+    // Updated postComment function with proper error handling
     private func postComment() async {
         guard !isCommentTextEmpty else { return }
-        try? await viewModel.addComment(postID: postID, text: newCommentText)
-        newCommentText = ""
-        isCommentFieldFocused = false
-        await viewModel.fetchInitialComments(for: postID)
+        
+        do {
+            try await viewModel.addComment(postID: postID, text: newCommentText, postTitle: postTitle)  // Add postTitle here
+            newCommentText = ""
+            isCommentFieldFocused = false
+            await viewModel.fetchInitialComments(for: postID)
+        } catch {
+            print("Error posting comment: \(error)")
+            viewModel.errorMessage = "Failed to post comment: \(error.localizedDescription)"
+        }
     }
     
-    // Update comment deletion
     private func deleteComment(_ comment: Comment) async {
         if let commentID = comment.id {
             await viewModel.deleteComment(postID: postID, commentID: commentID)

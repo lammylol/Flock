@@ -14,15 +14,14 @@ import FirebaseFirestore
 import FirebaseAuth
 import SwiftUI
 
-@MainActor
-class NotificationViewModel: ObservableObject {
-    @Published var notifications: [Notification] = []
-    @Published var unreadCount: Int = 0
-    @Published private(set) var userID: String
+@Observable
+class NotificationViewModel {
+    var notifications: [Notification] = []
+    var unreadCount: Int = 0
+    private(set) var userID: String
     private let notificationHelper = NotificationHelper()
     
     init(userID: String? = nil) {
-        // Use provided userID or get from Auth
         self.userID = userID ?? Auth.auth().currentUser?.uid ?? ""
         print("DEBUG: NotificationViewModel initialized with userID: \(self.userID)")
         print("DEBUG: Current Auth State - \(String(describing: Auth.auth().currentUser?.uid))")
@@ -76,10 +75,22 @@ class NotificationViewModel: ObservableObject {
     func markAsRead(notificationID: String) async {
         print("DEBUG: Marking notification as read - ID: \(notificationID)")
         await notificationHelper.markNotificationAsRead(notificationID: notificationID, userID: userID)
+        
+        // Remove this notification from the local array
+        await MainActor.run {
+            notifications.removeAll(where: { $0.id == notificationID })
+            updateUnreadCount()
+        }
     }
-    
+
     func markAllAsRead() async {
         print("DEBUG: Marking all notifications as read for userID: \(userID)")
         await notificationHelper.markAllNotificationsAsRead(userID: userID)
+        
+        // Clear all notifications from the local array
+        await MainActor.run {
+            notifications.removeAll()
+            updateUnreadCount()
+        }
     }
 }

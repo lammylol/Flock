@@ -25,13 +25,9 @@ struct TodayView: View {
     @State private var seeAllMyPosts: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
-
-    @StateObject private var notificationViewModel: NotificationViewModel
+    
+    @State private var notificationViewModel = NotificationViewModel()
     @State private var isPresentingNotifications: Bool = false
-
-    init() {
-        _notificationViewModel = StateObject(wrappedValue: NotificationViewModel(userID: ""))
-    }
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -86,21 +82,24 @@ struct TodayView: View {
                     post: .constant(post)
                 )
             }
+            .sheet(isPresented: $isPresentingNotifications) {
+                NotificationSheet(viewModel: notificationViewModel)
+            }
+            //            .path(isPresented: $isPresentingNotifications) {
+            //                NotificationSheet(viewModel: notificationViewModel)
+            //                }
+            //                .onAppear {
+            //                    // Update without optional binding since userID is non-optional
+            //                    notificationViewModel.updateUserID(userHolder.person.userID)
+            //                }
+            //                .onChange(of: userHolder.person.userID) { _, newValue in
+            //                    // Update directly without optional binding
+            //                    notificationViewModel.updateUserID(newValue)
+            //                }
+            //            }
         }
-//            .path(isPresented: $isPresentingNotifications) {
-//                NotificationSheet(viewModel: notificationViewModel)
-//                }
-//                .onAppear {
-//                    // Update without optional binding since userID is non-optional
-//                    notificationViewModel.updateUserID(userHolder.person.userID)
-//                }
-//                .onChange(of: userHolder.person.userID) { _, newValue in
-//                    // Update directly without optional binding
-//                    notificationViewModel.updateUserID(newValue)
-//                }
-//            }
     }
-    
+        
     // MARK: - Header View
     private func headerView() -> some View {
         VStack (alignment: .leading, spacing: 10) {
@@ -200,7 +199,7 @@ struct TodayView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
+    
     // MARK: - Friend Prayers View
     private func myFriendsView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -296,7 +295,7 @@ struct TodayView: View {
             }
         }
     }
-        
+    
     // Navigation destination
     private func navigationDestination(for value: String) -> some View {
         switch value {

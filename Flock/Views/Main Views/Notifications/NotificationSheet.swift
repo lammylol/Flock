@@ -1,5 +1,5 @@
-// Notification.swift
-// Flock 
+ // Notification.swift
+// Flock
 //
 // Main notification sheet view
 //
@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NotificationSheet: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var viewModel: NotificationViewModel
+    var viewModel: NotificationViewModel
     @State private var selectedNotification: Notification?
     @Environment(UserProfileHolder.self) var userHolder
     @Binding var navigationPath: NavigationPath
@@ -28,9 +28,24 @@ struct NotificationSheet: View {
                                 }
                         }
                     } header: {
-                        Text(notifications.first?.postTitle ?? "")
-                            .font(.system(size: 14))
-                            .fontWeight(.medium)
+                        HStack {
+                            Text(notifications.first?.postTitle ?? "")
+                                .font(.system(size: 14))
+                                .fontWeight(.medium)
+                            Spacer()
+                            Button {
+                                Task {
+                                    // Mark all notifications in this group as read
+                                    for notification in notifications {
+                                        await viewModel.markAsRead(notificationID: notification.id)
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 12))
+                            }
+                        }
                     }
                 }
             }
@@ -77,8 +92,66 @@ struct NotificationSheet: View {
                 ),
                 post: .constant(post)
             )
+            .listStyle(.insetGrouped)
             .task {
+                // Initialize when sheet appears
                 await viewModel.markAsRead(notificationID: notification.id)
+                viewModel.updateUserID(userHolder.person.userID)
+            }
+            .navigationTitle("Notifications")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Mark All Read") {
+                        Task {
+                            await viewModel.markAllAsRead()
+                        }
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            .sheet(item: $selectedNotification) { notification in
+                NavigationView {
+                    let post = Post(
+                        id: notification.postID,
+                        date: notification.timestamp,
+                        userID: notification.senderID,
+                        username: "",
+                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                        lastName: notification.senderName.components(separatedBy: " ").last ?? "",
+                        postTitle: notification.postTitle,
+                        postText: "",
+                        postType: "Note",
+                        status: "Current",
+                        privacy: "public",
+                        isPinned: false,
+                        lastSeenNotificationCount: 0
+                    )
+                    PostFullView(
+                        person: Person(
+                            userID: notification.senderID,
+                            username: "",
+                            firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                            lastName: notification.senderName.components(separatedBy: " ").last ?? ""
+                        ),
+                        post: .constant(post)
+                    )
+                    .task {
+                        await viewModel.markAsRead(notificationID: notification.id)
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Back") {
+                                selectedNotification = nil
+                            }
+                        }
+                    }
+                }
             }
         }
     }
