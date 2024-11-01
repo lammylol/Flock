@@ -14,15 +14,14 @@ import FirebaseFirestore
 import FirebaseAuth
 import SwiftUI
 
-@MainActor
-class NotificationViewModel: ObservableObject {
-    @Published var notifications: [Notification] = []
-    @Published var unreadCount: Int = 0
-    @Published private(set) var userID: String
+@Observable
+class NotificationViewModel {
+    var notifications: [Notification] = []
+    var unreadCount: Int = 0
+    private(set) var userID: String
     private let notificationHelper = NotificationHelper()
     
     init(userID: String? = nil) {
-        // Use provided userID or get from Auth
         self.userID = userID ?? Auth.auth().currentUser?.uid ?? ""
         print("DEBUG: NotificationViewModel initialized with userID: \(self.userID)")
         print("DEBUG: Current Auth State - \(String(describing: Auth.auth().currentUser?.uid))")

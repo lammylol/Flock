@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NotificationSheet: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var viewModel: NotificationViewModel
+    var viewModel: NotificationViewModel
     @State private var selectedNotification: Notification?
     @Environment(UserProfileHolder.self) var userHolder
     

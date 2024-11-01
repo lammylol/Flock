@@ -26,12 +26,8 @@ struct TodayView: View {
     
     @FocusState private var isTextFieldFocused: Bool
 
-    @StateObject private var notificationViewModel: NotificationViewModel
+    @State private var notificationViewModel = NotificationViewModel()
     @State private var isPresentingNotifications: Bool = false
-
-    init() {
-        _notificationViewModel = StateObject(wrappedValue: NotificationViewModel(userID: ""))
-    }
     
     var body: some View {
         NavigationStack(path: $navigationPath) {
