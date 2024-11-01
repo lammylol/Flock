@@ -52,32 +52,41 @@ struct NotificationSheet: View {
                 }
             }
             .sheet(item: $selectedNotification) { notification in
-                let post = Post(
-                    id: notification.postID,
-                    date: notification.timestamp,
-                    userID: notification.senderID,
-                    username: "",
-                    firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                    lastName: notification.senderName.components(separatedBy: " ").last ?? "",
-                    postTitle: notification.postTitle,
-                    postText: "",
-                    postType: "Note",
-                    status: "Current",
-                    privacy: "public",
-                    isPinned: false,
-                    lastSeenNotificationCount: 0
-                )
-                PostFullView(
-                    person: Person(
+                NavigationView {
+                    let post = Post(
+                        id: notification.postID,
+                        date: notification.timestamp,
                         userID: notification.senderID,
                         username: "",
                         firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                    ),
-                    post: .constant(post)
-                )
-                .task {
-                    await viewModel.markAsRead(notificationID: notification.id)
+                        lastName: notification.senderName.components(separatedBy: " ").last ?? "",
+                        postTitle: notification.postTitle,
+                        postText: "",
+                        postType: "Note",
+                        status: "Current",
+                        privacy: "public",
+                        isPinned: false,
+                        lastSeenNotificationCount: 0
+                    )
+                    PostFullView(
+                        person: Person(
+                            userID: notification.senderID,
+                            username: "",
+                            firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                            lastName: notification.senderName.components(separatedBy: " ").last ?? ""
+                        ),
+                        post: .constant(post)
+                    )
+                    .task {
+                        await viewModel.markAsRead(notificationID: notification.id)
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Back") {
+                                selectedNotification = nil
+                            }
+                        }
+                    }
                 }
             }
         }
