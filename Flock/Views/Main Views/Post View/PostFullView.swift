@@ -25,6 +25,7 @@ struct PostFullView: View {
     @State private var isTruncated: Bool = false
     @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
+    private var notificationHelper = NotificationHelper()
 
     init(person: Person, post: Binding<Post>) {
         _post = post
@@ -76,6 +77,19 @@ struct PostFullView: View {
         }
         .navigationTitle("Post")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var formattedPostTitle: String {
+        if !newPost.postTitle.isEmpty {
+            if newPost.postType == "Prayer Request" {
+                return "Prayer: \(newPost.postTitle)"
+            } else if newPost.postType == "Praise" {
+                return "Praise: \(newPost.postTitle)"
+            } else {
+                return "Note: \(newPost.postTitle)"
+            }
+        }
+        return "Post"
     }
     
     // MARK: - Post Header View
@@ -156,8 +170,13 @@ struct PostFullView: View {
             }
             
             if showComments, let viewModel = commentViewModel, !newPost.id.isEmpty {
-                CommentsView(postID: newPost.id, isInSheet: false, viewModel: viewModel)
-                    .id("commentsSection")
+                CommentsView(
+                    postID: newPost.id, 
+                    postTitle: formattedPostTitle,  // Add this
+                    isInSheet: false, 
+                    viewModel: viewModel
+                )
+                .id("commentsSection")
             }
         }
     }

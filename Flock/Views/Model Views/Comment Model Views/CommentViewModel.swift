@@ -114,7 +114,7 @@ import Observation
         }
     }
     
-    func addComment(postID: String, text: String) async throws {
+    func addComment(postID: String, text: String, postTitle: String) async throws {
         // Input validation
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             print("Attempted to add empty comment")
@@ -144,25 +144,18 @@ import Observation
             try await commentHelper.addComment(to: postID, comment: newComment)
             print("Comment added successfully")
             
-            // Get unique previous commenters
-            let previousCommenters = Set(comments.map { $0.userID })
-            
-            // Send notifications to post owner and other commenters
-            if let postOwnerId = comments.first?.userID, postOwnerId != person.userID {
-                try await notificationHelper.createNotification(
-                    for: newComment,
-                    postTitle: "", // PostFullView already has the post title
-                    recipientID: postOwnerId
-                )
-            }
-            
-            // Notify previous commenters
-            for commenterID in previousCommenters where commenterID != person.userID {
-                try await notificationHelper.createNotification(
-                    for: newComment,
-                    postTitle: "", // PostFullView already has the post title
-                    recipientID: commenterID
-                )
+            // Get post owner and all unique commenters
+            if let postOwnerId = comments.first?.userID {
+                let uniqueRecipients = Set([postOwnerId] + comments.map { $0.userID })
+                
+                // Send notifications to everyone except the commenter
+                for recipientID in uniqueRecipients where recipientID != person.userID {
+                    try await notificationHelper.createNotification(
+                        for: newComment,
+                        postTitle: postTitle,  // Use the passed postTitle
+                        recipientID: recipientID
+                    )
+                }
             }
             
             await fetchInitialComments(for: postID)

@@ -10,6 +10,7 @@ import Observation
 
 struct CommentsView: View {
     let postID: String
+    let postTitle: String
     var isInSheet: Bool
     var viewModel: CommentViewModel
     
@@ -148,7 +149,7 @@ struct CommentsView: View {
         guard !isCommentTextEmpty else { return }
         
         do {
-            try await viewModel.addComment(postID: postID, text: newCommentText)
+            try await viewModel.addComment(postID: postID, text: newCommentText, postTitle: postTitle)  // Add postTitle here
             newCommentText = ""
             isCommentFieldFocused = false
             await viewModel.fetchInitialComments(for: postID)
