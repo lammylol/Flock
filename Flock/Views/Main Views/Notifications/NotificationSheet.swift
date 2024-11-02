@@ -10,6 +10,7 @@ import SwiftUI
 struct NotificationSheet: View {
     @Environment(\.dismiss) var dismiss
     var viewModel: NotificationViewModel
+    @Binding var navigationPath: NavigationPath  // Added this line
     @State private var selectedNotification: Notification?
     @Environment(UserProfileHolder.self) var userHolder
     private let postOperationsService = PostOperationsService()
