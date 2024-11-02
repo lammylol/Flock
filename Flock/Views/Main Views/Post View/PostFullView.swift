@@ -78,9 +78,11 @@ struct PostFullView: View {
             }
         }
         .task {
-            // Initialize commentViewModel here where we have access to environment values
             if commentViewModel == nil {
-                commentViewModel = CommentViewModel(person: userHolder.person)
+                commentViewModel = CommentViewModel(
+                    person: userHolder.person, 
+                    post: newPost
+                )
             }
             loadPost()
             updateNotificationSeenIfNotificationCountExisted()
@@ -274,7 +276,7 @@ struct PostFullView: View {
     private func refreshPost() {
         Task {
             newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
-            await commentViewModel?.fetchInitialComments(for: newPost)
+            await commentViewModel?.fetchInitialComments()
             post = newPost
         }
     }

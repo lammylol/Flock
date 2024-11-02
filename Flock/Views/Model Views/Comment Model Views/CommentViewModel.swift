@@ -13,9 +13,9 @@ import Observation
 
 @Observable class CommentViewModel {
     private let commentHelper = CommentHelper()
-    private let postOperationsService = PostOperationsService()
     private let notificationHelper = NotificationHelper()
     private let person: Person
+    private let post: Post
     
     var comments: [Comment] = []
     var isLoading = false
@@ -25,19 +25,19 @@ import Observation
     var hasMoreComments = true
     let commentsPerPage = 3
     
-    private var currentPost: Post?
     private var lastCommentSnapshot: QueryDocumentSnapshot?
     
-    init(person: Person) {
+    init(person: Person, post: Post) {
         self.person = person
+        self.post = post
+        
+        // Fetch initial comments when initialized
+        Task {
+            await fetchInitialComments()
+        }
     }
 
-    func fetchInitialComments(for post: Post) async {
-        guard !post.id.isEmpty else {
-            print("Attempted to fetch comments with empty postID")
-            return
-        }
-        
+    func fetchInitialComments() async {
         print("Fetching initial comments for post: \(post.id)")
         DispatchQueue.main.async {
             self.isLoading = true
@@ -45,7 +45,6 @@ import Observation
             self.comments = []
             self.hasMoreComments = true
             self.lastCommentSnapshot = nil
-            self.currentPost = post
         }
         
         do {
@@ -58,12 +57,10 @@ import Observation
             print("Fetched initial \(result.comments.count) comments")
             
             DispatchQueue.main.async {
-                if self.currentPost?.id == post.id {
-                    self.comments = result.comments
-                    self.lastCommentSnapshot = result.lastSnapshot
-                    self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
-                    self.isLoading = false
-                }
+                self.comments = result.comments
+                self.lastCommentSnapshot = result.lastSnapshot
+                self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
+                self.isLoading = false
             }
         } catch {
             print("Error fetching initial comments: \(error)")
@@ -75,8 +72,7 @@ import Observation
     }
     
     func fetchMoreComments() async {
-        guard let post = currentPost,
-              !isLoadingMore,
+        guard !isLoadingMore,
               hasMoreComments,
               let lastSnapshot = lastCommentSnapshot else {
             print("Skipping fetchMoreComments - conditions not met")
@@ -99,11 +95,9 @@ import Observation
             print("Fetched additional \(result.comments.count) comments")
             
             DispatchQueue.main.async {
-                if self.currentPost?.id == post.id {
-                    self.comments.append(contentsOf: result.comments)
-                    self.lastCommentSnapshot = result.lastSnapshot
-                    self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
-                }
+                self.comments.append(contentsOf: result.comments)
+                self.lastCommentSnapshot = result.lastSnapshot
+                self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
                 self.isLoadingMore = false
             }
         } catch {
@@ -116,11 +110,6 @@ import Observation
     }
     
     func addComment(text: String) async throws {
-        guard let post = currentPost else {
-            print("DEBUG: No current post available")
-            return
-        }
-        
         // Input validation
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             print("Attempted to add empty comment")
@@ -168,7 +157,7 @@ import Observation
                 )
             }
             
-            await fetchInitialComments(for: post)
+            await fetchInitialComments()
         } catch {
             print("Error adding comment: \(error)")
             DispatchQueue.main.async {
@@ -179,46 +168,7 @@ import Observation
         }
     }
     
-    func updateComment(comment: Comment) async {
-        guard let post = currentPost else {
-            print("DEBUG: No current post available")
-            return
-        }
-        
-        print("Updating comment: \(comment.id) in post: \(post.id)")
-        DispatchQueue.main.async {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
-        
-        do {
-            try await commentHelper.updateComment(postID: post.id, comment: comment)
-            print("Comment updated successfully")
-            await fetchInitialComments(for: post)
-        } catch {
-            print("Error updating comment: \(error)")
-            DispatchQueue.main.async {
-                self.errorMessage = "Failed to update comment: \(error.localizedDescription)"
-                self.isLoading = false
-            }
-        }
-    }
-    
-    func refreshComments() async {
-        guard let post = currentPost else { 
-            print("No current post available, cannot refresh comments")
-            return 
-        }
-        print("Refreshing comments for post: \(post.id)")
-        await fetchInitialComments(for: post)
-    }
-
     func deleteComment(commentID: String) async {
-        guard let post = currentPost else {
-            print("DEBUG: No current post available")
-            return
-        }
-        
         print("Deleting comment: \(commentID) from post: \(post.id)")
         DispatchQueue.main.async {
             self.isLoading = true
@@ -228,7 +178,7 @@ import Observation
         do {
             try await commentHelper.deleteComment(postID: post.id, commentID: commentID)
             print("Comment deleted successfully")
-            await fetchInitialComments(for: post)
+            await fetchInitialComments()
         } catch {
             print("Error deleting comment: \(error)")
             DispatchQueue.main.async {

@@ -53,18 +53,47 @@ struct NotificationSheet: View {
             }
             .sheet(item: $selectedNotification) { notification in
                 NavigationView {
-                    PostFullViewContainer(
-                        notification: notification,
-                        viewModel: viewModel,
-                        userHolder: userHolder,
-                        onDismiss: {
-                            selectedNotification = nil
-                            // Check if the post still exists and clean up if it doesn't
-                            Task {
-                                await checkAndCleanupDeletedUserNotifications(notification)
+                    let person = Person(
+                        userID: notification.senderID,
+                        username: "",
+                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
+                    )
+                    
+                    let post = Post(
+                        id: notification.postID,
+                        date: notification.timestamp,
+                        userID: notification.senderID,
+                        username: "",
+                        firstName: person.firstName,
+                        lastName: person.lastName,
+                        postTitle: notification.postTitle,
+                        postText: "",
+                        postType: "Note",
+                        status: "Current",
+                        latestUpdateText: "",
+                        latestUpdateDatePosted: notification.timestamp,
+                        latestUpdateType: "",
+                        privacy: "public",
+                        isPinned: false,
+                        lastSeenNotificationCount: 0
+                    )
+                    
+                    PostFullView(
+                        person: person,
+                        post: .constant(post),
+                        isFromNotificationSheet: true
+                    )
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Back") {
+                                selectedNotification = nil
+                                Task {
+                                    await viewModel.clearPostNotifications(postID: notification.postID)
+                                }
                             }
                         }
-                    )
+                    }
                 }
             }
         }
@@ -139,68 +168,6 @@ struct NotificationSection: View {
                         .foregroundColor(.gray)
                         .font(.system(size: 12))
                 }
-            }
-        }
-    }
-}
-
-struct PostFullViewContainer: View {
-    let notification: Notification
-    let viewModel: NotificationViewModel
-    let userHolder: UserProfileHolder
-    let onDismiss: () -> Void
-    @State private var post: Post
-    
-    init(notification: Notification, viewModel: NotificationViewModel, userHolder: UserProfileHolder, onDismiss: @escaping () -> Void) {
-        self.notification = notification
-        self.viewModel = viewModel
-        self.userHolder = userHolder
-        self.onDismiss = onDismiss
-        
-        // Initialize the post
-        let initialPost = Post(
-            id: notification.postID,
-            date: notification.timestamp,
-            userID: notification.senderID,
-            username: "",
-            firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-            lastName: notification.senderName.components(separatedBy: " ").last ?? "",
-            postTitle: notification.postTitle,
-            postText: "",
-            postType: "Note",
-            status: "Current",
-            latestUpdateText: "",
-            latestUpdateDatePosted: notification.timestamp,
-            latestUpdateType: "",
-            privacy: "public",
-            isPinned: false,
-            lastSeenNotificationCount: 0
-        )
-        _post = State(initialValue: initialPost)
-    }
-    
-    var body: some View {
-        PostFullView(
-            person: Person(
-                userID: notification.senderID,
-                username: "",
-                firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-            ),
-            post: $post,
-            isFromNotificationSheet: true
-        )
-        .task {
-            if let fullPost = try? await PostOperationsService().getPost(
-                prayerRequest: post,
-                user: userHolder.person
-            ) {
-                post = fullPost
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("Back", action: onDismiss)
             }
         }
     }

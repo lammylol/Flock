@@ -24,10 +24,6 @@ struct CommentsView: View {
             errorView
             commentInputField
         }
-        .task {
-            print("CommentsView task started for post \(post.id)")
-            await viewModel.fetchInitialComments(for: post)
-        }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
@@ -38,7 +34,7 @@ struct CommentsView: View {
             print("PostID is empty, not fetching comments")
             return
         }
-        await viewModel.fetchInitialComments(for: post)
+        await viewModel.fetchInitialComments()  // Removed the post parameter
     }
     
     private var commentsList: some View {
@@ -202,7 +198,6 @@ struct CommentRow: View {
                         .padding(8)
                 }
                 .highPriorityGesture(TapGesture())
-
             }
         }
         .confirmationDialog(
