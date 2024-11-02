@@ -49,7 +49,8 @@ class NotificationViewModel {
         // Remove existing listener if there is one
         listener?.remove()
         
-        listener = notificationHelper.listenForNotifications(userID: userID) { [weak self] (result: Result<[Notification], NotificationError>) in
+        // Store the returned ListenerRegistration
+        listener = notificationHelper.listenForNotifications(userID: userID) { [weak self] result in
             guard let self = self else { return }
             
             switch result {

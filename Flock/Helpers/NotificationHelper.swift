@@ -11,7 +11,8 @@ import FirebaseAuth
 
 enum NotificationError: Error {
     case firestoreError(Error)
-    case invalidData
+    case noData
+    case decodingError
 }
 
 class NotificationHelper {
@@ -51,39 +52,29 @@ class NotificationHelper {
         }
     }
     
-    func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) {
-        guard !userID.isEmpty else {
-            completion(.failure(NotificationError.invalidData))
-            return
-        }
-        
-        db.collection(notificationsCollection)
+    @discardableResult
+    func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) -> ListenerRegistration {
+        let notificationsRef = db.collection(notificationsCollection)
             .document(userID)
             .collection("userNotifications")
-            .order(by: "timestamp", descending: true)
-            .addSnapshotListener { snapshot, error in
-                if let error = error {
-                    completion(.failure(NotificationError.firestoreError(error)))
-                    return
-                }
-                
-                guard let documents = snapshot?.documents else {
-                    completion(.failure(NotificationError.invalidData))
-                    return
-                }
-                
-                let notifications = documents.compactMap { document -> Notification? in
-                    var data = document.data()
-                    if let timestamp = data["timestamp"] as? Timestamp {
-                        data["timestamp"] = timestamp
-                    } else {
-                        data["timestamp"] = Timestamp(date: Date())
-                    }
-                    return Notification(id: document.documentID, data: data)
-                }
-                
-                completion(.success(notifications))
+        
+        return notificationsRef.addSnapshotListener { querySnapshot, error in
+            if let error = error {
+                completion(.failure(.firestoreError(error)))
+                return
             }
+            
+            guard let documents = querySnapshot?.documents else {
+                completion(.failure(.noData))
+                return
+            }
+            
+            let notifications = documents.compactMap { document -> Notification? in
+                Notification(id: document.documentID, data: document.data())
+            }
+            
+            completion(.success(notifications))
+        }
     }
     
     func markNotificationAsRead(notificationID: String, userID: String) async {
