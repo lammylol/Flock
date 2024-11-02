@@ -185,13 +185,17 @@ struct PostFullView: View {
                 Spacer()
             }
             
-            if showComments, let viewModel = commentViewModel, !newPost.id.isEmpty {
-                CommentsView(
-                    post: newPost,
-                    isInSheet: false, 
-                    viewModel: viewModel
-                )
-                .id("commentsSection")
+            // Update this condition to check for valid post ID
+            if showComments, let viewModel = commentViewModel {
+                // Wait for post to be loaded before showing comments
+                if !newPost.id.isEmpty {
+                    CommentsView(
+                        post: newPost,
+                        isInSheet: false, 
+                        viewModel: viewModel
+                    )
+                    .id("commentsSection")
+                }
             }
         }
     }
@@ -261,6 +265,13 @@ struct PostFullView: View {
     private func loadPost() {
         Task {
             newPost = post
+            // Initialize CommentViewModel after post is loaded
+            if commentViewModel == nil && !newPost.id.isEmpty {
+                commentViewModel = CommentViewModel(
+                    person: userHolder.person, 
+                    post: newPost
+                )
+            }
         }
     }
     

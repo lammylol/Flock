@@ -1,10 +1,3 @@
-// CommentViewModel.swift
-// Flock 
-//
-// Handles logic for comment operations and manages the state of comments for a given post
-//
-// Created by Ramon Jiang 09/07/24
-
 import SwiftUI
 import FirebaseFirestore
 import Foundation
@@ -12,6 +5,7 @@ import Combine
 import Observation
 
 @Observable class CommentViewModel {
+    // MARK: - Properties
     private let commentHelper = CommentHelper()
     private let notificationHelper = NotificationHelper()
     private let person: Person
@@ -25,11 +19,26 @@ import Observation
     var hasMoreComments = true
     let commentsPerPage = 3
     
+    // Track initialization and validation state
+    private var isInitialized = false
+    private var isValid: Bool {
+        return !post.id.isEmpty && !person.userID.isEmpty
+    }
+    
     private var lastCommentSnapshot: QueryDocumentSnapshot?
     
+    // MARK: - Initialization
     init(person: Person, post: Post) {
         self.person = person
         self.post = post
+        
+        // Validate initialization data
+        guard isValid else {
+            errorMessage = "Invalid initialization data: \(post.id.isEmpty ? "missing post ID" : "missing user ID")"
+            return
+        }
+        
+        isInitialized = true
         
         // Fetch initial comments when initialized
         Task {
@@ -37,9 +46,28 @@ import Observation
         }
     }
 
+    // MARK: - Public Methods
     func fetchInitialComments() async {
+        // Validate state before proceeding
+        guard isValid else {
+            await MainActor.run {
+                self.errorMessage = "Cannot fetch comments: invalid post or user data"
+                self.isLoading = false
+            }
+            return
+        }
+        
+        guard isInitialized else {
+            await MainActor.run {
+                self.errorMessage = "ViewModel not properly initialized"
+                self.isLoading = false
+            }
+            return
+        }
+        
         print("Fetching initial comments for post: \(post.id)")
-        DispatchQueue.main.async {
+        
+        await MainActor.run {
             self.isLoading = true
             self.errorMessage = nil
             self.comments = []
@@ -54,17 +82,20 @@ import Observation
                 lastCommentSnapshot: nil
             )
             
-            print("Fetched initial \(result.comments.count) comments")
-            
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.comments = result.comments
                 self.lastCommentSnapshot = result.lastSnapshot
                 self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
                 self.isLoading = false
+                
+                if result.comments.isEmpty {
+                    // Not an error state, just informational
+                    print("No comments found for post")
+                }
             }
         } catch {
             print("Error fetching initial comments: \(error)")
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.errorMessage = "Failed to fetch comments: \(error.localizedDescription)"
                 self.isLoading = false
             }
@@ -72,6 +103,14 @@ import Observation
     }
     
     func fetchMoreComments() async {
+        // Validate state and conditions for fetching more
+        guard isValid && isInitialized else {
+            await MainActor.run {
+                self.errorMessage = "Cannot fetch more comments: invalid state"
+            }
+            return
+        }
+        
         guard !isLoadingMore,
               hasMoreComments,
               let lastSnapshot = lastCommentSnapshot else {
@@ -79,9 +118,7 @@ import Observation
             return
         }
         
-        print("Fetching more comments after \(comments.count) comments")
-        
-        DispatchQueue.main.async {
+        await MainActor.run {
             self.isLoadingMore = true
         }
         
@@ -92,17 +129,14 @@ import Observation
                 lastCommentSnapshot: lastSnapshot
             )
             
-            print("Fetched additional \(result.comments.count) comments")
-            
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.comments.append(contentsOf: result.comments)
                 self.lastCommentSnapshot = result.lastSnapshot
                 self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
                 self.isLoadingMore = false
             }
         } catch {
-            print("Error fetching more comments: \(error)")
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.errorMessage = "Failed to fetch more comments: \(error.localizedDescription)"
                 self.isLoadingMore = false
             }
@@ -110,17 +144,16 @@ import Observation
     }
     
     func addComment(text: String) async throws {
-        // Input validation
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            print("Attempted to add empty comment")
-            DispatchQueue.main.async {
-                self.errorMessage = "Comment text cannot be empty"
-            }
-            return
+        // Validate state and input
+        guard isValid && isInitialized else {
+            throw CommentError.invalidState("Cannot add comment: invalid state")
         }
         
-        print("Adding comment to post: \(post.id)")
-        DispatchQueue.main.async {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw CommentError.invalidInput("Comment text cannot be empty")
+        }
+        
+        await MainActor.run {
             self.isLoading = true
             self.errorMessage = nil
         }
@@ -136,19 +169,15 @@ import Observation
         )
         
         do {
+            // Add the comment
             try await commentHelper.addComment(to: post.id, comment: newComment)
-            print("Comment added successfully")
             
-            // Get unique commenters from current page
+            // Get unique commenters for notifications
             let commentersIds = Set(comments.map { $0.userID })
-            print("DEBUG: Current page commenters: \(commentersIds)")
-            
-            // Combine post owner and commenters
             var uniqueRecipients = commentersIds
             uniqueRecipients.insert(post.userID)
-            print("DEBUG: All recipients including owner: \(uniqueRecipients)")
             
-            // Send notifications to everyone except the commenter
+            // Send notifications
             for recipientID in uniqueRecipients where recipientID != person.userID {
                 try await notificationHelper.createNotification(
                     for: newComment,
@@ -157,10 +186,10 @@ import Observation
                 )
             }
             
+            // Refresh comments
             await fetchInitialComments()
         } catch {
-            print("Error adding comment: \(error)")
-            DispatchQueue.main.async {
+            await MainActor.run {
                 self.errorMessage = "Failed to add comment: \(error.localizedDescription)"
                 self.isLoading = false
             }
@@ -168,22 +197,16 @@ import Observation
         }
     }
     
-    func deleteComment(commentID: String) async {
-        print("Deleting comment: \(commentID) from post: \(post.id)")
-        DispatchQueue.main.async {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
+    // MARK: - Custom Error Type
+    enum CommentError: LocalizedError {
+        case invalidState(String)
+        case invalidInput(String)
         
-        do {
-            try await commentHelper.deleteComment(postID: post.id, commentID: commentID)
-            print("Comment deleted successfully")
-            await fetchInitialComments()
-        } catch {
-            print("Error deleting comment: \(error)")
-            DispatchQueue.main.async {
-                self.errorMessage = "Failed to delete comment: \(error.localizedDescription)"
-                self.isLoading = false
+        var errorDescription: String? {
+            switch self {
+            case .invalidState(let message),
+                 .invalidInput(let message):
+                return message
             }
         }
     }
