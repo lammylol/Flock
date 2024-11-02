@@ -29,18 +29,27 @@ class NotificationHelper {
             return
         }
         
-        let notificationData: [String: Any] = [
-            "postID": comment.postID,
-            "postTitle": postTitle,
-            "senderID": comment.userID,
-            "senderName": "\(comment.firstName) \(comment.lastName)",
-            "recipientID": recipientID,
-            "type": "new_comment",
-            "timestamp": FieldValue.serverTimestamp(),
-            "isRead": false
-        ]
-        
+        // Check if recipient still exists
         do {
+            let userRef = db.collection("users").document(recipientID)
+            let userDoc = try await userRef.getDocument()
+            
+            guard userDoc.exists else {
+                print("DEBUG: Recipient user no longer exists, skipping notification")
+                return
+            }
+            
+            let notificationData: [String: Any] = [
+                "postID": comment.postID,
+                "postTitle": postTitle,
+                "senderID": comment.userID,
+                "senderName": "\(comment.firstName) \(comment.lastName)",
+                "recipientID": recipientID,
+                "type": "new_comment",
+                "timestamp": FieldValue.serverTimestamp(),
+                "isRead": false
+            ]
+            
             try await db.collection(notificationsCollection)
                 .document(recipientID)
                 .collection("userNotifications")

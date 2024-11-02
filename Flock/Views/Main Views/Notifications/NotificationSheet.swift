@@ -12,6 +12,7 @@ struct NotificationSheet: View {
     var viewModel: NotificationViewModel
     @State private var selectedNotification: Notification?
     @Environment(UserProfileHolder.self) var userHolder
+    private let postOperationsService = PostOperationsService()
     
     var body: some View {
         NavigationView {
@@ -56,10 +57,39 @@ struct NotificationSheet: View {
                         notification: notification,
                         viewModel: viewModel,
                         userHolder: userHolder,
-                        onDismiss: { selectedNotification = nil }
+                        onDismiss: {
+                            selectedNotification = nil
+                            // Check if the post still exists and clean up if it doesn't
+                            Task {
+                                await checkAndCleanupDeletedUserNotifications(notification)
+                            }
+                        }
                     )
                 }
             }
+        }
+    }
+
+    // Fixed function to check and cleanup notifications from deleted users
+    private func checkAndCleanupDeletedUserNotifications(_ notification: Notification) async {
+        do {
+            let dummyPost = Post(
+                id: notification.postID,
+                userID: notification.senderID
+            )
+            
+            do {
+                _ = try await postOperationsService.getPost(
+                    prayerRequest: dummyPost,
+                    user: userHolder.person
+                )
+            } catch {
+                // If we can't fetch the post, assume the user is deleted
+                print("DEBUG: Post/User not found, cleaning up notifications")
+                await viewModel.clearPostNotifications(postID: notification.postID)
+            }
+        } catch {
+            print("DEBUG: Error checking post existence: \(error)")
         }
     }
     
