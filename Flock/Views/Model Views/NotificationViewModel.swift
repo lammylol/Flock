@@ -75,21 +75,18 @@ class NotificationViewModel {
     func markAsRead(notificationID: String) async {
         print("DEBUG: Marking notification as read - ID: \(notificationID)")
         await notificationHelper.markNotificationAsRead(notificationID: notificationID, userID: userID)
-        
-        // Remove this notification from the local array
-        await MainActor.run {
-            notifications.removeAll(where: { $0.id == notificationID })
-            updateUnreadCount()
-        }
     }
 
     func markAllAsRead() async {
         print("DEBUG: Marking all notifications as read for userID: \(userID)")
         await notificationHelper.markAllNotificationsAsRead(userID: userID)
-        
-        // Clear all notifications from the local array
+    }
+    
+    func clearPostNotifications(notificationID: String) async {
+        print("DEBUG: Clearing post notifications for userID: \(userID)")
+        await notificationHelper.markAllNotificationsAsRead(userID: userID)
         await MainActor.run {
-            notifications.removeAll()
+            notifications.removeAll(where: { $0.id == notificationID })
             updateUnreadCount()
         }
     }

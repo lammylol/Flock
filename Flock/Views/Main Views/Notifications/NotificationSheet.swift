@@ -36,7 +36,7 @@ struct NotificationSheet: View {
                                 Task {
                                     // Mark all notifications in this group as read
                                     for notification in notifications {
-                                        await viewModel.markAsRead(notificationID: notification.id)
+                                        await viewModel.clearPostNotifications(notificationID: notification.id)
                                     }
                                 }
                             } label: {
