@@ -76,4 +76,15 @@ class NotificationViewModel {
             updateUnreadCount()
         }
     }
+
+    // Add new function to mark all notifications for a post as read
+    func markPostNotificationsAsRead(postID: String) async {
+        // Get all notifications for this post
+        let postNotifications = notifications.filter { $0.postID == postID }
+        
+        // Mark each unread notification as read
+        for notification in postNotifications where !notification.isRead {
+            await notificationHelper.markNotificationAsRead(notificationID: notification.id, userID: userID)
+        }
+    }
 }
