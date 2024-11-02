@@ -25,7 +25,7 @@ struct TodayView: View {
     @State private var seeAllMyPosts: Bool = false
     
     @FocusState private var isTextFieldFocused: Bool
-
+    
     @State private var notificationViewModel = NotificationViewModel()
     @State private var isPresentingNotifications: Bool = false
     
@@ -48,19 +48,58 @@ struct TodayView: View {
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post) // Pass binding for post  
+                    post: .constant(post) // Pass binding for post
                 )
             }
             .toolbarBackground(Color.primary, for: .bottomBar)
             .sheet(isPresented: $showCreatePost) {
                 PostCreateView(person: userHolder.person, postType: postType)
             }
-        .sheet(isPresented: $isPresentingNotifications) {
-            NotificationSheet(viewModel: notificationViewModel)
+            .navigationDestination(for: String.self, destination: navigationDestination)
+            .navigationDestination(for: Notification.self) { notification in
+                let post = Post(
+                    id: notification.postID,
+                    date: notification.timestamp,
+                    userID: notification.senderID,
+                    username: "",
+                    firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                    lastName: notification.senderName.components(separatedBy: " ").last ?? "",
+                    postTitle: notification.postTitle,
+                    postText: "",
+                    postType: "Note",
+                    status: "Current",
+                    privacy: "public",
+                    isPinned: false,
+                    lastSeenNotificationCount: 0
+                )
+                PostFullView(
+                    person: Person(
+                        userID: notification.senderID,
+                        username: "",
+                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
+                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
+                    ),
+                    post: .constant(post)
+                )
             }
+            .sheet(isPresented: $isPresentingNotifications) {
+                NotificationSheet(viewModel: notificationViewModel, navigationPath: $navigationPath)
+            }
+            //            .path(isPresented: $isPresentingNotifications) {
+            //                NotificationSheet(viewModel: notificationViewModel)
+            //                }
+            //                .onAppear {
+            //                    // Update without optional binding since userID is non-optional
+            //                    notificationViewModel.updateUserID(userHolder.person.userID)
+            //                }
+            //                .onChange(of: userHolder.person.userID) { _, newValue in
+            //                    // Update directly without optional binding
+            //                    notificationViewModel.updateUserID(newValue)
+            //                }
+            //            }
         }
     }
-    
+        
     // MARK: - Header View
     private func headerView() -> some View {
         VStack (alignment: .leading, spacing: 10) {
@@ -72,6 +111,26 @@ struct TodayView: View {
                     .font(Font.title)
                     .fontWeight(.light)
                 Spacer()
+                
+                Button {
+                    navigationPath.append("notifications")
+                } label: {
+                    ZStack(alignment: .topTrailing) {
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(Color.primary)
+                        
+                        if notificationViewModel.unreadCount > 0 {
+                            Text("\(notificationViewModel.unreadCount)")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white)
+                                .padding(4)
+                                .background(Color.blue)
+                                .clipShape(Circle())
+                                .offset(x: 10, y: -10)
+                        }
+                    }
+                }
             }
             .padding(.top, 20)
         }
@@ -140,7 +199,7 @@ struct TodayView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
+    
     // MARK: - Friend Prayers View
     private func myFriendsView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -175,28 +234,6 @@ struct TodayView: View {
                 .font(.system(size: 20))
                 .fontWeight(.medium)
             Spacer()
-            
-            if text == "What's On Your Mind?" {
-                Button {
-                    isPresentingNotifications.toggle()
-                } label: {
-                    ZStack(alignment: .topTrailing) {
-                        Image(systemName: "bell.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(Color.primary)
-                        
-                        if notificationViewModel.unreadCount > 0 {
-                            Text("\(notificationViewModel.unreadCount)")
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                                .padding(4)
-                                .background(Color.blue)
-                                .clipShape(Circle())
-                                .offset(x: 10, y: -10)
-                        }
-                    }
-                }
-            }
         }
     }
     
@@ -256,6 +293,16 @@ struct TodayView: View {
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }
+        }
+    }
+    
+    // Navigation destination
+    private func navigationDestination(for value: String) -> some View {
+        switch value {
+        case "notifications":
+            return AnyView(NotificationSheet(viewModel: notificationViewModel, navigationPath: $navigationPath))
+        default:
+            return AnyView(EmptyView()) // Provide an empty view for other cases
         }
     }
 }
