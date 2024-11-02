@@ -16,40 +16,41 @@ import Observation
     private let postOperationsService = PostOperationsService()
     private let notificationHelper = NotificationHelper()
     private let person: Person
+    
     var comments: [Comment] = []
     var isLoading = false
     var isLoadingMore = false
     var errorMessage: String?
     var scrollToEnd: Bool = false
     var hasMoreComments = true
-    let commentsPerPage = 3  // Changed from private to public
+    let commentsPerPage = 3
     
-    private var currentPostID: String?
+    private var currentPost: Post?
     private var lastCommentSnapshot: QueryDocumentSnapshot?
     
     init(person: Person) {
         self.person = person
     }
 
-    func fetchInitialComments(for postID: String) async {
-        guard !postID.isEmpty else {
+    func fetchInitialComments(for post: Post) async {
+        guard !post.id.isEmpty else {
             print("Attempted to fetch comments with empty postID")
             return
         }
         
-        print("Fetching initial comments for post: \(postID)")
+        print("Fetching initial comments for post: \(post.id)")
         DispatchQueue.main.async {
             self.isLoading = true
             self.errorMessage = nil
             self.comments = []
             self.hasMoreComments = true
             self.lastCommentSnapshot = nil
+            self.currentPost = post
         }
-        currentPostID = postID
         
         do {
             let result = try await commentHelper.getComments(
-                for: postID,
+                for: post.id,
                 limit: commentsPerPage,
                 lastCommentSnapshot: nil
             )
@@ -57,7 +58,7 @@ import Observation
             print("Fetched initial \(result.comments.count) comments")
             
             DispatchQueue.main.async {
-                if self.currentPostID == postID {
+                if self.currentPost?.id == post.id {
                     self.comments = result.comments
                     self.lastCommentSnapshot = result.lastSnapshot
                     self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
@@ -74,7 +75,7 @@ import Observation
     }
     
     func fetchMoreComments() async {
-        guard let postID = currentPostID,
+        guard let post = currentPost,
               !isLoadingMore,
               hasMoreComments,
               let lastSnapshot = lastCommentSnapshot else {
@@ -90,7 +91,7 @@ import Observation
         
         do {
             let result = try await commentHelper.getComments(
-                for: postID,
+                for: post.id,
                 limit: commentsPerPage,
                 lastCommentSnapshot: lastSnapshot
             )
@@ -98,7 +99,7 @@ import Observation
             print("Fetched additional \(result.comments.count) comments")
             
             DispatchQueue.main.async {
-                if self.currentPostID == postID {
+                if self.currentPost?.id == post.id {
                     self.comments.append(contentsOf: result.comments)
                     self.lastCommentSnapshot = result.lastSnapshot
                     self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
@@ -114,7 +115,12 @@ import Observation
         }
     }
     
-    func addComment(postID: String, text: String, postTitle: String) async throws {
+    func addComment(text: String) async throws {
+        guard let post = currentPost else {
+            print("DEBUG: No current post available")
+            return
+        }
+        
         // Input validation
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             print("Attempted to add empty comment")
@@ -124,14 +130,14 @@ import Observation
             return
         }
         
-        print("Adding comment to post: \(postID)")
+        print("Adding comment to post: \(post.id)")
         DispatchQueue.main.async {
             self.isLoading = true
             self.errorMessage = nil
         }
         
         let newComment = Comment(
-            postID: postID,
+            postID: post.id,
             userID: person.userID,
             username: person.username,
             firstName: person.firstName,
@@ -141,45 +147,54 @@ import Observation
         )
         
         do {
-            try await commentHelper.addComment(to: postID, comment: newComment)
+            try await commentHelper.addComment(to: post.id, comment: newComment)
             print("Comment added successfully")
             
-            // Get post owner and all unique commenters
-            if let postOwnerId = comments.first?.userID {
-                let uniqueRecipients = Set([postOwnerId] + comments.map { $0.userID })
-                
-                // Send notifications to everyone except the commenter
-                for recipientID in uniqueRecipients where recipientID != person.userID {
-                    try await notificationHelper.createNotification(
-                        for: newComment,
-                        postTitle: postTitle,  // Use the passed postTitle
-                        recipientID: recipientID
-                    )
-                }
+            // Get unique commenters from current page
+            let commentersIds = Set(comments.map { $0.userID })
+            print("DEBUG: Current page commenters: \(commentersIds)")
+            
+            // Combine post owner and commenters
+            var uniqueRecipients = commentersIds
+            uniqueRecipients.insert(post.userID)
+            print("DEBUG: All recipients including owner: \(uniqueRecipients)")
+            
+            // Send notifications to everyone except the commenter
+            for recipientID in uniqueRecipients where recipientID != person.userID {
+                try await notificationHelper.createNotification(
+                    for: newComment,
+                    postTitle: post.postTitle,
+                    recipientID: recipientID
+                )
             }
             
-            await fetchInitialComments(for: postID)
+            await fetchInitialComments(for: post)
         } catch {
             print("Error adding comment: \(error)")
             DispatchQueue.main.async {
                 self.errorMessage = "Failed to add comment: \(error.localizedDescription)"
                 self.isLoading = false
             }
-            throw error  // Re-throw the error for the calling function to handle
+            throw error
         }
     }
     
-    func updateComment(postID: String, comment: Comment) async {
-        print("Updating comment: \(comment.id) in post: \(postID)")
+    func updateComment(comment: Comment) async {
+        guard let post = currentPost else {
+            print("DEBUG: No current post available")
+            return
+        }
+        
+        print("Updating comment: \(comment.id) in post: \(post.id)")
         DispatchQueue.main.async {
             self.isLoading = true
             self.errorMessage = nil
         }
         
         do {
-            try await commentHelper.updateComment(postID: postID, comment: comment)
+            try await commentHelper.updateComment(postID: post.id, comment: comment)
             print("Comment updated successfully")
-            await fetchInitialComments(for: postID)
+            await fetchInitialComments(for: post)
         } catch {
             print("Error updating comment: \(error)")
             DispatchQueue.main.async {
@@ -190,25 +205,30 @@ import Observation
     }
     
     func refreshComments() async {
-        guard let postID = currentPostID else { 
-            print("No current post ID, cannot refresh comments")
+        guard let post = currentPost else { 
+            print("No current post available, cannot refresh comments")
             return 
         }
-        print("Refreshing comments for post: \(postID)")
-        await fetchInitialComments(for: postID)
+        print("Refreshing comments for post: \(post.id)")
+        await fetchInitialComments(for: post)
     }
 
-    func deleteComment(postID: String, commentID: String) async {
-        print("Deleting comment: \(commentID) from post: \(postID)")
+    func deleteComment(commentID: String) async {
+        guard let post = currentPost else {
+            print("DEBUG: No current post available")
+            return
+        }
+        
+        print("Deleting comment: \(commentID) from post: \(post.id)")
         DispatchQueue.main.async {
             self.isLoading = true
             self.errorMessage = nil
         }
         
         do {
-            try await commentHelper.deleteComment(postID: postID, commentID: commentID)
+            try await commentHelper.deleteComment(postID: post.id, commentID: commentID)
             print("Comment deleted successfully")
-            await fetchInitialComments(for: postID)
+            await fetchInitialComments(for: post)
         } catch {
             print("Error deleting comment: \(error)")
             DispatchQueue.main.async {

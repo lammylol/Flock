@@ -9,8 +9,7 @@ import SwiftUI
 import Observation
 
 struct CommentsView: View {
-    let postID: String
-    let postTitle: String
+    let post: Post
     var isInSheet: Bool
     var viewModel: CommentViewModel
     
@@ -26,8 +25,8 @@ struct CommentsView: View {
             commentInputField
         }
         .task {
-            print("CommentsView task started for post \(postID)")
-            await viewModel.fetchInitialComments(for: postID)
+            print("CommentsView task started for post \(post.id)")
+            await viewModel.fetchInitialComments(for: post)
         }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
@@ -35,11 +34,11 @@ struct CommentsView: View {
     }
 
     private func fetchCommentsIfNeeded() async {
-        guard !postID.isEmpty else {
+        guard !post.id.isEmpty else {
             print("PostID is empty, not fetching comments")
             return
         }
-        await viewModel.fetchInitialComments(for: postID)
+        await viewModel.fetchInitialComments(for: post)
     }
     
     private var commentsList: some View {
@@ -144,15 +143,13 @@ struct CommentsView: View {
         newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    // Updated postComment function with proper error handling
     private func postComment() async {
         guard !isCommentTextEmpty else { return }
         
         do {
-            try await viewModel.addComment(postID: postID, text: newCommentText, postTitle: postTitle)  // Add postTitle here
+            try await viewModel.addComment(text: newCommentText)
             newCommentText = ""
             isCommentFieldFocused = false
-            await viewModel.fetchInitialComments(for: postID)
         } catch {
             print("Error posting comment: \(error)")
             viewModel.errorMessage = "Failed to post comment: \(error.localizedDescription)"
@@ -161,7 +158,7 @@ struct CommentsView: View {
     
     private func deleteComment(_ comment: Comment) async {
         if let commentID = comment.id {
-            await viewModel.deleteComment(postID: postID, commentID: commentID)
+            await viewModel.deleteComment(commentID: commentID)
         }
     }
 }

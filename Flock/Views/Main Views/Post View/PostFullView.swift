@@ -185,8 +185,7 @@ struct PostFullView: View {
             
             if showComments, let viewModel = commentViewModel, !newPost.id.isEmpty {
                 CommentsView(
-                    postID: newPost.id, 
-                    postTitle: formattedPostTitle,  // Add this
+                    post: newPost,
                     isInSheet: false, 
                     viewModel: viewModel
                 )
@@ -275,7 +274,7 @@ struct PostFullView: View {
     private func refreshPost() {
         Task {
             newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
-            await commentViewModel?.fetchInitialComments(for: newPost.id)
+            await commentViewModel?.fetchInitialComments(for: newPost)
             post = newPost
         }
     }
