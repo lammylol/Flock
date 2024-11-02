@@ -141,4 +141,52 @@ class NotificationHelper {
             print("DEBUG: Error deleting notifications: \(error)")
         }
     }
+
+    // Add this new function to delete all notifications for a user
+    func deleteAllNotifications(userID: String) async throws {
+        guard !userID.isEmpty else { return }
+        
+        do {
+            // Delete notifications where user is recipient
+            let recipientRef = db.collection(notificationsCollection)
+                .document(userID)
+            
+            // Delete the entire userNotifications subcollection
+            let userNotifications = try await recipientRef.collection("userNotifications").getDocuments()
+            let batch = db.batch()
+            
+            for document in userNotifications.documents {
+                batch.deleteDocument(document.reference)
+            }
+            
+            // Delete the user's notifications document itself
+            batch.deleteDocument(recipientRef)
+            
+            try await batch.commit()
+            
+            // Delete notifications where user is sender
+            let allNotificationsQuery = db.collection(notificationsCollection)
+            let allNotificationDocs = try await allNotificationsQuery.getDocuments()
+            
+            for userDoc in allNotificationDocs.documents {
+                let userNotificationsRef = userDoc.reference.collection("userNotifications")
+                let senderNotifications = try await userNotificationsRef
+                    .whereField("senderID", isEqualTo: userID)
+                    .getDocuments()
+                
+                if !senderNotifications.documents.isEmpty {
+                    let batch = db.batch()
+                    for notification in senderNotifications.documents {
+                        batch.deleteDocument(notification.reference)
+                    }
+                    try await batch.commit()
+                }
+            }
+            
+            print("DEBUG: Successfully deleted all notifications for user: \(userID)")
+        } catch {
+            print("DEBUG: Error deleting notifications: \(error)")
+            throw error
+        }
+    }
 }
