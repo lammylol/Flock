@@ -120,4 +120,34 @@ class NotificationHelper {
             print("Error marking all notifications as read: \(error)")
         }
     }
+    
+    func deleteNotifications(userID: String, forPostID postID: String) async {
+        guard !userID.isEmpty, !postID.isEmpty else { return }
+        
+        do {
+            // Get all notifications for this post
+            let snapshot = try await db.collection(notificationsCollection)
+                .document(userID)
+                .collection("userNotifications")
+                .whereField("postID", isEqualTo: postID)
+                .getDocuments()
+            
+            // If there are notifications to delete, batch delete them
+            if !snapshot.documents.isEmpty {
+                let batch = db.batch()
+                snapshot.documents.forEach { document in
+                    let ref = db.collection(notificationsCollection)
+                        .document(userID)
+                        .collection("userNotifications")
+                        .document(document.documentID)
+                    batch.deleteDocument(ref)
+                }
+                
+                try await batch.commit()
+                print("DEBUG: Successfully deleted notifications for post: \(postID)")
+            }
+        } catch {
+            print("DEBUG: Error deleting notifications: \(error)")
+        }
+    }
 }

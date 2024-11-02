@@ -26,57 +26,71 @@ struct PostFullView: View {
     @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
     private var notificationHelper = NotificationHelper()
+    
+    // Add this to track if view is presented from notification sheet
+    var isFromNotificationSheet: Bool = false
 
-    init(person: Person, post: Binding<Post>) {
+    init(person: Person, post: Binding<Post>, isFromNotificationSheet: Bool = false) {
         _post = post
         self.person = person
+        self.isFromNotificationSheet = isFromNotificationSheet
     }
     
     var feedService = FeedService()
     
     var body: some View {
-        NavigationView {
-            ScrollViewReader { scrollViewProxy in
-                ScrollView {
-                    VStack {
-                        postHeaderView()
-                        if newPost.latestUpdateText != "" {
-                            latestUpdateView()
-                        }
-                        postContentView()
-                        Spacer(minLength: 20)
-                        
-                        commentsSectionView()
-                    }
-                    .padding(.horizontal, 20)
-                    .id("TextEditorBottom")
+        Group {
+            if !isFromNotificationSheet {
+                NavigationView {
+                    mainContent
                 }
-                .onChange(of: commentViewModel?.scrollToEnd ?? false) {
-                    if commentViewModel?.scrollToEnd == true {
-                        withAnimation {
-                            scrollViewProxy.scrollTo("TextEditorBottom", anchor: .bottom)
-                        }
-                        commentViewModel?.scrollToEnd = false
-                    }
-                }
+                .navigationTitle("Post")
+                .navigationBarTitleDisplayMode(.inline)
+            } else {
+                mainContent
             }
-            .task {
-                // Initialize commentViewModel here where we have access to environment values
-                if commentViewModel == nil {
-                    commentViewModel = CommentViewModel(person: userHolder.person)
-                }
-                loadPost()
-                updateNotificationSeenIfNotificationCountExisted()
-                self.post = newPost
-            }
-            .refreshable { refreshPost() }
-            .scrollIndicators(.hidden)
-            .scrollDismissesKeyboard(.immediately)
-            .padding(.bottom, 15)
-            .clipped()
         }
-        .navigationTitle("Post")
-        .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private var mainContent: some View {
+        ScrollViewReader { scrollViewProxy in
+            ScrollView {
+                VStack {
+                    postHeaderView()
+                    if newPost.latestUpdateText != "" {
+                        latestUpdateView()
+                    }
+                    postContentView()
+                    Spacer(minLength: 20)
+                    
+                    commentsSectionView()
+                }
+                .padding(.horizontal, 20)
+                .id("TextEditorBottom")
+            }
+            .onChange(of: commentViewModel?.scrollToEnd ?? false) {
+                if commentViewModel?.scrollToEnd == true {
+                    withAnimation {
+                        scrollViewProxy.scrollTo("TextEditorBottom", anchor: .bottom)
+                    }
+                    commentViewModel?.scrollToEnd = false
+                }
+            }
+        }
+        .task {
+            // Initialize commentViewModel here where we have access to environment values
+            if commentViewModel == nil {
+                commentViewModel = CommentViewModel(person: userHolder.person)
+            }
+            loadPost()
+            updateNotificationSeenIfNotificationCountExisted()
+            self.post = newPost
+        }
+        .refreshable { refreshPost() }
+        .scrollIndicators(.hidden)
+        .scrollDismissesKeyboard(.immediately)
+        .padding(.bottom, 15)
+        .clipped()
     }
 
     private var formattedPostTitle: String {

@@ -34,10 +34,7 @@ struct NotificationSheet: View {
                             Spacer()
                             Button {
                                 Task {
-                                    // Mark all notifications in this group as read
-                                    for notification in notifications {
-                                        await viewModel.clearPostNotifications(notificationID: notification.id)
-                                    }
+                                    await viewModel.clearPostNotifications(postID: postID)
                                 }
                             } label: {
                                 Image(systemName: "xmark")
@@ -50,7 +47,6 @@ struct NotificationSheet: View {
             }
             .listStyle(.insetGrouped)
             .task {
-                // Initialize when sheet appears
                 viewModel.updateUserID(userHolder.person.userID)
             }
             .navigationTitle("Notifications")
@@ -94,7 +90,8 @@ struct NotificationSheet: View {
                             firstName: notification.senderName.components(separatedBy: " ").first ?? "",
                             lastName: notification.senderName.components(separatedBy: " ").last ?? ""
                         ),
-                        post: .constant(post)
+                        post: .constant(post),
+                        isFromNotificationSheet: true  // Add this parameter
                     )
                     .task {
                         await viewModel.markAsRead(notificationID: notification.id)
@@ -113,6 +110,11 @@ struct NotificationSheet: View {
     
     private var groupedNotifications: [(key: String, value: [Notification])] {
         Dictionary(grouping: viewModel.notifications, by: { $0.postID })
+            .mapValues { notifications in
+                // Sort notifications by timestamp (most recent first) and take the first 3
+                notifications.sorted { $0.timestamp > $1.timestamp }.prefix(3)
+            }
             .sorted { $0.value.first?.timestamp ?? Date() > $1.value.first?.timestamp ?? Date() }
+            .map { (key: $0.key, value: Array($0.value)) }
     }
 }
