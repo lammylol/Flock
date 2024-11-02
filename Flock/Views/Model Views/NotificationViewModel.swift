@@ -20,6 +20,7 @@ class NotificationViewModel {
     var unreadCount: Int = 0
     private(set) var userID: String
     private let notificationHelper = NotificationHelper()
+    private var listener: ListenerRegistration?  // Add this property
     
     init(userID: String? = nil) {
         self.userID = userID ?? Auth.auth().currentUser?.uid ?? ""
@@ -32,6 +33,7 @@ class NotificationViewModel {
     func updateUserID(_ newUserID: String) {
         guard !newUserID.isEmpty else { return }
         
+        listener?.remove()  // Remove existing listener before setting up new one
         userID = newUserID
         notifications = []
         unreadCount = 0
@@ -42,8 +44,12 @@ class NotificationViewModel {
         unreadCount = notifications.filter { !$0.isRead }.count
     }
     
-    private func setupNotificationListener() {
-        notificationHelper.listenForNotifications(userID: userID) { [weak self] (result: Result<[Notification], NotificationError>) in
+    // Change to public and update listener management
+    func setupNotificationListener() {
+        // Remove existing listener if there is one
+        listener?.remove()
+        
+        listener = notificationHelper.listenForNotifications(userID: userID) { [weak self] (result: Result<[Notification], NotificationError>) in
             guard let self = self else { return }
             
             switch result {
@@ -56,6 +62,10 @@ class NotificationViewModel {
                 print("DEBUG: Error fetching notifications: \(error)")
             }
         }
+    }
+    
+    deinit {
+        listener?.remove()  // Clean up listener when ViewModel is deallocated
     }
     
     func markAsRead(notificationID: String) async {
@@ -77,7 +87,6 @@ class NotificationViewModel {
         }
     }
 
-    // Add new function to mark all notifications for a post as read
     func markPostNotificationsAsRead(postID: String) async {
         // Get all notifications for this post
         let postNotifications = notifications.filter { $0.postID == postID }

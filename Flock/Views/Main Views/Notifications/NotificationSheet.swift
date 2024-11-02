@@ -24,7 +24,6 @@ struct NotificationSheet: View {
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     selectedNotification = notification
-                                    // Mark all notifications in this post group as read
                                     Task {
                                         await viewModel.markPostNotificationsAsRead(postID: postID)
                                     }
@@ -50,6 +49,9 @@ struct NotificationSheet: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .refreshable {
+                viewModel.setupNotificationListener()
+            }
             .task {
                 viewModel.updateUserID(userHolder.person.userID)
             }
@@ -97,7 +99,6 @@ struct NotificationSheet: View {
                         post: .constant(post),
                         isFromNotificationSheet: true
                     )
-                    // Remove the individual notification mark as read since we're now marking the whole group
                     .toolbar {
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button("Back") {
