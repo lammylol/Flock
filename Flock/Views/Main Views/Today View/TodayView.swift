@@ -83,7 +83,7 @@ struct TodayView: View {
                 )
             }
             .sheet(isPresented: $isPresentingNotifications) {
-                NotificationSheet(viewModel: notificationViewModel)
+                NotificationSheet(viewModel: notificationViewModel, navigationPath: $navigationPath)
             }
             //            .path(isPresented: $isPresentingNotifications) {
             //                NotificationSheet(viewModel: notificationViewModel)
