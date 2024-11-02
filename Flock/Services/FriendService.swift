@@ -238,7 +238,7 @@ class FriendService {
     }
 
     // Main function to delete user data
-    func deletePerson(user: Person, friendsList: [Person]) async throws {
+    func deleteAccount(user: Person, friendsList: [Person]) async throws {
         Task {
             do {
                 // Delete user's prayer requests and feed
