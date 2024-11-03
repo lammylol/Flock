@@ -29,24 +29,73 @@ import Observation
     
     // MARK: - Initialization
     init(person: Person, post: Post) {
+        print("CommentViewModel.init - Post ID: \(post.id)")
+        print("CommentViewModel.init - Person ID: \(person.userID)")
         self.person = person
         self.post = post
         
-        // Validate initialization data
         guard isValid else {
+            print("CommentViewModel.init - Invalid initialization: Post ID empty: \(post.id.isEmpty), Person ID empty: \(person.userID.isEmpty)")
             errorMessage = "Invalid initialization data: \(post.id.isEmpty ? "missing post ID" : "missing user ID")"
             return
         }
         
+        print("CommentViewModel.init - Successfully initialized")
         isInitialized = true
-        
-        // Fetch initial comments when initialized
-        Task {
-            await fetchInitialComments()
-        }
     }
 
     // MARK: - Public Methods
+    func deleteComment(commentID: String) async {
+        // Validate state before proceeding
+        guard isValid && isInitialized else {
+            await MainActor.run {
+                self.errorMessage = "Cannot delete comment: invalid state"
+            }
+            return
+        }
+        
+        // Validate commentID exists in current comments
+        guard comments.contains(where: { $0.id == commentID }) else {
+            await MainActor.run {
+                self.errorMessage = "Cannot delete comment: comment not found"
+            }
+            return
+        }
+        
+        await MainActor.run {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
+        
+        do {
+            try await commentHelper.deleteComment(postID: post.id, commentID: commentID)
+            
+            // Optimistically remove the comment from the local array
+            await MainActor.run {
+                self.comments.removeAll { $0.id == commentID }
+                self.isLoading = false
+            }
+            
+            // Refresh comments to ensure sync with server
+            await fetchInitialComments()
+        } catch CommentError.invalidPostID {
+            await MainActor.run {
+                self.errorMessage = "Invalid post ID"
+                self.isLoading = false
+            }
+        } catch CommentError.invalidCommentID {
+            await MainActor.run {
+                self.errorMessage = "Invalid comment ID"
+                self.isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.errorMessage = "Failed to delete comment: \(error.localizedDescription)"
+                self.isLoading = false
+            }
+        }
+    }
+
     func fetchInitialComments() async {
         // Validate state before proceeding
         guard isValid else {
@@ -89,9 +138,13 @@ import Observation
                 self.isLoading = false
                 
                 if result.comments.isEmpty {
-                    // Not an error state, just informational
                     print("No comments found for post")
                 }
+            }
+        } catch CommentError.invalidPostID {
+            await MainActor.run {
+                self.errorMessage = "Invalid post ID"
+                self.isLoading = false
             }
         } catch {
             print("Error fetching initial comments: \(error)")
@@ -135,6 +188,11 @@ import Observation
                 self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
                 self.isLoadingMore = false
             }
+        } catch CommentError.invalidPostID {
+            await MainActor.run {
+                self.errorMessage = "Invalid post ID"
+                self.isLoadingMore = false
+            }
         } catch {
             await MainActor.run {
                 self.errorMessage = "Failed to fetch more comments: \(error.localizedDescription)"
@@ -146,11 +204,11 @@ import Observation
     func addComment(text: String) async throws {
         // Validate state and input
         guard isValid && isInitialized else {
-            throw CommentError.invalidState("Cannot add comment: invalid state")
+            throw CommentError.invalidPostID
         }
         
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw CommentError.invalidInput("Comment text cannot be empty")
+            throw CommentError.invalidCommentID // Using this error type for empty text
         }
         
         await MainActor.run {
@@ -194,20 +252,6 @@ import Observation
                 self.isLoading = false
             }
             throw error
-        }
-    }
-    
-    // MARK: - Custom Error Type
-    enum CommentError: LocalizedError {
-        case invalidState(String)
-        case invalidInput(String)
-        
-        var errorDescription: String? {
-            switch self {
-            case .invalidState(let message),
-                 .invalidInput(let message):
-                return message
-            }
         }
     }
 }

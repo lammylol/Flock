@@ -6,6 +6,8 @@
 //
 // Description: This is the form to edit an existing prayer request.
 
+// PostFullView.swift
+
 import SwiftUI
 
 struct PostFullView: View {
@@ -15,28 +17,26 @@ struct PostFullView: View {
     @State var postHelper = PostHelper()
     @State var postUpdates: [PostUpdate] = []
     @State var person: Person
-    @State var newPost: Post = Post()
+    @State var newPost: Post
     @State var lineLimit: Int = 6
     @Binding var post: Post
-    @State var showAddUpdateView: Bool = false
+    @State private var showAddUpdateView: Bool = false
     
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
     @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
-    private var notificationHelper = NotificationHelper()
+    private let notificationHelper = NotificationHelper()
+    let isFromNotificationSheet: Bool
     
-    // Add this to track if view is presented from notification sheet
-    var isFromNotificationSheet: Bool = false
-
     init(person: Person, post: Binding<Post>, isFromNotificationSheet: Bool = false) {
         _post = post
         self.person = person
+        _newPost = State(initialValue: post.wrappedValue)
         self.isFromNotificationSheet = isFromNotificationSheet
+        print("PostFullView init - Post ID: \(post.wrappedValue.id)")
     }
-    
-    var feedService = FeedService()
     
     var body: some View {
         Group {
@@ -78,23 +78,29 @@ struct PostFullView: View {
             }
         }
         .task {
-            if commentViewModel == nil {
+            // Load the post first
+            await loadPost()
+            
+            // Only initialize CommentViewModel if we have a valid post
+            if commentViewModel == nil && !newPost.id.isEmpty {
+                print("Initializing CommentViewModel - Post ID: \(newPost.id)")
+                print("Initializing CommentViewModel - Person ID: \(userHolder.person.userID)")
+                
                 commentViewModel = CommentViewModel(
-                    person: userHolder.person, 
-                    post: newPost
+                    person: userHolder.person,
+                    post: newPost  // Now we're using the loaded post
                 )
             }
-            loadPost()
-            updateNotificationSeenIfNotificationCountExisted()
-            self.post = newPost
+            
+            await updateNotificationSeenIfNotificationCountExisted()
         }
-        .refreshable { refreshPost() }
+        .refreshable { await refreshPost() }
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.immediately)
         .padding(.bottom, 15)
         .clipped()
     }
-
+    
     private var formattedPostTitle: String {
         if !newPost.postTitle.isEmpty {
             if newPost.postType == "Prayer Request" {
@@ -123,7 +129,7 @@ struct PostFullView: View {
                 Text(usernameDisplay()).font(.system(size: 14))
             }
             Spacer()
-            HStack (alignment: .center) {
+            HStack(alignment: .center) {
                 if newPost.isPinned { Image(systemName: "pin.fill") }
                 Privacy(rawValue: newPost.privacy)?.systemImage
                 postOptionsMenu()
@@ -161,7 +167,8 @@ struct PostFullView: View {
     private func postContentView() -> some View {
         VStack(alignment: .leading, spacing: 15) {
             Text(newPost.postTitle).font(.system(size: 18)).bold()
-            Text(newPost.postType == "Prayer Request" ? "Prayer Request: \(Text(newPost.status.capitalized).bold())" : newPost.postType == "Praise" ? "Praise 🙌" : "Note 📝").font(.system(size: 14))
+            Text(newPost.postType == "Prayer Request" ? "Prayer Request: \(Text(newPost.status.capitalized).bold())" : newPost.postType == "Praise" ? "Praise 🙌" : "Note 📝")
+                .font(.system(size: 14))
             Divider()
             Text(newPost.postText)
                 .font(.system(size: 16))
@@ -180,42 +187,46 @@ struct PostFullView: View {
                 Text("Comments")
                     .font(.system(size: 16))
                     .fontWeight(.medium)
-                Button { showComments.toggle()
-                } label: { Image(systemName: (showComments ? "chevron.up" : "chevron.down")).foregroundStyle(Color.primary).fontWeight(.medium) }
+                Button {
+                    showComments.toggle()
+                } label: {
+                    Image(systemName: (showComments ? "chevron.up" : "chevron.down"))
+                        .foregroundStyle(Color.primary)
+                        .fontWeight(.medium)
+                }
                 Spacer()
             }
             
-            // Update this condition to check for valid post ID
-            if showComments, let viewModel = commentViewModel {
-                // Wait for post to be loaded before showing comments
-                if !newPost.id.isEmpty {
-                    CommentsView(
-                        post: newPost,
-                        isInSheet: false, 
-                        viewModel: viewModel
-                    )
-                    .id("commentsSection")
-                }
+            if showComments, let viewModel = commentViewModel, !newPost.id.isEmpty {
+                CommentsView(
+                    post: newPost,
+                    isInSheet: false,
+                    viewModel: viewModel
+                )
+                .id("commentsSection")
             }
         }
     }
-
+    
     // MARK: - Helper Views & Methods
     private func postOptionsMenu() -> some View {
         Menu {
             if person.userID == userHolder.person.userID {
                 NavigationLink(destination: PostEditView(person: person, post: newPost)
                     .onDisappear {
-                        refreshPost()
-                }) {
+                        Task {
+                            await refreshPost()
+                        }
+                    }) {
                     Label("Edit Post", systemImage: "pencil")
                 }
             }
             Button(action: togglePinPost) {
-                Label(newPost.isPinned ? "Unpin prayer request" : "Pin to feed", systemImage: newPost.isPinned ? "pin.slash" : "pin.fill")
+                Label(newPost.isPinned ? "Unpin prayer request" : "Pin to feed", 
+                      systemImage: newPost.isPinned ? "pin.slash" : "pin.fill")
             }
         } label: {
-            HStack (alignment: .center) {
+            HStack(alignment: .center) {
                 Label("", systemImage: "ellipsis")
                     .background {
                         Rectangle()
@@ -262,43 +273,55 @@ struct PostFullView: View {
         person.username.isEmpty ? "private profile" : "@\(person.username.capitalized)"
     }
     
-    private func loadPost() {
-        Task {
-            newPost = post
-            // Initialize CommentViewModel after post is loaded
-            if commentViewModel == nil && !newPost.id.isEmpty {
-                commentViewModel = CommentViewModel(
-                    person: userHolder.person, 
-                    post: newPost
-                )
-            }
-        }
-    }
-    
-    private func updateNotificationSeenIfNotificationCountExisted() {
-        // This function will update lastSeenNotificationCount to 0 only if notification exists.
-        Task {
-            if newPost.lastSeenNotificationCount > 0 {
-                try await feedService.updateLastSeenNotificationCount(post: post, person: userHolder.person)
-            }
-        }
-    }
-    
-    private func refreshPost() {
-        Task {
-            newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
-            await commentViewModel?.fetchInitialComments()
+    private func loadPost() async {
+        do {
+            print("Loading post - Current ID: \(newPost.id)")
+            newPost = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
+            print("Post loaded - New ID: \(newPost.id)")
             post = newPost
+        } catch {
+            print("Error loading post: \(error)")
+        }
+    }
+    
+    private func updateNotificationSeenIfNotificationCountExisted() async {
+        if newPost.lastSeenNotificationCount > 0 {
+            do {
+                try await FeedService().updateLastSeenNotificationCount(post: post, person: userHolder.person)
+            } catch {
+                print("Error updating notification count: \(error)")
+            }
+        }
+    }
+    
+    private func refreshPost() async {
+        do {
+            newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
+            if !newPost.id.isEmpty {
+                if commentViewModel == nil {
+                    print("Creating CommentViewModel after refresh - Post ID: \(newPost.id)")
+                    commentViewModel = CommentViewModel(
+                        person: userHolder.person,
+                        post: newPost
+                    )
+                } else {
+                    print("Refreshing comments - Post ID: \(newPost.id)")
+                    await commentViewModel?.fetchInitialComments()
+                }
+            }
+            post = newPost
+        } catch {
+            print("Error refreshing post: \(error)")
         }
     }
     
     private func togglePinPost() {
-        Task {
+        Task { @MainActor in
             do {
                 newPost.isPinned.toggle()
                 try await PostHelper().togglePinned(person: userHolder.person, post: newPost, toggle: newPost.isPinned)
             } catch {
-                ViewLogger.error("PostFullView.pinPost \(error)")
+                print("Error toggling pin: \(error)")
             }
         }
     }
