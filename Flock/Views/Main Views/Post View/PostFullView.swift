@@ -88,8 +88,12 @@ struct PostFullView: View {
                 
                 commentViewModel = CommentViewModel(
                     person: userHolder.person,
-                    post: newPost  // Now we're using the loaded post
+                    post: newPost
                 )
+                
+                // Fetch initial comments after initialization
+                print("Fetching initial comments")
+                await commentViewModel?.fetchInitialComments()
             }
             
             await updateNotificationSeenIfNotificationCountExisted()

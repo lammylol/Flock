@@ -11,6 +11,9 @@ import Observation
     private let person: Person
     private let post: Post
     
+    @ObservationIgnored private var lastCommentSnapshot: QueryDocumentSnapshot?
+    
+    // These should trigger UI updates when changed
     var comments: [Comment] = []
     var isLoading = false
     var isLoadingMore = false
@@ -25,9 +28,6 @@ import Observation
         return !post.id.isEmpty && !person.userID.isEmpty
     }
     
-    private var lastCommentSnapshot: QueryDocumentSnapshot?
-    
-    // MARK: - Initialization
     init(person: Person, post: Post) {
         print("CommentViewModel.init - Post ID: \(post.id)")
         print("CommentViewModel.init - Person ID: \(person.userID)")
@@ -43,62 +43,11 @@ import Observation
         print("CommentViewModel.init - Successfully initialized")
         isInitialized = true
     }
-
-    // MARK: - Public Methods
-    func deleteComment(commentID: String) async {
-        // Validate state before proceeding
-        guard isValid && isInitialized else {
-            await MainActor.run {
-                self.errorMessage = "Cannot delete comment: invalid state"
-            }
-            return
-        }
-        
-        // Validate commentID exists in current comments
-        guard comments.contains(where: { $0.id == commentID }) else {
-            await MainActor.run {
-                self.errorMessage = "Cannot delete comment: comment not found"
-            }
-            return
-        }
-        
-        await MainActor.run {
-            self.isLoading = true
-            self.errorMessage = nil
-        }
-        
-        do {
-            try await commentHelper.deleteComment(postID: post.id, commentID: commentID)
-            
-            // Optimistically remove the comment from the local array
-            await MainActor.run {
-                self.comments.removeAll { $0.id == commentID }
-                self.isLoading = false
-            }
-            
-            // Refresh comments to ensure sync with server
-            await fetchInitialComments()
-        } catch CommentError.invalidPostID {
-            await MainActor.run {
-                self.errorMessage = "Invalid post ID"
-                self.isLoading = false
-            }
-        } catch CommentError.invalidCommentID {
-            await MainActor.run {
-                self.errorMessage = "Invalid comment ID"
-                self.isLoading = false
-            }
-        } catch {
-            await MainActor.run {
-                self.errorMessage = "Failed to delete comment: \(error.localizedDescription)"
-                self.isLoading = false
-            }
-        }
-    }
-
+    
     func fetchInitialComments() async {
-        // Validate state before proceeding
+        print("fetchInitialComments started")
         guard isValid else {
+            print("fetchInitialComments - invalid state")
             await MainActor.run {
                 self.errorMessage = "Cannot fetch comments: invalid post or user data"
                 self.isLoading = false
@@ -106,45 +55,59 @@ import Observation
             return
         }
         
-        guard isInitialized else {
-            await MainActor.run {
-                self.errorMessage = "ViewModel not properly initialized"
-                self.isLoading = false
-            }
-            return
-        }
-        
-        print("Fetching initial comments for post: \(post.id)")
-        
+        print("fetchInitialComments - state valid, proceeding to fetch")
         await MainActor.run {
             self.isLoading = true
             self.errorMessage = nil
             self.comments = []
-            self.hasMoreComments = true
+            self.hasMoreComments = false
             self.lastCommentSnapshot = nil
         }
         
         do {
+            print("fetchInitialComments - calling commentHelper.getComments")
             let result = try await commentHelper.getComments(
                 for: post.id,
-                limit: commentsPerPage,
-                lastCommentSnapshot: nil
+                limit: commentsPerPage + 1
             )
             
             await MainActor.run {
-                self.comments = result.comments
-                self.lastCommentSnapshot = result.lastSnapshot
-                self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
+                let allFetchedComments = result.comments
+                print("Fetched \(allFetchedComments.count) total comments")
+                
+                // Only take the first commentsPerPage documents
+                self.comments = Array(allFetchedComments.prefix(commentsPerPage))
+                print("Displaying first \(self.comments.count) comments")
+                
+                // Set hasMoreComments based on whether we received an extra document
+                self.hasMoreComments = allFetchedComments.count > commentsPerPage
+                print("Has more comments: \(self.hasMoreComments)")
+                
+                // Store the last snapshot if we have more comments
+                if self.hasMoreComments {
+                    self.lastCommentSnapshot = result.lastSnapshot
+                    print("Stored last snapshot for pagination")
+                }
+                
                 self.isLoading = false
                 
-                if result.comments.isEmpty {
-                    print("No comments found for post")
+                // Print debug info
+                self.comments.forEach { comment in
+                    print("""
+                        Comment in ViewModel:
+                        ID: \(comment.id ?? "no id")
+                        Text: \(comment.text)
+                        Author: \(comment.firstName) \(comment.lastName)
+                        """)
                 }
-            }
-        } catch CommentError.invalidPostID {
-            await MainActor.run {
-                self.errorMessage = "Invalid post ID"
-                self.isLoading = false
+                
+                // Print pagination state
+                print("""
+                    Pagination State:
+                    - Has more comments: \(self.hasMoreComments)
+                    - Last snapshot exists: \(self.lastCommentSnapshot != nil)
+                    - Comments count: \(self.comments.count)
+                    """)
             }
         } catch {
             print("Error fetching initial comments: \(error)")
@@ -156,13 +119,12 @@ import Observation
     }
     
     func fetchMoreComments() async {
-        // Validate state and conditions for fetching more
-        guard isValid && isInitialized else {
-            await MainActor.run {
-                self.errorMessage = "Cannot fetch more comments: invalid state"
-            }
-            return
-        }
+        print("""
+            fetchMoreComments check:
+            - isLoadingMore: \(!isLoadingMore)
+            - hasMoreComments: \(hasMoreComments)
+            - lastSnapshot exists: \(lastCommentSnapshot != nil)
+            """)
         
         guard !isLoadingMore,
               hasMoreComments,
@@ -178,22 +140,38 @@ import Observation
         do {
             let result = try await commentHelper.getComments(
                 for: post.id,
-                limit: commentsPerPage,
+                limit: commentsPerPage + 1,
                 lastCommentSnapshot: lastSnapshot
             )
             
             await MainActor.run {
-                self.comments.append(contentsOf: result.comments)
-                self.lastCommentSnapshot = result.lastSnapshot
-                self.hasMoreComments = result.comments.count == self.commentsPerPage && result.lastSnapshot != nil
+                let newComments = result.comments
+                print("Fetched \(newComments.count) new comments")
+                
+                // Only take the first commentsPerPage documents
+                let commentsToAdd = Array(newComments.prefix(commentsPerPage))
+                self.comments.append(contentsOf: commentsToAdd)
+                print("Added \(commentsToAdd.count) comments to display")
+                
+                // Update pagination state
+                self.hasMoreComments = newComments.count > commentsPerPage
+                if self.hasMoreComments {
+                    self.lastCommentSnapshot = result.lastSnapshot
+                    print("Updated last snapshot for next page")
+                }
+                
                 self.isLoadingMore = false
-            }
-        } catch CommentError.invalidPostID {
-            await MainActor.run {
-                self.errorMessage = "Invalid post ID"
-                self.isLoadingMore = false
+                
+                // Print final state
+                print("""
+                    Updated Pagination State:
+                    - Has more comments: \(self.hasMoreComments)
+                    - Last snapshot exists: \(self.lastCommentSnapshot != nil)
+                    - Total comments count: \(self.comments.count)
+                    """)
             }
         } catch {
+            print("Error fetching more comments: \(error)")
             await MainActor.run {
                 self.errorMessage = "Failed to fetch more comments: \(error.localizedDescription)"
                 self.isLoadingMore = false
@@ -252,6 +230,43 @@ import Observation
                 self.isLoading = false
             }
             throw error
+        }
+    }
+
+    func deleteComment(commentID: String) async {
+        print("deleteComment started - commentID: \(commentID)")
+        // Validate state before proceeding
+        guard isValid && isInitialized else {
+            print("deleteComment - invalid state")
+            await MainActor.run {
+                self.errorMessage = "Cannot delete comment: invalid state"
+            }
+            return
+        }
+        
+        await MainActor.run {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
+        
+        do {
+            print("Attempting to delete comment \(commentID) from post \(post.id)")
+            try await commentHelper.deleteComment(postID: post.id, commentID: commentID)
+            
+            // Optimistically remove the comment from the local array
+            await MainActor.run {
+                self.comments.removeAll { $0.id == commentID }
+                print("Comment removed locally - remaining comments: \(self.comments.count)")
+            }
+            
+            // Refresh comments to ensure sync with server
+            await fetchInitialComments()
+        } catch {
+            print("Error deleting comment: \(error)")
+            await MainActor.run {
+                self.errorMessage = "Failed to delete comment: \(error.localizedDescription)"
+                self.isLoading = false
+            }
         }
     }
 }
