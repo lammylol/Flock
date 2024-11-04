@@ -129,6 +129,7 @@ class PostOperationsService {
                                      latestUpdateType: latestUpdateType,
                                      privacy: privacy,
                                      isPinned: isPinned,
+                                     lastSeenNotificationCount: lastSeenNotificationCount,
                                      senderType: senderType
                 )
             }
@@ -271,7 +272,7 @@ class PostOperationsService {
                 try await FeedService().deleteFromFeed(post: post, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
                 NetworkingLogger.debug("postOperations.editPost - \(post.id) removed from all feeds")
             } else {
-                if post.privacy == "public" && friendsList.isEmpty == false {
+                if post.privacy == "public" && !friendsList.isEmpty {
                     for friend in friendsList {
                         try await FeedService().updateFriendsFeed(post: post, person: person, friend: friend, updateFriend: true)
                     }

@@ -138,7 +138,7 @@ class FeedService {
                 "latestUpdateText": post.latestUpdateText,
                 "latestUpdateDatePosted": post.latestUpdateDatePosted,
                 "latestUpdateType": post.latestUpdateType,
-                "lastSeenNotificationCount": 0,
+//                "lastSeenNotificationCount": 0,
                 "senderType": "publicFriend" // categorize senderType to appear in the friend's feed as 'publicFriend' to let them know it was a post created by a public friend.
             ]
 
@@ -156,6 +156,7 @@ class FeedService {
                 // Set data for the person’s own post
                 var ownPostData = data
                 ownPostData["isPinned"] = post.isPinned
+                ownPostData["senderType"] = PostOperationsService().personalFeedSenderType(person: person)
                 try await ref.setData(ownPostData)
             }
 

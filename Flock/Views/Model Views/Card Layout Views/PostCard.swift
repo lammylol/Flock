@@ -70,13 +70,11 @@ struct PostCard: View {
             
             if post.lastSeenNotificationCount > 0 {
                 Text("\(post.lastSeenNotificationCount)")
-                    .font(.system(size: 14))
+                    .font(.system(size: 16))
+                    .padding(8)
                     .foregroundColor(.white)
-                    .padding(4)
                     .background(Color.blue)
                     .clipShape(Circle())
-//                    .offset(x: 10, y: -10)
-//                    .offset(x: 62, y: -75)
                     .padding(.trailing, -10)
                     .padding(.top, -18)
             }
