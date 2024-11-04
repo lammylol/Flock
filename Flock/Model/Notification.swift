@@ -14,6 +14,7 @@ struct Notification: Identifiable, Hashable, Codable {
     let postTitle: String
     let senderID: String
     let senderName: String
+    let senderUsername: String
     let recipientID: String
     let type: NotificationType
     let timestamp: Date
@@ -29,18 +30,20 @@ struct Notification: Identifiable, Hashable, Codable {
         case postTitle
         case senderID
         case senderName
+        case senderUsername
         case recipientID
         case type
         case timestamp
         case isRead
     }
     
-    init(id: String, postID: String, postTitle: String, senderID: String, senderName: String, recipientID: String, type: NotificationType, timestamp: Date, isRead: Bool) {
+    init(id: String, postID: String, postTitle: String, senderID: String, senderName: String, senderUsername: String, recipientID: String, type: NotificationType, timestamp: Date, isRead: Bool) {
         self.id = id
         self.postID = postID
         self.postTitle = postTitle
         self.senderID = senderID
         self.senderName = senderName
+        self.senderUsername = senderUsername
         self.recipientID = recipientID
         self.type = type
         self.timestamp = timestamp
@@ -55,6 +58,7 @@ struct Notification: Identifiable, Hashable, Codable {
         postTitle = try container.decode(String.self, forKey: .postTitle)
         senderID = try container.decode(String.self, forKey: .senderID)
         senderName = try container.decode(String.self, forKey: .senderName)
+        senderUsername = try container.decode(String.self, forKey: .senderUsername)
         recipientID = try container.decode(String.self, forKey: .recipientID)
         
         // Handle Firestore Timestamp
@@ -81,6 +85,7 @@ struct Notification: Identifiable, Hashable, Codable {
             let postTitle = data["postTitle"] as? String,
             let senderID = data["senderID"] as? String,
             let senderName = data["senderName"] as? String,
+            let senderUsername = data["senderUsername"] as? String,
             let recipientID = data["recipientID"] as? String,
             let typeString = data["type"] as? String,
             let timestamp = data["timestamp"] as? Timestamp,
@@ -95,6 +100,7 @@ struct Notification: Identifiable, Hashable, Codable {
         self.postTitle = postTitle
         self.senderID = senderID
         self.senderName = senderName
+        self.senderUsername = senderUsername
         self.recipientID = recipientID
         self.type = type
         self.timestamp = timestamp.dateValue()

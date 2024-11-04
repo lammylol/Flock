@@ -20,8 +20,9 @@ struct PostFullView: View {
     @State var newPost: Post
     @State var lineLimit: Int = 6
     @Binding var post: Post
-    @State private var showAddUpdateView: Bool = false
+    @Binding var navigationPath: NavigationPath
     
+    @State private var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
@@ -29,10 +30,11 @@ struct PostFullView: View {
     @State private var showComments: Bool = true
     private let notificationHelper = NotificationHelper()
     
-    init(person: Person, post: Binding<Post>, isFromNotificationSheet: Bool = false) {
+    init(person: Person, post: Binding<Post>, navigationPath: Binding<NavigationPath>) {
         _post = post
         self.person = person
         _newPost = State(initialValue: post.wrappedValue)
+        _navigationPath = navigationPath
         print("PostFullView init - Post ID: \(post.wrappedValue.id)")
     }
     
@@ -111,7 +113,9 @@ struct PostFullView: View {
     // MARK: - Post Header View
     private func postHeaderView() -> some View {
         HStack {
-            NavigationLink(destination: ProfileView(person: person)) {
+            Button {
+                navigationPath.append(person)
+            } label: {
                 ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.primary)
@@ -264,7 +268,7 @@ struct PostFullView: View {
     }
     
     private func usernameDisplay() -> String {
-        person.username.isEmpty ? "private profile" : "@\(person.username.capitalized)"
+        if person.isPrivateFriend { "private profile" } else { "@\(post.username.capitalized)" }
     }
     
     private func loadPost() async {
