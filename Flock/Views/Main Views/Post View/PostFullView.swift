@@ -28,28 +28,18 @@ struct PostFullView: View {
     @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
     private let notificationHelper = NotificationHelper()
-    let isFromNotificationSheet: Bool
     
     init(person: Person, post: Binding<Post>, isFromNotificationSheet: Bool = false) {
         _post = post
         self.person = person
         _newPost = State(initialValue: post.wrappedValue)
-        self.isFromNotificationSheet = isFromNotificationSheet
         print("PostFullView init - Post ID: \(post.wrappedValue.id)")
     }
     
     var body: some View {
-        Group {
-            if !isFromNotificationSheet {
-                NavigationView {
-                    mainContent
-                }
-                .navigationTitle("Post")
-                .navigationBarTitleDisplayMode(.inline)
-            } else {
-                mainContent
-            }
-        }
+        mainContent
+        .navigationTitle("Post")
+        .navigationBarTitleDisplayMode(.inline)
     }
     
     private var mainContent: some View {
