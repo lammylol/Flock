@@ -40,13 +40,20 @@ struct NotificationSheet: View {
             }
             .clipped()
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Mark All Read") {
-                        Task {
-                            await viewModel.markAllAsRead()
+                if viewModel.unreadCount > 0 {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Mark All Read") {
+                            Task {
+                                await viewModel.markAllAsRead()
+                            }
                         }
+                        .foregroundColor(.blue)
                     }
-                    .foregroundColor(.blue)
+                }
+            }
+            .overlay {
+                if viewModel.notifications.isEmpty {
+                    noNotificationsView()
                 }
             }
         }
@@ -126,5 +133,20 @@ struct NotificationSection: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Empty Notifications Overlay
+
+private func noNotificationsView() -> some View {
+    VStack(alignment: .center){
+        ContentUnavailableView {
+            Label("No Notifications", systemImage: "tray")
+        } description: {
+            Text("You'll be notified when there's new activity!")
+        }
+        .frame(height: 200)
+        .offset(y: 140)
+        Spacer()
     }
 }
