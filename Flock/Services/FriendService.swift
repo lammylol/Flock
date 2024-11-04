@@ -245,6 +245,9 @@ class FriendService {
                 try await deleteDocuments(from: "prayerRequests", where: "userID", isEqualTo: user.userID)
                 try await deleteSubcollection(from: "prayerFeed", documentID: user.userID, subcollection: "prayerRequests")
                 
+                // Delete all notifications
+                try await NotificationHelper().deleteAllNotifications(userID: user.userID)
+                
                 // Delete from each friend's feed
                 for friend in friendsList {
                     try await deleteFriend(user: user, friend: friend)

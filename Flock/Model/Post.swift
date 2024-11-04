@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct Post : Identifiable, Observable, Hashable {
+struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
     var id: String = ""
     var date: Date = Date()
     var userID: String = ""
@@ -25,6 +25,25 @@ struct Post : Identifiable, Observable, Hashable {
     var privacy: String = ""
     var isPinned: Bool = false
     var lastSeenNotificationCount: Int = 0
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case date
+        case userID
+        case username
+        case firstName
+        case lastName
+        case postTitle
+        case postText
+        case postType
+        case status
+        case latestUpdateText
+        case latestUpdateDatePosted
+        case latestUpdateType
+        case privacy
+        case isPinned
+        case lastSeenNotificationCount
+    }
 }
 
 extension Post {
