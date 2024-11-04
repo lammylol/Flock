@@ -45,15 +45,17 @@ struct TodayView: View {
             .scrollDismissesKeyboard(.automatic)
             .scrollIndicators(.hidden)
             .refreshable { await refreshPosts() }
+            .toolbarBackground(Color.primary, for: .bottomBar)
+            .sheet(isPresented: $showCreatePost) {
+                PostCreateView(person: userHolder.person, postType: postType)
+            }
+    
+            // navigationDestination routings:
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
                     post: .constant(post) // Pass binding for post
                 )
-            }
-            .toolbarBackground(Color.primary, for: .bottomBar)
-            .sheet(isPresented: $showCreatePost) {
-                PostCreateView(person: userHolder.person, postType: postType)
             }
             .navigationDestination(for: String.self, destination: navigationDestination)
             .navigationDestination(for: Notification.self) { notification in
@@ -82,21 +84,6 @@ struct TodayView: View {
                     post: .constant(post)
                 )
             }
-            .sheet(isPresented: $isPresentingNotifications) {
-                NotificationSheet(viewModel: notificationViewModel, navigationPath: $navigationPath)
-            }
-            //            .path(isPresented: $isPresentingNotifications) {
-            //                NotificationSheet(viewModel: notificationViewModel)
-            //                }
-            //                .onAppear {
-            //                    // Update without optional binding since userID is non-optional
-            //                    notificationViewModel.updateUserID(userHolder.person.userID)
-            //                }
-            //                .onChange(of: userHolder.person.userID) { _, newValue in
-            //                    // Update directly without optional binding
-            //                    notificationViewModel.updateUserID(newValue)
-            //                }
-            //            }
         }
     }
         

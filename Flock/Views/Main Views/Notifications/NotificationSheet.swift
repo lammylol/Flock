@@ -9,25 +9,28 @@ import SwiftUI
 
 struct NotificationSheet: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(UserProfileHolder.self) var userHolder
+    
     var viewModel: NotificationViewModel
     @Binding var navigationPath: NavigationPath  // Added this line
-    @State private var selectedNotification: Notification?
-    @Environment(UserProfileHolder.self) var userHolder
+    
     private let postOperationsService = PostOperationsService()
     
     var body: some View {
-        NavigationView {
+        VStack {
             List {
                 ForEach(groupedNotifications, id: \.key) { postID, notifications in
                     NotificationSection(
                         postID: postID,
                         notifications: notifications,
                         viewModel: viewModel,
-                        selectedNotification: $selectedNotification,
-                        userHolder: userHolder
+                        userHolder: userHolder,
+                        navigationPath: $navigationPath
                     )
                 }
             }
+            .scrollContentBackground(.hidden)
             .listStyle(.insetGrouped)
             .refreshable {
                 viewModel.setupNotificationListener()
@@ -35,14 +38,8 @@ struct NotificationSheet: View {
             .task {
                 viewModel.updateUserID(userHolder.person.userID)
             }
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
+            .clipped()
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Mark All Read") {
                         Task {
@@ -52,52 +49,10 @@ struct NotificationSheet: View {
                     .foregroundColor(.blue)
                 }
             }
-            .sheet(item: $selectedNotification) { notification in
-                NavigationView {
-                    let person = Person(
-                        userID: notification.senderID,
-                        username: "",
-                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                    )
-                    
-                    let post = Post(
-                        id: notification.postID,
-                        date: notification.timestamp,
-                        userID: notification.senderID,
-                        username: "",
-                        firstName: person.firstName,
-                        lastName: person.lastName,
-                        postTitle: notification.postTitle,
-                        postText: "",
-                        postType: "Note",
-                        status: "Current",
-                        latestUpdateText: "",
-                        latestUpdateDatePosted: notification.timestamp,
-                        latestUpdateType: "",
-                        privacy: "public",
-                        isPinned: false,
-                        lastSeenNotificationCount: 0
-                    )
-                    
-                    PostFullView(
-                        person: person,
-                        post: .constant(post),
-                        isFromNotificationSheet: true
-                    )
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("Back") {
-                                selectedNotification = nil
-                                Task {
-                                    await viewModel.clearPostNotifications(postID: notification.postID)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
+        .navigationTitle("Notifications")
+        .navigationBarTitleDisplayMode(.inline)
+        .background(colorScheme == .dark ? Color.black : Color(.systemGray6))
     }
 
     // Fixed function to check and cleanup notifications from deleted users
@@ -138,8 +93,8 @@ struct NotificationSection: View {
     let postID: String
     let notifications: [Notification]
     let viewModel: NotificationViewModel
-    @Binding var selectedNotification: Notification?
     let userHolder: UserProfileHolder
+    @Binding var navigationPath: NavigationPath
     
     var body: some View {
         Section {
@@ -148,8 +103,8 @@ struct NotificationSection: View {
                     .listRowInsets(EdgeInsets())
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        selectedNotification = notification
                         Task {
+                            navigationPath.append(notification)
                             await viewModel.markPostNotificationsAsRead(postID: postID)
                         }
                     }
