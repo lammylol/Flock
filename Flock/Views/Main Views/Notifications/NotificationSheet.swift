@@ -15,8 +15,6 @@ struct NotificationSheet: View {
     var viewModel: NotificationViewModel
     @Binding var navigationPath: NavigationPath  // Added this line
     
-    private let postOperationsService = PostOperationsService()
-    
     var body: some View {
         VStack {
             List {
