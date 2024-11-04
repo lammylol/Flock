@@ -25,7 +25,6 @@ struct PostCreateView: View {
     @State private var privacy: String = "private"
     @State private var isPresentingFriends: Bool = false
     @State private var isPinned: Bool = false
-
     @State private var isDraftSaved = false
 
     var friendService = FriendService()
@@ -150,7 +149,8 @@ struct PostCreateView: View {
                     privacy: privacy,
                     postType: postType?.rawValue ?? "note",
                     friendsList: friendRequestListener.acceptedFriendRequests,
-                    isPinned: isPinned)
+                    isPinned: isPinned
+                )
                 userHolder.refresh = true
                 
                 clearDraft()

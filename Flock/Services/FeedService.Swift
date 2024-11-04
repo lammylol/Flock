@@ -26,13 +26,14 @@ class FeedService {
         var query: Query
         
         query = collection.whereField("status", isEqualTo: status.statusKey.capitalized)
-
+        
         // Additional filters based on viewType and selectionType
         switch viewType {
         case .today:
             if selectionType == .myFriendPostsPinned {
                 query = query.whereField("isPinned", isEqualTo: true)
-                             .whereField("lastName", isNotEqualTo: user.lastName)
+                             .whereField("senderType", in: ["userPrivateFriend", "publicFriend"])
+                // firebase index: "isPinned Ascending senderType Ascending status Ascending latestUpdateDatePosted Descending __name__ Descending"
             } else if selectionType == .myPostsPinned {
                 query = query.whereField("isPinned", isEqualTo: true)
                              .whereField("userID", isEqualTo: user.userID)
@@ -63,6 +64,7 @@ class FeedService {
         }
         
         return query.order(by: "latestUpdateDatePosted", descending: true)
+        // firebase query for basic query: status Ascending latestUpdateDatePosted Descending __name__ Descending
     }
 
     func getPosts(querySnapshot: QuerySnapshot) -> ([Post], DocumentSnapshot?) {
@@ -136,7 +138,8 @@ class FeedService {
                 "latestUpdateText": post.latestUpdateText,
                 "latestUpdateDatePosted": post.latestUpdateDatePosted,
                 "latestUpdateType": post.latestUpdateType,
-                "lastSeenNotificationCount": 0
+                "lastSeenNotificationCount": 0,
+                "senderType": "publicFriend" // categorize senderType to appear in the friend's feed as 'publicFriend' to let them know it was a post created by a public friend.
             ]
 
             if updateFriend {

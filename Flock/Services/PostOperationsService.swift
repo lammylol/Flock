@@ -46,6 +46,7 @@ class PostOperationsService {
                 let documentID = document.documentID as String
                 let latestUpdateText = document.data()["latestUpdateText"] as? String ?? ""
                 let latestUpdateType = document.data()["latestUpdateType"] as? String ?? ""
+                let senderType = document.data()["senderType"] as? String ?? ""
                 
                 let prayerRequest = Post(id: documentID, 
                                          date: datePosted,
@@ -61,7 +62,9 @@ class PostOperationsService {
                                          latestUpdateDatePosted: latestUpdateDatePosted,
                                          latestUpdateType: latestUpdateType,
                                          privacy: privacy,
-                                         isPinned: isPinned)
+                                         isPinned: isPinned,
+                                         senderType: senderType
+                )
                 
                 prayerRequests.append(prayerRequest)
             }
@@ -109,6 +112,7 @@ class PostOperationsService {
                 let latestUpdateType = document.data()?["latestUpdateType"] as? String ?? ""
                 let isPinned = document.data()?["isPinned"] as? Bool ?? false
                 let lastSeenNotificationCount = document.data()?["lastSeenNotificationCount"] as? Int ?? 0
+                let senderType = document.data()?["senderType"] as? String ?? ""
             
                 prayerRequest = Post(id: documentID, 
                                      date: datePosted,
@@ -124,7 +128,9 @@ class PostOperationsService {
                                      latestUpdateDatePosted: latestUpdateDatePosted,
                                      latestUpdateType: latestUpdateType,
                                      privacy: privacy,
-                                     isPinned: isPinned)
+                                     isPinned: isPinned,
+                                     senderType: senderType
+                )
             }
         } catch {
             NetworkingLogger.error("postOperations.getPost failed getting \(prayerRequest.id) \(error)")
@@ -139,6 +145,7 @@ class PostOperationsService {
         
         let postTitle = postTitle.capitalized
         var prayerRequestID = ""
+        
         do {
             // Create new PrayerRequestID to users/{userID}/prayerList/{person}/prayerRequests
             let ref = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document()
@@ -188,7 +195,8 @@ class PostOperationsService {
                         "latestUpdateText": "",
                         "latestUpdateDatePosted": datePosted,
                         "latestUpdateType": "",
-                        "lastSeenNotificationCount": 1 // this defaults to 1. once user takes action to view or select, notification goes to 0. if update is added, notification goes to +1.
+                        "lastSeenNotificationCount": 1, // this defaults to 1. once user takes action to view or select, notification goes to 0. if update is added, notification goes to +1.
+                        "senderType": "publicFriend" // categorize senderType to appear in the friend's feed as 'publicFriend' to let them know it was a post created by a public friend.
                     ])
                 } // If you have friends and have set privacy to public, this will update all friends feeds.
             }
@@ -207,10 +215,12 @@ class PostOperationsService {
                 "latestUpdateText": "",
                 "latestUpdateDatePosted": datePosted,
                 "latestUpdateType": "",
-                "isPinned": isPinned
+                "isPinned": isPinned,
+                "senderType": personalFeedSenderType(person: person)
+
             ]) // if the prayer is for a local user, it will update your own feed.
             NetworkingLogger.debug("postOperations.createPost.addToPrayerFeed added to prayerFeed")
-        }catch{
+        } catch{
             NetworkingLogger.error("postOperations.createPost.addToPrayerFeed failed")
         }
             
@@ -232,7 +242,8 @@ class PostOperationsService {
                 "prayerRequestTitle": postTitle,
                 "latestUpdateText": "",
                 "latestUpdateDatePosted": datePosted,
-                "latestUpdateType": ""
+                "latestUpdateType": "",
+                "senderType": personalFeedSenderType(person: person) // categorize senderType to appear in your feed as 'privateFriend' or 'user' to distinguish which posts are you vs. private.
             ])
             NetworkingLogger.debug("postOperations.createPost.addToPrayerRequests \(userID, privacy: .private) created \(prayerRequestID)")
         }catch{
@@ -252,7 +263,7 @@ class PostOperationsService {
                 "prayerRequestText": post.postText,
                 "privacy": post.privacy,
                 "prayerRequestTitle": post.postTitle,
-                "isPinned": post.isPinned
+                "isPinned": post.isPinned,
             ])
             
             // Add PrayerRequestID to prayerFeed/{userID}
@@ -317,11 +328,20 @@ class PostOperationsService {
                 "userID": person.userID,
                 "username": person.username,
                 "privacy": prayerRequest.privacy,
-                "prayerRequestTitle": prayerRequest.postTitle
+                "prayerRequestTitle": prayerRequest.postTitle,
+                "senderType": personalFeedSenderType(person: person)
             ])
             NetworkingLogger.debug("postOperations.updatePostsDataCollection updated \(prayerRequest.id)")
-        }catch {
+        } catch {
             NetworkingLogger.error("postOperations.updatePostsDataCollection failed to update \(prayerRequest.id) \(error)")
         }
+    }
+    
+    func personalFeedSenderType(person: Person) -> String {
+        if person.isPrivateFriend {
+            return "userPrivateFriend"
+        } else {
+            return "userOwner"
+        } // categorize senderType to appear in your feed as 'privateFriend' or 'user' to distinguish which posts are you vs. private.
     }
 }

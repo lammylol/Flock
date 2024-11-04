@@ -25,6 +25,7 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
     var privacy: String = ""
     var isPinned: Bool = false
     var lastSeenNotificationCount: Int = 0
+    var senderType: String = ""
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -43,6 +44,7 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
         case privacy
         case isPinned
         case lastSeenNotificationCount
+        case senderType
     }
 }
 
