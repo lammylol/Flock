@@ -29,7 +29,7 @@ struct PostFullView: View {
     @State private var showComments: Bool = true
     private let notificationHelper = NotificationHelper()
     
-    init(person: Person, post: Binding<Post>, isFromNotificationSheet: Bool = false) {
+    init(person: Person, post: Binding<Post>) {
         _post = post
         self.person = person
         _newPost = State(initialValue: post.wrappedValue)
