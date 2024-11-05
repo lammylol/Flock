@@ -19,14 +19,14 @@ struct ProfileView: View {
     @State private var showSubmit = false
     @State private var viewModel = FeedViewModel(viewType: .profile, selectionType: .myPosts)
     @State private var pinnedPostsViewModel = FeedViewModel(viewType: .profile, selectionType: .myPostsPinned)
-    @State private var navigationPath = NavigationPath()
+    @State public var navigationPath = NavigationPath()
     @State private var addFriendConfirmation = false
     @State private var seeAllMyPosts: Bool = false
     
     var userService = UserService()
     var friendService = FriendService()
     var friendHelper = FriendHelper()
-    
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
@@ -52,7 +52,8 @@ struct ProfileView: View {
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post) // Pass binding for post
+                    post: .constant(post), // Pass binding for post
+                    navigationPath: $navigationPath
                 )
             }
             .scrollIndicators(.hidden)
