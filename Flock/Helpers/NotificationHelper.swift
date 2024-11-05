@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import OSLog
 
 enum NotificationError: Error {
     case firestoreError(Error)
@@ -20,12 +21,11 @@ class NotificationHelper {
     private let notificationsCollection = "notifications"
     
     func createNotification(for comment: Comment, postTitle: String, recipientID: String) async throws {
-        print("DEBUG: Creating notification")
-        print("DEBUG: RecipientID: \(recipientID)")
-        print("DEBUG: Comment UserID: \(comment.userID)")
+        ModelLogger.debug("NotificationHelper.createNotification: Creating notification for recipient: \(recipientID)")
+        ModelLogger.debug("NotificationHelper.createNotification: Comment UserID: \(comment.userID)")
         
         guard !recipientID.isEmpty else {
-            print("DEBUG: Empty recipientID provided")
+            ModelLogger.error("NotificationHelper.createNotification: Empty recipientID provided")
             return
         }
         
@@ -35,7 +35,7 @@ class NotificationHelper {
             let userDoc = try await userRef.getDocument()
             
             guard userDoc.exists else {
-                print("DEBUG: Recipient user no longer exists, skipping notification")
+                ModelLogger.notice("NotificationHelper.createNotification: Recipient user no longer exists, skipping notification")
                 return
             }
             
@@ -55,35 +55,10 @@ class NotificationHelper {
                 .document(recipientID)
                 .collection("userNotifications")
                 .addDocument(data: notificationData)
-            print("DEBUG: Successfully created notification")
+            ModelLogger.info("NotificationHelper.createNotification: Successfully created notification for recipient: \(recipientID)")
         } catch {
-            print("DEBUG: Error creating notification: \(error)")
+            ModelLogger.error("NotificationHelper.createNotification failed: \(error.localizedDescription)")
             throw error
-        }
-    }
-    
-    @discardableResult
-    func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) -> ListenerRegistration {
-        let notificationsRef = db.collection(notificationsCollection)
-            .document(userID)
-            .collection("userNotifications")
-        
-        return notificationsRef.addSnapshotListener { querySnapshot, error in
-            if let error = error {
-                completion(.failure(.firestoreError(error)))
-                return
-            }
-            
-            guard let documents = querySnapshot?.documents else {
-                completion(.failure(.noData))
-                return
-            }
-            
-            let notifications = documents.compactMap { document -> Notification? in
-                Notification(id: document.documentID, data: document.data())
-            }
-            
-            completion(.success(notifications))
         }
     }
     
@@ -97,7 +72,7 @@ class NotificationHelper {
                 .document(notificationID)
                 .updateData(["isRead": true])
         } catch {
-            print("Error marking notification as read: \(error)")
+            ModelLogger.error("NotificationHelper.markNotificationAsRead failed: \(error.localizedDescription)")
         }
     }
     
@@ -117,8 +92,9 @@ class NotificationHelper {
             }
             
             try await batch.commit()
+            ModelLogger.info("NotificationHelper.markAllNotificationsAsRead: Successfully marked all notifications as read for user: \(userID)")
         } catch {
-            print("Error marking all notifications as read: \(error)")
+            ModelLogger.error("NotificationHelper.markAllNotificationsAsRead failed: \(error.localizedDescription)")
         }
     }
     
@@ -126,14 +102,12 @@ class NotificationHelper {
         guard !userID.isEmpty, !postID.isEmpty else { return }
         
         do {
-            // Get all notifications for this post
             let snapshot = try await db.collection(notificationsCollection)
                 .document(userID)
                 .collection("userNotifications")
                 .whereField("postID", isEqualTo: postID)
                 .getDocuments()
             
-            // If there are notifications to delete, batch delete them
             if !snapshot.documents.isEmpty {
                 let batch = db.batch()
                 snapshot.documents.forEach { document in
@@ -145,23 +119,20 @@ class NotificationHelper {
                 }
                 
                 try await batch.commit()
-                print("DEBUG: Successfully deleted notifications for post: \(postID)")
+                ModelLogger.info("NotificationHelper.deleteNotifications: Successfully deleted notifications for post: \(postID)")
             }
         } catch {
-            print("DEBUG: Error deleting notifications: \(error)")
+            ModelLogger.error("NotificationHelper.deleteNotifications failed: \(error.localizedDescription)")
         }
     }
 
-    // Add this new function to delete all notifications for a user
     func deleteAllNotifications(userID: String) async throws {
         guard !userID.isEmpty else { return }
         
         do {
-            // Delete notifications where user is recipient
             let recipientRef = db.collection(notificationsCollection)
                 .document(userID)
             
-            // Delete the entire userNotifications subcollection
             let userNotifications = try await recipientRef.collection("userNotifications").getDocuments()
             let batch = db.batch()
             
@@ -169,12 +140,10 @@ class NotificationHelper {
                 batch.deleteDocument(document.reference)
             }
             
-            // Delete the user's notifications document itself
             batch.deleteDocument(recipientRef)
             
             try await batch.commit()
             
-            // Delete notifications where user is sender
             let allNotificationsQuery = db.collection(notificationsCollection)
             let allNotificationDocs = try await allNotificationsQuery.getDocuments()
             
@@ -193,10 +162,45 @@ class NotificationHelper {
                 }
             }
             
-            print("DEBUG: Successfully deleted all notifications for user: \(userID)")
+            ModelLogger.info("NotificationHelper.deleteAllNotifications: Successfully deleted all notifications for user: \(userID)")
         } catch {
-            print("DEBUG: Error deleting notifications: \(error)")
+            ModelLogger.error("NotificationHelper.deleteAllNotifications failed: \(error.localizedDescription)")
             throw error
+        }
+    }
+
+    @discardableResult
+    func listenForNotifications(userID: String, completion: @escaping (Result<[Notification], NotificationError>) -> Void) -> ListenerRegistration {
+        ModelLogger.debug("NotificationHelper.listenForNotifications: Starting listener for user: \(userID)")
+        
+        let notificationsRef = db.collection(notificationsCollection)
+            .document(userID)
+            .collection("userNotifications")
+        
+        return notificationsRef.addSnapshotListener { querySnapshot, error in
+            if let error = error {
+                ModelLogger.error("NotificationHelper.listenForNotifications failed: \(error.localizedDescription)")
+                completion(.failure(.firestoreError(error)))
+                return
+            }
+            
+            guard let documents = querySnapshot?.documents else {
+                ModelLogger.error("NotificationHelper.listenForNotifications: No documents found")
+                completion(.failure(.noData))
+                return
+            }
+            
+            let notifications = documents.compactMap { document -> Notification? in
+                Notification(id: document.documentID, data: document.data())
+            }
+            
+            if !notifications.isEmpty {
+                ModelLogger.info("NotificationHelper.listenForNotifications: Retrieved \(notifications.count) notifications for user: \(userID)")
+            } else {
+                ModelLogger.debug("NotificationHelper.listenForNotifications: No notifications found for user: \(userID)")
+            }
+            
+            completion(.success(notifications))
         }
     }
 }
