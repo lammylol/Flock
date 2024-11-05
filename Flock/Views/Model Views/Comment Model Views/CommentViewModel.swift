@@ -12,21 +12,20 @@ import Observation
     private let post: Post
     
     @ObservationIgnored private var lastCommentSnapshot: QueryDocumentSnapshot?
+    @ObservationIgnored private var isInitialized = false
     
-    // These should trigger UI updates when changed
     var comments: [Comment] = []
     var isLoading = false
     var isLoadingMore = false
     var errorMessage: String?
     var hasMoreComments = false
     var scrollToEnd: Bool = false
-    let commentsPerPage = 3
     
-    // Track initialization state
-    private var isInitialized = false
-    private var isValid: Bool {
-        return !post.id.isEmpty && !person.userID.isEmpty
-    }
+    // Updated pagination values
+    let initialLoadSize = 10  // Show first 10 comments
+    let commentsPerPage = 5   // Load 5 more at a time
+    
+    @ObservationIgnored private var hasCompletedInitialLoad = false
     
     // MARK: - Initialization
     init(person: Person, post: Post) {
@@ -36,8 +35,8 @@ import Observation
         self.post = post
         
         guard isValid else {
-            print("CommentViewModel.init - Invalid initialization: Post ID empty: \(post.id.isEmpty), Person ID empty: \(person.userID.isEmpty)")
-            errorMessage = "Invalid initialization data: \(post.id.isEmpty ? "missing post ID" : "missing user ID")"
+            print("CommentViewModel.init - Invalid initialization")
+            errorMessage = "Invalid initialization data"
             return
         }
         
@@ -45,6 +44,11 @@ import Observation
         isInitialized = true
     }
     
+    private var isValid: Bool {
+        return !post.id.isEmpty && !person.userID.isEmpty
+    }
+
+    // MARK: - Comment Loading
     func fetchInitialComments() async {
         guard isValid else {
             print("fetchInitialComments - invalid state")
@@ -55,7 +59,7 @@ import Observation
             return
         }
         
-        print("fetchInitialComments - state valid, proceeding to fetch")
+        print("fetchInitialComments - starting fetch")
         await MainActor.run {
             self.isLoading = true
             self.errorMessage = nil
@@ -64,28 +68,27 @@ import Observation
         }
         
         do {
-            print("fetchInitialComments - fetching with limit: \(commentsPerPage + 1)")
+            print("fetchInitialComments - fetching with limit: \(initialLoadSize + 1)")
             let result = try await commentHelper.getComments(
                 for: post.id,
-                limit: commentsPerPage + 1
+                limit: initialLoadSize + 1
             )
             
             await MainActor.run {
-                if result.comments.count > commentsPerPage {
-                    // Got more than our page size, so there are more comments
-                    let displayedComments = Array(result.comments.prefix(commentsPerPage))
+                if result.comments.count > initialLoadSize {
+                    // Got more than initial load size, indicate more are available
+                    let displayedComments = Array(result.comments.prefix(initialLoadSize))
                     self.comments = displayedComments
                     self.hasMoreComments = true
-                    // Use the snapshot of the last displayed comment
                     self.lastCommentSnapshot = result.lastSnapshot
-                    print("Initial load: Showing first \(self.comments.count) comments, more available")
-                    print("Last comment in view: \(displayedComments.last?.text ?? "none")")
+                    print("Initial load: Showing first \(displayedComments.count) comments, more available")
                 } else {
-                    // Got less than or equal to our page size, show all
+                    // Got less than or equal to initial load size, show all
                     self.comments = result.comments
                     self.hasMoreComments = false
                     print("Initial load: Showing all \(self.comments.count) comments, no more available")
                 }
+                self.hasCompletedInitialLoad = true
                 self.isLoading = false
             }
         } catch {
@@ -101,11 +104,11 @@ import Observation
         guard !isLoadingMore,
               hasMoreComments,
               let lastSnapshot = lastCommentSnapshot else {
-            print("fetchMoreComments - conditions not met: isLoadingMore: \(!isLoadingMore), hasMore: \(hasMoreComments), hasSnapshot: \(lastCommentSnapshot != nil)")
+            print("fetchMoreComments - conditions not met")
             return
         }
         
-        print("fetchMoreComments - fetching next page")
+        print("fetchMoreComments - fetching next page of \(commentsPerPage)")
         await MainActor.run {
             self.isLoadingMore = true
         }
@@ -123,10 +126,8 @@ import Observation
                     let newComments = Array(result.comments.prefix(commentsPerPage))
                     self.comments.append(contentsOf: newComments)
                     self.hasMoreComments = true
-                    // Use the snapshot of the last displayed comment
                     self.lastCommentSnapshot = result.lastSnapshot
                     print("Loaded more: Added \(newComments.count) comments, more available")
-                    print("Last comment in view: \(newComments.last?.text ?? "none")")
                 } else {
                     // This is the last batch
                     self.comments.append(contentsOf: result.comments)
@@ -134,7 +135,6 @@ import Observation
                     print("Loaded more: Added final \(result.comments.count) comments, no more available")
                 }
                 self.isLoadingMore = false
-                print("Total comments now: \(self.comments.count)")
             }
         } catch {
             print("Error fetching more comments: \(error)")
