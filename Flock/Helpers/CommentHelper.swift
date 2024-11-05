@@ -7,16 +7,24 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 class CommentHelper {
     private let db = Firestore.firestore()
     
     // Add a new comment to a post
     func addComment(to postID: String, comment: Comment) async throws {
+        print("AddComment Debug:")
+        print("Current Auth UID: \(Auth.auth().currentUser?.uid ?? "none")")
+        print("Post ID: \(postID)")
+        print("Comment creator ID: \(comment.userID)")
         try validatePostID(postID)
         
-        let postRef = db.collection("prayerRequests").document(postID)
-        let commentRef = postRef.collection("comments").document()
+        // Use the prayerRequests collection directly
+        let commentRef = db.collection("prayerRequests")
+            .document(postID)
+            .collection("comments")
+            .document()
         
         var newComment = comment
         newComment.id = commentRef.documentID
@@ -49,16 +57,19 @@ class CommentHelper {
         return (comments: comments, lastSnapshot: lastSnapshot)
     }
     
-    // Delete a comment
+    // Keep other methods the same but update their paths too
     func deleteComment(postID: String, commentID: String) async throws {
         try validatePostID(postID)
         try validateCommentID(commentID)
         
-        let commentRef = db.collection("prayerRequests").document(postID).collection("comments").document(commentID)
+        let commentRef = db.collection("prayerRequests")
+            .document(postID)
+            .collection("comments")
+            .document(commentID)
+            
         try await commentRef.delete()
     }
     
-    // Update a comment
     func updateComment(postID: String, comment: Comment) async throws {
         try validatePostID(postID)
         guard let commentID = comment.id else {
@@ -66,10 +77,15 @@ class CommentHelper {
         }
         try validateCommentID(commentID)
         
-        let commentRef = db.collection("prayerRequests").document(postID).collection("comments").document(commentID)
+        let commentRef = db.collection("prayerRequests")
+            .document(postID)
+            .collection("comments")
+            .document(commentID)
+            
         try await commentRef.setData(from: comment)
     }
     
+    // Keep existing validation methods
     private func validatePostID(_ postID: String) throws {
         guard !postID.isEmpty else {
             throw CommentError.invalidPostID
@@ -83,7 +99,7 @@ class CommentHelper {
     }
 }
 
-// Custom error enum for better error handling
+// Keep existing CommentError enum
 enum CommentError: Error {
     case invalidPostID
     case invalidCommentID

@@ -17,36 +17,34 @@ struct ProfileSettingsView: View {
     @Binding var navigationPath: NavigationPath
 
     var body: some View {
-        NavigationView {
-            Form {
-                Section {
-                    HStack (alignment: .center) {
-                        Spacer()
-                        VStack {
-                            ProfilePictureAvatar(firstName: userHolder.person.firstName, lastName: userHolder.person.lastName, imageSize: 40, fontSize: 20)
-                            Text(userHolder.person.firstName + " " + userHolder.person.lastName)
-                        }
-                        Spacer()
+        Form {
+            Section {
+                HStack (alignment: .center) {
+                    Spacer()
+                    VStack {
+                        ProfilePictureAvatar(firstName: userHolder.person.firstName, lastName: userHolder.person.lastName, imageSize: 40, fontSize: 20)
+                        Text(userHolder.person.firstName + " " + userHolder.person.lastName)
                     }
-                    .alignmentGuide(.listRowSeparatorLeading) { _ in 0 } // extends automatic separator divider. If not, it looks weird.
-                    
-                    NavigationLink(destination: AccountSettings()){
-                        Text("Account Settings")
-                    }
-                    .id(UUID())
+                    Spacer()
                 }
-                Section{
-                    Button(action: {
-                        self.signOut()
-                    }) {Text("Sign Out")
-                            .font(.system(size: 16))
-                            .foregroundColor(.red)
-                    }
+                .alignmentGuide(.listRowSeparatorLeading) { _ in 0 } // extends automatic separator divider. If not, it looks weird.
+                
+                NavigationLink(destination: AccountSettings()){
+                    Text("Account Settings")
                 }
-                .frame(alignment: .center)
+                .id(UUID())
             }
-            .navigationTitle("Settings")
+            Section{
+                Button(action: {
+                    self.signOut()
+                }) {Text("Sign Out")
+                        .font(.system(size: 16))
+                        .foregroundColor(.red)
+                }
+            }
+            .frame(alignment: .center)
         }
+        .navigationTitle("Settings")
     }
     
     func signOut() {

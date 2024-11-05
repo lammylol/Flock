@@ -2,6 +2,7 @@
 
 import Foundation
 import FirebaseFirestore
+import FirebaseAuth
 
 class PostOperationsService {
     private let db = Firestore.firestore()

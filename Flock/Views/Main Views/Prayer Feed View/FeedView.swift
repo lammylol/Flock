@@ -79,7 +79,8 @@ struct FeedView: View {
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post) // Pass binding for post
+                    post: .constant(post), // Pass binding for post
+                    navigationPath: $navigationPath
                 )
             }
             .clipped()

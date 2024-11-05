@@ -94,14 +94,17 @@ struct PostCardLayout: View {
     }
 
     // MARK: - Helper Functions
+    @MainActor
     private func calculateGridColumnCount(for width: CGFloat) -> Int {
         Int(floor((width-100) / (UISizing.PostCard(smallVsLarge: true).width + 5))) // Adjust padding
     }
 
+    @MainActor
     private func calculateGridRowCount(columnCount: Int) -> Int {
         Int(ceil(Double(viewModel.posts.count) / Double(columnCount)))
     }
 
+    @MainActor
     private func fetchNextPostsIfNeeded(for post: Post) async {
         if viewModel.hasReachedEnd(of: post) && !viewModel.isFetching {
             await viewModel.getNextPosts(user: userHolder.person, person: userHolder.person, profileOrFeed: "profile")

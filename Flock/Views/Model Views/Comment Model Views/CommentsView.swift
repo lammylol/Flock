@@ -6,11 +6,12 @@
 // Created by Ramon Jiang 09/011/24
 
 import SwiftUI
+import Observation
 
 struct CommentsView: View {
-    let postID: String
+    let post: Post
     var isInSheet: Bool
-    @State var viewModel: CommentViewModel
+    var viewModel: CommentViewModel
     
     @State private var newCommentText = ""
     @FocusState private var isCommentFieldFocused: Bool
@@ -23,28 +24,17 @@ struct CommentsView: View {
             errorView
             commentInputField
         }
-        .task {
-            print("CommentsView task started for post \(postID)")
-            await fetchCommentsIfNeeded()
-        }
-//        .onChange(of: postID) { newID in
-//            print("PostID changed to: \(newID)")
-//            Task {
-//                await viewModel.fetchInitialComments(for: newID)
-//                await fetchCommentsIfNeeded()
-//            }
-//        }
         .onChange(of: newCommentText) {
             viewModel.scrollToEnd = true
         }
     }
 
     private func fetchCommentsIfNeeded() async {
-        guard !postID.isEmpty else {
+        guard !post.id.isEmpty else {
             print("PostID is empty, not fetching comments")
             return
         }
-        await viewModel.fetchInitialComments(for: postID)
+        await viewModel.fetchInitialComments()  // Removed the post parameter
     }
     
     private var commentsList: some View {
@@ -88,9 +78,8 @@ struct CommentsView: View {
                     Text("Load more comments")
                         .font(.system(size: 14))
                         .foregroundColor(.gray)
-                }
-                .disabled(!viewModel.hasMoreComments)
-                .padding(.vertical, 10)
+                }                .disabled(!viewModel.hasMoreComments)
+                .padding(.vertical, 5)
             }
         }
     }
@@ -148,17 +137,20 @@ struct CommentsView: View {
     
     private func postComment() async {
         guard !isCommentTextEmpty else { return }
-        await viewModel.addComment(to: postID, text: newCommentText, person: userHolder.person)
-        newCommentText = ""
-        isCommentFieldFocused = false
-        await viewModel.fetchInitialComments(for: postID)
+        
+        do {
+            try await viewModel.addComment(text: newCommentText)
+            newCommentText = ""
+            isCommentFieldFocused = false
+        } catch {
+            print("Error posting comment: \(error)")
+            viewModel.errorMessage = "Failed to post comment: \(error.localizedDescription)"
+        }
     }
-
+    
     private func deleteComment(_ comment: Comment) async {
         if let commentID = comment.id {
-            await viewModel.deleteComment(postID: postID, commentID: commentID)
-        } else {
-            print("Cannot delete comment: Invalid comment ID")
+            await viewModel.deleteComment(commentID: commentID)
         }
     }
 }
@@ -200,10 +192,12 @@ struct CommentRow: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
+                        .rotationEffect(.degrees(90))
                         .foregroundColor(.gray.opacity(0.6))
-                        .font(.system(size: 16))
+                        .font(.system(size: 14))
                         .padding(8)
                 }
+                .highPriorityGesture(TapGesture())
             }
         }
         .confirmationDialog(
