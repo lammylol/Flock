@@ -268,7 +268,7 @@ struct PostFullView: View {
     }
     
     private func usernameDisplay() -> String {
-        if person.isPrivateFriend { "private profile" } else { "@\(post.username.capitalized)" }
+        "@\(post.username.capitalized)"
     }
     
     private func loadPost() async {
