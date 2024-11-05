@@ -58,6 +58,7 @@ class NotificationViewModel {
                 Task { @MainActor in
                     self.notifications = notifications.sorted(by: { $0.timestamp > $1.timestamp })
                     self.updateUnreadCount()
+                    NetworkingLogger.info("NotificationListener turned on.")
                 }
             case .failure(let error):
                 print("DEBUG: Error fetching notifications: \(error)")
@@ -67,6 +68,7 @@ class NotificationViewModel {
     
     deinit {
         listener?.remove()  // Clean up listener when ViewModel is deallocated
+        NetworkingLogger.info("NotificationListener turned off.")
     }
     
     func markAsRead(notificationID: String) async {
