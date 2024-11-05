@@ -18,16 +18,17 @@ import Observation
     var isLoading = false
     var isLoadingMore = false
     var errorMessage: String?
+    var hasMoreComments = false
     var scrollToEnd: Bool = false
-    var hasMoreComments = true
     let commentsPerPage = 3
     
-    // Track initialization and validation state
+    // Track initialization state
     private var isInitialized = false
     private var isValid: Bool {
         return !post.id.isEmpty && !person.userID.isEmpty
     }
     
+    // MARK: - Initialization
     init(person: Person, post: Post) {
         print("CommentViewModel.init - Post ID: \(post.id)")
         print("CommentViewModel.init - Person ID: \(person.userID)")
@@ -45,7 +46,6 @@ import Observation
     }
     
     func fetchInitialComments() async {
-        print("fetchInitialComments started")
         guard isValid else {
             print("fetchInitialComments - invalid state")
             await MainActor.run {
@@ -60,54 +60,33 @@ import Observation
             self.isLoading = true
             self.errorMessage = nil
             self.comments = []
-            self.hasMoreComments = false
             self.lastCommentSnapshot = nil
         }
         
         do {
-            print("fetchInitialComments - calling commentHelper.getComments")
+            print("fetchInitialComments - fetching with limit: \(commentsPerPage + 1)")
             let result = try await commentHelper.getComments(
                 for: post.id,
                 limit: commentsPerPage + 1
             )
             
             await MainActor.run {
-                let allFetchedComments = result.comments
-                print("Fetched \(allFetchedComments.count) total comments")
-                
-                // Only take the first commentsPerPage documents
-                self.comments = Array(allFetchedComments.prefix(commentsPerPage))
-                print("Displaying first \(self.comments.count) comments")
-                
-                // Set hasMoreComments based on whether we received an extra document
-                self.hasMoreComments = allFetchedComments.count > commentsPerPage
-                print("Has more comments: \(self.hasMoreComments)")
-                
-                // Store the last snapshot if we have more comments
-                if self.hasMoreComments {
+                if result.comments.count > commentsPerPage {
+                    // Got more than our page size, so there are more comments
+                    let displayedComments = Array(result.comments.prefix(commentsPerPage))
+                    self.comments = displayedComments
+                    self.hasMoreComments = true
+                    // Use the snapshot of the last displayed comment
                     self.lastCommentSnapshot = result.lastSnapshot
-                    print("Stored last snapshot for pagination")
+                    print("Initial load: Showing first \(self.comments.count) comments, more available")
+                    print("Last comment in view: \(displayedComments.last?.text ?? "none")")
+                } else {
+                    // Got less than or equal to our page size, show all
+                    self.comments = result.comments
+                    self.hasMoreComments = false
+                    print("Initial load: Showing all \(self.comments.count) comments, no more available")
                 }
-                
                 self.isLoading = false
-                
-                // Print debug info
-                self.comments.forEach { comment in
-                    print("""
-                        Comment in ViewModel:
-                        ID: \(comment.id ?? "no id")
-                        Text: \(comment.text)
-                        Author: \(comment.firstName) \(comment.lastName)
-                        """)
-                }
-                
-                // Print pagination state
-                print("""
-                    Pagination State:
-                    - Has more comments: \(self.hasMoreComments)
-                    - Last snapshot exists: \(self.lastCommentSnapshot != nil)
-                    - Comments count: \(self.comments.count)
-                    """)
             }
         } catch {
             print("Error fetching initial comments: \(error)")
@@ -119,20 +98,14 @@ import Observation
     }
     
     func fetchMoreComments() async {
-        print("""
-            fetchMoreComments check:
-            - isLoadingMore: \(!isLoadingMore)
-            - hasMoreComments: \(hasMoreComments)
-            - lastSnapshot exists: \(lastCommentSnapshot != nil)
-            """)
-        
         guard !isLoadingMore,
               hasMoreComments,
               let lastSnapshot = lastCommentSnapshot else {
-            print("Skipping fetchMoreComments - conditions not met")
+            print("fetchMoreComments - conditions not met: isLoadingMore: \(!isLoadingMore), hasMore: \(hasMoreComments), hasSnapshot: \(lastCommentSnapshot != nil)")
             return
         }
         
+        print("fetchMoreComments - fetching next page")
         await MainActor.run {
             self.isLoadingMore = true
         }
@@ -145,30 +118,23 @@ import Observation
             )
             
             await MainActor.run {
-                let newComments = result.comments
-                print("Fetched \(newComments.count) new comments")
-                
-                // Only take the first commentsPerPage documents
-                let commentsToAdd = Array(newComments.prefix(commentsPerPage))
-                self.comments.append(contentsOf: commentsToAdd)
-                print("Added \(commentsToAdd.count) comments to display")
-                
-                // Update pagination state
-                self.hasMoreComments = newComments.count > commentsPerPage
-                if self.hasMoreComments {
+                if result.comments.count > commentsPerPage {
+                    // More comments exist after this batch
+                    let newComments = Array(result.comments.prefix(commentsPerPage))
+                    self.comments.append(contentsOf: newComments)
+                    self.hasMoreComments = true
+                    // Use the snapshot of the last displayed comment
                     self.lastCommentSnapshot = result.lastSnapshot
-                    print("Updated last snapshot for next page")
+                    print("Loaded more: Added \(newComments.count) comments, more available")
+                    print("Last comment in view: \(newComments.last?.text ?? "none")")
+                } else {
+                    // This is the last batch
+                    self.comments.append(contentsOf: result.comments)
+                    self.hasMoreComments = false
+                    print("Loaded more: Added final \(result.comments.count) comments, no more available")
                 }
-                
                 self.isLoadingMore = false
-                
-                // Print final state
-                print("""
-                    Updated Pagination State:
-                    - Has more comments: \(self.hasMoreComments)
-                    - Last snapshot exists: \(self.lastCommentSnapshot != nil)
-                    - Total comments count: \(self.comments.count)
-                    """)
+                print("Total comments now: \(self.comments.count)")
             }
         } catch {
             print("Error fetching more comments: \(error)")
@@ -180,13 +146,8 @@ import Observation
     }
     
     func addComment(text: String) async throws {
-        // Validate state and input
         guard isValid && isInitialized else {
             throw CommentError.invalidPostID
-        }
-        
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw CommentError.invalidCommentID // Using this error type for empty text
         }
         
         await MainActor.run {
@@ -205,7 +166,6 @@ import Observation
         )
         
         do {
-            // Add the comment
             try await commentHelper.addComment(to: post.id, comment: newComment)
             
             // Get unique commenters for notifications
@@ -213,7 +173,6 @@ import Observation
             var uniqueRecipients = commentersIds
             uniqueRecipients.insert(post.userID)
             
-            // Send notifications
             for recipientID in uniqueRecipients where recipientID != person.userID {
                 try await notificationHelper.createNotification(
                     for: newComment,
@@ -222,7 +181,7 @@ import Observation
                 )
             }
             
-            // Refresh comments
+            // Refresh comments after adding new one
             await fetchInitialComments()
         } catch {
             await MainActor.run {
@@ -232,10 +191,9 @@ import Observation
             throw error
         }
     }
-
+    
     func deleteComment(commentID: String) async {
         print("deleteComment started - commentID: \(commentID)")
-        // Validate state before proceeding
         guard isValid && isInitialized else {
             print("deleteComment - invalid state")
             await MainActor.run {
