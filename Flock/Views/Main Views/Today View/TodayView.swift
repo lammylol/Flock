@@ -54,8 +54,12 @@ struct TodayView: View {
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
                     person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post) // Pass binding for post
+                    post: .constant(post), // Pass binding for post
+                    navigationPath: $navigationPath
                 )
+            }
+            .navigationDestination(for: Person.self) { person in
+                ProfileView(person: person)
             }
             .navigationDestination(for: String.self, destination: navigationDestination)
             .navigationDestination(for: Notification.self) { notification in
@@ -81,7 +85,8 @@ struct TodayView: View {
                         firstName: notification.senderName.components(separatedBy: " ").first ?? "",
                         lastName: notification.senderName.components(separatedBy: " ").last ?? ""
                     ),
-                    post: .constant(post)
+                    post: .constant(post),
+                    navigationPath: $navigationPath
                 )
             }
         }

@@ -44,6 +44,7 @@ class NotificationHelper {
                 "postTitle": postTitle,
                 "senderID": comment.userID,
                 "senderName": "\(comment.firstName) \(comment.lastName)",
+                "senderUsername": comment.username,
                 "recipientID": recipientID,
                 "type": "new_comment",
                 "timestamp": FieldValue.serverTimestamp(),
