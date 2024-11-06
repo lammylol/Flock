@@ -10,7 +10,6 @@ import SwiftUI
 struct UpdateView: View {
     @State var prayerRequestUpdates: [PostUpdate] = []
     @State var post: Post
-    @State var person: Person
     @State private var expandUpdate: Bool = false
     
     var body: some View {
@@ -66,7 +65,7 @@ struct UpdateView: View {
         }
         .task {
             do {
-                prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
+                prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: post.person)
             } catch {
                 ViewLogger.error("UpdateView error retrieving")
             }

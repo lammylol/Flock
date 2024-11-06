@@ -77,6 +77,9 @@ struct ContentView: View {
                     .navigationDestination(for: NavigationItem.self) {
                         item in navigationManager.navigationDestination(for: item)
                     }
+                    .task {
+                        navigationManager.resetPath()
+                    }
             }
             .tabItem {
                 Image(systemName: "person.circle")

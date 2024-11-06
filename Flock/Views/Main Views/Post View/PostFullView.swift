@@ -142,7 +142,9 @@ struct PostFullView: View {
                         .font(.system(size: 14))
                 }
                 Spacer()
-                NavigationLink(destination: UpdateView(post: newPost, person: post.person)) {
+                Button {
+                    navigationManager.navigateTo(NavigationItem.updates(newPost))
+                } label: {
                     seeAllUpdatesButton()
                 }
             }

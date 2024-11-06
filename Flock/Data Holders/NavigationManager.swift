@@ -11,6 +11,7 @@ import SwiftUI
 enum NavigationItem: Hashable {
     case post(Post)
     case person(Person)
+    case updates(Post)
 }
 
 @Observable class NavigationManager {
@@ -32,6 +33,8 @@ enum NavigationItem: Hashable {
             return AnyView(PostFullView(post: .constant(post)))
         case .person(let person):
             return AnyView(ProfileView(person: person))
+        case .updates(let post):
+            return AnyView(UpdateView(post: post))
         default:
             return AnyView(EmptyView()) // Provide an empty view for other cases - placeholder for empty.
         }
