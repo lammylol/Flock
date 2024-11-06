@@ -250,38 +250,20 @@ struct AddFriendPage: View {
     func addPublicFriend(username: String) {
         Task {
             do {
-                if username != "" { // functions only if the username exists (aka profile is public)
-                    guard username.lowercased() != userHolder.person.username else {
-                        throw AddFriendError.invalidUsername
-                    }
-                        
-                    let ref = try await friendService.validateFriendUsername(username: username.lowercased()/*, firstName: firstName, lastName: lastName*/) // returns (bool, person)
-                    let validation = ref.0 // true or false if username is validated according to first and last name
-                    
-                    guard validation else {
-                        throw AddFriendError.invalidUsername
-                    }
-                    
-                    let person = ref.1 // returns the person model. Happens after validation.
-                    
-                    try await friendService.addFriend(user: userHolder.person, friend: person) // add friend, but need to wait for approval before historical posts are loaded.
-                    
-                } else { // if you are making a private profile to track prayers.
-                    // guard to make sure firstName and lastName are entered. If already exists, need support use case.
-                    // add friend and add user's ID to the private card.
-                    
-//                    guard firstName != "" && lastName != "" else {
-//                        throw AddFriendError.missingName
-//                    }
-//                    
-//                    guard (firstName.lowercased()+lastName.lowercased()) != (userHolder.person.firstName.lowercased() + userHolder.person.lastName.lowercased()) else {
-//                        throw AddFriendError.invalidName
-//                    }
-//                    
-//                    let person = Person(username: username, firstName: firstName, lastName: lastName)
-//                    
-//                    try await friendService.addFriend(user: userHolder.person, friend: person) // add friend, but need to wait for approval before historical posts are loaded.
+                guard username.lowercased() != userHolder.person.username, username != "" else {
+                    throw AddFriendError.invalidUsername
                 }
+                    
+                let ref = try await friendService.validateFriendUsername(username: username.lowercased()/*, firstName: firstName, lastName: lastName*/) // returns (bool, person)
+                let validation = ref.0 // true or false if username is validated according to first and last name
+                
+                guard validation else {
+                    throw AddFriendError.invalidUsername
+                }
+                
+                let person = ref.1 // returns the person model. Happens after validation.
+                
+                try await friendService.addFriend(user: userHolder.person, friend: person) // add friend, but need to wait for approval before historical posts are loaded.
                 
                 confirmation = true
                 

@@ -12,7 +12,7 @@ struct PostsFeed: View {
     @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.colorScheme) var colorScheme
-    @Binding var person: Person
+    @State var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
     @Binding var navigationPath: NavigationPath
@@ -26,7 +26,7 @@ struct PostsFeed: View {
             LazyVStack {
                 ForEach($viewModel.posts) { $post in
                     VStack {
-                        PostRow(viewModel: viewModel, post: $post, person: person, navigationPath: $navigationPath)
+                        PostRow(viewModel: viewModel, post: $post, navigationPath: $navigationPath)
                         Rectangle()
                             .frame(height: 4)
                             .foregroundStyle(.bar)

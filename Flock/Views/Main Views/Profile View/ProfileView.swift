@@ -51,7 +51,6 @@ struct ProfileView: View {
             .navigationDestination(for: String.self, destination: navigationDestination)
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
                     post: .constant(post), // Pass binding for post
                     navigationPath: $navigationPath
                 )
@@ -125,7 +124,7 @@ struct ProfileView: View {
                     }
                 }
                 Divider()
-                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile", navigationPath: $navigationPath)
+                PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile", navigationPath: $navigationPath)
             }
         }
     }

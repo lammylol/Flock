@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 
 @Observable class UISizing {
     var view: UIView = UIView()
@@ -36,5 +37,29 @@ import UIKit
         var width: CGFloat {
             smallVsLarge ? 80 : 100
         }
+    }
+}
+
+extension Color {
+    static var random: Color {
+        let colors = [
+            Color
+            .red,
+            .green,
+            .blue,
+            .orange,
+//            .yellow,
+            .pink,
+            .purple,
+//            .gray,
+            .black,
+//            .primary,
+            .secondary,
+            .accentColor,
+            .primary.opacity(0.75),
+            .secondary.opacity(0.75),
+            .accentColor.opacity(0.75)
+        ]
+        return colors.randomElement()!
     }
 }

@@ -23,17 +23,15 @@ struct FeedView: View {
     @Environment(\.colorScheme) private var scheme
     @State private var navigationPath = NavigationPath()
     
-    @State var person: Person
-    
     let headerText = "Flock \(buildConfiguration == DEVELOPMENT ? "DEV" : "")"
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView(.vertical) {
-                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "feed", navigationPath: $navigationPath)
+                PostsFeed(viewModel: viewModel, person: userHolder.person, profileOrFeed: "feed", navigationPath: $navigationPath)
                     .onChange(of: viewModel.selectedStatus, {
                         Task {
                             if !viewModel.isFetching || !viewModel.isLoading {
-                                try await viewModel.getPosts(user: userHolder.person, person: person)
+                                try await viewModel.getPosts(user: userHolder.person)
                             }
                         }
                     })
@@ -42,18 +40,18 @@ struct FeedView: View {
             .refreshable {
                 Task {
                     if viewModel.isFinished {
-                        try await viewModel.getPosts(user: userHolder.person, person: person)
+                        try await viewModel.getPosts(user: userHolder.person)
                     }
                 }
             }
             .sheet(isPresented: $showSubmit, onDismiss: {
                 Task {
                     if viewModel.isFinished {
-                        try await viewModel.getPosts(user: userHolder.person, person: person)
+                        try await viewModel.getPosts(user: userHolder.person)
                     }
                 }
             }, content: {
-                PostCreateView(person: person)
+                PostCreateView(person: userHolder.person)
             })
             .toolbar() {
                 ToolbarItem(placement: .topBarLeading) {
@@ -78,76 +76,11 @@ struct FeedView: View {
             }
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
                     post: .constant(post), // Pass binding for post
                     navigationPath: $navigationPath
                 )
             }
             .clipped()
-        }
-    }
-}
-
-struct OffsetKey: PreferenceKey {
-    static let defaultValue: CGFloat = .zero
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-struct HeightKey: PreferenceKey {
-    static let defaultValue: CGFloat = .zero
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-extension View {
-    @ViewBuilder
-    func offsetX(completion: @escaping (CGFloat) -> ()) -> some View {
-        self
-            .overlay {
-                GeometryReader {
-                    let minX = $0.frame(in: .scrollView(axis: .horizontal)).minX
-                    
-                    Color.clear
-                        .preference(key: OffsetKey.self, value: minX)
-                        .onPreferenceChange(OffsetKey.self, perform: completion)
-                }
-            }
-    }
-    
-    @ViewBuilder
-    func getSizeOfView(completion: @escaping (CGFloat) -> ()) -> some View {
-        self
-            .background {
-                GeometryReader { geo in
-                    Color.clear
-                        .preference(key: HeightKey.self, value: geo.size.height)
-                        .onPreferenceChange(HeightKey.self, perform: completion)
-                }
-            }
-    }
-    
-    @ViewBuilder
-    func tabMask(_ tabProgress: CGFloat, tabs: [Tab]) -> some View {
-        
-        ZStack {
-            self
-                .foregroundStyle(.gray)
-            
-            self
-                .symbolVariant(.fill)
-                .mask {
-                    GeometryReader {
-                        let size = $0.size
-                        let capsuleWidth = size.width / CGFloat(tabs.count)
-                        
-                        Capsule()
-                            .frame(width: capsuleWidth)
-                            .offset(x: tabProgress * (size.width - capsuleWidth))
-                    }
-                }
         }
     }
 }

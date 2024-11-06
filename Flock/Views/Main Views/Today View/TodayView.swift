@@ -53,7 +53,6 @@ struct TodayView: View {
             // navigationDestination routings:
             .navigationDestination(for: Post.self) { post in
                 PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
                     post: .constant(post), // Pass binding for post
                     navigationPath: $navigationPath
                 )
@@ -79,12 +78,6 @@ struct TodayView: View {
                     lastSeenNotificationCount: 0
                 )
                 PostFullView(
-                    person: Person(
-                        userID: notification.senderID,
-                        username: "",
-                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                    ),
                     post: .constant(post),
                     navigationPath: $navigationPath
                 )

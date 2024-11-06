@@ -65,7 +65,7 @@ struct ProfileFeed: View {
             }
             Divider()
             
-            PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile", navigationPath: $navigationPath)
+            PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile", navigationPath: $navigationPath)
         }
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task {
