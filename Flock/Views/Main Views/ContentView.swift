@@ -10,61 +10,67 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(UserProfileHolder.self) var userHolder
-    @Environment(DateHolder.self) var dateHolder
-    @Environment(FriendRequestListener.self) var friendRequestListener
-    @Environment(\.scenePhase) var scenePhase
+    @Environment(UserProfileHolder.self) private var userHolder
+    @Environment(DateHolder.self) private var dateHolder
+    @Environment(FriendRequestListener.self) private var friendRequestListener
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(NavigationManager.self) private var navigationManager
     @State var selection: Int
+    @State var path = NavigationPath()
     
     var body: some View {
-        
-        //Tabs for each view. Adds bottom icons.
-        TabView(selection: $selection) {
-            TodayView()
-                .tabItem {
-                    Image(systemName: "house.fill")
-                        .imageScale(.large)
-                    Text("Home")
-                }
-                .tag(1)
-            FeedView()
-                .tabItem {
-                    Image(systemName: "newspaper.fill")
-                        .imageScale(.large)
-                    Text("Feed")
-                }
-                .tag(2)
-            
-            FriendsPageView()
-                .tabItem {
-                    Image(systemName: "person.2.fill")
-                        .imageScale(.large)
-                    Text("Friends")
-                }
-                .tag(3)
-            ProfileView(person: userHolder.person)
-                .tabItem {
-                    Image(systemName: "person.circle")
-                        .imageScale(.large)
-                    Text("Profile")
-                }
-                .tag(4)
-        }
-        .onChange(of: scenePhase) {
-            oldPhase, newPhase in
-            if newPhase == .active {
-                Task {
-                    do {
-                        try await friendRequestListener.setUpListener(userID: userHolder.person.userID)
-                    } catch {
-                        ViewLogger.error("ContentView: friendRequestListener \(error)")
+        NavigationStack(path: $path) {
+            //Tabs for each view. Adds bottom icons.
+            TabView(selection: $selection) {
+                TodayView()
+                    .tabItem {
+                        Image(systemName: "house.fill")
+                            .imageScale(.large)
+                        Text("Home")
                     }
-                }
-            } else if newPhase == .inactive {
-                friendRequestListener.removeListener()
-            } else if newPhase == .background {
-                friendRequestListener.removeListener()
+                    .tag(1)
+                FeedView()
+                    .tabItem {
+                        Image(systemName: "newspaper.fill")
+                            .imageScale(.large)
+                        Text("Feed")
+                    }
+                    .tag(2)
+                
+                FriendsPageView()
+                    .tabItem {
+                        Image(systemName: "person.2.fill")
+                            .imageScale(.large)
+                        Text("Friends")
+                    }
+                    .tag(3)
+                ProfileView(person: userHolder.person)
+                    .tabItem {
+                        Image(systemName: "person.circle")
+                            .imageScale(.large)
+                        Text("Profile")
+                    }
+                    .tag(4)
             }
-        } // detect when app is closed or open.
+            .onChange(of: scenePhase) {
+                oldPhase, newPhase in
+                if newPhase == .active {
+                    Task {
+                        do {
+                            try await friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                        } catch {
+                            ViewLogger.error("ContentView: friendRequestListener \(error)")
+                        }
+                    }
+                } else if newPhase == .inactive {
+                    friendRequestListener.removeListener()
+                } else if newPhase == .background {
+                    friendRequestListener.removeListener()
+                }
+            } // detect when app is closed or open.
+        }
+        .task {
+            self.path = navigationManager.path
+        }
     }
 }

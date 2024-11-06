@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PostCard: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
     
     @Binding var post: Post
     
@@ -28,7 +29,9 @@ struct PostCard: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            NavigationLink(destination: PostFullView(post: $post)) {
+            Button {
+                navigationManager.navigateToPost(with: post)
+            } label: {
                 VStack {
                     HStack {
                         ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 24, fontSize: 12)
