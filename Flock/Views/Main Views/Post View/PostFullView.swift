@@ -15,7 +15,7 @@ struct PostFullView: View {
     @Environment(\.dismiss) var dismiss
     
     @Binding var post: Post
-    @State var newPost: Post
+    @State var newPost: Post = Post()
     
     @State private var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
@@ -29,12 +29,6 @@ struct PostFullView: View {
     private let postHelper = PostHelper()
     private let notificationHelper = NotificationHelper()
     @State private var showProfileView: Bool = false
-
-    init(post: Binding<Post>) {
-        _post = post
-        _newPost = State(initialValue: post.wrappedValue)
-        print("PostFullView init - Post ID: \(post.wrappedValue.id)")
-    }
     
     var body: some View {
         mainContent
