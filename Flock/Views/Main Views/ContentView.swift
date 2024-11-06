@@ -27,7 +27,7 @@ struct ContentView: View {
                     Text("Home")
                 }
                 .tag(1)
-            FeedView(person: userHolder.person)
+            FeedView()
                 .tabItem {
                     Image(systemName: "newspaper.fill")
                         .imageScale(.large)
@@ -42,12 +42,6 @@ struct ContentView: View {
                     Text("Friends")
                 }
                 .tag(3)
-            //            PrayerCalendarView()
-            //                .tabItem {
-            //                    Image(systemName: "calendar")
-            //                        .imageScale(.large)
-            //                    Text("Calendar")
-            //                }.tag(3)
             ProfileView(person: userHolder.person)
                 .tabItem {
                     Image(systemName: "person.circle")
@@ -74,28 +68,3 @@ struct ContentView: View {
         } // detect when app is closed or open.
     }
 }
-
-//// Screen Destinations for Navigation Path
-//extension ContentView {
-//    enum ScreenDestinations {
-//        case profile
-//        case feed
-//        case calendar
-//        
-//        @ViewBuilder func view(_path: Binding<NavigationPath>, person: Person) -> some View {
-//            switch self {
-//            case .calendar:
-//                PrayerCalendarView()
-//            case .feed:
-//                FeedView(person: person)
-//            case .profile:
-//                ProfileView(person: person)
-//            }
-//        }
-//    }
-//}
-//
-//#Preview("Content View") {
-//    ContentView(selection: 1)
-//        .environment(UserProfileHolder())place
-//}

@@ -44,6 +44,15 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
         case isPinned
         case lastSeenNotificationCount
     }
+    
+    var person: Person {
+        Person(
+            userID: userID,
+            username: username,
+            firstName: firstName,
+            lastName: lastName
+        )
+    }
 }
 
 extension Post {

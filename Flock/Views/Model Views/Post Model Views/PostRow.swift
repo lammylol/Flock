@@ -11,7 +11,7 @@ import SwiftUI
 struct PostRow: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.colorScheme) private var scheme
-    
+
     @State var viewModel: FeedViewModel
     @Binding var post: Post
     @State var postHelper = PostHelper()
@@ -33,15 +33,16 @@ struct PostRow: View {
     var body: some View {
             LazyVStack {
                 HStack {
-                    VStack {
-                        NavigationLink(destination: ProfileView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName))) {
+                    VStack() {
+                        NavigationLink(destination: ProfileView(person: post.person)) {
                             ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
                                 .buttonStyle(.plain)
                                 .foregroundStyle(Color.primary)
                         }
+                        .id(UUID())
                     }
                     .padding(.trailing, 8)
-                    
+
                     VStack(alignment: .leading) {
                         HStack {
                             Text(post.firstName.capitalized + " " + post.lastName.capitalized)
@@ -234,23 +235,6 @@ struct PostRow: View {
     func postExpandLines() {
         postExpandUpdate.toggle()
     }
-    
-    // Navigation destination
-    private func navigationDestination(for value: String) -> some View {
-        switch value {
-        case "profile":
-            return AnyView(
-                ProfileView(person: Person(
-                    userID: post.userID,
-                    username: post.username,
-                    firstName: post.firstName,
-                    lastName: post.lastName)
-                )
-            )
-        default:
-            return AnyView(EmptyView()) // Provide an empty view for other cases
-        }
-    }
 }
 
 struct LatestUpdate: View {
@@ -264,29 +248,5 @@ struct LatestUpdate: View {
                 .font(.system(size: 14))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-extension Color {
-    static var random: Color {
-        let colors = [
-            Color
-            .red,
-            .green,
-            .blue,
-            .orange,
-//            .yellow,
-            .pink,
-            .purple,
-//            .gray,
-            .black,
-//            .primary,
-            .secondary,
-            .accentColor,
-            .primary.opacity(0.75),
-            .secondary.opacity(0.75),
-            .accentColor.opacity(0.75)
-        ]
-        return colors.randomElement()!
     }
 }

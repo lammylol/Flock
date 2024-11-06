@@ -14,26 +14,28 @@ struct PostFullView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.dismiss) var dismiss
     
-    @State var postHelper = PostHelper()
-    @State var postUpdates: [PostUpdate] = []
-    @State var person: Person = Person()
-    @State var newPost: Post = Post()
-    @State var lineLimit: Int = 6
     @Binding var post: Post
+    @State var newPost: Post
     
     @State private var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
-    @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
+    @State var postUpdates: [PostUpdate] = []
+    @State var lineLimit: Int = 6
+    
+    @Binding var navigationPath: NavigationPath
+    @State private var commentViewModel: CommentViewModel?
+    private let postHelper = PostHelper()
     private let notificationHelper = NotificationHelper()
     @State private var showProfileView: Bool = false
-//
-//    init(post: Binding<Post>) {
-//        _post = post
-//        print("PostFullView init - Post ID: \(post.wrappedValue.id)")
-//    }
+
+    init(post: Binding<Post>) {
+        _post = post
+        _newPost = State(initialValue: post.wrappedValue)
+        print("PostFullView init - Post ID: \(post.wrappedValue.id)")
+    }
     
     var body: some View {
         mainContent
@@ -112,7 +114,7 @@ struct PostFullView: View {
     // MARK: - Post Header View
     private func postHeaderView() -> some View {
         HStack {
-            NavigationLink(destination: ProfileView(person: person)) {
+            NavigationLink(destination: ProfileView(person: post.person)) {
                 ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.primary)
@@ -144,7 +146,7 @@ struct PostFullView: View {
                         .font(.system(size: 14))
                 }
                 Spacer()
-                NavigationLink(destination: UpdateView(post: newPost, person: person)) {
+                NavigationLink(destination: UpdateView(post: newPost, person: post.person)) {
                     seeAllUpdatesButton()
                 }
             }
@@ -201,11 +203,11 @@ struct PostFullView: View {
         }
     }
     
-    // MARK: - Helper Views & Methods
+    // MARK: - Helper Views
     private func postOptionsMenu() -> some View {
         Menu {
-            if person.userID == userHolder.person.userID {
-                NavigationLink(destination: PostEditView(person: person, post: post)
+            if post.userID == userHolder.person.userID {
+                NavigationLink(destination: PostEditView(person: post.person, post: post)
                     .onDisappear {
                         Task {
                             await refreshPost()
@@ -263,33 +265,18 @@ struct PostFullView: View {
     }
     
     private func usernameDisplay() -> String {
-        "@\(post.username.capitalized)"
+        "@\(newPost.username.capitalized)"
     }
     
+    // MARK: - Helper Methods
     private func loadPost() async {
         do {
             print("Loading post - Current ID: \(newPost.id)")
             newPost = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             print("Post loaded - New ID: \(newPost.id)")
-            post = newPost
-            person = Person(
-                userID: post.userID,
-                username: post.username,
-                firstName: post.firstName,
-                lastName: post.lastName
-            )
+            self.post = newPost
         } catch {
             print("Error loading post: \(error)")
-        }
-    }
-    
-    private func updateNotificationSeenIfNotificationCountExisted() async {
-        if newPost.lastSeenNotificationCount > 0 {
-            do {
-                try await FeedService().updateLastSeenNotificationCount(post: post, person: userHolder.person)
-            } catch {
-                print("Error updating notification count: \(error)")
-            }
         }
     }
     
@@ -311,6 +298,16 @@ struct PostFullView: View {
             post = newPost
         } catch {
             print("Error refreshing post: \(error)")
+        }
+    }
+    
+    private func updateNotificationSeenIfNotificationCountExisted() async {
+        if newPost.lastSeenNotificationCount > 0 {
+            do {
+                try await FeedService().updateLastSeenNotificationCount(post: post, person: userHolder.person)
+            } catch {
+                print("Error updating notification count: \(error)")
+            }
         }
     }
     

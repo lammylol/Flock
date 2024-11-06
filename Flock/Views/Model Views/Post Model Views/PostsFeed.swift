@@ -12,7 +12,7 @@ struct PostsFeed: View {
     @State var viewModel: FeedViewModel
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.colorScheme) var colorScheme
-    @Binding var person: Person
+    @State var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
     

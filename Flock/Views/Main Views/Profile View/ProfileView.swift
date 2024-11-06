@@ -116,7 +116,7 @@ struct ProfileView: View {
                     }
                 }
                 Divider()
-                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile")
+                PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
             }
         }
     }

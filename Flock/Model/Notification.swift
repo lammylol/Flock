@@ -24,6 +24,34 @@ struct Notification: Identifiable, Hashable, Codable {
         case newComment = "new_comment"
     }
     
+    init?(id: String, data: [String: Any]) {
+        guard
+            let postID = data["postID"] as? String,
+            let postTitle = data["postTitle"] as? String,
+            let senderID = data["senderID"] as? String,
+            let senderName = data["senderName"] as? String,
+            let senderUsername = data["senderUsername"] as? String,
+            let recipientID = data["recipientID"] as? String,
+            let typeString = data["type"] as? String,
+            let timestamp = data["timestamp"] as? Timestamp,
+            let isRead = data["isRead"] as? Bool,
+            let type = NotificationType(rawValue: typeString)
+        else {
+            return nil
+        }
+        
+        self.id = id
+        self.postID = postID
+        self.postTitle = postTitle
+        self.senderID = senderID
+        self.senderName = senderName
+        self.senderUsername = senderUsername
+        self.recipientID = recipientID
+        self.type = type
+        self.timestamp = timestamp.dateValue()
+        self.isRead = isRead
+    }
+    
 //    enum CodingKeys: String, CodingKey {
 //        case id
 //        case postID
@@ -79,33 +107,6 @@ struct Notification: Identifiable, Hashable, Codable {
 //        isRead = try container.decode(Bool.self, forKey: .isRead)
 //    }
     
-    init?(id: String, data: [String: Any]) {
-        guard 
-            let postID = data["postID"] as? String,
-            let postTitle = data["postTitle"] as? String,
-            let senderID = data["senderID"] as? String,
-            let senderName = data["senderName"] as? String,
-            let senderUsername = data["senderUsername"] as? String,
-            let recipientID = data["recipientID"] as? String,
-            let typeString = data["type"] as? String,
-            let timestamp = data["timestamp"] as? Timestamp,
-            let isRead = data["isRead"] as? Bool,
-            let type = NotificationType(rawValue: typeString)
-        else {
-            return nil
-        }
-        
-        self.id = id
-        self.postID = postID
-        self.postTitle = postTitle
-        self.senderID = senderID
-        self.senderName = senderName
-        self.senderUsername = senderUsername
-        self.recipientID = recipientID
-        self.type = type
-        self.timestamp = timestamp.dateValue()
-        self.isRead = isRead
-    }
 //    
 //    func encode(to encoder: Encoder) throws {
 //        var container = encoder.container(keyedBy: CodingKeys.self)
