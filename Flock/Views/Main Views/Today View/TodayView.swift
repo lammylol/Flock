@@ -142,7 +142,7 @@ struct TodayView: View {
             PostCardLayout(viewModel: myPostsViewModel, isExpanded: seeAllMyPosts)
                 .task {
                     if myPostsViewModel.posts.isEmpty {
-                        await loadPinnedPosts()
+                        await loadPinnedPosts(for: myPostsViewModel)
                     }
                 }
         }
@@ -168,7 +168,7 @@ struct TodayView: View {
             PostCardLayout(viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
                 .task {
                     if myFriendsPostsViewModel.posts.isEmpty {
-                        await loadPinnedPosts()
+                        await loadPinnedPosts(for: myFriendsPostsViewModel)
                     }
                 }
         }
@@ -225,12 +225,11 @@ struct TodayView: View {
         return formatter.string(from: date)
     }
     
-    private func loadPinnedPosts() async {
+    private func loadPinnedPosts(for viewModel: FeedViewModel) async {
         do {
-            try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
-            try await myPostsViewModel.getPosts(user: userHolder.person)
+            try await viewModel.getPosts(user: userHolder.person)
         } catch {
-            ViewLogger.error("ProfileView Pinned Posts \(error)")
+            ViewLogger.error("TodayView Pinned Posts \(error)")
         }
     }
     

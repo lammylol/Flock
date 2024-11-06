@@ -29,7 +29,7 @@ struct SignInView: View {
         Group {
             if userHolder.isLoading {
                 LoadingView() // A simple loading view can be defined separately
-            } else if userHolder.isLoggedIn == .authenticated && !userHolder.isLoading {
+            } else if userHolder.isLoggedIn == .authenticated && userHolder.isFinished {
                 ContentView(selection: 1)
             } else {
                 signInForm
