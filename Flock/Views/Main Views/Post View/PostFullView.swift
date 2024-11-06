@@ -25,7 +25,6 @@ struct PostFullView: View {
     @State var postUpdates: [PostUpdate] = []
     @State var lineLimit: Int = 6
     
-    @Binding var navigationPath: NavigationPath
     @State private var commentViewModel: CommentViewModel?
     private let postHelper = PostHelper()
     private let notificationHelper = NotificationHelper()
