@@ -12,7 +12,6 @@ struct TodayView: View {
     
     @State private var myFriendsPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myFriendPostsPinned)
     @State private var myPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myPostsPinned)
-    @State private var navigationPath = NavigationPath()
     
     @State private var date: Date = Date()
     @State private var post: Post = Post()
@@ -30,7 +29,7 @@ struct TodayView: View {
     @State private var isPresentingNotifications: Bool = false
     
     var body: some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack {
             ScrollView {
                 VStack (alignment: .leading, spacing: 20) {
                     headerView()
@@ -49,46 +48,6 @@ struct TodayView: View {
             .sheet(isPresented: $showCreatePost) {
                 PostCreateView(person: userHolder.person, postType: postType)
             }
-    
-            // navigationDestination routings:
-            .navigationDestination(for: Post.self) { post in
-                PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post), // Pass binding for post
-                    navigationPath: $navigationPath
-                )
-            }
-            .navigationDestination(for: Person.self) { person in
-                ProfileView(person: person)
-            }
-            .navigationDestination(for: String.self, destination: navigationDestination)
-            .navigationDestination(for: Notification.self) { notification in
-                let post = Post(
-                    id: notification.postID,
-                    date: notification.timestamp,
-                    userID: notification.senderID,
-                    username: "",
-                    firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                    lastName: notification.senderName.components(separatedBy: " ").last ?? "",
-                    postTitle: notification.postTitle,
-                    postText: "",
-                    postType: "Note",
-                    status: "Current",
-                    privacy: "public",
-                    isPinned: false,
-                    lastSeenNotificationCount: 0
-                )
-                PostFullView(
-                    person: Person(
-                        userID: notification.senderID,
-                        username: "",
-                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                    ),
-                    post: .constant(post),
-                    navigationPath: $navigationPath
-                )
-            }
         }
     }
         
@@ -104,9 +63,7 @@ struct TodayView: View {
                     .fontWeight(.light)
                 Spacer()
                 
-                Button {
-                    navigationPath.append("notifications")
-                } label: {
+                NavigationLink(destination: NotificationSheet(viewModel: notificationViewModel)) {
                     ZStack(alignment: .topTrailing) {
                         Image(systemName: "bell.fill")
                             .font(.system(size: 20))
@@ -182,7 +139,7 @@ struct TodayView: View {
                 }
             }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: myPostsViewModel, isExpanded: seeAllMyPosts)
+            PostCardLayout(viewModel: myPostsViewModel, isExpanded: seeAllMyPosts)
                 .task {
                     if myPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
@@ -208,7 +165,7 @@ struct TodayView: View {
                 }
             }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
+            PostCardLayout(viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
                 .task {
                     if myFriendsPostsViewModel.posts.isEmpty {
                         await loadPinnedPosts()
@@ -292,7 +249,7 @@ struct TodayView: View {
     private func navigationDestination(for value: String) -> some View {
         switch value {
         case "notifications":
-            return AnyView(NotificationSheet(viewModel: notificationViewModel, navigationPath: $navigationPath))
+            return AnyView(NotificationSheet(viewModel: notificationViewModel))
         default:
             return AnyView(EmptyView()) // Provide an empty view for other cases
         }

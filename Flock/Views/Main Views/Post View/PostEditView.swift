@@ -14,7 +14,7 @@ struct PostEditView: View {
     @Environment(\.colorScheme) var colorScheme
     
     @State var prayerRequestUpdates: [PostUpdate] = []
-    @State var person: Person
+    @State var person: Person = Person()
     @State var post: Post
     @State var showAddUpdateView = false
     @State private var originalPrivacy = ""
@@ -118,6 +118,12 @@ struct PostEditView: View {
             post = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
             originalPrivacy = post.privacy
+            person = Person(
+                userID: post.userID,
+                username: post.username,
+                firstName: post.firstName,
+                lastName: post.lastName
+            )
         } catch {
             ViewLogger.error("Error retrieving post or updates: \(error)")
         }

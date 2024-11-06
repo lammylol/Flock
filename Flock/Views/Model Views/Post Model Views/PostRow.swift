@@ -9,14 +9,13 @@
 import SwiftUI
 
 struct PostRow: View {
-    @State var viewModel: FeedViewModel
-    @Environment(\.colorScheme) private var scheme
-    @Binding var post: Post
-    @State var person: Person = Person()
     @Environment(UserProfileHolder.self) var userHolder
-    @State var postHelper = PostHelper()
-    @Binding var navigationPath: NavigationPath
+    @Environment(\.colorScheme) private var scheme
     
+    @State var viewModel: FeedViewModel
+    @Binding var post: Post
+    @State var postHelper = PostHelper()
+
     // For Update
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
@@ -24,31 +23,24 @@ struct PostRow: View {
     // For Main Text
     @State private var postExpandUpdate: Bool = false
     @State private var postIsTruncated: Bool = false
+    @State private var showProfileView: Bool = false
+//
+//    init(viewModel: FeedViewModel, post: Binding<Post>) {
+//        self.viewModel = viewModel
+//        _post = post
+//    }
     
     var body: some View {
-        Button {
-            navigationPath.append(post)
-        } label: {
             LazyVStack {
                 HStack {
-                    if viewModel.viewType == .feed { //feed used in the feed view
-                        VStack() {
-                            NavigationLink(destination: ProfileView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName))) {
-                                ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
-                                    .buttonStyle(.plain)
-                                    .foregroundStyle(Color.primary)
-                            }
-                            .id(UUID())
-                        }
-                        .padding(.trailing, 8)
-                    } else { //used in 'profile' view
-                        VStack() {
+                    VStack {
+                        NavigationLink(destination: ProfileView(person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName))) {
                             ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 50, fontSize: 20)
                                 .buttonStyle(.plain)
                                 .foregroundStyle(Color.primary)
                         }
-                        .padding(.trailing, 8)
                     }
+                    .padding(.trailing, 8)
                     
                     VStack(alignment: .leading) {
                         HStack {
@@ -62,7 +54,7 @@ struct PostRow: View {
                             Privacy(rawValue: post.privacy)?.systemImage
                             Menu {
                                 if post.userID == userHolder.person.userID {
-                                    NavigationLink(destination: PostEditView(person: person, post: post)){
+                                    NavigationLink(destination: PostEditView(post: post)){
                                         Label("Edit Post", systemImage: "pencil")
                                     } // can only edit if you are the owner of the post.
                                 }
@@ -133,9 +125,7 @@ struct PostRow: View {
                                 .multilineTextAlignment(.leading)
                                 
                                 if isTruncated {
-                                    Button {
-                                        navigationPath.append(post)
-                                    } label: {
+                                    NavigationLink(destination: PostFullView(post: $post)) {
                                         Text(expandUpdate ? "Show Less" : "Show More")
                                             .foregroundStyle(Color.blue)
                                             .font(.system(size: 14))
@@ -144,7 +134,9 @@ struct PostRow: View {
                                 
                             }
                             .padding(.all, 10)
-                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.gray).opacity(0.06))
+                            .background {
+                                RoundedRectangle(cornerRadius: 10).fill(Color.gray).opacity(0.06)
+                            }
                             .foregroundStyle(Color.primary)
                             .padding(.vertical, 7)// Group for latest banner with truncation methodology.
                         }
@@ -216,10 +208,8 @@ struct PostRow: View {
                 }
             }
             .foregroundStyle(Color.primary)
-        }
-        .id(post.id)
-        .padding([.top, .bottom], 15)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding([.top, .bottom], 15)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     func pinPost(){
@@ -243,6 +233,23 @@ struct PostRow: View {
     
     func postExpandLines() {
         postExpandUpdate.toggle()
+    }
+    
+    // Navigation destination
+    private func navigationDestination(for value: String) -> some View {
+        switch value {
+        case "profile":
+            return AnyView(
+                ProfileView(person: Person(
+                    userID: post.userID,
+                    username: post.username,
+                    firstName: post.firstName,
+                    lastName: post.lastName)
+                )
+            )
+        default:
+            return AnyView(EmptyView()) // Provide an empty view for other cases
+        }
     }
 }
 
@@ -283,29 +290,3 @@ extension Color {
         return colors.randomElement()!
     }
 }
-
-//#Preview {
-//    PrayerRequestRow(prayerRequest: 
-//                        Post(
-//                        date: Date(),
-//                        userID: "",
-//                        username: "lammylol",
-//                        firstName: "Matt",
-//                        lastName: "Lam",
-//                        postTitle: "Prayers for Text",
-//                        postText: "Prayers for this text to look beautiful. Prayers for this text to look beautiful.",
-//                        postType: "testimony",
-//                        status: "Current",
-//                        latestUpdateText: "Prayers for this text to look beautiful. Prayers for this text to look beautiful.",
-//                        latestUpdateDatePosted: Date(),
-//                        latestUpdateType: "Testimony",
-//                        privacy: "private",
-//                        isPinned: true),
-//         profileOrPrayerFeed: "feed")
-//        .frame(maxHeight: 300)
-//        .environment(UserProfileHolder())
-//}
-//
-//#Preview {
-//    LatestUpdate(prayerRequest: PrayerRequest(userID: "", username: "lammylol", date: Date(), prayerRequestText: "Prayers for this text to look beautiful. Prayers for this text to look beautiful.", status: "Current", firstName: "Matt", lastName: "Lam", priority: "high", isPinned: true, prayerRequestTitle: "Prayers for Text", latestUpdateText: "Test Latest update: Prayers for this text to look beautiful. Prayers for this text to look beautiful.", latestUpdateDatePosted: Date(), latestUpdateType: "Testimony"))
-//}

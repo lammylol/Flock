@@ -17,6 +17,7 @@ struct ContentView: View {
     @State var selection: Int
     
     var body: some View {
+        
         //Tabs for each view. Adds bottom icons.
         TabView(selection: $selection) {
             TodayView()
@@ -41,12 +42,12 @@ struct ContentView: View {
                     Text("Friends")
                 }
                 .tag(3)
-//            PrayerCalendarView()
-//                .tabItem {
-//                    Image(systemName: "calendar")
-//                        .imageScale(.large)
-//                    Text("Calendar")
-//                }.tag(3)
+            //            PrayerCalendarView()
+            //                .tabItem {
+            //                    Image(systemName: "calendar")
+            //                        .imageScale(.large)
+            //                    Text("Calendar")
+            //                }.tag(3)
             ProfileView(person: userHolder.person)
                 .tabItem {
                     Image(systemName: "person.circle")
@@ -55,20 +56,20 @@ struct ContentView: View {
                 }
                 .tag(4)
         }
-        .onChange(of: scenePhase) { 
+        .onChange(of: scenePhase) {
             oldPhase, newPhase in
-                if newPhase == .active {
-                    Task {
-                        do {
-                            try await friendRequestListener.setUpListener(userID: userHolder.person.userID)
-                        } catch {
-                            ViewLogger.error("ContentView: friendRequestListener \(error)")
-                        }
+            if newPhase == .active {
+                Task {
+                    do {
+                        try await friendRequestListener.setUpListener(userID: userHolder.person.userID)
+                    } catch {
+                        ViewLogger.error("ContentView: friendRequestListener \(error)")
                     }
-                } else if newPhase == .inactive {
-                    friendRequestListener.removeListener()
-                } else if newPhase == .background {
-                    friendRequestListener.removeListener()
+                }
+            } else if newPhase == .inactive {
+                friendRequestListener.removeListener()
+            } else if newPhase == .background {
+                friendRequestListener.removeListener()
             }
         } // detect when app is closed or open.
     }

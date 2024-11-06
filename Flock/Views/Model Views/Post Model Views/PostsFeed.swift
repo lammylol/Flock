@@ -15,7 +15,6 @@ struct PostsFeed: View {
     @Binding var person: Person
     @State var profileOrFeed: String = "feed"
     @State private var showSubmit: Bool = false
-    @Binding var navigationPath: NavigationPath
     
     var userService = UserService()
     
@@ -26,7 +25,9 @@ struct PostsFeed: View {
             LazyVStack {
                 ForEach($viewModel.posts) { $post in
                     VStack {
-                        PostRow(viewModel: viewModel, post: $post, person: person, navigationPath: $navigationPath)
+                        NavigationLink(destination: PostFullView(post: $post)) {
+                            PostRow(viewModel: viewModel, post: $post)
+                        }
                         Rectangle()
                             .frame(height: 4)
                             .foregroundStyle(.bar)

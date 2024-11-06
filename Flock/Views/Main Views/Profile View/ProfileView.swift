@@ -19,7 +19,6 @@ struct ProfileView: View {
     @State private var showSubmit = false
     @State private var viewModel = FeedViewModel(viewType: .profile, selectionType: .myPosts)
     @State private var pinnedPostsViewModel = FeedViewModel(viewType: .profile, selectionType: .myPostsPinned)
-    @State public var navigationPath = NavigationPath()
     @State private var addFriendConfirmation = false
     @State private var seeAllMyPosts: Bool = false
     
@@ -28,7 +27,7 @@ struct ProfileView: View {
     var friendHelper = FriendHelper()
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     profileHeader
@@ -48,14 +47,6 @@ struct ProfileView: View {
                 PostCreateView(person: person)
             })
             .alert(isPresented: $addFriendConfirmation, content: friendRequestAlert)
-            .navigationDestination(for: String.self, destination: navigationDestination)
-            .navigationDestination(for: Post.self) { post in
-                PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post), // Pass binding for post
-                    navigationPath: $navigationPath
-                )
-            }
             .scrollIndicators(.hidden)
         }
     }
@@ -92,7 +83,7 @@ struct ProfileView: View {
                         }
                     }
                     
-                    PostCardLayout(navigationPath: $navigationPath, viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
+                    PostCardLayout(viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
                 }
             }
             .task {
@@ -125,7 +116,7 @@ struct ProfileView: View {
                     }
                 }
                 Divider()
-                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile", navigationPath: $navigationPath)
+                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "profile")
             }
         }
     }
@@ -191,7 +182,7 @@ struct ProfileView: View {
             
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if person.userID == userHolder.person.userID {
-                    Button(action: { navigationPath.append("settings") }) {
+                    NavigationLink(destination: ProfileSettingsView())  {
                         Image(systemName: "gear")
                             .padding(.trailing, -18)
                             .padding(.top, 3)
@@ -213,18 +204,18 @@ struct ProfileView: View {
             dismissButton: .default(Text("OK")) { addFriendConfirmation = false }
         )
     }
-    
-    // Navigation destination
-    private func navigationDestination(for value: String) -> some View {
-        switch value {
-        case "settings":
-            return AnyView(ProfileSettingsView(navigationPath: $navigationPath))
-         case "signIn":
-             return AnyView(SignInView())
-        default:
-            return AnyView(EmptyView()) // Provide an empty view for other cases
-        }
-    }
+//    
+//    // Navigation destination
+//    private func navigationDestination(for value: String) -> some View {
+//        switch value {
+//        case "settings":
+//            return AnyView(ProfileSettingsView())
+//         case "signIn":
+//             return AnyView(SignInView())
+//        default:
+//            return AnyView(EmptyView()) // Provide an empty view for other cases
+//        }
+//    }
     
     // Helper functions
     private func usernameDisplay() -> String {

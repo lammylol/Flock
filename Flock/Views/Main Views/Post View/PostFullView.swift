@@ -16,11 +16,10 @@ struct PostFullView: View {
     
     @State var postHelper = PostHelper()
     @State var postUpdates: [PostUpdate] = []
-    @State var person: Person
-    @State var newPost: Post
+    @State var person: Person = Person()
+    @State var newPost: Post = Post()
     @State var lineLimit: Int = 6
     @Binding var post: Post
-    @Binding var navigationPath: NavigationPath
     
     @State private var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
@@ -29,14 +28,12 @@ struct PostFullView: View {
     @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
     private let notificationHelper = NotificationHelper()
-    
-    init(person: Person, post: Binding<Post>, navigationPath: Binding<NavigationPath>) {
-        _post = post
-        self.person = person
-        _newPost = State(initialValue: post.wrappedValue)
-        _navigationPath = navigationPath
-        print("PostFullView init - Post ID: \(post.wrappedValue.id)")
-    }
+    @State private var showProfileView: Bool = false
+//
+//    init(post: Binding<Post>) {
+//        _post = post
+//        print("PostFullView init - Post ID: \(post.wrappedValue.id)")
+//    }
     
     var body: some View {
         mainContent
@@ -69,26 +66,28 @@ struct PostFullView: View {
                 }
             }
         }
-        .task {
-            // Load the post first
-            await loadPost()
-            
-            // Only initialize CommentViewModel if we have a valid post
-            if commentViewModel == nil && !newPost.id.isEmpty {
-                print("Initializing CommentViewModel - Post ID: \(newPost.id)")
-                print("Initializing CommentViewModel - Person ID: \(userHolder.person.userID)")
+        .onAppear {
+            Task {
+                // Load the post first
+                await loadPost()
                 
-                commentViewModel = CommentViewModel(
-                    person: userHolder.person,
-                    post: newPost
-                )
+                // Only initialize CommentViewModel if we have a valid post
+                if commentViewModel == nil && !newPost.id.isEmpty {
+                    print("Initializing CommentViewModel - Post ID: \(newPost.id)")
+                    print("Initializing CommentViewModel - Person ID: \(userHolder.person.userID)")
+                    
+                    commentViewModel = CommentViewModel(
+                        person: userHolder.person,
+                        post: newPost
+                    )
+                    
+                    // Fetch initial comments after initialization
+                    print("Fetching initial comments")
+                    await commentViewModel?.fetchInitialComments()
+                }
                 
-                // Fetch initial comments after initialization
-                print("Fetching initial comments")
-                await commentViewModel?.fetchInitialComments()
+                await updateNotificationSeenIfNotificationCountExisted()
             }
-            
-            await updateNotificationSeenIfNotificationCountExisted()
         }
         .refreshable { await refreshPost() }
         .scrollIndicators(.hidden)
@@ -113,14 +112,11 @@ struct PostFullView: View {
     // MARK: - Post Header View
     private func postHeaderView() -> some View {
         HStack {
-            Button {
-                navigationPath.append(person)
-            } label: {
+            NavigationLink(destination: ProfileView(person: person)) {
                 ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.primary)
             }
-            .id(UUID())
             VStack(alignment: .leading) {
                 Text("\(newPost.firstName.capitalized) \(newPost.lastName.capitalized)")
                     .font(.system(size: 18)).bold()
@@ -151,7 +147,6 @@ struct PostFullView: View {
                 NavigationLink(destination: UpdateView(post: newPost, person: person)) {
                     seeAllUpdatesButton()
                 }
-                .id(UUID())
             }
             updateTextView()
             if isTruncated { expandButton() }
@@ -277,6 +272,12 @@ struct PostFullView: View {
             newPost = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             print("Post loaded - New ID: \(newPost.id)")
             post = newPost
+            person = Person(
+                userID: post.userID,
+                username: post.username,
+                firstName: post.firstName,
+                lastName: post.lastName
+            )
         } catch {
             print("Error loading post: \(error)")
         }

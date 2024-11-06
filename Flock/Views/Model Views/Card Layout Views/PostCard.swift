@@ -11,7 +11,6 @@ struct PostCard: View {
     @Environment(UserProfileHolder.self) var userHolder
     
     @Binding var post: Post
-    @Binding var navigationPath: NavigationPath
     
     @State private var isPinned: Bool = true
     
@@ -29,9 +28,7 @@ struct PostCard: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            Button {
-                navigationPath.append(post)
-            } label: {
+            NavigationLink(destination: PostFullView(post: $post)) {
                 VStack {
                     HStack {
                         ProfilePictureAvatar(firstName: post.firstName, lastName: post.lastName, imageSize: 24, fontSize: 12)
