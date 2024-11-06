@@ -136,7 +136,7 @@ struct PostRow: View {
                             }
                             .padding(.all, 10)
                             .background {
-                                RoundedRectangle(cornerRadius: 10).fill(Color.gray).opacity(0.06)
+                                RoundedRectangle(cornerRadius: 10).fill(Color(UIColor.systemGray6))
                             }
                             .foregroundStyle(Color.primary)
                             .padding(.vertical, 7)// Group for latest banner with truncation methodology.

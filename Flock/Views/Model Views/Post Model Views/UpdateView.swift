@@ -49,8 +49,7 @@ struct UpdateView: View {
                             .animation(.default, value: expandUpdate)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(.gray)
-                                    .opacity(0.06)
+                                    .fill(Color(UIColor.systemGray6))
                             )
                             .foregroundStyle(Color.primary)
                             .padding(.bottom, 7)
