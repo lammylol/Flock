@@ -12,6 +12,7 @@ import SwiftUI
 
 struct PostFullView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
     @Environment(\.dismiss) var dismiss
     
     @Binding var post: Post
@@ -107,7 +108,9 @@ struct PostFullView: View {
     // MARK: - Post Header View
     private func postHeaderView() -> some View {
         HStack {
-            NavigationLink(destination: ProfileView(person: post.person)) {
+            Button {
+                navigationManager.navigateTo(NavigationItem.person(newPost.person))
+            } label: {
                 ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
                     .buttonStyle(.plain)
                     .foregroundStyle(Color.primary)
@@ -155,8 +158,7 @@ struct PostFullView: View {
     private func postContentView() -> some View {
         VStack(alignment: .leading, spacing: 15) {
             Text(newPost.postTitle).font(.system(size: 18)).bold()
-            Text(newPost.postType == "Prayer Request" ? "Prayer Request: \(Text(newPost.status.capitalized).bold())" : newPost.postType == "Praise" ? "Praise 🙌" : "Note 📝")
-                .font(.system(size: 14))
+            postTypeDisplay()
             Divider()
             Text(newPost.postText)
                 .font(.system(size: 16))
@@ -261,6 +263,20 @@ struct PostFullView: View {
         "@\(newPost.username.capitalized)"
     }
     
+    private func postTypeDisplay() -> some View {
+        VStack {
+            if newPost.postType == "Prayer Request" {
+                Text("Prayer Request: \(Text(newPost.status.capitalized).bold())")
+            } else if newPost.postType == "Praise" {
+                Text("Praise 🙌")
+            } else if newPost.postType == "Note", newPost.postType == "Default" {
+                Text("Note 📝")
+            } else {
+                Text("")
+            }
+        }
+        .font(.system(size: 14))
+    }
     // MARK: - Helper Methods
     private func loadPost() async {
         do {

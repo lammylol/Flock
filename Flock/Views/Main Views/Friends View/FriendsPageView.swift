@@ -45,125 +45,123 @@ struct FriendsPageView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading){
-                    if showDuringSearch {
-                        Button {
-                            showAddFriend.toggle()
-                        } label: {
-                            Label("Add '\(search)' as a friend", systemImage: "person.fill.badge.plus")
-                                .foregroundStyle(Color.primary)
-                        }
-                        .padding(.vertical, 5)
-                        .padding(.leading, 3)
+        ScrollView {
+            VStack(alignment: .leading){
+                if showDuringSearch {
+                    Button {
+                        showAddFriend.toggle()
+                    } label: {
+                        Label("Add '\(search)' as a friend", systemImage: "person.fill.badge.plus")
+                            .foregroundStyle(Color.primary)
                     }
-                    
-                    if !friendRequestListener.pendingFriendRequests.isEmpty && !showDuringSearch {
-                        VStack(alignment: .leading) { // Pending Requests
-                            HStack {
-                                Text("Pending Requests")
-                                    .font(.title2)
-                                Button {
-                                    showPendingExpand.toggle()
-                                } label: {
-                                    if showPendingExpand {
-                                        Image(systemName: "chevron.up")
-                                    } else {
-                                        Image(systemName: "chevron.up").rotationEffect(.degrees(180))
-                                    }
-                                }
-                                Spacer()
-                            }
-                            if showPendingExpand {
-                                ForEach(friendRequestListener.pendingFriendRequests) { friend in
-                                    ContactRow(person: friend)
-                                        .frame(maxWidth: .infinity)
+                    .padding(.vertical, 5)
+                    .padding(.leading, 3)
+                }
+                
+                if !friendRequestListener.pendingFriendRequests.isEmpty && !showDuringSearch {
+                    VStack(alignment: .leading) { // Pending Requests
+                        HStack {
+                            Text("Pending Requests")
+                                .font(.title2)
+                            Button {
+                                showPendingExpand.toggle()
+                            } label: {
+                                if showPendingExpand {
+                                    Image(systemName: "chevron.up")
+                                } else {
+                                    Image(systemName: "chevron.up").rotationEffect(.degrees(180))
                                 }
                             }
+                            Spacer()
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 15)
-                    }
-                        
-                    VStack(alignment: .leading) { // Friends
-                        if !friendRequestListener.pendingFriendRequests.isEmpty && !filteredPublicFriends.isEmpty {
-                            HStack {
-                                Text("Friends")
-                                    .font(.title2)
-                                Spacer()
+                        if showPendingExpand {
+                            ForEach(friendRequestListener.pendingFriendRequests) { friend in
+                                ContactRow(person: friend)
+                                    .frame(maxWidth: .infinity)
                             }
                         }
-                        ForEach(filteredPublicFriends) { friend in
-                                ContactRow(person: friend)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .textInputAutocapitalization(.never)
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    VStack(alignment: .leading) { // Friends
-                        if !filteredPrivateFriends.isEmpty && !showDuringSearch {
-                            HStack {
-                                Text("Private Friends")
-                                    .font(.title2)
-                                Spacer()
-                            }
-                        }
-                        ForEach(filteredPrivateFriends) { friend in
-                                ContactRow(person: friend)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .textInputAutocapitalization(.never)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)
                 }
-                .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search friends")
-                .overlay {
-                    if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty && friendRequestListener.privateFriends.isEmpty {
-                            VStack{
-                                ContentUnavailableView {
-                                    Label("No Friends...Yet!", systemImage: "person.crop.square")
-                                } description: {
-                                    Text("It looks like you haven't added any friends yet. That's okay, we'll help you add one.")
-                                        .font(.system(size: 16))
-                                } actions: {
-                                    Button(action: {showAddFriend.toggle() })
-                                    {
-                                        Text("Add Friend")
-                                            .font(.system(size: 18))
-                                    }
+                    
+                VStack(alignment: .leading) { // Friends
+                    if !friendRequestListener.pendingFriendRequests.isEmpty && !filteredPublicFriends.isEmpty {
+                        HStack {
+                            Text("Friends")
+                                .font(.title2)
+                            Spacer()
+                        }
+                    }
+                    ForEach(filteredPublicFriends) { friend in
+                            ContactRow(person: friend)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .textInputAutocapitalization(.never)
+                }
+                .frame(maxWidth: .infinity)
+                
+                VStack(alignment: .leading) { // Friends
+                    if !filteredPrivateFriends.isEmpty && !showDuringSearch {
+                        HStack {
+                            Text("Private Friends")
+                                .font(.title2)
+                            Spacer()
+                        }
+                    }
+                    ForEach(filteredPrivateFriends) { friend in
+                            ContactRow(person: friend)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .textInputAutocapitalization(.never)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 15)
+            }
+            .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search friends")
+            .overlay {
+                if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty && friendRequestListener.privateFriends.isEmpty {
+                        VStack{
+                            ContentUnavailableView {
+                                Label("No Friends...Yet!", systemImage: "person.crop.square")
+                            } description: {
+                                Text("It looks like you haven't added any friends yet. That's okay, we'll help you add one.")
+                                    .font(.system(size: 16))
+                            } actions: {
+                                Button(action: {showAddFriend.toggle() })
+                                {
+                                    Text("Add Friend")
+                                        .font(.system(size: 18))
                                 }
-                                .frame(height: 500)
-                                .offset(y: 120)
-                                Spacer()
                             }
-                    }
+                            .frame(height: 500)
+                            .offset(y: 120)
+                            Spacer()
+                        }
                 }
-                .padding(.horizontal, 17)
-                .padding(.bottom, 15)
             }
-            .sheet(isPresented: $showAddFriend) {
-                AddFriendPage(preName: search)
-            }
-            .refreshable(action: {
-                Task {
-                    do {
-                        let friends = try await friendService.getFriendsList(userID: userHolder.person.userID)
-                        friendRequestListener.acceptedFriendRequests = friends.0
-                        friendRequestListener.pendingFriendRequests = friends.1
-                    } catch {
-                        ViewLogger.error("FriendsPageView \(error)")
-                    }
+            .padding(.horizontal, 17)
+            .padding(.bottom, 15)
+        }
+        .sheet(isPresented: $showAddFriend) {
+            AddFriendPage(preName: search)
+        }
+        .refreshable(action: {
+            Task {
+                do {
+                    let friends = try await friendService.getFriendsList(userID: userHolder.person.userID)
+                    friendRequestListener.acceptedFriendRequests = friends.0
+                    friendRequestListener.pendingFriendRequests = friends.1
+                } catch {
+                    ViewLogger.error("FriendsPageView \(error)")
                 }
-            })
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .navigationTitle("Friends")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                frieldToolbar
             }
+        })
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .navigationTitle("Friends")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            frieldToolbar
         }
         .background(.windowBackground)
         .scrollContentBackground(.hidden)

@@ -17,7 +17,7 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
     var lastName: String = ""
     var postTitle: String = ""
     var postText: String = ""
-    var postType: String = "Note"
+    var postType: String = "note"
     var status: String = ""
     var latestUpdateText: String = ""
     var latestUpdateDatePosted: Date = Date()
@@ -89,7 +89,7 @@ extension Post {
             lastName: "",
             postTitle: "",
             postText: "",
-            postType: "note",
+            postType: "",
             status: "",
             latestUpdateText: "",
             latestUpdateDatePosted: Date(),

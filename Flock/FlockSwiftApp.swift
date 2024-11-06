@@ -20,6 +20,7 @@ struct FlockApp: App {
                 .environment(DateHolder())
                 .environment(FeedViewModel())
                 .environment(UISizing())
+                .environment(NavigationManager())
         }
     }
 }

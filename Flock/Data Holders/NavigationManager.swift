@@ -8,21 +8,32 @@
 import Foundation
 import SwiftUI
 
+enum NavigationItem: Hashable {
+    case post(Post)
+    case person(Person)
+}
+
 @Observable class NavigationManager {
     var path: NavigationPath = NavigationPath()
     
-    // Method to navigate to ProfileView
-    func navigateToPost(with post: Post) {
-        path.append(post) // Append `Person` to the path to pass it to ProfileView
-    }
-    
-    // Method to navigate to ProfileView
-    func navigateToProfile(with person: Person) {
-        path.append(person) // Append `Person` to the path to pass it to ProfileView
+    func navigateTo(_ item: NavigationItem) {
+        path.append(item)
     }
     
     // Method to reset the path if needed (e.g., for logout or exit)
     func resetPath() {
         path = NavigationPath()
+    }
+    
+    // Navigation destination
+    func navigationDestination(for item: NavigationItem) -> some View {
+        switch item {
+        case .post(let post):
+            return AnyView(PostFullView(post: .constant(post)))
+        case .person(let person):
+            return AnyView(ProfileView(person: person))
+        default:
+            return AnyView(EmptyView()) // Provide an empty view for other cases - placeholder for empty.
+        }
     }
 }

@@ -70,6 +70,8 @@ struct NotificationSheet: View {
 
 // Separate section view to break up complexity
 struct NotificationSection: View {
+    @Environment(NavigationManager.self) var navigationManager
+    
     let postID: String
     let notifications: [Notification]
     let viewModel: NotificationViewModel
@@ -85,6 +87,7 @@ struct NotificationSection: View {
                         Task {
                             await viewModel.markPostNotificationsAsRead(postID: postID)
                         }
+                        navigationManager.navigateTo(NavigationItem.post(Post(id: postID)))
                     }
             }
         } header: {

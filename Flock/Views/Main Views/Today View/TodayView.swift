@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
     
     @State private var myFriendsPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myFriendPostsPinned)
     @State private var myPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myPostsPinned)
@@ -27,27 +28,25 @@ struct TodayView: View {
     
     @State private var notificationViewModel = NotificationViewModel()
     @State private var isPresentingNotifications: Bool = false
-    
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack (alignment: .leading, spacing: 20) {
-                    headerView()
-                    addPostView()
-                    myPrayersView()
-                    myFriendsView()
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 20)
+        ScrollView {
+            VStack (alignment: .leading, spacing: 20) {
+                headerView()
+                addPostView()
+                myPrayersView()
+                myFriendsView()
             }
-            .clipped(antialiased: true)
-            .scrollDismissesKeyboard(.automatic)
-            .scrollIndicators(.hidden)
-            .refreshable { await refreshPosts() }
-            .toolbarBackground(Color.primary, for: .bottomBar)
-            .sheet(isPresented: $showCreatePost) {
-                PostCreateView(person: userHolder.person, postType: postType)
-            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 20)
+        }
+        .clipped(antialiased: true)
+        .scrollDismissesKeyboard(.automatic)
+        .scrollIndicators(.hidden)
+        .refreshable { await refreshPosts() }
+        .toolbarBackground(Color.primary, for: .bottomBar)
+        .sheet(isPresented: $showCreatePost) {
+            PostCreateView(person: userHolder.person, postType: postType)
         }
     }
         
@@ -241,16 +240,6 @@ struct TodayView: View {
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }
-        }
-    }
-    
-    // Navigation destination
-    private func navigationDestination(for value: String) -> some View {
-        switch value {
-        case "notifications":
-            return AnyView(NotificationSheet(viewModel: notificationViewModel))
-        default:
-            return AnyView(EmptyView()) // Provide an empty view for other cases
         }
     }
 }

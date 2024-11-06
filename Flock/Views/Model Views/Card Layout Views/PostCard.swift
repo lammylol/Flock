@@ -30,7 +30,7 @@ struct PostCard: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button {
-                navigationManager.navigateToPost(with: post)
+                navigationManager.navigateTo(NavigationItem.post(post))
             } label: {
                 VStack {
                     HStack {

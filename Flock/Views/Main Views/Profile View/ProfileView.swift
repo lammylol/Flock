@@ -13,6 +13,7 @@ import FirebaseFirestore
 
 struct ProfileView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
     @Environment(\.colorScheme) var colorScheme
     
     @State public var person: Person
@@ -27,28 +28,28 @@ struct ProfileView: View {
     var friendHelper = FriendHelper()
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    profileHeader
-                    postSections()
-                }
-                .padding(.top, -8)
-                .padding(.horizontal, 20)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                profileHeader
+                postSections()
             }
-            .task { await loadProfile() }
-            .refreshable { await refreshPosts() }
-            .navigationTitle(person.fullName.capitalized)
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar { profileToolbar }
-            .sheet(isPresented: $showSubmit, onDismiss: {
-                Task { await refreshPosts() }
-            }, content: {
-                PostCreateView(person: person)
-            })
-            .alert(isPresented: $addFriendConfirmation, content: friendRequestAlert)
-            .scrollIndicators(.hidden)
+            .padding(.top, -8)
+            .padding(.horizontal, 20)
         }
+        .navigationTitle(person.fullName.capitalized)
+        .navigationBarTitleDisplayMode(.large)
+        .task {
+            await loadProfile()
+        }
+        .refreshable { await refreshPosts() }
+        .toolbar { profileToolbar }
+        .sheet(isPresented: $showSubmit, onDismiss: {
+            Task { await refreshPosts() }
+        }, content: {
+            PostCreateView(person: person)
+        })
+        .alert(isPresented: $addFriendConfirmation, content: friendRequestAlert)
+        .scrollIndicators(.hidden)
     }
     
     // Profile header
