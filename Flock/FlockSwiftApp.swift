@@ -11,17 +11,21 @@ import FirebaseCore
 @main
 struct FlockApp: App {
     @State private var friendRequestListener = FriendRequestListener()
+    @State private var userProfileHolder = UserProfileHolder()
+    @State private var feedViewModel = FeedViewModel()
+    @State private var uiSizing = UISizing()
+    @State private var dateHolder = DateHolder()
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
         WindowGroup {
             SignInView()
-                .environment(UserProfileHolder())
-                .environment(DateHolder())
-                .environment(FeedViewModel())
+                .environment(userProfileHolder)
+                .environment(dateHolder)
+                .environment(feedViewModel)
                 .environment(friendRequestListener)
-                .environment(UISizing())
+                .environment(uiSizing)
         }
     }
 }
