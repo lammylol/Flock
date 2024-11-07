@@ -201,7 +201,7 @@ struct PostRow: View {
                             }
                             .font(.footnote)
                             .padding(6)
-                            .background(Color.secondary.opacity(0.1))
+                            .background(Color(UIColor.systemGray6))
                             .cornerRadius(8)
                             .padding(.top, 7)
                         }

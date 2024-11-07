@@ -12,17 +12,12 @@ import FirebaseFirestore
 class FeedService {
     private let db = Firestore.firestore()
 
-    private func collectionPath(for user: Person, person: Person?, viewType: FeedViewModel.ViewType) -> CollectionReference {
-        if let person = person, viewType == .profile, person.userID == user.userID {
-            let personDocID = "\(person.firstName.lowercased())_\(person.lastName.lowercased())"
-            return db.collection("users").document(person.userID).collection("prayerList").document(personDocID).collection("prayerRequests")
-        } else {
+    private func collectionPath(for user: Person, viewType: FeedViewModel.ViewType) -> CollectionReference {
             return db.collection("prayerFeed").document(user.userID).collection("prayerRequests")
-        }
     }
 
     func getAllPostsQuery(user: Person, person: Person?, status: FeedViewModel.StatusFilter, viewType: FeedViewModel.ViewType, selectionType: FeedViewModel.SelectionType) -> Query {
-        let collection = collectionPath(for: user, person: person, viewType: viewType)
+        let collection = collectionPath(for: user, viewType: viewType)
         var query: Query
         
         query = collection.whereField("status", isEqualTo: status.statusKey.capitalized)
