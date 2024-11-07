@@ -262,7 +262,7 @@ struct PostFullView: View {
     }
     
     private func usernameDisplay() -> String {
-        "@\(newPost.username.capitalized)"
+        "@\(newPost.username.lowercased())"
     }
     
     private func postTypeDisplay() -> some View {
@@ -327,6 +327,7 @@ struct PostFullView: View {
             do {
                 newPost.isPinned.toggle()
                 try await PostHelper().togglePinned(person: userHolder.person, post: newPost, toggle: newPost.isPinned)
+                self.post = newPost
             } catch {
                 print("Error toggling pin: \(error)")
             }

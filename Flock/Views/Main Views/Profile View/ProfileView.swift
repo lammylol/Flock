@@ -40,8 +40,11 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.large)
         .task {
             await loadProfile()
+            await loadPosts()
         }
-        .refreshable { await refreshPosts() }
+        .refreshable {
+            await refreshPosts()
+        }
         .toolbar { profileToolbar }
         .sheet(isPresented: $showSubmit, onDismiss: {
             Task { await refreshPosts() }
@@ -85,11 +88,6 @@ struct ProfileView: View {
                     }
                     
                     PostCardLayout(viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
-                }
-            }
-            .task {
-                if pinnedPostsViewModel.posts.isEmpty {
-                    await loadPinnedPosts()
                 }
             }
             VStack {
@@ -205,18 +203,6 @@ struct ProfileView: View {
             dismissButton: .default(Text("OK")) { addFriendConfirmation = false }
         )
     }
-//    
-//    // Navigation destination
-//    private func navigationDestination(for value: String) -> some View {
-//        switch value {
-//        case "settings":
-//            return AnyView(ProfileSettingsView())
-//         case "signIn":
-//             return AnyView(SignInView())
-//        default:
-//            return AnyView(EmptyView()) // Provide an empty view for other cases
-//        }
-//    }
     
     // Helper functions
     private func usernameDisplay() -> String {
@@ -265,9 +251,10 @@ struct ProfileView: View {
             userHolder.profileViewIsLoading = false
         }
     }
-    
-    private func loadPinnedPosts() async {
+
+    private func loadPosts() async {
         do {
+//            try await viewModel.getPosts(user: userHolder.person, person: person). Happens at postfeed level.
             try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
         } catch {
             ViewLogger.error("ProfileView Pinned Posts \(error)")
@@ -275,11 +262,13 @@ struct ProfileView: View {
     }
     
     private func refreshPosts() async {
-        if viewModel.isFinished {
+        if viewModel.isFinished && pinnedPostsViewModel.isFinished {
             do {
                 try await viewModel.getPosts(user: userHolder.person, person: person)
                 try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
+                
                 self.pinnedPostsViewModel.posts = pinnedPostsViewModel.posts
+                self.viewModel.posts = viewModel.posts
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }
