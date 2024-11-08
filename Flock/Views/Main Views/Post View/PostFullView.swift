@@ -35,7 +35,7 @@ struct PostFullView: View {
         self.person = person
         _newPost = State(initialValue: post.wrappedValue)
         _navigationPath = navigationPath
-        print("PostFullView init - Post ID: \(post.wrappedValue.id)")
+        ViewLogger.debug("PostFullView.init: Initializing with Post ID: \(post.wrappedValue.id)")
     }
     
     var body: some View {
@@ -75,8 +75,8 @@ struct PostFullView: View {
             
             // Only initialize CommentViewModel if we have a valid post
             if commentViewModel == nil && !newPost.id.isEmpty {
-                print("Initializing CommentViewModel - Post ID: \(newPost.id)")
-                print("Initializing CommentViewModel - Person ID: \(userHolder.person.userID)")
+                ViewLogger.debug("PostFullView.task: Initializing CommentViewModel - Post ID: \(newPost.id)")
+                ViewLogger.debug("PostFullView.task: Initializing CommentViewModel - Person ID: \(userHolder.person.userID)")
                 
                 commentViewModel = CommentViewModel(
                     person: userHolder.person,
@@ -84,7 +84,7 @@ struct PostFullView: View {
                 )
                 
                 // Fetch initial comments after initialization
-                print("Fetching initial comments")
+                ViewLogger.debug("PostFullView.task: Fetching initial comments")
                 await commentViewModel?.fetchInitialComments()
             }
             
@@ -273,12 +273,12 @@ struct PostFullView: View {
     
     private func loadPost() async {
         do {
-            print("Loading post - Current ID: \(newPost.id)")
+            ViewLogger.debug("PostFullView.loadPost: Loading post - Current ID: \(newPost.id)")
             newPost = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
-            print("Post loaded - New ID: \(newPost.id)")
+            ViewLogger.info("PostFullView.loadPost: Successfully loaded post - New ID: \(newPost.id)")
             post = newPost
         } catch {
-            print("Error loading post: \(error)")
+            ViewLogger.error("PostFullView.loadPost failed: \(error.localizedDescription)")
         }
     }
     
@@ -287,7 +287,7 @@ struct PostFullView: View {
             do {
                 try await FeedService().updateLastSeenNotificationCount(post: post, person: userHolder.person)
             } catch {
-                print("Error updating notification count: \(error)")
+                ViewLogger.error("PostFullView.updateNotificationSeen failed: \(error.localizedDescription)")
             }
         }
     }
@@ -297,19 +297,19 @@ struct PostFullView: View {
             newPost = try await PostOperationsService().getPost(prayerRequest: newPost, user: userHolder.person)
             if !newPost.id.isEmpty {
                 if commentViewModel == nil {
-                    print("Creating CommentViewModel after refresh - Post ID: \(newPost.id)")
+                    ViewLogger.debug("PostFullView.refreshPost: Creating CommentViewModel - Post ID: \(newPost.id)")
                     commentViewModel = CommentViewModel(
                         person: userHolder.person,
                         post: newPost
                     )
                 } else {
-                    print("Refreshing comments - Post ID: \(newPost.id)")
+                    ViewLogger.debug("PostFullView.refreshPost: Refreshing comments - Post ID: \(newPost.id)")
                     await commentViewModel?.fetchInitialComments()
                 }
             }
             post = newPost
         } catch {
-            print("Error refreshing post: \(error)")
+            ViewLogger.error("PostFullView.refreshPost failed: \(error.localizedDescription)")
         }
     }
     
@@ -319,7 +319,7 @@ struct PostFullView: View {
                 newPost.isPinned.toggle()
                 try await PostHelper().togglePinned(person: userHolder.person, post: newPost, toggle: newPost.isPinned)
             } catch {
-                print("Error toggling pin: \(error)")
+                ViewLogger.error("PostFullView.togglePinPost failed: \(error.localizedDescription)")
             }
         }
     }
