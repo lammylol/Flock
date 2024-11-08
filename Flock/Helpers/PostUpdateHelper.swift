@@ -77,15 +77,37 @@ class PostUpdateHelper {
         )
         
         // Add prayer request update to prayerFeed/{userID} main prayerRequest
-        if post.privacy == "public" && friendsList.isEmpty == false {
+        if post.privacy == "public" && !friendsList.isEmpty {
             for friend in friendsList {
                 let refFriend = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                try await refFriend.updateData([
-                    "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
-                    "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
-                    "latestUpdateType": prayerRequestUpdate.updateType,
-                    "lastSeenNotificationCount": post.lastSeenNotificationCount + 1 // this defaults to false. once user takes action to view or select, notification goes true.
-                ])
+
+                do {
+                    // Retrieve the current document to get the lastSeenNotificationCount
+                    let documentSnapshot = try await refFriend.getDocument()
+                    
+                    if let currentCount = documentSnapshot.data()?["lastSeenNotificationCount"] as? Int {
+                        // Increment the current count
+                        let updatedCount = currentCount + 1
+                        
+                        // Update the document with the new count and other fields
+                        try await refFriend.updateData([
+                            "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
+                            "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
+                            "latestUpdateType": prayerRequestUpdate.updateType,
+                            "lastSeenNotificationCount": updatedCount
+                        ])
+                    } else {
+                        // If lastSeenNotificationCount doesn't exist, default to 1
+                        try await refFriend.updateData([
+                            "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
+                            "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
+                            "latestUpdateType": prayerRequestUpdate.updateType,
+                            "lastSeenNotificationCount": 1
+                        ])
+                    }
+                } catch {
+                    NetworkingLogger.error("Failed to update lastSeenNotificationCount for user \(friend.userID) and post \(post.id): \(error)")
+                }
             }
         }
         
@@ -102,15 +124,12 @@ class PostUpdateHelper {
     func deletePostUpdate(post: Post, update: PostUpdate, updatesArray: [PostUpdate], person: Person, friendsList: [Person]) async throws {
         let db = Firestore.firestore()
         
-        var lastSeenNotificationCount = post.lastSeenNotificationCount
         var updates = updatesArray
         updates.removeAll(where: {$0.id == update.id}) // must come first in order to make sure the prayer request last date posted can be factored correctly.
         
         // For resetting latest date and latest text.
         let latestUpdate = getLatestUpdate(post: post, updates: updates) // logic to determine the latest update date, text, and type by comparing against the full array of updates.
-        if latestUpdate.0 < post.latestUpdateDatePosted {
-            lastSeenNotificationCount = max(post.lastSeenNotificationCount - 1, 0) // ensures if it's negative, it returns 0.
-        }
+
         let latestUpdateDatePosted = latestUpdate.0
         let latestUpdateText = latestUpdate.1
         let latestUpdateType = latestUpdate.2
@@ -138,12 +157,33 @@ class PostUpdateHelper {
         if post.privacy == "public" && friendsList.isEmpty == false {
             for friend in friendsList {
                 let refFriend = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
-                try await refFriend.updateData([
-                    "latestUpdateDatePosted": latestUpdateDatePosted,
-                    "latestUpdateText": latestUpdateText,
-                    "latestUpdateType": latestUpdateType,
-                    "lastSeenNotificationCount": lastSeenNotificationCount
-                ])
+                do {
+                    // Retrieve the current document to get the lastSeenNotificationCount
+                    let documentSnapshot = try await refFriend.getDocument()
+                    
+                    if let currentCount = documentSnapshot.data()?["lastSeenNotificationCount"] as? Int {
+                        // Increment the current count
+                        let updatedCount = max(currentCount - 1, 0) // ensures if it's negative, it returns 0.
+                        
+                        // Update the document with the new count and other fields
+                        try await refFriend.updateData([
+                            "latestUpdateDatePosted": latestUpdateDatePosted,
+                            "latestUpdateText": latestUpdateText,
+                            "latestUpdateType": latestUpdateType,
+                            "lastSeenNotificationCount": updatedCount
+                        ])
+                    } else {
+                        // If lastSeenNotificationCount doesn't exist, default to 0
+                        try await refFriend.updateData([
+                            "latestUpdateDatePosted": latestUpdateDatePosted,
+                            "latestUpdateText": latestUpdateText,
+                            "latestUpdateType": latestUpdateType,
+                            "lastSeenNotificationCount": 0
+                        ])
+                    }
+                } catch {
+                    NetworkingLogger.error("Failed to update lastSeenNotificationCount for user \(friend.userID) and post \(post.id): \(error)")
+                }
             }
         }
         
