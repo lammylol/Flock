@@ -37,6 +37,9 @@ struct FeedView: View {
                 })
                 .padding(.horizontal, 23)
         }
+        .task {
+            await loadInitialPostsIfNeeded()
+        }
         .refreshable {
             Task {
                 if viewModel.isFinished {
@@ -75,6 +78,17 @@ struct FeedView: View {
             }
         }
         .clipped()
+        .scrollIndicators(.hidden)
+    }
+    
+    private func loadInitialPostsIfNeeded() async {
+        if viewModel.posts.isEmpty && !viewModel.isFetching && !viewModel.isLoading {
+            do {
+                try await viewModel.getPosts(user: userHolder.person)
+            } catch {
+                ViewLogger.error("FeedView Posts \(error)")
+            }
+        }
     }
 }
 //

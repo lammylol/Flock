@@ -39,7 +39,18 @@ struct ProfileView: View {
         .navigationTitle(person.fullName.capitalized)
         .navigationBarTitleDisplayMode(.large)
         .task {
-            await loadProfile()
+            // wait for user profile to load first, then call other functions. If not, the functions will call multiple times.
+            if !userHolder.profileViewIsLoading {
+                await loadProfile()
+                
+                if !pinnedPostsViewModel.isLoading {
+                    await loadPosts(for: pinnedPostsViewModel)
+                }
+                
+                if !viewModel.isLoading && !person.friendStateRequiresOverlay {
+                    await loadPosts(for: viewModel)
+                }
+            }
         }
         .refreshable { await refreshPosts() }
         .toolbar { profileToolbar }
@@ -83,7 +94,6 @@ struct ProfileView: View {
                 PostCardLayout(viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
             }
         }
-        .onAppear { Task { await loadPosts() } }
     }
     
     private var mainPostsSection: some View {
@@ -172,31 +182,26 @@ struct ProfileView: View {
     }
     
     // MARK: - Actions & Data Loading
+    @MainActor
     private func loadProfile() async {
-        // Start loading
-        DispatchQueue.main.async {
-            userHolder.profileViewIsLoading = true
-        }
-        
-        defer {
-            DispatchQueue.main.async {
-                userHolder.profileViewIsLoading = false
-            }
-        }
-        
+        // Set loading state at start
+        userHolder.profileViewIsLoading = true
+        defer { userHolder.profileViewIsLoading = false } // Ensure loading ends when function exits
+
         do {
+            // Fetch and update person data
             person = try await userService.retrieveUserInfoFromUserID(person: person, userHolder: userHolder)
         } catch {
-            ViewLogger.error("ProfileView \(error)")
-            userHolder.profileViewIsLoading = false
+            // Log errors for debugging
+            ViewLogger.error("Error loading profile data in ProfileView: \(error.localizedDescription)")
         }
     }
-
-    private func loadPosts() async {
+    
+    private func loadPosts(for viewModel: FeedViewModel) async {
         do {
-            try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
+            try await viewModel.getPosts(user: userHolder.person, person: person)
         } catch {
-            ViewLogger.error("ProfileView Pinned Posts \(error)")
+            ViewLogger.error("ProfileView Initial Post Load: \(error)")
         }
     }
     
