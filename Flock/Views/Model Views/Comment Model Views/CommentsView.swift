@@ -39,48 +39,84 @@ struct CommentsView: View {
     
     private var commentsList: some View {
         VStack {
-            if viewModel.isLoading {
-                ProgressView()
+            if viewModel.isLoading && viewModel.comments.isEmpty {
+                loadingView
             } else if viewModel.comments.isEmpty {
-                VStack {
-                    Text("No comments yet. Be the first to comment!")
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 14))
-                }
+                emptyCommentsView
             } else {
-                VStack (alignment: .leading) {
-                    ForEach(viewModel.comments) { comment in
-                        CommentRow(comment: comment, currentUserID: userHolder.person.userID) {
-                            Task {
-                                await deleteComment(comment)
-                            }
-                        }
-                    }
-                    
-                    if viewModel.hasMoreComments {
-                        fetchMoreCommentsView()
-                    }
-                }
+                commentListContent
             }
         }
     }
     
-    private func fetchMoreCommentsView() -> some View {
-        VStack (alignment: .leading) {
-            if viewModel.isLoadingMore {
-                ProgressView()
-            } else {
-                Button {
-                    Task {
-                        await viewModel.fetchMoreComments()
+    private var loadingView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+            Text("Loading comments...")
+                .foregroundColor(.secondary)
+                .font(.system(size: 14))
+        }
+        .padding()
+    }
+
+    private var emptyCommentsView: some View {
+        VStack(spacing: 8) {
+            Text("No comments yet")
+                .font(.system(size: 16))
+                .fontWeight(.medium)
+            Text("Be the first to comment!")
+                .foregroundColor(.secondary)
+                .font(.system(size: 14))
+        }
+        .padding()
+    }
+
+    private var commentListContent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(viewModel.comments) { comment in
+                VStack(alignment: .leading) {
+                    CommentRow(comment: comment, currentUserID: userHolder.person.userID) {
+                        Task {
+                            await deleteComment(comment)
+                        }
                     }
-                } label: {
-                    Text("Load more comments")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                }                .disabled(!viewModel.hasMoreComments)
-                .padding(.vertical, 5)
+                    
+                    if viewModel.comments.last?.id != comment.id {
+                        Divider()
+                            .padding(.vertical, 4)
+                    }
+                }
             }
+            
+            if viewModel.hasMoreComments {
+                loadMoreButton
+            }
+        }
+    }
+
+    private var loadMoreButton: some View {
+        HStack {
+            Spacer()
+            Button {
+                Task {
+                    await viewModel.fetchMoreComments()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Text("Load more")
+                        .font(.system(size: 14))
+                    if viewModel.isLoadingMore {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Image(systemName: "arrow.down.circle.fill")
+                    }
+                }
+                .foregroundColor(.blue)
+            }
+            .disabled(viewModel.isLoadingMore)
+            .padding(.vertical, 8)
+            Spacer()
         }
     }
     
