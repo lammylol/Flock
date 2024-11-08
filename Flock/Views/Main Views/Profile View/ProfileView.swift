@@ -16,7 +16,7 @@ struct ProfileView: View {
     @Environment(NavigationManager.self) var navigationManager
     @Environment(\.colorScheme) var colorScheme
     
-    @State public var person: Person
+    @State var person: Person
     @State private var showSubmit = false
     @State private var viewModel = FeedViewModel(viewType: .profile, selectionType: .myPosts)
     @State private var pinnedPostsViewModel = FeedViewModel(viewType: .profile, selectionType: .myPostsPinned)
@@ -28,10 +28,10 @@ struct ProfileView: View {
     var friendHelper = FriendHelper()
 
     var body: some View {
-        ScrollView {
+        ScrollView(.vertical) {
             VStack(alignment: .leading, spacing: 20) {
                 profileHeader
-                postSections()
+                postSections
             }
             .padding(.top, -8)
             .padding(.horizontal, 20)
@@ -40,27 +40,21 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.large)
         .task {
             await loadProfile()
-            await loadPosts()
         }
-        .refreshable {
-            await refreshPosts()
-        }
+        .refreshable { await refreshPosts() }
         .toolbar { profileToolbar }
-        .sheet(isPresented: $showSubmit, onDismiss: {
-            Task { await refreshPosts() }
-        }, content: {
+        .sheet(isPresented: $showSubmit, onDismiss: { Task { await refreshPosts() } }) {
             PostCreateView(person: person)
-        })
+        }
         .alert(isPresented: $addFriendConfirmation, content: friendRequestAlert)
         .scrollIndicators(.hidden)
     }
     
-    // Profile header
+    // MARK: - Profile Header
     private var profileHeader: some View {
         VStack(alignment: .leading) {
-            Text(usernameDisplay())
+            Text(person.usernameDisplay)
                 .font(.system(size: 14))
-
             if !userHolder.profileViewIsLoading {
                 friendStateButton.padding(.top, 3)
             } else if person.username != userHolder.person.username {
@@ -69,133 +63,106 @@ struct ProfileView: View {
         }
     }
     
-    // Post sections
-    private func postSections() -> some View {
-        LazyVStack (spacing: 15) {
-            VStack (spacing: 0) {
-                if !pinnedPostsViewModel.isLoading && !pinnedPostsViewModel.posts.isEmpty {
-                    HStack {
-                        sectionHeader(systemImage: Image(systemName: "signpost.right.and.left.fill"), title: "My Pinned Prayers", fontWeight: .medium)
-                        Spacer()
-                        if pinnedPostsViewModel.posts.count > 2 { // temporary static 2 for now.
-                            Button {
-                                seeAllMyPosts.toggle()
-                            } label: {
-                                Text(seeAllMyPosts ? "Show Less" : "Show All")
-                                    .font(.system(size: 16))
+    // MARK: - Post Sections
+    private var postSections: some View {
+        VStack(spacing: 15) {
+            pinnedPostsSection
+            mainPostsSection
+        }
+    }
+    
+    private var pinnedPostsSection: some View {
+        VStack {
+            if !pinnedPostsViewModel.posts.isEmpty {
+                SectionHeader(
+                    title: "My Pinned Prayers",
+                    icon: "signpost.right.and.left.fill",
+                    actionLabel: seeAllMyPosts ? "Show Less" : "Show All",
+                    action: { seeAllMyPosts.toggle() }
+                )
+                PostCardLayout(viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
+            }
+        }
+        .onAppear { Task { await loadPosts() } }
+    }
+    
+    private var mainPostsSection: some View {
+        VStack {
+            HStack {
+                SectionHeader(
+                    title: person.isUser ? "My Posts" : "\(person.firstName.capitalized)'s Posts",
+                    icon: "newspaper.fill"
+                )
+                StatusPicker(viewModel: viewModel)
+                    .onChange(of: viewModel.selectedStatus) {
+                        Task {
+                            if !viewModel.isFetching || !viewModel.isLoading {
+                                try await viewModel.getPosts(user: userHolder.person, person: person)
                             }
                         }
                     }
-                    
-                    PostCardLayout(viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
-                }
             }
-            VStack {
-                HStack {
-                    sectionHeader(systemImage: Image(systemName: "newspaper.fill"), title: person.username == userHolder.person.username ? "My Posts" : "\(person.firstName.capitalized)'s Posts", fontWeight: .medium)
-                    Spacer()
-                    HStack {
-                        if viewModel.selectedStatus == .noLongerNeeded {
-                            Text("No Longer\nNeeded")
-                                .font(.system(size: 14))
-                                .multilineTextAlignment(.trailing)
-                        } else {
-                            Text(viewModel.selectedStatus.rawValue.capitalized)
-                                .font(.system(size: 16))
-                                .multilineTextAlignment(.trailing)
-                        }
-                        StatusPicker(viewModel: viewModel)
-                            .onChange(of: viewModel.selectedStatus, {
-                                Task {
-                                    if !viewModel.isFetching || !viewModel.isLoading {
-                                        try await viewModel.getPosts(user: userHolder.person, person: person)
-                                    }
-                                }
-                            })
-                    }
-                }
-                Divider()
-                PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
-            }
+            Divider()
+            PostsFeed(viewModel: viewModel, person: person, profileOrFeed: "profile")
         }
     }
     
-    // Friend state button
+    // MARK: - Friend State Button
     private var friendStateButton: some View {
         Group {
             switch person.friendState {
-            case "pending":
-                friendRequestMenu
-            case "approved":
-                tagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
-            case "sent":
-                tagModelView(textLabel: "Pending", textSize: 14, foregroundColor: .black, backgroundColor: .gray.opacity(0.3))
-            case "private":
-                tagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
+            case "pending": friendRequestMenu
+            case "approved": TagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
+            case "sent": TagModelView(textLabel: "Pending", textSize: 14, foregroundColor: .black, backgroundColor: .gray.opacity(0.3))
+            case "private": TagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
             default:
                 if person.isPublic && person.username != userHolder.person.username {
                     addFriendButton
-                } else {
-                    EmptyView()
                 }
             }
         }
     }
     
-    // Friend request menu
     private var friendRequestMenu: some View {
         Menu {
-            Button { acceptFriendRequest() } label: { Label("Approve Request", systemImage: "person.crop.circle.badge.plus") }
-            Button { dismissFriendRequest() } label: { Label("Dismiss Request", systemImage: "xmark.circle") }
+            Button("Approve Request", action: acceptFriendRequest)
+            Button("Dismiss Request", action: dismissFriendRequest)
         } label: {
-            tagModelView(textLabel: "Respond to Friend Request", systemImage: "arrowtriangle.down.circle.fill", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+            TagModelView(textLabel: "Respond to Friend Request", systemImage: "arrowtriangle.down.circle.fill", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
         }
     }
     
-    // Add friend button
     private var addFriendButton: some View {
-        if person.isPublic && person.username != userHolder.person.username {
-            AnyView(
-                Button { addFriend() } label: {
-                tagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)}
-            )
-        } else {
-            AnyView(EmptyView())
+        Button(action: addFriend) {
+            TagModelView(textLabel: "Add Friend", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
         }
     }
     
-    // Profile toolbar
+    private var clearTagView: some View {
+        TagModelView(textLabel: "T", textSize: 14, foregroundColor: .clear, backgroundColor: .clear)
+    }
+    
+    // MARK: - Profile Toolbar
     private var profileToolbar: some ToolbarContent {
         Group {
             ToolbarItem(placement: .topBarLeading) {
-                HStack {
-                    if buildConfiguration == DEVELOPMENT {
-                        Text("DEVELOPMENT")
-                            .font(.title2)
-                            .bold()
-                            .padding(.leading, 10) // Moved padding here
-                    }
+                if buildConfiguration == DEVELOPMENT {
+                    Text("DEVELOPMENT")
+                        .font(.title2)
+                        .bold()
+                        .padding(.leading, 10)
                 }
-                .frame(maxWidth: .infinity) // Moved the frame modifier here
             }
-            
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if person.userID == userHolder.person.userID {
-                    NavigationLink(destination: ProfileSettingsView())  {
-                        Image(systemName: "gear")
-                            .padding(.trailing, -18)
-                            .padding(.top, 3)
-                    }
-                    Button(action: { showSubmit.toggle() }) {
-                        Image(systemName: "square.and.pencil")
-                    }
+                    NavigationLink(destination: ProfileSettingsView()) { Image(systemName: "gear") }
+                    Button { showSubmit.toggle() } label: { Image(systemName: "square.and.pencil") }
                 }
             }
         }
     }
-
     
-    // Friend request alert
+    // MARK: - Friend Request Alert
     private func friendRequestAlert() -> Alert {
         Alert(
             title: Text("Request Sent"),
@@ -204,34 +171,7 @@ struct ProfileView: View {
         )
     }
     
-    // Helper functions
-    private func usernameDisplay() -> String {
-        person.username.isEmpty ? "private profile" : "@\(person.username)"
-    }
-    
-    private func sectionHeader(systemImage: Image? = nil, title: String, fontWeight: Font.Weight? = .bold, fontSize: CGFloat? = 18) -> some View {
-        HStack {
-            if let image = systemImage {
-                
-                image
-                    .resizable()
-                    .scaledToFit() // Maintain aspect ratio
-                    .frame(width: fontSize, height: fontSize) // Match the frame size to the font size
-                    .font(.system(size: fontSize ?? 18)) // Set the same font size for consistency
-            }
-            
-            Text(title)
-                .font(.title3)
-                .fontWeight(fontWeight)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Spacer()
-        }
-    }
-    
-    private var clearTagView: some View {
-        tagModelView(textLabel: "T", textSize: 14, foregroundColor: .clear, backgroundColor: .clear)
-    }
-    
+    // MARK: - Actions & Data Loading
     private func loadProfile() async {
         // Start loading
         DispatchQueue.main.async {
@@ -254,7 +194,6 @@ struct ProfileView: View {
 
     private func loadPosts() async {
         do {
-//            try await viewModel.getPosts(user: userHolder.person, person: person). Happens at postfeed level.
             try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
         } catch {
             ViewLogger.error("ProfileView Pinned Posts \(error)")
@@ -268,7 +207,6 @@ struct ProfileView: View {
                 try await pinnedPostsViewModel.getPosts(user: userHolder.person, person: person)
                 
                 self.pinnedPostsViewModel.posts = pinnedPostsViewModel.posts
-                self.viewModel.posts = viewModel.posts
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }
@@ -303,7 +241,44 @@ struct ProfileView: View {
     }
 }
 
-//#Preview {
-//    ProfileView(person: Person(userID: "aMq0YdteGEbYXWlSgxehVy7Fyrl2", username: "lammylol"))
-//        .environment(UserProfileHolder())
-//}
+// MARK: - Section Header Component
+struct SectionHeader: View {
+    let title: String
+    let icon: String?
+    let actionLabel: String?
+    let action: (() -> Void)?
+    
+    init(title: String, icon: String? = nil, actionLabel: String? = nil, action: (() -> Void)? = nil) {
+        self.title = title
+        self.icon = icon
+        self.actionLabel = actionLabel
+        self.action = action
+    }
+    
+    var body: some View {
+        HStack {
+            if let icon = icon {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundColor(.primary)
+            }
+            Text(title)
+                .font(.title3)
+                .bold()
+            Spacer()
+            if let actionLabel = actionLabel, let action = action {
+                Button(action: action) {
+                    Text(actionLabel)
+                        .font(.system(size: 16))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Extensions for Helper Display Logic
+extension Person {
+    var usernameDisplay: String {
+        username.isEmpty ? "private profile" : "@\(username)"
+    }
+}

@@ -54,7 +54,6 @@
 		7A4F26382AD0D2B600FB086C /* FlockSwiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */; };
 		7A4F26392AD0D2B600FB086C /* CalendarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262E2AD0D2B500FB086C /* CalendarHelper.swift */; };
 		7A4F263A2AD0D2B600FB086C /* MonthStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262F2AD0D2B600FB086C /* MonthStruct.swift */; };
-		7A5C72312AFEBADE00A75636 /* ProfileFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */; };
 		7A5C72332AFF5D9F00A75636 /* PostRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72322AFF5D9E00A75636 /* PostRow.swift */; };
 		7A5C72352AFF5E3100A75636 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72342AFF5E3100A75636 /* Post.swift */; };
 		7A66A0C52B0B24BC000CA93E /* PostHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A66A0C42B0B24BC000CA93E /* PostHelper.swift */; };
@@ -150,7 +149,6 @@
 		7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlockSwiftApp.swift; sourceTree = "<group>"; };
 		7A4F262E2AD0D2B500FB086C /* CalendarHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarHelper.swift; sourceTree = "<group>"; };
 		7A4F262F2AD0D2B600FB086C /* MonthStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MonthStruct.swift; sourceTree = "<group>"; };
-		7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileFeed.swift; sourceTree = "<group>"; };
 		7A5C72322AFF5D9E00A75636 /* PostRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostRow.swift; sourceTree = "<group>"; };
 		7A5C72342AFF5E3100A75636 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
 		7A66A0C42B0B24BC000CA93E /* PostHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHelper.swift; sourceTree = "<group>"; };
@@ -359,7 +357,6 @@
 			children = (
 				7A285BA72B959C3100BAF4C0 /* Settings */,
 				7A4F262A2AD0D2B100FB086C /* ProfileView.swift */,
-				7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */,
 			);
 			path = "Profile View";
 			sourceTree = "<group>";
@@ -684,7 +681,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A416B7B2AFC71CB00249BB3 /* UIHelper.swift in Sources */,
-				7A5C72312AFEBADE00A75636 /* ProfileFeed.swift in Sources */,
 				7A0AFA882BB777750051A4E0 /* TabBarButton.swift in Sources */,
 				7A4986662BCDCBFD00C0A936 /* PasswordChangeView.swift in Sources */,
 				7A3D7B9B2CB1BB370043834C /* PostCard.swift in Sources */,

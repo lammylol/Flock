@@ -109,7 +109,7 @@ import FirebaseFirestore
     
     // Fetch more posts for pagination
     @MainActor
-    func getNextPosts(user: Person, person: Person, profileOrFeed: String) async {
+    func getNextPosts(user: Person, person: Person) async {
         self.viewState = .fetching
         
         defer {

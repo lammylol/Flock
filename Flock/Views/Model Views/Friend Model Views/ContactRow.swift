@@ -97,9 +97,9 @@ struct ContactRow: View {
                             .buttonStyle(PlainButtonStyle())
                         } else {
                             if person.isPublic {
-                                tagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
+                                TagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
                             } else {
-                                tagModelView(textLabel: "Private Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
+                                TagModelView(textLabel: "Private Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
                             }
                         }
                         Spacer()

@@ -107,7 +107,7 @@ struct PostEditView: View {
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: savePost) {
-                    tagModelView(textLabel: "Save", textSize: 14, foregroundColor: .white, backgroundColor: .blue, cornerRadius: 15)
+                    TagModelView(textLabel: "Save", textSize: 14, foregroundColor: .white, backgroundColor: .blue, cornerRadius: 15)
                 }
             }
         }

@@ -105,7 +105,7 @@ struct PostCardLayout: View {
     @MainActor
     private func fetchNextPostsIfNeeded(for post: Post) async {
         if viewModel.hasReachedEnd(of: post) && !viewModel.isFetching {
-            await viewModel.getNextPosts(user: userHolder.person, person: userHolder.person, profileOrFeed: "profile")
+            await viewModel.getNextPosts(user: userHolder.person, person: userHolder.person)
         }
     }
 }

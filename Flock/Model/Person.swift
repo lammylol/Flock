@@ -24,6 +24,9 @@ struct Person: Identifiable, Hashable {
     var isPrivateFriend: Bool {
         friendState == "private"
     }
+    var isUser: Bool {
+        friendState == ""
+    }
 //    var prayerCalendarInd: Bool = false
 }
 
