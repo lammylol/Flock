@@ -126,11 +126,9 @@ struct PostRow: View {
                                 .multilineTextAlignment(.leading)
                                 
                                 if isTruncated {
-                                    NavigationLink(destination: PostFullView(post: $post)) {
-                                        Text(expandUpdate ? "Show Less" : "Show More")
-                                            .foregroundStyle(Color.blue)
-                                            .font(.system(size: 14))
-                                    }
+                                    Text(expandUpdate ? "Show Less" : "Show More") // acts as a button, but really just sends you to the post full view by clicking the whole row.
+                                        .foregroundStyle(Color.blue)
+                                        .font(.system(size: 14))
                                 } // This is to calculate if the text is truncated or not. Background must be the same, but w/o line limit.
                                 
                             }
