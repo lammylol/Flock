@@ -40,13 +40,12 @@ struct PostFullView: View {
     private var mainContent: some View {
         ScrollViewReader { scrollViewProxy in
             ScrollView {
-                VStack {
+                VStack (alignment: .leading, spacing: 10) {
                     postHeaderView()
                     if newPost.latestUpdateText != "" {
                         latestUpdateView()
                     }
                     postContentView()
-                    Spacer(minLength: 20)
                     
                     commentsSectionView()
                 }
@@ -107,27 +106,30 @@ struct PostFullView: View {
     
     // MARK: - Post Header View
     private func postHeaderView() -> some View {
-        HStack {
-            Button {
-                navigationManager.navigateTo(NavigationItem.person(newPost.person))
-            } label: {
-                ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
-                    .buttonStyle(.plain)
-                    .foregroundStyle(Color.primary)
+        VStack (alignment: .leading, spacing: 10) {
+            HStack {
+                Button {
+                    navigationManager.navigateTo(NavigationItem.person(newPost.person))
+                } label: {
+                    ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.primary)
+                }
+                VStack(alignment: .leading) {
+                    Text("\(newPost.firstName.capitalized) \(newPost.lastName.capitalized)")
+                        .font(.system(size: 18)).bold()
+                    Text(usernameDisplay()).font(.system(size: 14))
+                }
+                Spacer()
+                HStack(alignment: .center) {
+                    if newPost.isPinned { Image(systemName: "pin.fill") }
+                    Privacy(rawValue: newPost.privacy)?.systemImage
+                    postOptionsMenu()
+                        .highPriorityGesture(TapGesture())
+                }
+                .font(.system(size: 13))
             }
-            VStack(alignment: .leading) {
-                Text("\(newPost.firstName.capitalized) \(newPost.lastName.capitalized)")
-                    .font(.system(size: 18)).bold()
-                Text(usernameDisplay()).font(.system(size: 14))
-            }
-            Spacer()
-            HStack(alignment: .center) {
-                if newPost.isPinned { Image(systemName: "pin.fill") }
-                Privacy(rawValue: newPost.privacy)?.systemImage
-                postOptionsMenu()
-                    .highPriorityGesture(TapGesture())
-            }
-            .font(.system(size: 13))
+            //        Divider()
         }
         .padding(.bottom, 10)
     }
@@ -152,16 +154,17 @@ struct PostFullView: View {
             if isTruncated { expandButton() }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.gray).opacity(0.06))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(UIColor.systemGray6)))
         .padding(.bottom, 8)
     }
     
     // MARK: - Post Content View
     private func postContentView() -> some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Text(newPost.postTitle).font(.system(size: 18)).bold()
-            postTypeDisplay()
-            Divider()
+        VStack(alignment: .leading, spacing: 20) {
+            VStack (alignment: .leading, spacing: 5) {
+                Text(newPost.postTitle).font(.system(size: 20)).bold()
+                postTypeDisplay()
+            }
             Text(newPost.postText)
                 .font(.system(size: 16))
                 .multilineTextAlignment(.leading)

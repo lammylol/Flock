@@ -86,9 +86,9 @@ struct FriendsPageView: View {
                 }
                     
                 VStack(alignment: .leading) { // Friends
-                    if !friendRequestListener.pendingFriendRequests.isEmpty && !filteredPublicFriends.isEmpty {
+                    if !filteredPublicFriends.isEmpty && !showDuringSearch {
                         HStack {
-                            Text("Friends")
+                            Text("Public Friends")
                                 .font(.title2)
                             Spacer()
                         }

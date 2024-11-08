@@ -60,7 +60,7 @@ struct PostCardLayout: View {
             ForEach(0..<gridRowCount, id: \.self) { row in
                 GridRow {
                     ForEach(0..<gridColumnCount, id: \.self) { col in
-                        let index = col * gridRowCount + row
+                        let index = gridColumnCount * row + col
                         if index < $viewModel.posts.count {
                             PostCard(post: $viewModel.posts[index], postCardSmallorLarge: true)
                             .task {

@@ -85,8 +85,7 @@ struct PostCard: View {
         }
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.gray)
-                .opacity(0.10)
+                .fill(Color(UIColor.systemGray6))
         }
         .frame(maxWidth: .infinity)
         .frame(height: postCardSize.outsideFrameHeight)
