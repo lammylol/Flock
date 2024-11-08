@@ -68,19 +68,20 @@ struct PostCard: View {
             .frame(width: postCardSize.width, height: postCardSize.insideFrameHeight)
             .padding(15)
             
-            if post.lastSeenNotificationCount > 0 {
-                Text("\(post.lastSeenNotificationCount)")
-                    .font(.system(size: 16))
-                    .padding(10)
-                    .background {
-                        Circle()
-                            .fill(.blue)
-                    }
-                    .foregroundStyle(.white)
-//                    .offset(x: 62, y: -75)
-                    .padding(.trailing, -10)
-                    .padding(.top, -18)
-            }
+            // commented out for now until notifications can be tested.
+//            if post.lastSeenNotificationCount > 0 {
+//                Text("\(post.lastSeenNotificationCount)")
+//                    .font(.system(size: 16))
+//                    .padding(10)
+//                    .background {
+//                        Circle()
+//                            .fill(.blue)
+//                    }
+//                    .foregroundStyle(.white)
+////                    .offset(x: 62, y: -75)
+//                    .padding(.trailing, -10)
+//                    .padding(.top, -18)
+//            }
         }
         .background {
             RoundedRectangle(cornerRadius: 10)
