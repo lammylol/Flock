@@ -322,16 +322,6 @@ struct PostFullView: View {
         }
     }
     
-    private func updateNotificationSeenIfNotificationCountExisted() async {
-        if newPost.lastSeenNotificationCount > 0 {
-            do {
-                try await FeedService().updateLastSeenNotificationCount(post: post, person: userHolder.person)
-            } catch {
-                print("Error updating notification count: \(error)")
-            }
-        }
-    }
-    
     private func togglePinPost() {
         Task { @MainActor in
             do {

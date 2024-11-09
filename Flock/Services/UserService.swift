@@ -35,6 +35,7 @@ class UserService { // Functions related to user information
         return person
     }
     
+    @MainActor
     func retrieveUserInfoFromUserID(person: Person, userHolder: UserProfileHolder) async throws -> Person {
         // This function takes in a person object and returns additional information about the person. ie. if a user is accessing a profile for a username, this will retrieve information needed to fetch their data.
         var userID = person.userID
