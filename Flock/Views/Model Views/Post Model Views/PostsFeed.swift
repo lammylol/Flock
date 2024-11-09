@@ -69,7 +69,7 @@ struct PostsFeed: View {
             switch viewModel.selectedStatus {
             case .pinned: return "You need to pin a prayer to see it here."
             case .answered: return person.isCurrentUser(userHolder) ? "No answered posts yet." : "\(person.firstName) has no answered posts."
-            default: return person.isCurrentUser(userHolder) ? "Start adding prayers to the list." : "\(person.firstName) has no posts to share."
+            default: return person.isCurrentUser(userHolder) ? "Start adding prayers to your list." : "\(person.firstName) has no posts to share."
             }
         }
     }
@@ -77,7 +77,7 @@ struct PostsFeed: View {
     private func emptyFeedOverlayView(description: String) -> some View {
         VStack {
             ContentUnavailableView {
-                Label("Nothing...Yet!", systemImage: "list.bullet.rectangle.portrait")
+                Label("No Prayers...Yet!", systemImage: "list.bullet.rectangle.portrait")
             } description: {
                 Text(description)
             } actions: {
