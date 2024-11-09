@@ -17,13 +17,16 @@ struct Person: Identifiable, Hashable {
     var fullName: String {
         firstName + " " + lastName
     }
+    var friendState: String = String()
     var isPublic: Bool {
         friendState != "private"
     }
     var isPrivateFriend: Bool {
         friendState == "private"
     }
-    var friendState: String = String()
+    var isUser: Bool {
+        friendState == ""
+    }
 //    var prayerCalendarInd: Bool = false
 }
 

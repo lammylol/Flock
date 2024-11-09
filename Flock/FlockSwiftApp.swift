@@ -1,6 +1,6 @@
 //
-//  PrayerCalendarSwiftApp.swift
-//  PrayerCalendarSwift
+//  FlockApp.swift
+//  FlockSwift
 //
 //  Created by Matt Lam on 9/25/23.
 //
@@ -10,18 +10,17 @@ import FirebaseCore
 
 @main
 struct FlockApp: App {
-    @State private var friendRequestListener = FriendRequestListener()
-    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+
     var body: some Scene {
         WindowGroup {
             SignInView()
                 .environment(UserProfileHolder())
+                .environment(FriendRequestListener())
                 .environment(DateHolder())
                 .environment(FeedViewModel())
-                .environment(friendRequestListener)
                 .environment(UISizing())
+                .environment(NavigationManager())
         }
     }
 }

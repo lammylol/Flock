@@ -9,10 +9,10 @@ import SwiftUI
 
 struct TodayView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
     
     @State private var myFriendsPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myFriendPostsPinned)
     @State private var myPostsViewModel = FeedViewModel(viewType: .today, selectionType: .myPostsPinned)
-    @State private var navigationPath = NavigationPath()
     
     @State private var date: Date = Date()
     @State private var post: Post = Post()
@@ -28,67 +28,25 @@ struct TodayView: View {
     
     @State private var notificationViewModel = NotificationViewModel()
     @State private var isPresentingNotifications: Bool = false
-    
+
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            ScrollView {
-                VStack (alignment: .leading, spacing: 20) {
-                    headerView()
-                    addPostView()
-                    myPrayersView()
-                    myFriendsView()
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 20)
+        ScrollView {
+            VStack (alignment: .leading, spacing: 20) {
+                headerView()
+                addPostView()
+                myPrayersView()
+                myFriendsView()
             }
-            .clipped(antialiased: true)
-            .scrollDismissesKeyboard(.automatic)
-            .scrollIndicators(.hidden)
-            .refreshable { await refreshPosts() }
-            .toolbarBackground(Color.primary, for: .bottomBar)
-            .sheet(isPresented: $showCreatePost) {
-                PostCreateView(person: userHolder.person, postType: postType)
-            }
-    
-            // navigationDestination routings:
-            .navigationDestination(for: Post.self) { post in
-                PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post), // Pass binding for post
-                    navigationPath: $navigationPath
-                )
-            }
-            .navigationDestination(for: Person.self) { person in
-                ProfileView(person: person)
-            }
-            .navigationDestination(for: String.self, destination: navigationDestination)
-            .navigationDestination(for: Notification.self) { notification in
-                let post = Post(
-                    id: notification.postID,
-                    date: notification.timestamp,
-                    userID: notification.senderID,
-                    username: "",
-                    firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                    lastName: notification.senderName.components(separatedBy: " ").last ?? "",
-                    postTitle: notification.postTitle,
-                    postText: "",
-                    postType: "Note",
-                    status: "Current",
-                    privacy: "public",
-                    isPinned: false,
-                    lastSeenNotificationCount: 0
-                )
-                PostFullView(
-                    person: Person(
-                        userID: notification.senderID,
-                        username: "",
-                        firstName: notification.senderName.components(separatedBy: " ").first ?? "",
-                        lastName: notification.senderName.components(separatedBy: " ").last ?? ""
-                    ),
-                    post: .constant(post),
-                    navigationPath: $navigationPath
-                )
-            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 20)
+        }
+        .clipped(antialiased: true)
+        .scrollDismissesKeyboard(.automatic)
+        .scrollIndicators(.hidden)
+        .refreshable { await refreshPosts() }
+        .toolbarBackground(Color.primary, for: .bottomBar)
+        .sheet(isPresented: $showCreatePost) {
+            PostCreateView(person: userHolder.person, postType: postType)
         }
     }
         
@@ -104,9 +62,7 @@ struct TodayView: View {
                     .fontWeight(.light)
                 Spacer()
                 
-                Button {
-                    navigationPath.append("notifications")
-                } label: {
+                NavigationLink(destination: NotificationSheet(viewModel: notificationViewModel)) {
                     ZStack(alignment: .topTrailing) {
                         Image(systemName: "bell.fill")
                             .font(.system(size: 20))
@@ -182,10 +138,10 @@ struct TodayView: View {
                 }
             }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: myPostsViewModel, isExpanded: seeAllMyPosts)
+            PostCardLayout(viewModel: myPostsViewModel, isExpanded: seeAllMyPosts)
                 .task {
                     if myPostsViewModel.posts.isEmpty {
-                        await loadPinnedPosts()
+                        await loadPinnedPosts(for: myPostsViewModel)
                     }
                 }
         }
@@ -208,10 +164,10 @@ struct TodayView: View {
                 }
             }
             
-            PostCardLayout(navigationPath: $navigationPath, viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
+            PostCardLayout(viewModel: myFriendsPostsViewModel, isExpanded: seeAllFriendsPosts)
                 .task {
                     if myFriendsPostsViewModel.posts.isEmpty {
-                        await loadPinnedPosts()
+                        await loadPinnedPosts(for: myFriendsPostsViewModel)
                     }
                 }
         }
@@ -268,12 +224,11 @@ struct TodayView: View {
         return formatter.string(from: date)
     }
     
-    private func loadPinnedPosts() async {
+    private func loadPinnedPosts(for viewModel: FeedViewModel) async {
         do {
-            try await myFriendsPostsViewModel.getPosts(user: userHolder.person)
-            try await myPostsViewModel.getPosts(user: userHolder.person)
+            try await viewModel.getPosts(user: userHolder.person)
         } catch {
-            ViewLogger.error("ProfileView Pinned Posts \(error)")
+            ViewLogger.error("TodayView Pinned Posts \(error)")
         }
     }
     
@@ -285,16 +240,6 @@ struct TodayView: View {
             } catch {
                 ViewLogger.error("ProfileView \(error)")
             }
-        }
-    }
-    
-    // Navigation destination
-    private func navigationDestination(for value: String) -> some View {
-        switch value {
-        case "notifications":
-            return AnyView(NotificationSheet(viewModel: notificationViewModel, navigationPath: $navigationPath))
-        default:
-            return AnyView(EmptyView()) // Provide an empty view for other cases
         }
     }
 }

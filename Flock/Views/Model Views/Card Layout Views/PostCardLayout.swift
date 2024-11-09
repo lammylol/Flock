@@ -12,8 +12,6 @@ struct PostCardLayout: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(UISizing.self) var uiSize
     
-    // Pass in the NavigationPath from parent
-    @Binding var navigationPath: NavigationPath
     @State var viewModel: FeedViewModel
 //
     var isExpanded: Bool = false
@@ -39,7 +37,7 @@ struct PostCardLayout: View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
                 ForEach($viewModel.posts) { $post in
-                    PostCard(post: $post, navigationPath: $navigationPath, postCardSmallorLarge: false)
+                    PostCard(post: $post, postCardSmallorLarge: false)
                     .task {
                         await fetchNextPostsIfNeeded(for: post)
                     }
@@ -62,9 +60,9 @@ struct PostCardLayout: View {
             ForEach(0..<gridRowCount, id: \.self) { row in
                 GridRow {
                     ForEach(0..<gridColumnCount, id: \.self) { col in
-                        let index = col * gridRowCount + row
+                        let index = gridColumnCount * row + col
                         if index < $viewModel.posts.count {
-                            PostCard(post: $viewModel.posts[index], navigationPath: $navigationPath, postCardSmallorLarge: true)
+                            PostCard(post: $viewModel.posts[index], postCardSmallorLarge: true)
                             .task {
                                 await fetchNextPostsIfNeeded(for: viewModel.posts[index])
                             }
@@ -107,7 +105,7 @@ struct PostCardLayout: View {
     @MainActor
     private func fetchNextPostsIfNeeded(for post: Post) async {
         if viewModel.hasReachedEnd(of: post) && !viewModel.isFetching {
-            await viewModel.getNextPosts(user: userHolder.person, person: userHolder.person, profileOrFeed: "profile")
+            await viewModel.getNextPosts(user: userHolder.person, person: userHolder.person)
         }
     }
 }

@@ -13,8 +13,6 @@ import FirebaseAuth
 struct ProfileSettingsView: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
-    
-    @Binding var navigationPath: NavigationPath
 
     var body: some View {
         Form {
@@ -32,7 +30,6 @@ struct ProfileSettingsView: View {
                 NavigationLink(destination: AccountSettings()){
                     Text("Account Settings")
                 }
-                .id(UUID())
             }
             Section{
                 Button(action: {
@@ -68,8 +65,6 @@ struct DeleteButton: View {
     @State private var isPresentingConfirm: Bool = false
     private var friendService = FriendService()
     
-    @State private var navigationPath: [String] = []
-    
     var body: some View {
         Button("Delete Account", role: .destructive) {
             isPresentingConfirm = true
@@ -78,7 +73,6 @@ struct DeleteButton: View {
                             isPresented: $isPresentingConfirm) {
             Button("Delete Account and Sign Out", role: .destructive) {
                 Task {
-                    //                    defer { signOut() }
                     do {
                         if userHolder.isFinished {
                             try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
@@ -98,8 +92,7 @@ struct DeleteButton: View {
             if userHolder.isFinished {
                 do {
                     resetInfo()
-                    await friendRequestListener.removeListener()
-                    navigationPath.append("SignIn") // Force return to SignIn view. This is due to an issue where profile view is firing off tasks still after signing out from ProfileSettingsView.
+                    friendRequestListener.removeListener()
                     try Auth.auth().signOut()
                 } catch {
                     ViewLogger.error("ProfileSettingsView signOut failed \(error)")
@@ -134,13 +127,3 @@ struct AccountSettings: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
-
-//#Preview {
-//    ProfileSettingsView()
-//        .environment(UserProfileHolder.Blank())
-//}
-//
-//#Preview {
-//    ProfileSettingsSignIn(userHolder: UserProfileHolder())
-//        .environment(UserProfileHolder())
-//}

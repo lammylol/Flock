@@ -12,31 +12,24 @@ import SwiftUI
 
 struct PostFullView: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
     @Environment(\.dismiss) var dismiss
     
-    @State var postHelper = PostHelper()
-    @State var postUpdates: [PostUpdate] = []
-    @State var person: Person
-    @State var newPost: Post
-    @State var lineLimit: Int = 6
     @Binding var post: Post
-    @Binding var navigationPath: NavigationPath
+    @State var newPost: Post = Post()
     
     @State private var showAddUpdateView: Bool = false
     @State private var originalPrivacy: String = ""
     @State private var expandUpdate: Bool = false
     @State private var isTruncated: Bool = false
-    @State private var commentViewModel: CommentViewModel?
     @State private var showComments: Bool = true
-    private let notificationHelper = NotificationHelper()
+    @State var postUpdates: [PostUpdate] = []
+    @State var lineLimit: Int = 6
     
-    init(person: Person, post: Binding<Post>, navigationPath: Binding<NavigationPath>) {
-        _post = post
-        self.person = person
-        _newPost = State(initialValue: post.wrappedValue)
-        _navigationPath = navigationPath
-        ViewLogger.debug("PostFullView.init: Initializing with Post ID: \(post.wrappedValue.id)")
-    }
+    @State private var commentViewModel: CommentViewModel?
+    private let postHelper = PostHelper()
+    private let notificationHelper = NotificationHelper()
+    @State private var showProfileView: Bool = false
     
     var body: some View {
         mainContent
@@ -47,13 +40,12 @@ struct PostFullView: View {
     private var mainContent: some View {
         ScrollViewReader { scrollViewProxy in
             ScrollView {
-                VStack {
+                VStack (alignment: .leading, spacing: 10) {
                     postHeaderView()
                     if newPost.latestUpdateText != "" {
                         latestUpdateView()
                     }
                     postContentView()
-                    Spacer(minLength: 20)
                     
                     commentsSectionView()
                 }
@@ -82,13 +74,12 @@ struct PostFullView: View {
                     person: userHolder.person,
                     post: newPost
                 )
-                
+
                 // Fetch initial comments after initialization
                 ViewLogger.debug("PostFullView.task: Fetching initial comments")
                 await commentViewModel?.fetchInitialComments()
+                await updateNotificationSeenIfNotificationCountExisted()
             }
-            
-            await updateNotificationSeenIfNotificationCountExisted()
         }
         .refreshable { await refreshPost() }
         .scrollIndicators(.hidden)
@@ -112,28 +103,30 @@ struct PostFullView: View {
     
     // MARK: - Post Header View
     private func postHeaderView() -> some View {
-        HStack {
-            Button {
-                navigationPath.append(person)
-            } label: {
-                ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
-                    .buttonStyle(.plain)
-                    .foregroundStyle(Color.primary)
+        VStack (alignment: .leading, spacing: 10) {
+            HStack {
+                Button {
+                    navigationManager.navigateTo(NavigationItem.person(newPost.person))
+                } label: {
+                    ProfilePictureAvatar(firstName: newPost.firstName, lastName: newPost.lastName, imageSize: 50, fontSize: 20)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.primary)
+                }
+                VStack(alignment: .leading) {
+                    Text("\(newPost.firstName.capitalized) \(newPost.lastName.capitalized)")
+                        .font(.system(size: 18)).bold()
+                    Text(usernameDisplay()).font(.system(size: 14))
+                }
+                Spacer()
+                HStack(alignment: .center) {
+                    if newPost.isPinned { Image(systemName: "pin.fill") }
+                    Privacy(rawValue: newPost.privacy)?.systemImage
+                    postOptionsMenu()
+                        .highPriorityGesture(TapGesture())
+                }
+                .font(.system(size: 13))
             }
-            .id(UUID())
-            VStack(alignment: .leading) {
-                Text("\(newPost.firstName.capitalized) \(newPost.lastName.capitalized)")
-                    .font(.system(size: 18)).bold()
-                Text(usernameDisplay()).font(.system(size: 14))
-            }
-            Spacer()
-            HStack(alignment: .center) {
-                if newPost.isPinned { Image(systemName: "pin.fill") }
-                Privacy(rawValue: newPost.privacy)?.systemImage
-                postOptionsMenu()
-                    .highPriorityGesture(TapGesture())
-            }
-            .font(.system(size: 13))
+            //        Divider()
         }
         .padding(.bottom, 10)
     }
@@ -148,26 +141,27 @@ struct PostFullView: View {
                         .font(.system(size: 14))
                 }
                 Spacer()
-                NavigationLink(destination: UpdateView(post: newPost, person: person)) {
+                Button {
+                    navigationManager.navigateTo(NavigationItem.updates(newPost))
+                } label: {
                     seeAllUpdatesButton()
                 }
-                .id(UUID())
             }
             updateTextView()
             if isTruncated { expandButton() }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.gray).opacity(0.06))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(UIColor.systemGray6)))
         .padding(.bottom, 8)
     }
     
     // MARK: - Post Content View
     private func postContentView() -> some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Text(newPost.postTitle).font(.system(size: 18)).bold()
-            Text(newPost.postType == "Prayer Request" ? "Prayer Request: \(Text(newPost.status.capitalized).bold())" : newPost.postType == "Praise" ? "Praise 🙌" : "Note 📝")
-                .font(.system(size: 14))
-            Divider()
+        VStack(alignment: .leading, spacing: 20) {
+            VStack (alignment: .leading, spacing: 5) {
+                Text(newPost.postTitle).font(.system(size: 20)).bold()
+                postTypeDisplay()
+            }
             Text(newPost.postText)
                 .font(.system(size: 16))
                 .multilineTextAlignment(.leading)
@@ -206,11 +200,11 @@ struct PostFullView: View {
         }
     }
     
-    // MARK: - Helper Views & Methods
+    // MARK: - Helper Views
     private func postOptionsMenu() -> some View {
         Menu {
-            if person.userID == userHolder.person.userID {
-                NavigationLink(destination: PostEditView(person: person, post: post)
+            if post.userID == userHolder.person.userID {
+                NavigationLink(destination: PostEditView(person: post.person, post: post)
                     .onDisappear {
                         Task {
                             await refreshPost()
@@ -268,15 +262,30 @@ struct PostFullView: View {
     }
     
     private func usernameDisplay() -> String {
-        "@\(post.username.capitalized)"
+        "@\(newPost.username.lowercased())"
     }
     
+    private func postTypeDisplay() -> some View {
+        VStack {
+            if newPost.postType == "Prayer Request" {
+                Text("Prayer Request: \(Text(newPost.status.capitalized).bold())")
+            } else if newPost.postType == "Praise" {
+                Text("Praise 🙌")
+            } else if newPost.postType == "Note", newPost.postType == "Default" {
+                Text("Note 📝")
+            } else {
+                Text("")
+            }
+        }
+        .font(.system(size: 14))
+    }
+    // MARK: - Helper Methods
     private func loadPost() async {
         do {
             ViewLogger.debug("PostFullView.loadPost: Loading post - Current ID: \(newPost.id)")
             newPost = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             ViewLogger.info("PostFullView.loadPost: Successfully loaded post - New ID: \(newPost.id)")
-            post = newPost
+            self.post = newPost
         } catch {
             ViewLogger.error("PostFullView.loadPost failed: \(error.localizedDescription)")
         }
@@ -313,11 +322,22 @@ struct PostFullView: View {
         }
     }
     
+    private func updateNotificationSeenIfNotificationCountExisted() async {
+        if newPost.lastSeenNotificationCount > 0 {
+            do {
+                try await FeedService().updateLastSeenNotificationCount(post: post, person: userHolder.person)
+            } catch {
+                print("Error updating notification count: \(error)")
+            }
+        }
+    }
+    
     private func togglePinPost() {
         Task { @MainActor in
             do {
                 newPost.isPinned.toggle()
                 try await PostHelper().togglePinned(person: userHolder.person, post: newPost, toggle: newPost.isPinned)
+                self.post = newPost
             } catch {
                 ViewLogger.error("PostFullView.togglePinPost failed: \(error.localizedDescription)")
             }

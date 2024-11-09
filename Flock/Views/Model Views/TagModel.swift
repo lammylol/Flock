@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct tagModelView: View {
+struct TagModelView: View {
     var textLabel: String
     var systemImage: String = ""
     var textSize: CGFloat

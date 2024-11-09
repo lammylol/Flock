@@ -7,8 +7,14 @@
 
 import SwiftUI
 
-struct NotificationRow: View {
+struct NotificationRow: View {    
     let notification: Notification
+    var post: Post = Post()
+    var person: Person = Person()
+    
+    init(notification: Notification) {
+        self.notification = notification
+    }
     
     var body: some View {
         HStack(spacing: 12) {

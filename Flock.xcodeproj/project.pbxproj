@@ -26,7 +26,7 @@
 		3ABC0AB92C50080F000AFFD1 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 3ABC0AB82C50080F000AFFD1 /* FirebaseFunctions */; };
 		3ABC0ABF2C517533000AFFD1 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0ABE2C517533000AFFD1 /* CalendarService.swift */; };
 		3ABC0AC12C521804000AFFD1 /* FeedService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABC0AC02C521804000AFFD1 /* FeedService.swift */; };
-		7A0437B62CB74BC400954DC7 /* UISizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0437B52CB74BC400954DC7 /* UISizing.swift */; };
+		7A0437B62CB74BC400954DC7 /* UIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0437B52CB74BC400954DC7 /* UIModels.swift */; };
 		7A0AFA882BB777750051A4E0 /* TabBarButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0AFA872BB777750051A4E0 /* TabBarButton.swift */; };
 		7A0FBB432C2A7E4C0079ACEC /* PostEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A0FBB422C2A7E4C0079ACEC /* PostEditView.swift */; };
 		7A12A9CE2B87FA3B00707E3C /* EditPrayerUpdate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A12A9CD2B87FA3B00707E3C /* EditPrayerUpdate.swift */; };
@@ -54,13 +54,13 @@
 		7A4F26382AD0D2B600FB086C /* FlockSwiftApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */; };
 		7A4F26392AD0D2B600FB086C /* CalendarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262E2AD0D2B500FB086C /* CalendarHelper.swift */; };
 		7A4F263A2AD0D2B600FB086C /* MonthStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A4F262F2AD0D2B600FB086C /* MonthStruct.swift */; };
-		7A5C72312AFEBADE00A75636 /* ProfileFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */; };
 		7A5C72332AFF5D9F00A75636 /* PostRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72322AFF5D9E00A75636 /* PostRow.swift */; };
 		7A5C72352AFF5E3100A75636 /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A5C72342AFF5E3100A75636 /* Post.swift */; };
 		7A66A0C52B0B24BC000CA93E /* PostHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A66A0C42B0B24BC000CA93E /* PostHelper.swift */; };
 		7A7C84612BF4231F00E810B2 /* Privacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7C84602BF4231E00E810B2 /* Privacy.swift */; };
 		7A7CA4752B771106001922AA /* ProfileSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A7CA4742B771106001922AA /* ProfileSettingsView.swift */; };
 		7A8415732C81154B00AE8E3F /* FriendHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A8415722C81154B00AE8E3F /* FriendHelper.swift */; };
+		7A8D075A2CDBF6260040F0DD /* NavigationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A8D07592CDBF6250040F0DD /* NavigationManager.swift */; };
 		7A8D40B52B44A9CF00B029E6 /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A8D40B42B44A9CF00B029E6 /* FeedView.swift */; };
 		7A92577C2B686BCF00D5EF35 /* ProfilePictureAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A92577B2B686BCF00D5EF35 /* ProfilePictureAvatar.swift */; };
 		7A9CA7422CB863C00030E4CA /* CommentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A9CA7412CB863C00030E4CA /* CommentHelper.swift */; };
@@ -117,7 +117,7 @@
 		3ABC0AAD2C4F3872000AFFD1 /* FirebaseErrors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseErrors.swift; sourceTree = "<group>"; };
 		3ABC0ABE2C517533000AFFD1 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
 		3ABC0AC02C521804000AFFD1 /* FeedService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedService.swift; sourceTree = "<group>"; };
-		7A0437B52CB74BC400954DC7 /* UISizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UISizing.swift; sourceTree = "<group>"; };
+		7A0437B52CB74BC400954DC7 /* UIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIModels.swift; sourceTree = "<group>"; };
 		7A0AFA872BB777750051A4E0 /* TabBarButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarButton.swift; sourceTree = "<group>"; };
 		7A0FBB422C2A7E4C0079ACEC /* PostEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostEditView.swift; sourceTree = "<group>"; };
 		7A12A9CD2B87FA3B00707E3C /* EditPrayerUpdate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPrayerUpdate.swift; sourceTree = "<group>"; };
@@ -149,13 +149,13 @@
 		7A4F262D2AD0D2B400FB086C /* FlockSwiftApp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlockSwiftApp.swift; sourceTree = "<group>"; };
 		7A4F262E2AD0D2B500FB086C /* CalendarHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarHelper.swift; sourceTree = "<group>"; };
 		7A4F262F2AD0D2B600FB086C /* MonthStruct.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MonthStruct.swift; sourceTree = "<group>"; };
-		7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileFeed.swift; sourceTree = "<group>"; };
 		7A5C72322AFF5D9E00A75636 /* PostRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostRow.swift; sourceTree = "<group>"; };
 		7A5C72342AFF5E3100A75636 /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
 		7A66A0C42B0B24BC000CA93E /* PostHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHelper.swift; sourceTree = "<group>"; };
 		7A7C84602BF4231E00E810B2 /* Privacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Privacy.swift; sourceTree = "<group>"; };
 		7A7CA4742B771106001922AA /* ProfileSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSettingsView.swift; sourceTree = "<group>"; };
 		7A8415722C81154B00AE8E3F /* FriendHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendHelper.swift; sourceTree = "<group>"; };
+		7A8D07592CDBF6250040F0DD /* NavigationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationManager.swift; sourceTree = "<group>"; };
 		7A8D40B42B44A9CF00B029E6 /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
 		7A92577B2B686BCF00D5EF35 /* ProfilePictureAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilePictureAvatar.swift; sourceTree = "<group>"; };
 		7A9CA7412CB863C00030E4CA /* CommentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentHelper.swift; sourceTree = "<group>"; };
@@ -287,6 +287,7 @@
 			children = (
 				3A1963682CB8E354005401DD /* Globals.swift */,
 				7AF1E9EF2B145848007E3303 /* UserProfileHolder.swift */,
+				7A8D07592CDBF6250040F0DD /* NavigationManager.swift */,
 			);
 			path = "Data Holders";
 			sourceTree = "<group>";
@@ -315,8 +316,8 @@
 				2B81BBBB2CCED95D00FF02C0 /* Notification.swift */,
 				E0564A092BB379DE00D21DB3 /* Tab.swift */,
 				7A7C84602BF4231E00E810B2 /* Privacy.swift */,
-				7A0437B52CB74BC400954DC7 /* UISizing.swift */,
 				7A9CA7432CB863CB0030E4CA /* Comment.swift */,
+				7A0437B52CB74BC400954DC7 /* UIModels.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -356,7 +357,6 @@
 			children = (
 				7A285BA72B959C3100BAF4C0 /* Settings */,
 				7A4F262A2AD0D2B100FB086C /* ProfileView.swift */,
-				7A5C72302AFEBADE00A75636 /* ProfileFeed.swift */,
 			);
 			path = "Profile View";
 			sourceTree = "<group>";
@@ -383,8 +383,8 @@
 		7A285BA82B959C7200BAF4C0 /* Main Views */ = {
 			isa = PBXGroup;
 			children = (
-				2B81BBC22CCEDB1500FF02C0 /* Notifications */,
 				7AD808D02AD6F9E000A0ECA6 /* ContentView.swift */,
+				2B81BBC22CCEDB1500FF02C0 /* Notifications */,
 				7A9CA7492CBF471A0030E4CA /* Today View */,
 				7A3D7B9C2CB1BBB90043834C /* Post View */,
 				7A3440852C5ABE790041156F /* Friends View */,
@@ -681,7 +681,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A416B7B2AFC71CB00249BB3 /* UIHelper.swift in Sources */,
-				7A5C72312AFEBADE00A75636 /* ProfileFeed.swift in Sources */,
 				7A0AFA882BB777750051A4E0 /* TabBarButton.swift in Sources */,
 				7A4986662BCDCBFD00C0A936 /* PasswordChangeView.swift in Sources */,
 				7A3D7B9B2CB1BB370043834C /* PostCard.swift in Sources */,
@@ -691,13 +690,14 @@
 				7AD808D12AD6F9E000A0ECA6 /* ContentView.swift in Sources */,
 				3A399F4C2CB8BC20001F3932 /* AppDelegate.swift in Sources */,
 				7A3440832C5ABE6E0041156F /* ContactRow.swift in Sources */,
+				7A8D075A2CDBF6260040F0DD /* NavigationManager.swift in Sources */,
 				E0564A0A2BB379DE00D21DB3 /* Tab.swift in Sources */,
 				7A66A0C52B0B24BC000CA93E /* PostHelper.swift in Sources */,
 				7A4F26342AD0D2B600FB086C /* PrayerNameInputView.swift in Sources */,
 				7A12A9CE2B87FA3B00707E3C /* EditPrayerUpdate.swift in Sources */,
 				2B81BBC32CCEDB1500FF02C0 /* NotificationRow.swift in Sources */,
 				7A7CA4752B771106001922AA /* ProfileSettingsView.swift in Sources */,
-				7A0437B62CB74BC400954DC7 /* UISizing.swift in Sources */,
+				7A0437B62CB74BC400954DC7 /* UIModels.swift in Sources */,
 				2B81BBC42CCEDB1500FF02C0 /* NotificationSheet.swift in Sources */,
 				7A3D7B9E2CB24F030043834C /* PostCardLayout.swift in Sources */,
 				7A7C84612BF4231F00E810B2 /* Privacy.swift in Sources */,

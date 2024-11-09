@@ -9,9 +9,9 @@ import SwiftUI
 
 struct PostCard: View {
     @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
     
     @Binding var post: Post
-    @Binding var navigationPath: NavigationPath
     
     @State private var isPinned: Bool = true
     
@@ -30,7 +30,7 @@ struct PostCard: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button {
-                navigationPath.append(post)
+                navigationManager.navigateTo(NavigationItem.post(post))
             } label: {
                 VStack {
                     HStack {
@@ -68,24 +68,24 @@ struct PostCard: View {
             .frame(width: postCardSize.width, height: postCardSize.insideFrameHeight)
             .padding(15)
             
-            if post.lastSeenNotificationCount > 0 {
-                Text("\(post.lastSeenNotificationCount)")
-                    .font(.system(size: 16))
-                    .padding(10)
-                    .background {
-                        Circle()
-                            .fill(.blue)
-                    }
-                    .foregroundStyle(.white)
-//                    .offset(x: 62, y: -75)
-                    .padding(.trailing, -10)
-                    .padding(.top, -18)
-            }
+            // commented out for now until notifications can be tested.
+//            if post.lastSeenNotificationCount > 0 {
+//                Text("\(post.lastSeenNotificationCount)")
+//                    .font(.system(size: 16))
+//                    .padding(10)
+//                    .background {
+//                        Circle()
+//                            .fill(.blue)
+//                    }
+//                    .foregroundStyle(.white)
+////                    .offset(x: 62, y: -75)
+//                    .padding(.trailing, -10)
+//                    .padding(.top, -18)
+//            }
         }
         .background {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color.gray)
-                .opacity(0.10)
+                .fill(Color(UIColor.systemGray6))
         }
         .frame(maxWidth: .infinity)
         .frame(height: postCardSize.outsideFrameHeight)

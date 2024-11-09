@@ -158,7 +158,7 @@ struct CommentsView: View {
             if !newCommentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Button { Task { await postComment() } }
                 label: {
-                    tagModelView(textLabel: "Post", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
+                    TagModelView(textLabel: "Post", textSize: 14, foregroundColor: .white, backgroundColor: .blue)
                 }
                 .disabled(isCommentTextEmpty)
                 .padding(.leading, 1)

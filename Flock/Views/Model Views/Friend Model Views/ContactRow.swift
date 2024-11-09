@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContactRow: View {
+    @Environment(NavigationManager.self) var navigationManager
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(\.colorScheme) var colorScheme
     
@@ -19,7 +20,9 @@ struct ContactRow: View {
 //    var friendState: String
     
     var body: some View {
-        NavigationLink(destination: ProfileView(person: person)) {
+        Button {
+            navigationManager.navigateTo(NavigationItem.person(person))
+        } label: {
             HStack(alignment: .center) {
                 ProfilePictureAvatar(firstName: person.firstName, lastName: person.lastName, imageSize: 55, fontSize: 20)
                     .padding(.horizontal, 7)
@@ -94,9 +97,9 @@ struct ContactRow: View {
                             .buttonStyle(PlainButtonStyle())
                         } else {
                             if person.isPublic {
-                                tagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30, boldBool: false)
+                                TagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
                             } else {
-                                tagModelView(textLabel: "Private Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: .gray, opacity: 0.30, boldBool: false)
+                                TagModelView(textLabel: "Private Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
                             }
                         }
                         Spacer()
@@ -104,13 +107,13 @@ struct ContactRow: View {
                 }
                 .padding(.vertical, 10)
             }
-            .frame(height: 80)
-            .frame(maxWidth: .infinity)
-            .background{
-                Rectangle().fill(.background)
-            }
         }
-        .buttonStyle(PlainButtonStyle())
+        .frame(height: 80)
+        .frame(maxWidth: .infinity)
+        .background{
+            Rectangle().fill(.background)
+        }
+        .foregroundStyle(.primary)
     }
     
     func removeFriend(friend: Person) {

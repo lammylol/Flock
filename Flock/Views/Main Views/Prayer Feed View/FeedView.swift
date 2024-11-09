@@ -9,6 +9,9 @@ import SwiftUI
 import FirebaseFirestore
 
 struct FeedView: View {
+    @Environment(UserProfileHolder.self) var userHolder
+    @Environment(NavigationManager.self) var navigationManager
+    
     @State private var showSubmit: Bool = false
     @State private var showEdit: Bool = false
     @State private var selectedPage: Int = 1
@@ -18,136 +21,73 @@ struct FeedView: View {
     @State private var sizeArray: [CGFloat] = [.zero, .zero, .zero]
     @State var prayerRequestVar: Post = Post.blank
     
-    @Environment(UserProfileHolder.self) var userHolder
     @State var viewModel: FeedViewModel = FeedViewModel(viewType: .feed)
     @Environment(\.colorScheme) private var scheme
-    @State private var navigationPath = NavigationPath()
-    
-    @State var person: Person
     
     let headerText = "Flock \(buildConfiguration == DEVELOPMENT ? "DEV" : "")"
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            ScrollView(.vertical) {
-                PostsFeed(viewModel: viewModel, person: $person, profileOrFeed: "feed", navigationPath: $navigationPath)
-                    .onChange(of: viewModel.selectedStatus, {
-                        Task {
-                            if !viewModel.isFetching || !viewModel.isLoading {
-                                try await viewModel.getPosts(user: userHolder.person, person: person)
-                            }
+        ScrollView(.vertical) {
+            PostsFeed(viewModel: viewModel, person: userHolder.person, profileOrFeed: "feed")
+                .onChange(of: viewModel.selectedStatus, {
+                    Task {
+                        if !viewModel.isFetching || !viewModel.isLoading {
+                            try await viewModel.getPosts(user: userHolder.person)
                         }
-                    })
-                    .padding(.horizontal, 23)
-            }
-            .refreshable {
-                Task {
-                    if viewModel.isFinished {
-                        try await viewModel.getPosts(user: userHolder.person, person: person)
                     }
-                }
-            }
-            .sheet(isPresented: $showSubmit, onDismiss: {
-                Task {
-                    if viewModel.isFinished {
-                        try await viewModel.getPosts(user: userHolder.person, person: person)
-                    }
-                }
-            }, content: {
-                PostCreateView(person: person)
-            })
-            .toolbar() {
-                ToolbarItem(placement: .topBarLeading) {
-                    HStack {
-                        Text(headerText)
-                            .font(.title2)
-                            .bold()
-                        StatusPicker(viewModel: viewModel)
-                            .padding(.trailing, -10)
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.leading, 10)
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        showSubmit.toggle()
-                    }) {
-                        Image(systemName: "square.and.pencil")
-                    }
-                }
-            }
-            .navigationDestination(for: Post.self) { post in
-                PostFullView(
-                    person: Person(userID: post.userID, username: post.username, firstName: post.firstName, lastName: post.lastName),
-                    post: .constant(post), // Pass binding for post
-                    navigationPath: $navigationPath
-                )
-            }
-            .clipped()
+                })
+                .padding(.horizontal, 23)
         }
-    }
-}
-
-struct OffsetKey: PreferenceKey {
-    static let defaultValue: CGFloat = .zero
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-struct HeightKey: PreferenceKey {
-    static let defaultValue: CGFloat = .zero
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-extension View {
-    @ViewBuilder
-    func offsetX(completion: @escaping (CGFloat) -> ()) -> some View {
-        self
-            .overlay {
-                GeometryReader {
-                    let minX = $0.frame(in: .scrollView(axis: .horizontal)).minX
-                    
-                    Color.clear
-                        .preference(key: OffsetKey.self, value: minX)
-                        .onPreferenceChange(OffsetKey.self, perform: completion)
+        .task {
+            await loadInitialPostsIfNeeded()
+        }
+        .refreshable {
+            Task {
+                if viewModel.isFinished {
+                    try await viewModel.getPosts(user: userHolder.person)
                 }
             }
-    }
-    
-    @ViewBuilder
-    func getSizeOfView(completion: @escaping (CGFloat) -> ()) -> some View {
-        self
-            .background {
-                GeometryReader { geo in
-                    Color.clear
-                        .preference(key: HeightKey.self, value: geo.size.height)
-                        .onPreferenceChange(HeightKey.self, perform: completion)
+        }
+        .sheet(isPresented: $showSubmit, onDismiss: {
+            Task {
+                if viewModel.isFinished {
+                    try await viewModel.getPosts(user: userHolder.person)
                 }
             }
+        }, content: {
+            PostCreateView(person: userHolder.person)
+        })
+        .toolbar() {
+            ToolbarItem(placement: .topBarLeading) {
+                HStack {
+                    Text(headerText)
+                        .font(.title2)
+                        .bold()
+                    StatusPicker(viewModel: viewModel)
+                        .padding(.trailing, -10)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.leading, 10)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    showSubmit.toggle()
+                }) {
+                    Image(systemName: "square.and.pencil")
+                }
+            }
+        }
+        .clipped()
+        .scrollIndicators(.hidden)
     }
     
-    @ViewBuilder
-    func tabMask(_ tabProgress: CGFloat, tabs: [Tab]) -> some View {
-        
-        ZStack {
-            self
-                .foregroundStyle(.gray)
-            
-            self
-                .symbolVariant(.fill)
-                .mask {
-                    GeometryReader {
-                        let size = $0.size
-                        let capsuleWidth = size.width / CGFloat(tabs.count)
-                        
-                        Capsule()
-                            .frame(width: capsuleWidth)
-                            .offset(x: tabProgress * (size.width - capsuleWidth))
-                    }
-                }
+    private func loadInitialPostsIfNeeded() async {
+        if viewModel.posts.isEmpty && !viewModel.isFetching && !viewModel.isLoading {
+            do {
+                try await viewModel.getPosts(user: userHolder.person)
+            } catch {
+                ViewLogger.error("FeedView Posts \(error)")
+            }
         }
     }
 }
