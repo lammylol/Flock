@@ -19,7 +19,7 @@ struct CommentsView: View {
     @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 12) {
             commentsList
             errorView
             commentInputField
@@ -60,7 +60,7 @@ struct CommentsView: View {
     }
 
     private var emptyCommentsView: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("No comments yet")
                 .font(.system(size: 16))
                 .fontWeight(.medium)
@@ -68,7 +68,6 @@ struct CommentsView: View {
                 .foregroundColor(.secondary)
                 .font(.system(size: 14))
         }
-        .padding()
     }
 
     private var commentListContent: some View {
@@ -80,17 +79,11 @@ struct CommentsView: View {
                             await deleteComment(comment)
                         }
                     }
-                    
-                    if viewModel.comments.last?.id != comment.id {
-                        Divider()
-                            .padding(.vertical, 4)
-                    }
                 }
             }
-            
             if viewModel.hasMoreComments {
                 loadMoreButton
-            }
+            } // moved here so the 'spacing' can apply evenly across all
         }
     }
 
@@ -103,8 +96,7 @@ struct CommentsView: View {
                 }
             } label: {
                 HStack(spacing: 8) {
-                    Text("Load more")
-                        .font(.system(size: 14))
+                    Text("Load More")
                     if viewModel.isLoadingMore {
                         ProgressView()
                             .scaleEffect(0.8)
@@ -112,10 +104,11 @@ struct CommentsView: View {
                         Image(systemName: "arrow.down.circle.fill")
                     }
                 }
+                .font(.system(size: 14))
                 .foregroundColor(.blue)
+                .padding(.vertical, 3)
             }
             .disabled(viewModel.isLoadingMore)
-            .padding(.vertical, 8)
             Spacer()
         }
     }
@@ -247,6 +240,6 @@ struct CommentRow: View {
             Text("This action cannot be undone.")
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.vertical, 5)
+        .padding(.top, 6)
     }
 }

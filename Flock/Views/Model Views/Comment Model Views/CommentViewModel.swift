@@ -22,7 +22,7 @@ import Observation
     var scrollToEnd: Bool = false
     
     // Updated pagination values
-    let initialLoadSize = 10  // Show first 10 comments
+    let initialLoadSize = 5  // Show first 10 comments
     let commentsPerPage = 5   // Load 5 more at a time
     
     @ObservationIgnored private var hasCompletedInitialLoad = false

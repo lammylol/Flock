@@ -40,7 +40,7 @@ struct PostFullView: View {
     private var mainContent: some View {
         ScrollViewReader { scrollViewProxy in
             ScrollView {
-                VStack (alignment: .leading, spacing: 10) {
+                VStack (alignment: .leading, spacing: 15) {
                     postHeaderView()
                     if newPost.latestUpdateText != "" {
                         latestUpdateView()
@@ -170,11 +170,12 @@ struct PostFullView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
+        .padding(.bottom, 5)
     }
     
     // MARK: - Comment Section View
     private func commentsSectionView() -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Comments")
                     .font(.system(size: 16))

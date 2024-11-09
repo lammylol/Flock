@@ -72,11 +72,11 @@ class NotificationViewModel {
     }
 
     deinit {
-        if listener != nil {
+//        if listener != nil {
             ModelLogger.debug("NotificationViewModel.deinit: Removing listener")
             listener?.remove()
-            listener = nil
-        }
+//            listener = nil
+//        }
     }
     
     func markAsRead(notificationID: String) async {

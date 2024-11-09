@@ -83,7 +83,7 @@ struct ProfileView: View {
     }
     
     private var pinnedPostsSection: some View {
-        VStack {
+        VStack(spacing: 5) {
             if !pinnedPostsViewModel.posts.isEmpty {
                 if pinnedPostsViewModel.posts.count > 2 {
                     SectionHeader(
