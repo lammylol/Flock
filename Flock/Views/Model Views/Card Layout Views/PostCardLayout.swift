@@ -81,7 +81,7 @@ struct PostCardLayout: View {
     private func noPostsView() -> some View {
         HStack (alignment: .center) {
             Image(systemName: "pin")
-            Text("No pinned posts to feature. Pin an existing post from your feed to add it to your today page.")
+            Text("No pinned prayers to feature. Pin an existing prayer from your feed to add it here.")
                 .multilineTextAlignment(.leading)
                 .font(.system(size: 14))
         }

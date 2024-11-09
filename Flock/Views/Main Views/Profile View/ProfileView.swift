@@ -107,7 +107,7 @@ struct ProfileView: View {
         VStack {
             HStack {
                 SectionHeader(
-                    title: person.isUser ? "My Posts" : "\(person.firstName.capitalized)'s Posts",
+                    title: person.isUser ? "My Prayers" : "\(person.firstName.capitalized)'s Prayers",
                     icon: "newspaper.fill"
                 )
                 StatusPicker(viewModel: viewModel)
