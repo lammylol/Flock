@@ -106,7 +106,7 @@ struct CommentsView: View {
                 }
                 .font(.system(size: 14))
                 .foregroundColor(.blue)
-                .padding(.vertical, 3)
+                .padding(.vertical, 4)
             }
             .disabled(viewModel.isLoadingMore)
             Spacer()
