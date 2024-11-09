@@ -85,12 +85,19 @@ struct ProfileView: View {
     private var pinnedPostsSection: some View {
         VStack {
             if !pinnedPostsViewModel.posts.isEmpty {
-                SectionHeader(
-                    title: "My Pinned Prayers",
-                    icon: "signpost.right.and.left.fill",
-                    actionLabel: seeAllMyPosts ? "Show Less" : "Show All",
-                    action: { seeAllMyPosts.toggle() }
-                )
+                if pinnedPostsViewModel.posts.count > 2 {
+                    SectionHeader(
+                        title: "My Pinned Prayers",
+                        icon: "signpost.right.and.left.fill",
+                        actionLabel: seeAllMyPosts ? "Show Less" : "Show All",
+                        action: { seeAllMyPosts.toggle() }
+                    )
+                } else {
+                    SectionHeader(
+                        title: "My Pinned Prayers",
+                        icon: "signpost.right.and.left.fill"
+                    )
+                }
                 PostCardLayout(viewModel: pinnedPostsViewModel, isExpanded: seeAllMyPosts)
             }
         }
