@@ -22,7 +22,7 @@ import Observation
     var scrollToEnd: Bool = false
     
     // Updated pagination values
-    let initialLoadSize = 5  // Show first 10 comments
+    let initialLoadSize = 5  // Show first 5 comments
     let commentsPerPage = 5   // Load 5 more at a time
     
     @ObservationIgnored private var hasCompletedInitialLoad = false
@@ -68,26 +68,36 @@ import Observation
         }
         
         do {
-            print("fetchInitialComments - fetching with limit: \(initialLoadSize + 1)")
+            print("fetchInitialComments - fetching with limit: \(initialLoadSize)")
             let result = try await commentHelper.getComments(
                 for: post.id,
-                limit: initialLoadSize + 1
+                limit: initialLoadSize
             )
             
             await MainActor.run {
-                if result.comments.count > initialLoadSize {
-                    // Got more than initial load size, indicate more are available
-                    let displayedComments = Array(result.comments.prefix(initialLoadSize))
-                    self.comments = displayedComments
-                    self.hasMoreComments = true
+                self.comments = result.comments
+                
+                // Check if there might be more comments by doing a secondary fetch
+                if !result.comments.isEmpty {
                     self.lastCommentSnapshot = result.lastSnapshot
-                    print("Initial load: Showing first \(displayedComments.count) comments, more available")
+                    Task {
+                        do {
+                            let nextBatch = try await commentHelper.getComments(
+                                for: post.id,
+                                limit: 1,
+                                lastCommentSnapshot: result.lastSnapshot
+                            )
+                            await MainActor.run {
+                                self.hasMoreComments = !nextBatch.comments.isEmpty
+                            }
+                        } catch {
+                            print("Error checking for more comments: \(error)")
+                        }
+                    }
                 } else {
-                    // Got less than or equal to initial load size, show all
-                    self.comments = result.comments
                     self.hasMoreComments = false
-                    print("Initial load: Showing all \(self.comments.count) comments, no more available")
                 }
+                
                 self.hasCompletedInitialLoad = true
                 self.isLoading = false
             }
