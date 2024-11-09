@@ -86,24 +86,34 @@ import FirebaseFirestore
                 self.viewState = .finished
             }
             
-            // Validate user ID or person ID before making Firestore calls
             guard !user.userID.isEmpty, person?.userID.isEmpty != true else {
+                ModelLogger.error("FeedViewModel.getPosts: Invalid userID")
                 throw PersonRetrievalError.noUserID
             }
             
-            let (newPrayerRequests, lastDocument) = try await feedService.getPostFeed(user: user, person: person, statusFilter: selectedStatus, count: 10, lastDocument: nil, viewType: viewType, selectionType: selectionType)
+            let (newPrayerRequests, lastDocument) = try await feedService.getPostFeed(
+                user: user, 
+                person: person, 
+                statusFilter: selectedStatus, 
+                count: 10, 
+                lastDocument: nil, 
+                viewType: viewType, 
+                selectionType: selectionType
+            )
             
             self.posts = newPrayerRequests
             self.queryCount = newPrayerRequests.count
             
-            if lastDocument != nil {
-                self.lastDocument = lastDocument
+            if let lastDoc = lastDocument {
+                self.lastDocument = lastDoc
+                ModelLogger.debug("FeedViewModel.getPosts: Retrieved \(newPrayerRequests.count) posts, lastDocument: \(lastDoc.documentID)")
+            } else {
+                ModelLogger.debug("FeedViewModel.getPosts: Retrieved \(newPrayerRequests.count) posts, no more documents")
             }
-    
-//            print(posts.map({$0.postTitle}))
-            ModelLogger.debug("FeedViewModel.getPost last document \(lastDocument?.documentID ?? "n/a")")
+            
         } catch {
-            ModelLogger.error("FeedViewModel.getPosts failed \(error)")
+            ModelLogger.error("FeedViewModel.getPosts failed: \(error.localizedDescription)")
+            throw error
         }
     }
     

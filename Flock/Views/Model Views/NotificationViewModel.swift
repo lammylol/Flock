@@ -47,10 +47,15 @@ class NotificationViewModel {
     // Change to public and update listener management
     func setupNotificationListener() {
         // Remove existing listener if there is one
-        listener?.remove()
+        if listener != nil {
+            ModelLogger.debug("NotificationViewModel.setupNotificationListener: Removing existing listener")
+            listener?.remove()
+        }
+        
+        ModelLogger.debug("NotificationViewModel.setupNotificationListener: Starting new listener for user: \(self.userID)")
         
         // Store the returned ListenerRegistration
-        listener = notificationHelper.listenForNotifications(userID: userID) { [weak self] result in
+        listener = notificationHelper.listenForNotifications(userID: self.userID) { [weak self] result in
             guard let self = self else { return }
             
             switch result {
@@ -58,17 +63,20 @@ class NotificationViewModel {
                 Task { @MainActor in
                     self.notifications = notifications.sorted(by: { $0.timestamp > $1.timestamp })
                     self.updateUnreadCount()
-                    NetworkingLogger.info("NotificationListener turned on.")
+                    ModelLogger.info("NotificationViewModel.setupNotificationListener: Successfully updated with \(notifications.count) notifications")
                 }
             case .failure(let error):
-                print("DEBUG: Error fetching notifications: \(error)")
+                ModelLogger.error("NotificationViewModel.setupNotificationListener failed: \(String(describing: error))")
             }
         }
     }
-    
+
     deinit {
-        listener?.remove()  // Clean up listener when ViewModel is deallocated
-        NetworkingLogger.info("NotificationListener turned off.")
+        if listener != nil {
+            ModelLogger.debug("NotificationViewModel.deinit: Removing listener")
+            listener?.remove()
+            listener = nil
+        }
     }
     
     func markAsRead(notificationID: String) async {
