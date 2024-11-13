@@ -41,8 +41,9 @@ class UserService { // Functions related to user information
         var userID = person.userID
         var firstName = person.firstName
         var lastName = person.lastName
-        var friendState = person.friendState
         var username = person.username
+        var friendState = person.friendState
+        var friendType = person.friendType
         
         // Ensure user is still authenticated before running the task
          guard Auth.auth().currentUser != nil else {
@@ -50,9 +51,9 @@ class UserService { // Functions related to user information
              return Person()
          }
         
-        if person.isPrivateFriend || person.username == "" { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
+        if person.friendType == .privateFriend { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
             userID = userHolder.person.userID
-            friendState = "private"
+            friendType = .privateFriend
         } else { // If username exists, then request user document from firestore off of the username.
             do {
                 let document = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").document(person.userID).getDocument()
@@ -63,7 +64,8 @@ class UserService { // Functions related to user information
                     firstName = document.get("firstName") as? String ?? ""
                     lastName = document.get("lastName") as? String ?? ""
                     username = document.get("username") as? String ?? ""
-                    friendState = document.get("state") as? String ?? ""
+                    friendState =
+                    Person.FriendState(rawValue: document.get("state") as? String ?? "") ?? .none
                 }
             } catch {
                 NetworkingLogger.error("userService.retrieveUserInfoFromUserID failed \(error)")

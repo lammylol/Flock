@@ -32,16 +32,16 @@ struct ContactRow: View {
                         Text("\(person.firstName.capitalized) \(person.lastName.capitalized)")
                             .font(.system(size: 20))
                             .bold()
-                        if person.isPublic && person.friendState != "pending" {
+                        if person.friendType == .publicFriend, person.friendState == .approved {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.blue)
-                        } else if !person.isPublic {
+                        } else if person.friendType == .privateFriend {
                             Image(systemName: "lock.icloud.fill")
                                 .foregroundStyle(colorScheme == .dark ? .white : .black )
                         }
                         Spacer()
                         
-                        if person.friendState != "pending" {
+                        if person.friendType != .user {
                             Menu {
                                 Button {
                                     removeFriendConfirm = true
@@ -64,7 +64,7 @@ struct ContactRow: View {
                     .padding(.bottom, -3)
                     
                     HStack {
-                        if person.friendState == "pending" {
+                        if person.friendState == .pending {
                             Button(action: {
                                 friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
                             }) {
@@ -96,7 +96,7 @@ struct ContactRow: View {
                             .foregroundStyle(colorScheme == .dark ? .white : .black)
                             .buttonStyle(PlainButtonStyle())
                         } else {
-                            if person.isPublic {
+                            if person.friendType == .publicFriend {
                                 TagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
                             } else {
                                 TagModelView(textLabel: "Private Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
@@ -128,7 +128,7 @@ struct ContactRow: View {
     
     func addToCalendar(friend: Person) {
         Task {
-            if friend.isPublic {
+            if friend.friendType == .publicFriend {
                 userHolder.prayerList.append("\n\(friend.firstName) \(friend.lastName); \(friend.username)")
             } else {
                 userHolder.prayerList.append("\n\(friend.firstName) \(friend.lastName)")
@@ -152,6 +152,6 @@ struct ContactRow: View {
 }
 
 #Preview {
-    ContactRow(person: Person(username: "lammylol", email: "matthewthelam@gmail.com", firstName: "Matt", lastName: "Lam", friendState: "pending"))
+    ContactRow(person: Person(username: "lammylol", email: "matthewthelam@gmail.com", firstName: "Matt", lastName: "Lam", friendState: .pending))
         .environment(UserProfileHolder())
 }

@@ -17,7 +17,7 @@ struct PostEditView: View {
     @State var person: Person = Person()
     @State var post: Post
     @State var showAddUpdateView = false
-    @State private var originalPrivacy = ""
+    @State private var originalPrivacy: Post.Privacy = .isPrivate
     @State private var isPresentingConfirm = false
     
     var body: some View {
@@ -38,7 +38,7 @@ struct PostEditView: View {
                                 Text(type.rawValue).tag(type.rawValue)
                             }
                         }
-                        if post.postType == "Prayer Request" {
+                        if post.postType == .prayerRequest {
                             Picker("Status", selection: $post.status) {
                                 Text("Current").tag("Current")
                                 Text("Answered").tag("Answered")
@@ -141,7 +141,7 @@ struct PostEditView: View {
     func savePost() {
         Task {
             do {
-                if originalPrivacy != "private" && post.privacy == "private" {
+                if originalPrivacy != .isPrivate && post.privacy == .isPrivate {
                     try await FeedService().publicToPrivate(post: post, friendsList: friendRequestListener.acceptedFriendRequests)
                 }
                 try await PostOperationsService().editPost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests)

@@ -77,7 +77,7 @@ class PostUpdateHelper {
         )
         
         // Add prayer request update to prayerFeed/{userID} main prayerRequest
-        if post.privacy == "public" && friendsList.isEmpty == false {
+        if post.privacy == .isPublic, !friendsList.isEmpty {
             for friend in friendsList {
                 let refFriend = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
                 try await refFriend.updateData([
@@ -135,7 +135,7 @@ class PostUpdateHelper {
         )
         
         // Update PrayerRequestID from prayerFeed/{userID}
-        if post.privacy == "public" && friendsList.isEmpty == false {
+        if post.privacy == .isPublic, !friendsList.isEmpty {
             for friend in friendsList {
                 let refFriend = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
                 try await refFriend.updateData([
@@ -216,7 +216,7 @@ class PostUpdateHelper {
             )
             
             // Update PrayerRequestID in prayerFeed/{userID}
-            if prayerRequest.privacy == "public" && friendsList.isEmpty == false {
+            if prayerRequest.privacy == .isPublic, !friendsList.isEmpty {
                 for friend in friendsList {
                     let refFriend = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(prayerRequest.id)
                     try await refFriend.updateData([

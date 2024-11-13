@@ -39,15 +39,16 @@ import FirebaseFirestore
                         let email = document.get("email") as? String ?? ""
                         let firstName = document.get("firstName") as? String ?? ""
                         let lastName = document.get("lastName") as? String ?? ""
-                        let state = document.get("state") as? String ?? ""
+                        let state = Person.FriendState(rawValue: document.get("state") as? String ?? "") ?? .none
+                        let type = Person.FriendType(rawValue: document.get("friendType") as? String ?? "") ?? .user
                         
                         let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: state)
                         
-                        if state == "pending" {
+                        if state == .pending {
                             newPendingFriendRequests.append(person)
-                        } else if state == "approved" {
+                        } else if state == .approved {
                             newAcceptedFriendRequests.append(person)
-                        } else if state == "private" {
+                        } else if type == .privateFriend {
                             newPrivateFriends.append(person)
                         }
                     }

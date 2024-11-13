@@ -17,20 +17,34 @@ struct Person: Identifiable, Hashable {
     var fullName: String {
         firstName + " " + lastName
     }
-    var friendState: String = String()
-    var isPublic: Bool {
-        friendState != "private"
-    }
-    var isPrivateFriend: Bool {
-        friendState == "private"
-    }
-    var isUser: Bool {
-        friendState == ""
-    }
-//    var prayerCalendarInd: Bool = false
+    var friendState: FriendState = .none
+    var friendType: FriendType = .none
+    var privateFriendIdentifier: String = "" // only usable for private friends to track document Id.
 }
 
 extension Person {
+    enum FriendType: String, CaseIterable, Codable {
+        case user = "user"
+        case publicFriend = "publicFriend"
+        case privateFriend = "privateFriend"
+        case none = ""
+        
+        var descriptionKey: String {
+            return self.rawValue.description
+        }
+    }
+    
+    enum FriendState: String, CaseIterable,  Codable {
+        case sent = "sent"
+        case pending = "pending"
+        case approved = "approved"
+        case none = ""
+        
+        var descriptionKey: String {
+            return self.rawValue.description
+        }
+    }
+    
     static var blank: Person {
         let item =
         Person(username: "")
@@ -39,7 +53,7 @@ extension Person {
     
     static var preview: Person {
         let item =
-        Person(username: "matthewthelam@gmail.com", firstName: "Matt", lastName: "Lam", friendState: "pending")
+        Person(username: "matthewthelam@gmail.com", firstName: "Matt", lastName: "Lam", friendState: .pending, friendType: .user)
         return item
     }
 }

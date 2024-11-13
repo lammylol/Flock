@@ -15,14 +15,15 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
     var username: String = ""
     var firstName: String = ""
     var lastName: String = ""
+    var friendType: Person.FriendType = .user
     var postTitle: String = ""
     var postText: String = ""
-    var postType: String = "note"
-    var status: String = ""
+    var postType: PostType = .note
+    var status: Status = .none
     var latestUpdateText: String = ""
     var latestUpdateDatePosted: Date = Date()
     var latestUpdateType: String = ""
-    var privacy: String = ""
+    var privacy: Privacy = .isPrivate
     var isPinned: Bool = false
     var lastSeenNotificationCount: Int = 0
 
@@ -33,6 +34,7 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
         case username
         case firstName
         case lastName
+        case friendType
         case postTitle
         case postText
         case postType
@@ -50,12 +52,35 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
             userID: userID,
             username: username,
             firstName: firstName,
-            lastName: lastName
+            lastName: lastName,
+            friendType: friendType
         )
     }
 }
 
 extension Post {
+    static var blank: Post {
+        let item =
+        Post(
+            date: Date(),
+            userID: "",
+            username: "",
+            firstName: "",
+            lastName: "",
+            friendType: .user,
+            postTitle: "",
+            postText: "",
+            postType: .note,
+            status: .none,
+            latestUpdateText: "",
+            latestUpdateDatePosted: Date(),
+            latestUpdateType: "Update",
+            privacy: .isPrivate,
+            isPinned: false
+        )
+        return item
+    }
+    
     static var preview: Post {
         let item =
         Post(
@@ -67,45 +92,61 @@ extension Post {
             lastName: "Lam",
             postTitle: "Test this is Title Prayers for Random Things",
             postText: "Hearing God There is no way that God who spoke to people all throughout history would so as soon as the Bible came into being.\nThe Bible is the word but it’s not everything. God is active. My sheep hear my voice. Everyone who is a follower of Christ has heard the voice of God. It’s not just some people who hear him. It’s all. \nSamuel hearing God. Man should not live by bread alone but by by every WORD (Rhema) that comes from the mouth of God. The hearing voice.Spirit, soul, and body. 1 Thessalonians 5:19-23. Be led by the spirit and have that have the throne of your heart. Not your soul (mind, emotions, etc.) or your body (the flesh).\nSo fast to help focus on being led by the spirit. We don’t want our will over someone else’s life. We want God’s will. Dreams are in a way the modern day version or parables. Jesus used parables to take something that is relevant to that society to show something. So if he uses something (movie you just watched), then don’t discount it cause he can be using it to teach you.You are a magician. Me saying to God he is so good, so merciful, so beautiful, so gracious - and him coming back and saying “that is who you are too",
-            postType: "note",
-            status: "Current",
+            postType: .note,
+            status: .current,
             latestUpdateText: "Hearing God There is no way that God who spoke to people all throughout history would so as soon as the Bible came into being. The Bible is the word but it’s not everything. God is active. My sheep hear my voice. Everyone who is a follower of Christ has heard the voice of God. It’s not just some people who hear him. It’s all. Samuel hearing God. Man should not live by bread alone but by by every WORD (Rhema) that comes from the mouth of God. The hearing voice.Spirit, soul, and body. 1 Thessalonians 5:19-23. Be led by the spirit and have that have the throne of your heart. Not your soul (mind, emotions, etc.) or your body (the flesh). So fast to help focus on being led by the spirit. We don’t want our will over someone else’s life. We want God’s will. Dreams are in a way the modern day version or parables. Jesus used parables to take something that is relevant to that society to show something. So if he uses something (movie you just watched), then don’t discount it cause he can be using it to teach you.You are a magician. Me saying to God he is so good, so merciful, so beautiful, so gracious - and him coming back and saying “that is who you are too",
             latestUpdateDatePosted: Date(),
             latestUpdateType: "Update",
-            privacy: "private",
+            privacy: .isPrivate,
             isPinned: true,
             lastSeenNotificationCount: 1
-        )
-        return item
-    }
-    
-    static var blank: Post {
-        let item =
-        Post(
-            date: Date(),
-            userID: "",
-            username: "",
-            firstName: "",
-            lastName: "",
-            postTitle: "",
-            postText: "",
-            postType: "",
-            status: "",
-            latestUpdateText: "",
-            latestUpdateDatePosted: Date(),
-            latestUpdateType: "Update",
-            privacy: "",
-            isPinned: false
         )
         return item
     }
 }
 
 extension Post {
-    enum PostType: String, CaseIterable {
-        case note = "Note"
-        case prayerRequest = "Prayer Request"
-        case praise = "Praise"
+    enum PostType: String, CaseIterable, Codable {
+        case note = "note"
+        case prayerRequest = "prayer request"
+        case praise = "praise"
+        
+        var descriptionKey: String {
+            return self.rawValue.description
+        }
+    }
+    
+    enum Status: String, CaseIterable, Codable {
+        case noLongerNeeded = "no longer needed"
+        case answered = "answered"
+        case current = "current"
+        case none = ""
+        
+        var descriptionKey: String {
+            return self.rawValue.description
+        }
+    }
+    
+    enum Privacy: String, CaseIterable, Identifiable, Codable {
+        var id: Self {
+            return self
+        }
+        
+        case isPublic = "public"
+        case isPrivate = "private"
+        
+        var descriptionKey: String {
+            return self.rawValue.description
+        }
+        
+        var systemImage: Image {
+            switch self {
+                case .isPublic:
+                    return Image(systemName: "globe.europe.africa.fill")
+                case .isPrivate:
+                    return Image(systemName: "lock.fill")
+            }
+        }
     }
 }
 

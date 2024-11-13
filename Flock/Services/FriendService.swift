@@ -26,7 +26,7 @@ class FriendService {
         if document.exists { // only applies for initial beta launch of friends page, where some friends have documents but without a state.
             if document.get("state") == nil {
                 try await refFriends.updateData([
-                    "state": "pending"
+                    "state": Person.FriendState.pending,
                 ])
             } else {
                 throw AddFriendError.friendAddedAlready
@@ -38,7 +38,8 @@ class FriendService {
                 "firstName": user.firstName,
                 "lastName": user.lastName,
                 "email": user.email,
-                "state": "pending"
+                "state": Person.FriendState.pending.descriptionKey,
+                "friendType": Person.FriendType.publicFriend.descriptionKey
             ])
         }
         
@@ -49,7 +50,7 @@ class FriendService {
         if userFriendsDocument.exists { // only applies for initial beta launch of friends page, where some friends have documents but without a state.
             if userFriendsDocument.get("state") == nil {
                 try await refUserFriends.updateData([
-                    "state": "sent"
+                    "state": Person.FriendState.sent
                 ])
             } else {
                 throw AddFriendError.friendAddedAlready
@@ -61,7 +62,7 @@ class FriendService {
                 "firstName": friend.firstName,
                 "lastName": friend.lastName,
                 "email": friend.email,
-                "state": "sent"
+                "state": Person.FriendState.sent.descriptionKey
             ])
         }
     }
@@ -78,7 +79,7 @@ class FriendService {
                 
             if document.exists {
                 try await refFriends.updateData([
-                    "state": "approved"
+                    "state": Person.FriendState.approved
                 ])
             }
             
@@ -88,7 +89,7 @@ class FriendService {
             let theirFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
             
             try await theirFriends.updateData([
-                "state": "approved"
+                "state": Person.FriendState.approved.descriptionKey
             ])
             
             try await updateFriendHistoricalPostsIntoFeed(user: friend, friend: user) // load historical posts into that friend's feed once you approve.
@@ -174,7 +175,8 @@ class FriendService {
             "firstName": firstName,
             "lastName": lastName,
             "email": "",
-            "state": "private"
+            "state": "",
+            "friendType": Person.FriendType.privateFriend.descriptionKey
         ])
     }
     
@@ -200,7 +202,7 @@ class FriendService {
     // Helper to delete a user from friend's feed
     func deleteFriend(user: Person, friend: Person) async throws {
         do {
-            if friend.isPublic {
+            if friend.friendType == .publicFriend {
                 // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
                 let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
                 try await refFriends.delete()
@@ -220,7 +222,7 @@ class FriendService {
                 for document in refDeleteUser.documents {
                     try await document.reference.delete()
                 }
-            } else { // if user is private, delete the friend from just your prayer list.
+            } else if friend.friendType == .privateFriend { // if user is private, delete the friend from just your prayer list.
                 
                 // Update user's personal friends list and delete historical posts.
                 let refUser = try await db.collection("users").document(user.userID).collection("friendsList")
@@ -300,15 +302,20 @@ class FriendService {
                 let email = document.get("email") as? String ?? ""
                 let firstName = document.get("firstName") as? String ?? ""
                 let lastName = document.get("lastName") as? String ?? ""
-                let state = document.get("state") as? String ?? ""
+                let friendState = Person.FriendState(rawValue: document.get("state") as? String ?? "") ?? .none
+                let friendType = Person.FriendType(rawValue: document.get("friendType") as? String ?? "") ?? .user
+                let privateFriendIdentifier = document.get("privateFriendIdentifier") as? String ?? ""
 //                let prayerCalendarInd = document.get("prayerCalendarInd") as? Bool ?? false
                 
-                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: state/*, prayerCalendarInd: prayerCalendarInd*/)
+                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: friendState, friendType: friendType, privateFriendIdentifier: privateFriendIdentifier)
                 
-                if state == "pending" {
+                switch person.friendState {
+                case .pending:
                     pendingFriendsList.append(person)
-                } else if state == "approved" {
+                case .approved:
                     friendsList.append(person)
+                default:
+                    break
                 }
             }
         }
@@ -359,7 +366,6 @@ class FriendService {
                         let email = document.get("email") as? String ?? ""
                         
                         person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
-//                    }
                 }
             }
         } catch {

@@ -10,9 +10,9 @@ import Foundation
 class FriendHelper {
     var friendService = FriendService()
     
-    func acceptFriendRequest(friendState: String, user: Person, friend: Person) {
+    func acceptFriendRequest(friendState: Person.FriendState, user: Person, friend: Person) {
         Task {
-            guard friendState == "pending" else {
+            guard friendState == .pending else {
                 return
             }
             
@@ -24,9 +24,9 @@ class FriendHelper {
         }
     }
     
-    func denyFriendRequest(friendState: String, user: Person, friend: Person) {
+    func denyFriendRequest(friendState: Person.FriendState, user: Person, friend: Person) {
         Task {
-            guard friendState == "pending" else {
+            guard friendState == .pending else {
                 return
             }
             

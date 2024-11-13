@@ -107,7 +107,7 @@ struct ProfileView: View {
         VStack {
             HStack {
                 SectionHeader(
-                    title: person.isUser ? "My Prayers" : "\(person.firstName.capitalized)'s Prayers",
+                    title: person.friendType == .user ? "My Prayers" : "\(person.firstName.capitalized)'s Prayers",
                     icon: "newspaper.fill"
                 )
                 StatusPicker(viewModel: viewModel)
@@ -126,14 +126,17 @@ struct ProfileView: View {
     
     // MARK: - Friend State Button
     private var friendStateButton: some View {
-        Group {
+        VStack {
             switch person.friendState {
-            case "pending": friendRequestMenu
-            case "approved": TagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
-            case "sent": TagModelView(textLabel: "Pending", textSize: 14, foregroundColor: .black, backgroundColor: .gray.opacity(0.3))
-            case "private": TagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
+            case .pending: friendRequestMenu
+            case .approved: TagModelView(textLabel: "Friends", systemImage: "checkmark.circle.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
+            case .sent: TagModelView(textLabel: "Pending", textSize: 14, foregroundColor: .black, backgroundColor: .gray.opacity(0.3))
+                
             default:
-                if person.isPublic && person.username != userHolder.person.username {
+                if person.friendType == .privateFriend {
+                    TagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
+                }
+                if person.username != userHolder.person.username {
                     addFriendButton
                 }
             }
@@ -230,7 +233,7 @@ struct ProfileView: View {
             do {
                 try await friendService.addFriend(user: userHolder.person, friend: person)
                 addFriendConfirmation = true
-                person.friendState = "sent"
+                person.friendState = .sent
             } catch {
                 ViewLogger.error("ProfileView.addFriend \(error)")
             }
@@ -240,7 +243,7 @@ struct ProfileView: View {
     private func acceptFriendRequest() {
         Task {
             friendHelper.acceptFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
-            person.friendState = "approved"
+            person.friendState = .approved
             try await viewModel.getPosts(user: userHolder.person, person: person)
         }
     }
@@ -248,7 +251,7 @@ struct ProfileView: View {
     private func dismissFriendRequest() {
         Task {
             friendHelper.denyFriendRequest(friendState: person.friendState, user: userHolder.person, friend: person)
-            person.friendState = ""
+            person.friendState = .none
         }
     }
 }

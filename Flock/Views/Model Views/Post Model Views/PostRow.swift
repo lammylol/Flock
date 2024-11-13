@@ -52,7 +52,7 @@ struct PostRow: View {
                             if post.isPinned == true {
                                 Image(systemName: "pin.fill")
                             }
-                            Privacy(rawValue: post.privacy)?.systemImage
+                            post.privacy.systemImage
                             Menu {
                                 if post.userID == userHolder.person.userID {
                                     NavigationLink(destination: PostEditView(post: post)){
@@ -77,9 +77,9 @@ struct PostRow: View {
                         .padding(.bottom, 2)
                         
                         HStack {
-                            if post.postType == "Prayer Request" {
-                                Text("Prayer Request: ").font(.system(size: 12)) + Text(post.status.capitalized).font(.system(size: 12)).bold()
-                            } else if post.postType == "Praise" {
+                            if post.postType == .prayerRequest {
+                                Text("Prayer Request: ").font(.system(size: 12)) + Text(post.status.rawValue.capitalized).font(.system(size: 12)).bold()
+                            } else if post.postType == .praise {
                                 Text("Praise 🙌").font(.system(size: 12))
                             } else {
                                 Text("Note 📝").font(.system(size: 12))

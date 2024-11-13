@@ -108,7 +108,7 @@ struct PostsFeed: View {
 
 extension Person {
     var friendStateRequiresOverlay: Bool {
-        friendState == "pending" || friendState == "sent"
+        friendState == .pending || friendState == .sent
     }
     
     func isCurrentUser(_ userHolder: UserProfileHolder) -> Bool {

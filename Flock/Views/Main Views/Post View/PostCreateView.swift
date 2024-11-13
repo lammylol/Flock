@@ -17,12 +17,12 @@ struct PostCreateView: View {
     @Environment(\.dismiss) var dismiss
     
     @State var person: Person
-    @State var postType: Post.PostType? = .prayerRequest
+    @State var postType: Post.PostType = .prayerRequest
     @State private var datePosted = Date()
-    @State private var status: String = "Current"
+    @State private var status: Post.Status = .current
     @State private var postText: String = ""
     @State private var postTitle: String = ""
-    @State private var privacy: String = "private"
+    @State private var privacy: Post.Privacy = .isPrivate
     @State private var isPresentingFriends: Bool = false
     @State private var isPinned: Bool = false
 
@@ -81,13 +81,13 @@ struct PostCreateView: View {
                             Spacer()
                             PrivacyView(person: person, privacySetting: $privacy)
                                 .onChange(of: privacy, {
-                                    if privacy == "public" {
+                                    if privacy == .isPublic {
                                         isPresentingFriends = true
                                     }
                                 })
                         }
                     } footer: {
-                        if privacy == "public" {
+                        if privacy == .isPublic {
                             friendsList()
                                 .padding(.top, 10)
                         }
@@ -141,16 +141,19 @@ struct PostCreateView: View {
     func submitPost() {
         Task {
             do {
-                try await PostOperationsService().createPost(
+                let post = Post(
                     userID: userHolder.person.userID,
-                    datePosted: Date(),
-                    person: person,
-                    postText: postText,
+                    username: userHolder.person.username,
+                    firstName: userHolder.person.firstName,
+                    lastName: userHolder.person.lastName,
+                    friendType: person.friendType,
                     postTitle: postTitle,
+                    postText: postText,
+                    postType: postType,
                     privacy: privacy,
-                    postType: postType?.rawValue ?? "note",
-                    friendsList: friendRequestListener.acceptedFriendRequests,
-                    isPinned: isPinned)
+                    isPinned: false
+                )
+                try await PostOperationsService().createPost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
                 userHolder.refresh = true
                 
                 clearDraft()
@@ -171,7 +174,7 @@ struct PostCreateView: View {
             userHolder.draftPost = UserProfileHolder.DraftPost(
                 title: postTitle,
                 content: postText,
-                postType: postType ?? .note,
+                postType: postType,
                 privacy: privacy
             )
         } else {
