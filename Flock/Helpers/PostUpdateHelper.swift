@@ -59,7 +59,7 @@ class PostUpdateHelper {
         
     // Add UpdateID and Data to prayerRequests/{prayerRequestID}/Updates
     // Reset latest update date and text for user id prayer list.
-        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
+        let ref = db.collection("users").document(post.userID).collection("prayerList").document("\(person.userID)").collection("posts").document(post.id)
         
         try await ref.updateData([
             "latestUpdateDatePosted": datePosted,
@@ -116,7 +116,7 @@ class PostUpdateHelper {
         let latestUpdateType = latestUpdate.2
         
 //      Reset latest update date and text for user id prayer list.
-        let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
+        let ref = db.collection("users").document(post.userID).collection("prayerList").document("\(person.userID)").collection("posts").document(post.id)
         
         try await ref.updateData([
             "latestUpdateDatePosted": latestUpdateDatePosted,
@@ -191,14 +191,14 @@ class PostUpdateHelper {
     }
     
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
-    func editPrayerUpdate(prayerRequest: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [Person], updatesArray: [PostUpdate]) async throws {
+    func editPrayerUpdate(post: Post, prayerRequestUpdate: PostUpdate, person: Person, friendsList: [Person], updatesArray: [PostUpdate]) async throws {
         let db = Firestore.firestore()
         
-        let latestUpdateDatePosted = getLatestUpdate(post: prayerRequest, updates: updatesArray).0
+        let latestUpdateDatePosted = getLatestUpdate(post: post, updates: updatesArray).0
         
         if prayerRequestUpdate.datePosted == latestUpdateDatePosted  { // Only update latestUpdate to PrayerRequest if it is newer than the last.
             //      Reset latest update date and text for user id prayer list.
-            let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(prayerRequest.firstName.lowercased())_\(prayerRequest.lastName.lowercased())").collection("prayerRequests").document(prayerRequest.id)
+            let ref = db.collection("users").document(post.userID).collection("prayerList").document("\(person.userID)").collection("posts").document(post.id)
             
             try await ref.updateData([
                 "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
@@ -207,7 +207,7 @@ class PostUpdateHelper {
             ])
             
             // update the latestUpdateDatePosted and latestUpdateText in prayer request collection.
-            let refPrayerRequestCollection = db.collection("prayerRequests").document(prayerRequest.id)
+            let refPrayerRequestCollection = db.collection("prayerRequests").document(post.id)
             
             try await refPrayerRequestCollection.updateData([
                 "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
@@ -216,9 +216,9 @@ class PostUpdateHelper {
             )
             
             // Update PrayerRequestID in prayerFeed/{userID}
-            if prayerRequest.privacy == .isPublic, !friendsList.isEmpty {
+            if post.privacy == .isPublic, !friendsList.isEmpty {
                 for friend in friendsList {
-                    let refFriend = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(prayerRequest.id)
+                    let refFriend = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
                     try await refFriend.updateData([
                         "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
                         "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
@@ -228,7 +228,7 @@ class PostUpdateHelper {
             }
             
             // Update your own feed.
-            let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(prayerRequest.id)
+            let refProfile = db.collection("prayerFeed").document(person.userID).collection("prayerRequests").document(post.id)
             try await refProfile.updateData([
                 "latestUpdateDatePosted": prayerRequestUpdate.datePosted,
                 "latestUpdateText": prayerRequestUpdate.prayerUpdateText,
@@ -240,7 +240,7 @@ class PostUpdateHelper {
         
         // Update prayer update in prayerRequests/{prayerRequestID}
         let refUpdate =
-        db.collection("prayerRequests").document(prayerRequest.id).collection("updates").document(prayerRequestUpdate.id)
+        db.collection("prayerRequests").document(post.id).collection("updates").document(prayerRequestUpdate.id)
         
         try await refUpdate.updateData([
             "prayerUpdateText": prayerRequestUpdate.prayerUpdateText,

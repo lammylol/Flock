@@ -32,33 +32,28 @@ struct ContactRow: View {
                         Text("\(person.firstName.capitalized) \(person.lastName.capitalized)")
                             .font(.system(size: 20))
                             .bold()
-                        if person.friendType == .publicFriend, person.friendState == .approved {
+                        if person.friendState == .approved {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.blue)
-                        } else if person.friendType == .privateFriend {
-                            Image(systemName: "lock.icloud.fill")
-                                .foregroundStyle(colorScheme == .dark ? .white : .black )
                         }
                         Spacer()
                         
-                        if person.friendType != .user {
-                            Menu {
-                                Button {
-                                    removeFriendConfirm = true
-                                } label: {
-                                    Label("Remove Friend", systemImage: "minus.square")
-                                }
+                        Menu {
+                            Button {
+                                removeFriendConfirm = true
                             } label: {
-                                Label("", systemImage: "ellipsis")
+                                Label("Remove Friend", systemImage: "minus.square")
                             }
-                            .highPriorityGesture(TapGesture())
-                            .confirmationDialog("Are you sure?", isPresented: $removeFriendConfirm) {
-                                Button("Delete Friend", role: .destructive) {
-                                    self.removeFriend(friend: person)
-                                }
-                            } message: {
-                                Text("Your friend's history will be deleted from your feed and you will no longer appear on their feed.")
+                        } label: {
+                            Label("", systemImage: "ellipsis")
+                        }
+                        .highPriorityGesture(TapGesture())
+                        .confirmationDialog("Are you sure?", isPresented: $removeFriendConfirm) {
+                            Button("Delete Friend", role: .destructive) {
+                                self.removeFriend(friend: person)
                             }
+                        } message: {
+                            Text("Your friend's history will be deleted from your feed and you will no longer appear on their feed.")
                         }
                     }
                     .padding(.bottom, -3)
@@ -96,11 +91,7 @@ struct ContactRow: View {
                             .foregroundStyle(colorScheme == .dark ? .white : .black)
                             .buttonStyle(PlainButtonStyle())
                         } else {
-                            if person.friendType == .publicFriend {
-                                TagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
-                            } else {
-                                TagModelView(textLabel: "Private Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
-                            }
+                            TagModelView(textLabel: "Public Account", systemImage: "", textSize: 16, foregroundColor: colorScheme == .dark ? .white : .black, backgroundColor: Color(UIColor.systemGray6), opacity: 1.00, boldBool: false)
                         }
                         Spacer()
                     }
@@ -128,11 +119,7 @@ struct ContactRow: View {
     
     func addToCalendar(friend: Person) {
         Task {
-            if friend.friendType == .publicFriend {
-                userHolder.prayerList.append("\n\(friend.firstName) \(friend.lastName); \(friend.username)")
-            } else {
-                userHolder.prayerList.append("\n\(friend.firstName) \(friend.lastName)")
-            }
+            userHolder.prayerList.append("\n\(friend.firstName) \(friend.lastName); \(friend.username)")
             
             do {
                 //Update Prayer Calendar in Firestore

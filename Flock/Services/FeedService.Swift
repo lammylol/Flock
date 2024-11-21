@@ -80,7 +80,7 @@ class FeedService {
                 postTitle: data["prayerRequestTitle"] as? String ?? "",
                 postText: data["prayerRequestText"] as? String ?? "",
                 postType: Post.PostType(rawValue: data["postType"] as? String ?? "") ?? .note,
-                status: Post.Status(rawValue: data["status"] as? String ?? "") ?? .none,
+                status: Post.Status(rawValue: data["status"] as? String ?? "") ?? .current,
                 latestUpdateText: data["latestUpdateText"] as? String ?? "",
                 latestUpdateDatePosted: updateTimestamp.dateValue(),
                 latestUpdateType: data["latestUpdateType"] as? String ?? "",
@@ -122,12 +122,12 @@ class FeedService {
                 "datePosted": post.date,
                 "firstName": post.firstName,
                 "lastName": post.lastName,
-                "status": post.status,
+                "status": post.status.descriptionKey,
                 "prayerRequestText": post.postText,
-                "postType": post.postType,
+                "postType": post.postType.descriptionKey,
                 "userID": person.userID,
                 "username": person.username,
-                "privacy": post.privacy,
+                "privacy": post.privacy.descriptionKey,
                 "prayerRequestTitle": post.postTitle,
                 "latestUpdateText": post.latestUpdateText,
                 "latestUpdateDatePosted": post.latestUpdateDatePosted,
@@ -199,7 +199,7 @@ class FeedService {
             try await ref.updateData([
                 "lastSeenNotificationCount": 0 // always return to 0 once it's seen, since user is pulling up the full update list
             ])
-            NetworkingLogger.info("FeedService.updateLastNotificationCount: updated last seen notification count to 0")
+            NetworkingLogger.info("FeedService.updateLasNotificationCount: updated last seen notification count to 0")
         } catch {
             NetworkingLogger.error("FeedService.updateLastNotificationCount failed \(error)")
         }

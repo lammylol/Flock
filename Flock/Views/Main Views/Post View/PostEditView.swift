@@ -35,14 +35,14 @@ struct PostEditView: View {
                         TextField("Title", text: $post.postTitle)
                         Picker("Type", selection: $post.postType) {
                             ForEach(Post.PostType.allCases, id: \.self) { type in
-                                Text(type.rawValue).tag(type.rawValue)
+                                Text(type.descriptionKey)
                             }
                         }
                         if post.postType == .prayerRequest {
                             Picker("Status", selection: $post.status) {
-                                Text("Current").tag("Current")
-                                Text("Answered").tag("Answered")
-                                Text("No Longer Needed").tag("No Longer Needed")
+                                ForEach(Post.Status.allCases, id: \.self) { type in
+                                    Text(type.descriptionKey)
+                                }
                             }
                         }
                         HStack {
@@ -118,12 +118,7 @@ struct PostEditView: View {
             post = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
             originalPrivacy = post.privacy
-            person = Person(
-                userID: post.userID,
-                username: post.username,
-                firstName: post.firstName,
-                lastName: post.lastName
-            )
+            person = post.person
         } catch {
             ViewLogger.error("Error retrieving post or updates: \(error)")
         }

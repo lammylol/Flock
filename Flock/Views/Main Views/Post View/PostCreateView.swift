@@ -146,7 +146,6 @@ struct PostCreateView: View {
                     username: userHolder.person.username,
                     firstName: userHolder.person.firstName,
                     lastName: userHolder.person.lastName,
-                    friendType: person.friendType,
                     postTitle: postTitle,
                     postText: postText,
                     postType: postType,

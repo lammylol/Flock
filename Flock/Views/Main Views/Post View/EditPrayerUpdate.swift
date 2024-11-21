@@ -97,7 +97,7 @@ struct EditPrayerUpdate: View {
     func updatePrayerUpdate() {
         Task {
             do {
-                try await PostUpdateHelper().editPrayerUpdate(prayerRequest: post, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests, updatesArray: postUpdates)
+                try await PostUpdateHelper().editPrayerUpdate(post: post, prayerRequestUpdate: update, person: person, friendsList: friendRequestListener.acceptedFriendRequests, updatesArray: postUpdates)
                 
                 // DispatchQueue ensures that dismiss happens on the main thread.
                 DispatchQueue.main.async {

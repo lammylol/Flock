@@ -38,12 +38,7 @@ class UserService { // Functions related to user information
     @MainActor
     func retrieveUserInfoFromUserID(person: Person, userHolder: UserProfileHolder) async throws -> Person {
         // This function takes in a person object and returns additional information about the person. ie. if a user is accessing a profile for a username, this will retrieve information needed to fetch their data.
-        var userID = person.userID
-        var firstName = person.firstName
-        var lastName = person.lastName
-        var username = person.username
-        var friendState = person.friendState
-        var friendType = person.friendType
+        var person = person
         
         // Ensure user is still authenticated before running the task
          guard Auth.auth().currentUser != nil else {
@@ -51,28 +46,28 @@ class UserService { // Functions related to user information
              return Person()
          }
         
-        if person.friendType == .privateFriend { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
-            userID = userHolder.person.userID
-            friendType = .privateFriend
+        if person.userID == userHolder.person.userID { // If the username is empty, this person was 'created' by the user, so retrieve user's userID.
+            person = userHolder.person
         } else { // If username exists, then request user document from firestore off of the username.
             do {
                 let document = try await db.collection("users").document(userHolder.person.userID).collection("friendsList").document(person.userID).getDocument()
                 
 //                for document in ref.documents {
                 if document.exists {
-                    userID = document.get("userID") as? String ?? ""
-                    firstName = document.get("firstName") as? String ?? ""
-                    lastName = document.get("lastName") as? String ?? ""
-                    username = document.get("username") as? String ?? ""
-                    friendState =
+                    let userID = document.get("userID") as? String ?? ""
+                    let firstName = document.get("firstName") as? String ?? ""
+                    let lastName = document.get("lastName") as? String ?? ""
+                    let username = document.get("username") as? String ?? ""
+                    let friendState =
                     Person.FriendState(rawValue: document.get("state") as? String ?? "") ?? .none
+                    person = Person(userID: userID, username: username, firstName: firstName, lastName: lastName, friendState: friendState)
                 }
             } catch {
                 NetworkingLogger.error("userService.retrieveUserInfoFromUserID failed \(error)")
             }
         }
         NetworkingLogger.debug("userService.retrieveUserInfoFromUserID got \(person.userID, privacy: .private)")
-        return Person(userID: userID, username: username, firstName: firstName, lastName: lastName, friendState: friendState)
+        return person
     }
     
     func checkIfUsernameExists(username: String) async -> Bool {

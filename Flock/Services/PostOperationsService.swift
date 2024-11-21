@@ -40,7 +40,7 @@ class PostOperationsService {
                 let postType =
                 Post.PostType(rawValue: document.data()["postType"] as? String ?? "") ?? .note
                 let status = 
-                Post.Status(rawValue: document.data()["status"] as? String ?? "") ?? .none
+                Post.Status(rawValue: document.data()["status"] as? String ?? "") ?? .current
                 let userID = document.data()["userID"] as? String ?? ""
                 let username = document.data()["username"] as? String ?? ""
                 let privacy = 
@@ -105,7 +105,7 @@ class PostOperationsService {
                 let postType =
                 Post.PostType(rawValue: document.data()?["postType"] as? String ?? "") ?? .note
                 let status =
-                Post.Status(rawValue: document.data()?["status"] as? String ?? "") ?? .none
+                Post.Status(rawValue: document.data()?["status"] as? String ?? "") ?? .current
                 let userID = document.data()?["userID"] as? String ?? ""
                 let username = document.data()?["username"] as? String ?? ""
                 let privacy =
@@ -172,8 +172,8 @@ class PostOperationsService {
         
         do {
             // Create new PrayerRequestID to users/{userID}/prayerList/{person}/prayerRequests
-            let documentID = post.friendType == .privateFriend ? person.privateFriendIdentifier : person.userID
-            let ref = db.collection("users").document(post.userID).collection("userPostsCollection").document("\(documentID)").collection("posts").document(prayerRequestID)
+            let documentID = person.userID
+            let ref = db.collection("users").document(post.userID).collection("prayerList").document("\(documentID)").collection("posts").document(prayerRequestID)
 
             try await ref.setData([
                 "datePosted": post.date,
@@ -185,7 +185,6 @@ class PostOperationsService {
                 "userID": post.userID,
                 "username": post.username,
                 "privacy": post.privacy.descriptionKey,
-                // friendtype
                 "prayerRequestTitle": post.postTitle.capitalized,
                 "latestUpdateText": "",
                 "latestUpdateDatePosted": post.date,
@@ -193,7 +192,7 @@ class PostOperationsService {
                 "isPinned": post.isPinned
             ])
             NetworkingLogger.debug("postOperations.createPost.createPrayerRequestID created prayerRequestID \(prayerRequestID) \(post.userID)")
-        }catch {
+        } catch {
             NetworkingLogger.error("postOperations.createPost.createPrayerRequestID failed to create a PrayerRequestID \(post.userID, privacy: .private)")
         }
         
@@ -202,7 +201,7 @@ class PostOperationsService {
                 throw PrayerRequestRetrievalError.noPrayerRequestID
             }
             // Add PrayerRequestID to prayerFeed/{userID}
-            if post.privacy == .isPrivate, !friendsList.isEmpty {
+            if post.privacy == .isPublic, !friendsList.isEmpty {
                 for friend in friendsList {
                     let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(prayerRequestID)
                     try await ref2.setData([
@@ -249,7 +248,10 @@ class PostOperationsService {
     // This function enables an edit to a prayer requests off of a selected prayer request.
     func editPost(post: Post, person: Person, friendsList: [Person]) async throws {
         do {
-            let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
+            let documentID = person.userID
+            
+            let ref =
+            db.collection("users").document(post.userID).collection("prayerList").document("\(documentID)").collection("posts").document(post.id)
             
             try await ref.updateData([
                 "datePosted": post.date,
@@ -285,7 +287,10 @@ class PostOperationsService {
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
     func deletePost(post: Post, person: Person, friendsList: [Person]) async throws {
         do{
-            let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
+            let documentID = person.userID
+            
+            let ref =
+            db.collection("users").document(post.userID).collection("prayerList").document("\(documentID)").collection("posts").document(post.id)
             
             try await ref.delete()
             NetworkingLogger.debug("postOperations.deletePost.deleteFromPrayerList deleted \(post.id)")

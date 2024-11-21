@@ -15,11 +15,11 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
     var username: String = ""
     var firstName: String = ""
     var lastName: String = ""
-    var friendType: Person.FriendType = .user
+//    var friendType: Person.FriendType = .user
     var postTitle: String = ""
     var postText: String = ""
     var postType: PostType = .note
-    var status: Status = .none
+    var status: Status = .current
     var latestUpdateText: String = ""
     var latestUpdateDatePosted: Date = Date()
     var latestUpdateType: String = ""
@@ -34,7 +34,7 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
         case username
         case firstName
         case lastName
-        case friendType
+//        case friendType
         case postTitle
         case postText
         case postType
@@ -52,8 +52,7 @@ struct Post: Identifiable, Observable, Hashable, Codable { // Add Codable here
             userID: userID,
             username: username,
             firstName: firstName,
-            lastName: lastName,
-            friendType: friendType
+            lastName: lastName
         )
     }
 }
@@ -67,11 +66,10 @@ extension Post {
             username: "",
             firstName: "",
             lastName: "",
-            friendType: .user,
             postTitle: "",
             postText: "",
             postType: .note,
-            status: .none,
+            status: .current,
             latestUpdateText: "",
             latestUpdateDatePosted: Date(),
             latestUpdateType: "Update",
@@ -107,9 +105,9 @@ extension Post {
 
 extension Post {
     enum PostType: String, CaseIterable, Codable {
-        case note = "note"
-        case prayerRequest = "prayer request"
-        case praise = "praise"
+        case note = "Note"
+        case prayerRequest = "Prayer Request"
+        case praise = "Praise"
         
         var descriptionKey: String {
             return self.rawValue.description
@@ -117,10 +115,9 @@ extension Post {
     }
     
     enum Status: String, CaseIterable, Codable {
-        case noLongerNeeded = "no longer needed"
-        case answered = "answered"
-        case current = "current"
-        case none = ""
+        case noLongerNeeded = "No Longer Needed"
+        case answered = "Answered"
+        case current = "Current"
         
         var descriptionKey: String {
             return self.rawValue.description

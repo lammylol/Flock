@@ -18,8 +18,6 @@ struct Person: Identifiable, Hashable {
         firstName + " " + lastName
     }
     var friendState: FriendState = .none
-    var friendType: FriendType = .none
-    var privateFriendIdentifier: String = "" // only usable for private friends to track document Id.
 }
 
 extension Person {
@@ -53,7 +51,7 @@ extension Person {
     
     static var preview: Person {
         let item =
-        Person(username: "matthewthelam@gmail.com", firstName: "Matt", lastName: "Lam", friendState: .pending, friendType: .user)
+        Person(username: "matthewthelam@gmail.com", firstName: "Matt", lastName: "Lam", friendState: .pending)
         return item
     }
 }

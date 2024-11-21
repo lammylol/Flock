@@ -107,7 +107,7 @@ struct ProfileView: View {
         VStack {
             HStack {
                 SectionHeader(
-                    title: person.friendType == .user ? "My Prayers" : "\(person.firstName.capitalized)'s Prayers",
+                    title: person.userID == userHolder.person.userID ? "My Prayers" : "\(person.firstName.capitalized)'s Prayers",
                     icon: "newspaper.fill"
                 )
                 StatusPicker(viewModel: viewModel)
@@ -133,10 +133,10 @@ struct ProfileView: View {
             case .sent: TagModelView(textLabel: "Pending", textSize: 14, foregroundColor: .black, backgroundColor: .gray.opacity(0.3))
                 
             default:
-                if person.friendType == .privateFriend {
-                    TagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
-                }
-                if person.username != userHolder.person.username {
+//                if person.friendType == .privateFriend {
+//                    TagModelView(textLabel: "Private", systemImage: "lock.icloud.fill", textSize: 14, foregroundColor: .primary, backgroundColor: .gray.opacity(0.3))
+//                }
+                if person.userID != userHolder.person.userID {
                     addFriendButton
                 }
             }
