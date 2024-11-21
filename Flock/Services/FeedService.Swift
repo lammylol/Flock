@@ -28,6 +28,7 @@ class FeedService {
             if selectionType == .myFriendPostsPinned {
                 query = query.whereField("isPinned", isEqualTo: true)
                              .whereField("lastName", isNotEqualTo: user.lastName)
+                             
             } else if selectionType == .myPostsPinned {
                 query = query.whereField("isPinned", isEqualTo: true)
                              .whereField("userID", isEqualTo: user.userID)
@@ -78,12 +79,12 @@ class FeedService {
                 lastName: data["lastName"] as? String ?? "",
                 postTitle: data["prayerRequestTitle"] as? String ?? "",
                 postText: data["prayerRequestText"] as? String ?? "",
-                postType: data["postType"] as? String ?? "note",
-                status: data["status"] as? String ?? "",
+                postType: Post.PostType(rawValue: data["postType"] as? String ?? "") ?? .note,
+                status: Post.Status(rawValue: data["status"] as? String ?? "") ?? .current,
                 latestUpdateText: data["latestUpdateText"] as? String ?? "",
                 latestUpdateDatePosted: updateTimestamp.dateValue(),
                 latestUpdateType: data["latestUpdateType"] as? String ?? "",
-                privacy: data["privacy"] as? String ?? "private",
+                privacy: Post.Privacy(rawValue: data["privacy"] as? String ?? "") ?? .isPrivate,
                 isPinned: data["isPinned"] as? Bool ?? false,
                 lastSeenNotificationCount: data["lastSeenNotificationCount"] as? Int ?? 0
             )
@@ -121,12 +122,12 @@ class FeedService {
                 "datePosted": post.date,
                 "firstName": post.firstName,
                 "lastName": post.lastName,
-                "status": post.status,
+                "status": post.status.descriptionKey,
                 "prayerRequestText": post.postText,
-                "postType": post.postType,
+                "postType": post.postType.descriptionKey,
                 "userID": person.userID,
                 "username": person.username,
-                "privacy": post.privacy,
+                "privacy": post.privacy.descriptionKey,
                 "prayerRequestTitle": post.postTitle,
                 "latestUpdateText": post.latestUpdateText,
                 "latestUpdateDatePosted": post.latestUpdateDatePosted,
@@ -160,7 +161,7 @@ class FeedService {
     func deleteFromFeed(post: Post, person: Person, friendsList: [Person]) async throws {
         do{
             // Delete PrayerRequestID from prayerFeed/{userID}
-            if post.privacy == "public" && friendsList.isEmpty == false {
+            if post.privacy == .isPublic, !friendsList.isEmpty {
                 for friend in friendsList {
                     let ref = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(post.id)
                     try await ref.delete()
@@ -198,7 +199,7 @@ class FeedService {
             try await ref.updateData([
                 "lastSeenNotificationCount": 0 // always return to 0 once it's seen, since user is pulling up the full update list
             ])
-            NetworkingLogger.info("FeedService.updateLastNotificationCount: updated last seen notification count to 0")
+            NetworkingLogger.info("FeedService.updateLasNotificationCount: updated last seen notification count to 0")
         } catch {
             NetworkingLogger.error("FeedService.updateLastNotificationCount failed \(error)")
         }

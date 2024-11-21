@@ -90,9 +90,9 @@ struct PostFullView: View {
     
     private var formattedPostTitle: String {
         if !newPost.postTitle.isEmpty {
-            if newPost.postType == "Prayer Request" {
+            if newPost.postType == .prayerRequest {
                 return "Prayer: \(newPost.postTitle)"
-            } else if newPost.postType == "Praise" {
+            } else if newPost.postType == .praise {
                 return "Praise: \(newPost.postTitle)"
             } else {
                 return "Note: \(newPost.postTitle)"
@@ -120,7 +120,7 @@ struct PostFullView: View {
                 Spacer()
                 HStack(alignment: .center) {
                     if newPost.isPinned { Image(systemName: "pin.fill") }
-                    Privacy(rawValue: newPost.privacy)?.systemImage
+                    newPost.privacy.systemImage
                     postOptionsMenu()
                         .highPriorityGesture(TapGesture())
                 }
@@ -268,11 +268,11 @@ struct PostFullView: View {
     
     private func postTypeDisplay() -> some View {
         VStack {
-            if newPost.postType == "Prayer Request" {
-                Text("Prayer Request: \(Text(newPost.status.capitalized).bold())")
-            } else if newPost.postType == "Praise" {
+            if newPost.postType == .prayerRequest {
+                Text("Prayer Request: \(Text(newPost.status.rawValue.capitalized).bold())")
+            } else if newPost.postType == .praise {
                 Text("Praise 🙌")
-            } else if newPost.postType == "Note", newPost.postType == "Default" {
+            } else if newPost.postType == .note {
                 Text("Note 📝")
             } else {
                 Text("")

@@ -36,13 +36,13 @@ struct FriendsPageView: View {
         }
     }
     
-    var filteredPrivateFriends: [Person] {
-        if search.isEmpty {
-            return friendRequestListener.privateFriends
-        } else {
-            return friendRequestListener.privateFriends.filter { $0.firstName.lowercased().contains(search.lowercased()) || $0.lastName.lowercased().contains(search.lowercased()) }
-        }
-    }
+//    var filteredPrivateFriends: [Person] {
+//        if search.isEmpty {
+//            return friendRequestListener.privateFriends
+//        } else {
+//            return friendRequestListener.privateFriends.filter { $0.firstName.lowercased().contains(search.lowercased()) || $0.lastName.lowercased().contains(search.lowercased()) }
+//        }
+//    }
     
     var body: some View {
         ScrollView {
@@ -86,13 +86,13 @@ struct FriendsPageView: View {
                 }
                     
                 VStack(alignment: .leading) { // Friends
-                    if !filteredPublicFriends.isEmpty && !showDuringSearch {
-                        HStack {
-                            Text("Public Friends")
-                                .font(.title2)
-                            Spacer()
-                        }
-                    }
+//                    if !filteredPublicFriends.isEmpty && !showDuringSearch {
+//                        HStack {
+//                            Text("Public Friends")
+//                                .font(.title2)
+//                            Spacer()
+//                        }
+//                    }
                     ForEach(filteredPublicFriends) { friend in
                             ContactRow(person: friend)
                             .frame(maxWidth: .infinity)
@@ -100,27 +100,27 @@ struct FriendsPageView: View {
                     .textInputAutocapitalization(.never)
                 }
                 .frame(maxWidth: .infinity)
-                
-                VStack(alignment: .leading) { // Friends
-                    if !filteredPrivateFriends.isEmpty && !showDuringSearch {
-                        HStack {
-                            Text("Private Friends")
-                                .font(.title2)
-                            Spacer()
-                        }
-                    }
-                    ForEach(filteredPrivateFriends) { friend in
-                            ContactRow(person: friend)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .textInputAutocapitalization(.never)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
+//                
+//                VStack(alignment: .leading) { // Friends
+//                    if !filteredPrivateFriends.isEmpty && !showDuringSearch {
+//                        HStack {
+//                            Text("Private Friends")
+//                                .font(.title2)
+//                            Spacer()
+//                        }
+//                    }
+//                    ForEach(filteredPrivateFriends) { friend in
+//                            ContactRow(person: friend)
+//                            .frame(maxWidth: .infinity)
+//                    }
+//                    .textInputAutocapitalization(.never)
+//                }
+//                .frame(maxWidth: .infinity)
+//                .padding(.vertical, 15)
             }
             .searchable(text: $search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search friends")
             .overlay {
-                if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty && friendRequestListener.privateFriends.isEmpty {
+                if friendRequestListener.acceptedFriendRequests.isEmpty && friendRequestListener.pendingFriendRequests.isEmpty {
                         VStack{
                             ContentUnavailableView {
                                 Label("No Friends...Yet!", systemImage: "person.crop.square")
@@ -145,6 +145,7 @@ struct FriendsPageView: View {
         }
         .sheet(isPresented: $showAddFriend) {
             AddFriendPage(preName: search)
+//                .presentationDetents([.height(350)])
         }
         .refreshable(action: {
             Task {

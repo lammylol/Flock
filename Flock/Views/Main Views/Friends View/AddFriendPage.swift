@@ -26,173 +26,174 @@ struct AddFriendPage: View {
     var preName: String = ""
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 15) {
-                    // Public Friend - Search by Username
-                    Group {
-                        Text("Add a friend by searching by their username.")
-                            .font(.system(size: 16))
-                            .padding(.top, 30)
-                            .padding(.bottom, 5)
-                        
-                        ZStack { // for username
-                            Rectangle()
-                                .frame(height: 55)
-                                .foregroundStyle(.clear)
-                                .border(.secondary)
-                            
-                            TextField("Search a username", text: $debounceModel.username)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 55)
-                                .textInputAutocapitalization(.never)
-                                .offset(x: 40)
-                            
-                            HStack {
-                                Text("Username")
-                                    .padding(.horizontal, 7)
-                                    .font(.system(size: 14))
-                                    .background {
-                                        Rectangle().fill(.background)
-                                    }
-                                    .offset(x: 8, y: -27)
-                                Spacer()
-                            }
-                            HStack {
-                                Image(systemName: "magnifyingglass")
-                                Spacer()
-                            }
-                            .offset(x: 15)
-                        }
-                        
-                        VStack {
-                            if !debounceModel.validated && debounceModel.username != "" {
-                                HStack {
-                                    Text("No user found.")
-                                        .font(.system(size: 14))
-                                    Spacer()
-                                }
-                            } else if debounceModel.validated && debounceModel.username != "" {
-                                HStack {
-                                    Image(systemName: "checkmark")
-                                    Text("This account exists for **\(debounceModel.person.firstName.capitalized) \(debounceModel.person.lastName.capitalized)**")
-                                        .font(.system(size: 14))
-                                    Spacer()
-                                }
-                            } else {
-                                HStack {
-                                    Text("")
-                                }
-                            }// if none of the above, be empty. Need to fill up space
-                        }
-                        .frame(height: 12)
-                        .offset(y: -4)
-                        .padding(.bottom, 5)
-                        
-                        HStack {
-                            Button {
-                                addPublicFriend(username: debounceModel.username)
-                            } label: {
-                                Text("Request Friend")
-                                    .bold()
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(.blue)
-                                    .frame(height: 50)
-                            )
-                            .foregroundStyle(.white)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
+        mainContent()
+    }
+    
+    func mainContent() -> some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 15) {
+                // Public Friend - Search by Username
+                Text("Add a friend by searching by their username.")
+                    .font(.system(size: 16))
+                    .padding(.top, 30)
+                    .padding(.bottom, 5)
+                
+                ZStack { // for username
+                    Rectangle()
+                        .frame(height: 55)
+                        .foregroundStyle(.clear)
+                        .border(.secondary)
                     
-                    //              'Private Friend' Option.
-                    Group {
-                        VStack(alignment: .center) {
-                            Text("Or")
-                                .padding([.vertical], 30)
-                            
-                            Text("Create a Friend (Private)")
-                                .font(.title2)
-                                .padding(.bottom, 5)
-                            
-                            Text("This creates a private profile which allows you to track prayers for a friend who does not have an account. This is linked under your account, so no one will have access to them but you.")
-                                .font(.system(size: 14))
-                                .padding(.bottom, 5)
-                        }
-                        
-                        ZStack { // for firstName
-                            Rectangle()
-                                .frame(height: 55)
-                                .foregroundStyle(.clear)
-                                .border(.secondary)
-                            
-                            TextField("First Name", text: $firstName)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 55)
-                                .textInputAutocapitalization(.never)
-                                .offset(x: 15)
-                            
-                            HStack {
-                                Text("Name")
-                                    .padding(.horizontal, 7)
-                                    .font(.system(size: 14))
-                                    .background {
-                                        Rectangle().fill(.background)
-                                    }
-                                    .offset(x: 8, y: -27)
-                                Spacer()
-                            }
-                        }
-                        .padding(.bottom, 5)
-                        
-                        ZStack { // for lastName
-                            Rectangle()
-                                .frame(height: 55)
-                                .foregroundStyle(.clear)
-                                .border(.secondary)
-                            
-                            TextField("Last Name", text: $lastName)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 55)
-                                .textInputAutocapitalization(.never)
-                                .offset(x: 15)
-                            
-                            HStack {
-                                Text("Name")
-                                    .padding(.horizontal, 7)
-                                    .font(.system(size: 14))
-                                    .background {
-                                        Rectangle().fill(.background)
-                                    }
-                                    .offset(x: 8, y: -27)
-                                Spacer()
-                            }
-                        }
-                        
-                        HStack {
-                            Button {
-                                addPrivateFriend(firstName: firstName, lastName: lastName)
-                            } label: {
-                                Text("Create Friend")
-                                    .bold()
-                                    .frame(maxWidth: .infinity)
-                                    .foregroundStyle(colorScheme == .dark ? Color.white : Color.blue)
-                            }
-                            .background(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .stroke(colorScheme == .dark ? Color.white : Color.blue, lineWidth: 1)
-                                    .fill(Color.clear)
-                                    .frame(height: 50)
-                            )
-                        }
+                    TextField("Search a username", text: $debounceModel.username)
                         .frame(maxWidth: .infinity)
-                        .padding(.top, 20)
-                        .padding(.bottom, 10)
+                        .frame(height: 55)
+                        .textInputAutocapitalization(.never)
+                        .offset(x: 40)
+                    
+                    HStack {
+                        Text("Username")
+                            .padding(.horizontal, 7)
+                            .font(.system(size: 14))
+                            .background {
+                                Rectangle().fill(.background)
+                            }
+                            .offset(x: 8, y: -27)
+                        Spacer()
                     }
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                        Spacer()
+                    }
+                    .offset(x: 15)
                 }
+                
+                VStack {
+                    if !debounceModel.validated && debounceModel.username != "" {
+                        HStack {
+                            Text("No user found.")
+                                .font(.system(size: 14))
+                            Spacer()
+                        }
+                    } else if debounceModel.validated && debounceModel.username != "" {
+                        HStack {
+                            Image(systemName: "checkmark")
+                            Text("This account exists for **\(debounceModel.person.firstName.capitalized) \(debounceModel.person.lastName.capitalized)**")
+                                .font(.system(size: 14))
+                            Spacer()
+                        }
+                    } else {
+                        HStack {
+                            Text("")
+                        }
+                    }// if none of the above, be empty. Need to fill up space
+                }
+                .frame(height: 12)
+                .offset(y: -4)
+                .padding(.bottom, 5)
+                
+                HStack {
+                    Button {
+                        addPublicFriend(username: debounceModel.username)
+                    } label: {
+                        Text("Request Friend")
+                            .bold()
+                            .frame(maxWidth: .infinity)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(.blue)
+                            .frame(height: 50)
+                    )
+                    .foregroundStyle(.white)
+                }
+                .frame(maxWidth: .infinity)
+                
+                //              'Private Friend' Option.
+                //                    Group {
+                //                        VStack(alignment: .center) {
+                //                            Text("Or")
+                //                                .padding([.vertical], 30)
+                //
+                //                            Text("Create a Friend (Private)")
+                //                                .font(.title2)
+                //                                .padding(.bottom, 5)
+                //
+                //                            Text("This creates a private profile which allows you to track prayers for a friend who does not have an account. This is linked under your account, so no one will have access to them but you.")
+                //                                .font(.system(size: 14))
+                //                                .padding(.bottom, 5)
+                //                        }
+                //
+                //                        ZStack { // for firstName
+                //                            Rectangle()
+                //                                .frame(height: 55)
+                //                                .foregroundStyle(.clear)
+                //                                .border(.secondary)
+                //
+                //                            TextField("First Name", text: $firstName)
+                //                                .frame(maxWidth: .infinity)
+                //                                .frame(height: 55)
+                //                                .textInputAutocapitalization(.never)
+                //                                .offset(x: 15)
+                //
+                //                            HStack {
+                //                                Text("Name")
+                //                                    .padding(.horizontal, 7)
+                //                                    .font(.system(size: 14))
+                //                                    .background {
+                //                                        Rectangle().fill(.background)
+                //                                    }
+                //                                    .offset(x: 8, y: -27)
+                //                                Spacer()
+                //                            }
+                //                        }
+                //                        .padding(.bottom, 5)
+                //
+                //                        ZStack { // for lastName
+                //                            Rectangle()
+                //                                .frame(height: 55)
+                //                                .foregroundStyle(.clear)
+                //                                .border(.secondary)
+                //
+                //                            TextField("Last Name", text: $lastName)
+                //                                .frame(maxWidth: .infinity)
+                //                                .frame(height: 55)
+                //                                .textInputAutocapitalization(.never)
+                //                                .offset(x: 15)
+                //
+                //                            HStack {
+                //                                Text("Name")
+                //                                    .padding(.horizontal, 7)
+                //                                    .font(.system(size: 14))
+                //                                    .background {
+                //                                        Rectangle().fill(.background)
+                //                                    }
+                //                                    .offset(x: 8, y: -27)
+                //                                Spacer()
+                //                            }
+                //                        }
+                //
+                //                        HStack {
+                //                            Button {
+                //                                addPrivateFriend(firstName: firstName, lastName: lastName)
+                //                            } label: {
+                //                                Text("Create Friend")
+                //                                    .bold()
+                //                                    .frame(maxWidth: .infinity)
+                //                                    .foregroundStyle(colorScheme == .dark ? Color.white : Color.blue)
+                //                            }
+                //                            .background(
+                //                                RoundedRectangle(cornerRadius: 15)
+                //                                    .stroke(colorScheme == .dark ? Color.white : Color.blue, lineWidth: 1)
+                //                                    .fill(Color.clear)
+                //                                    .frame(height: 50)
+                //                            )
+                //                        }
+                //                        .frame(maxWidth: .infinity)
+                //                        .padding(.top, 20)
+                //                        .padding(.bottom, 10)
+                //                    }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .alert(isPresented: .constant(errorAlert || confirmation || privateConfirmation)) {
                 if errorAlert {
                     return Alert(
@@ -243,7 +244,6 @@ struct AddFriendPage: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationBarBackButtonHidden(true)
             .padding(.horizontal, 20)
-            .scrollIndicators(.hidden)
         }
     }
     

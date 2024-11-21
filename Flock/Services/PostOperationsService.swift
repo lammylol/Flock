@@ -37,11 +37,14 @@ class PostOperationsService {
                 let lastName = document.data()["lastName"] as? String ?? ""
                 let postTitle = document.data()["prayerRequestTitle"] as? String ?? ""
                 let postText = document.data()["prayerRequestText"] as? String ?? ""
-                let postType = document.data()["postType"] as? String ?? "note"
-                let status = document.data()["status"] as? String ?? ""
+                let postType =
+                Post.PostType(rawValue: document.data()["postType"] as? String ?? "") ?? .note
+                let status = 
+                Post.Status(rawValue: document.data()["status"] as? String ?? "") ?? .current
                 let userID = document.data()["userID"] as? String ?? ""
                 let username = document.data()["username"] as? String ?? ""
-                let privacy = document.data()["privacy"] as? String ?? "private"
+                let privacy = 
+                Post.Privacy(rawValue: document.data()["privacy"] as? String ?? "") ?? .isPrivate
                 let isPinned = document.data()["isPinned"] as? Bool ?? false
                 let documentID = document.documentID as String
                 let latestUpdateText = document.data()["latestUpdateText"] as? String ?? ""
@@ -99,11 +102,14 @@ class PostOperationsService {
                 let lastName = document.data()?["lastName"] as? String ?? ""
                 let postTitle = document.data()?["prayerRequestTitle"] as? String ?? ""
                 let postText = document.data()?["prayerRequestText"] as? String ?? ""
-                let postType = document.data()?["postType"] as? String ?? "note"
-                let status = document.data()?["status"] as? String ?? ""
+                let postType =
+                Post.PostType(rawValue: document.data()?["postType"] as? String ?? "") ?? .note
+                let status =
+                Post.Status(rawValue: document.data()?["status"] as? String ?? "") ?? .current
                 let userID = document.data()?["userID"] as? String ?? ""
                 let username = document.data()?["username"] as? String ?? ""
-                let privacy = document.data()?["privacy"] as? String ?? "private"
+                let privacy =
+                Post.Privacy(rawValue: document.data()?["privacy"] as? String ?? "") ?? .isPrivate
                 let documentID = document.documentID as String
                 let latestUpdateText = document.data()?["latestUpdateText"] as? String ?? ""
                 let latestUpdateType = document.data()?["latestUpdateType"] as? String ?? ""
@@ -130,40 +136,64 @@ class PostOperationsService {
             NetworkingLogger.error("postOperations.getPost failed getting \(prayerRequest.id) \(error)")
             throw error
         }
-        NetworkingLogger.debug("postOperations.getPost got \(prayerRequest.id) \(prayerRequest.privacy) \(prayerRequest.userID, privacy: .private)")
+        NetworkingLogger.debug("postOperations.getPost got \(prayerRequest.id) \(prayerRequest.privacy.descriptionKey) \(prayerRequest.userID, privacy: .private)")
         return prayerRequest
     }
 
     // this function enables the creation and submission of a new prayer request. It does three things: 1) add to user collection of prayer requests, 2) add to prayer requests collection, and 3) adds the prayer request to all friends of the person only if the prayer request is the user's main profile.
-    func createPost(userID: String, datePosted: Date, person: Person, postText: String, postTitle: String, privacy: String, postType: String, friendsList: [Person], isPinned: Bool) async throws {
-        
-        let postTitle = postTitle.capitalized
+    func createPost(post: Post, person: Person, friendsList: [Person]) async throws {
         var prayerRequestID = ""
+        
+        do{
+            // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
+            let prayerRequestsRef =
+            db.collection("prayerRequests").document()
+            
+            try await prayerRequestsRef.setData([
+                "datePosted": post.date,
+                "firstName": post.firstName,
+                "lastName": post.lastName,
+                "status": Post.Status.current.descriptionKey.capitalized,
+                "prayerRequestText": post.postText,
+                "postType": post.postType.descriptionKey,
+                "userID": post.userID,
+                "username": post.username,
+                "privacy": post.privacy.descriptionKey,
+                "prayerRequestTitle": post.postTitle.capitalized,
+                "latestUpdateText": "",
+                "latestUpdateDatePosted": post.date,
+                "latestUpdateType": "",
+            ])
+            prayerRequestID = prayerRequestsRef.documentID
+            NetworkingLogger.debug("postOperations.createPost.addToPrayerRequests \(post.userID, privacy: .private) created \(prayerRequestID)")
+        } catch{
+            NetworkingLogger.error("postOperations.createPost.addToPrayerRequests failed to create for \(post.userID, privacy: .private)")
+        }
+        
         do {
             // Create new PrayerRequestID to users/{userID}/prayerList/{person}/prayerRequests
-            let ref = db.collection("users").document(userID).collection("prayerList").document("\(person.firstName.lowercased())_\(person.lastName.lowercased())").collection("prayerRequests").document()
-            
+            let documentID = person.userID
+            let ref = db.collection("users").document(post.userID).collection("prayerList").document("\(documentID)").collection("posts").document(prayerRequestID)
+
             try await ref.setData([
-                "datePosted": datePosted,
-                "firstName": person.firstName,
-                "lastName": person.lastName,
-                "status": "Current",
-                "prayerRequestText": postText,
-                "postType": postType,
-                "userID": userID,
-                "username": person.username,
-                "privacy": privacy,
-                "prayerRequestTitle": postTitle,
+                "datePosted": post.date,
+                "firstName": post.firstName,
+                "lastName": post.lastName,
+                "status": Post.Status.current.descriptionKey.capitalized,
+                "prayerRequestText": post.postText,
+                "postType": post.postType.descriptionKey,
+                "userID": post.userID,
+                "username": post.username,
+                "privacy": post.privacy.descriptionKey,
+                "prayerRequestTitle": post.postTitle.capitalized,
                 "latestUpdateText": "",
-                "latestUpdateDatePosted": datePosted,
+                "latestUpdateDatePosted": post.date,
                 "latestUpdateType": "",
-                "isPinned": isPinned
+                "isPinned": post.isPinned
             ])
-            
-            prayerRequestID = ref.documentID
-            NetworkingLogger.debug("postOperations.createPost.createPrayerRequestID created prayerRequestID \(prayerRequestID) \(userID)")
-        }catch {
-            NetworkingLogger.error("postOperations.createPost.createPrayerRequestID failed to create a PrayerRequestID \(userID, privacy: .private)")
+            NetworkingLogger.debug("postOperations.createPost.createPrayerRequestID created prayerRequestID \(prayerRequestID) \(post.userID)")
+        } catch {
+            NetworkingLogger.error("postOperations.createPost.createPrayerRequestID failed to create a PrayerRequestID \(post.userID, privacy: .private)")
         }
         
         do{
@@ -171,96 +201,74 @@ class PostOperationsService {
                 throw PrayerRequestRetrievalError.noPrayerRequestID
             }
             // Add PrayerRequestID to prayerFeed/{userID}
-            if privacy == "public" && !friendsList.isEmpty {
+            if post.privacy == .isPublic, !friendsList.isEmpty {
                 for friend in friendsList {
                     let ref2 = db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").document(prayerRequestID)
                     try await ref2.setData([
-                        "datePosted": datePosted,
-                        "firstName": person.firstName,
-                        "lastName": person.lastName,
-                        "status": "Current",
-                        "prayerRequestText": postText,
-                        "postType": postType,
-                        "userID": userID,
-                        "username": person.username,
-                        "privacy": privacy,
-                        "prayerRequestTitle": postTitle,
+                        "datePosted": post.date,
+                        "firstName": post.firstName,
+                        "lastName": post.lastName,
+                        "status": Post.Status.current.descriptionKey.capitalized,
+                        "prayerRequestText": post.postText,
+                        "postType": post.postType.descriptionKey,
+                        "userID": post.userID,
+                        "username": post.username,
+                        "privacy": post.privacy.descriptionKey,
+                        "prayerRequestTitle": post.postTitle.capitalized,
                         "latestUpdateText": "",
-                        "latestUpdateDatePosted": datePosted,
+                        "latestUpdateDatePosted": post.date,
                         "latestUpdateType": "",
                         "lastSeenNotificationCount": 1 // this defaults to 1. once user takes action to view or select, notification goes to 0. if update is added, notification goes to +1.
                     ])
                 } // If you have friends and have set privacy to public, this will update all friends feeds.
             }
-            let ref2 = db.collection("prayerFeed").document(userID).collection("prayerRequests").document(prayerRequestID)
+            let ref2 = db.collection("prayerFeed").document(post.userID).collection("prayerRequests").document(prayerRequestID)
             try await ref2.setData([
-                "datePosted": datePosted,
-                "firstName": person.firstName,
-                "lastName": person.lastName,
-                "status": "Current",
-                "prayerRequestText": postText,
-                "postType": postType,
-                "userID": userID,
-                "username": person.username,
-                "privacy": privacy,
-                "prayerRequestTitle": postTitle,
+                "datePosted": post.date,
+                "firstName": post.firstName,
+                "lastName": post.lastName,
+                "status": Post.Status.current.descriptionKey.capitalized,
+                "prayerRequestText": post.postText,
+                "postType": post.postType.descriptionKey,
+                "userID": post.userID,
+                "username": post.username,
+                "privacy": post.privacy.descriptionKey,
+                "prayerRequestTitle": post.postTitle.capitalized,
                 "latestUpdateText": "",
-                "latestUpdateDatePosted": datePosted,
+                "latestUpdateDatePosted": post.date,
                 "latestUpdateType": "",
-                "isPinned": isPinned
+                "isPinned": post.isPinned
             ]) // if the prayer is for a local user, it will update your own feed.
             NetworkingLogger.debug("postOperations.createPost.addToPrayerFeed added to prayerFeed")
         }catch{
             NetworkingLogger.error("postOperations.createPost.addToPrayerFeed failed")
-        }
-            
-        do{
-            // Add PrayerRequestID and Data to prayerRequests/{prayerRequestID}
-            let ref3 =
-            db.collection("prayerRequests").document(prayerRequestID)
-            
-            try await ref3.setData([
-                "datePosted": datePosted,
-                "firstName": person.firstName,
-                "lastName": person.lastName,
-                "status": "Current",
-                "prayerRequestText": postText,
-                "postType": postType,
-                "userID": userID,
-                "username": person.username,
-                "privacy": privacy,
-                "prayerRequestTitle": postTitle,
-                "latestUpdateText": "",
-                "latestUpdateDatePosted": datePosted,
-                "latestUpdateType": ""
-            ])
-            NetworkingLogger.debug("postOperations.createPost.addToPrayerRequests \(userID, privacy: .private) created \(prayerRequestID)")
-        }catch{
-            NetworkingLogger.error("postOperations.createPost.addToPrayerRequests failed to create for \(userID, privacy: .private)")
         }
     }
 
     // This function enables an edit to a prayer requests off of a selected prayer request.
     func editPost(post: Post, person: Person, friendsList: [Person]) async throws {
         do {
-            let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
+            let documentID = person.userID
+            
+            let ref =
+            db.collection("users").document(post.userID).collection("prayerList").document("\(documentID)").collection("posts").document(post.id)
             
             try await ref.updateData([
                 "datePosted": post.date,
-                "status": post.status,
-                "postType": post.postType,
+                "status": post.status.descriptionKey.capitalized,
+                "postType": post.postType.descriptionKey,
                 "prayerRequestText": post.postText,
-                "privacy": post.privacy,
+                "privacy": post.privacy.descriptionKey,
                 "prayerRequestTitle": post.postTitle,
                 "isPinned": post.isPinned
             ])
             
             // Add PrayerRequestID to prayerFeed/{userID}
-            if post.status == "No Longer Needed" {
+            if post.status == .noLongerNeeded {
                 try await FeedService().deleteFromFeed(post: post, person: person, friendsList: friendsList) // If it is no longer needed, remove from all feeds. If not, update all feeds.
                 NetworkingLogger.debug("postOperations.editPost - \(post.id) removed from all feeds")
             } else {
-                if post.privacy == "public" && friendsList.isEmpty == false {
+                if post.privacy == .isPublic, !friendsList.isEmpty {
                     for friend in friendsList {
                         try await FeedService().updateFriendsFeed(post: post, person: person, friend: friend, updateFriend: true)
                     }
@@ -279,7 +287,10 @@ class PostOperationsService {
     //person passed in for the feed is the user. prayer passed in for the profile view is the person being viewed.
     func deletePost(post: Post, person: Person, friendsList: [Person]) async throws {
         do{
-            let ref = db.collection("users").document(person.userID).collection("prayerList").document("\(post.firstName.lowercased())_\(post.lastName.lowercased())").collection("prayerRequests").document(post.id)
+            let documentID = person.userID
+            
+            let ref =
+            db.collection("users").document(post.userID).collection("prayerList").document("\(documentID)").collection("posts").document(post.id)
             
             try await ref.delete()
             NetworkingLogger.debug("postOperations.deletePost.deleteFromPrayerList deleted \(post.id)")
@@ -311,12 +322,12 @@ class PostOperationsService {
                 "datePosted": prayerRequest.date,
                 "firstName": prayerRequest.firstName,
                 "lastName": prayerRequest.lastName,
-                "status": prayerRequest.status,
-                "postType": prayerRequest.postType,
+                "status": prayerRequest.status.descriptionKey.capitalized,
+                "postType": prayerRequest.postType.descriptionKey,
                 "prayerRequestText": prayerRequest.postText,
                 "userID": person.userID,
                 "username": person.username,
-                "privacy": prayerRequest.privacy,
+                "privacy": prayerRequest.privacy.descriptionKey,
                 "prayerRequestTitle": prayerRequest.postTitle
             ])
             NetworkingLogger.debug("postOperations.updatePostsDataCollection updated \(prayerRequest.id)")

@@ -68,7 +68,7 @@ extension UserProfileHolder {
         var title: String
         var content: String
         var postType: Post.PostType
-        var privacy: String
+        var privacy: Post.Privacy
     }
 }
 

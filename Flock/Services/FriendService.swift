@@ -26,7 +26,7 @@ class FriendService {
         if document.exists { // only applies for initial beta launch of friends page, where some friends have documents but without a state.
             if document.get("state") == nil {
                 try await refFriends.updateData([
-                    "state": "pending"
+                    "state": Person.FriendState.pending,
                 ])
             } else {
                 throw AddFriendError.friendAddedAlready
@@ -38,7 +38,7 @@ class FriendService {
                 "firstName": user.firstName,
                 "lastName": user.lastName,
                 "email": user.email,
-                "state": "pending"
+                "state": Person.FriendState.pending.descriptionKey
             ])
         }
         
@@ -49,7 +49,7 @@ class FriendService {
         if userFriendsDocument.exists { // only applies for initial beta launch of friends page, where some friends have documents but without a state.
             if userFriendsDocument.get("state") == nil {
                 try await refUserFriends.updateData([
-                    "state": "sent"
+                    "state": Person.FriendState.sent
                 ])
             } else {
                 throw AddFriendError.friendAddedAlready
@@ -61,7 +61,7 @@ class FriendService {
                 "firstName": friend.firstName,
                 "lastName": friend.lastName,
                 "email": friend.email,
-                "state": "sent"
+                "state": Person.FriendState.sent.descriptionKey
             ])
         }
     }
@@ -78,7 +78,7 @@ class FriendService {
                 
             if document.exists {
                 try await refFriends.updateData([
-                    "state": "approved"
+                    "state": Person.FriendState.approved.descriptionKey
                 ])
             }
             
@@ -88,7 +88,7 @@ class FriendService {
             let theirFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
             
             try await theirFriends.updateData([
-                "state": "approved"
+                "state": Person.FriendState.approved.descriptionKey
             ])
             
             try await updateFriendHistoricalPostsIntoFeed(user: friend, friend: user) // load historical posts into that friend's feed once you approve.
@@ -174,7 +174,7 @@ class FriendService {
             "firstName": firstName,
             "lastName": lastName,
             "email": "",
-            "state": "private"
+            "state": ""
         ])
     }
     
@@ -200,37 +200,24 @@ class FriendService {
     // Helper to delete a user from friend's feed
     func deleteFriend(user: Person, friend: Person) async throws {
         do {
-            if friend.isPublic {
-                // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
-                let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
-                try await refFriends.delete()
-                
-                // Update your prayer feed to remove that person's prayer requests from your current feed.
-                let refDelete = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").whereField("userID", isEqualTo: friend.userID).getDocuments()
-                for document in refDelete.documents {
-                    try await document.reference.delete()
-                }
-                
-                // Update user's personal friends list and delete historical posts.
-                let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
-                try await refUser.delete()
-                
-                // Update your prayer feed to remove that person's prayer requests from your current feed.
-                let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
-                for document in refDeleteUser.documents {
-                    try await document.reference.delete()
-                }
-            } else { // if user is private, delete the friend from just your prayer list.
-                
-                // Update user's personal friends list and delete historical posts.
-                let refUser = try await db.collection("users").document(user.userID).collection("friendsList")
-                    .whereField("firstName", isEqualTo: friend.firstName.lowercased())
-                    .whereField("lastName", isEqualTo: friend.lastName.lowercased()).getDocuments()
-                
-                for document in refUser.documents {
-                    try await document.reference.delete()
-                }
-        
+            // Update the friends list of the person who you have now removed from your list. Their friends list is updated, so that when they post, it will not add to your feed.
+            let refFriends = db.collection("users").document(friend.userID).collection("friendsList").document(user.userID)
+            try await refFriends.delete()
+            
+            // Update your prayer feed to remove that person's prayer requests from your current feed.
+            let refDelete = try await db.collection("prayerFeed").document(user.userID).collection("prayerRequests").whereField("userID", isEqualTo: friend.userID).getDocuments()
+            for document in refDelete.documents {
+                try await document.reference.delete()
+            }
+            
+            // Update user's personal friends list and delete historical posts.
+            let refUser = db.collection("users").document(user.userID).collection("friendsList").document(friend.userID)
+            try await refUser.delete()
+            
+            // Update your prayer feed to remove that person's prayer requests from your current feed.
+            let refDeleteUser = try await db.collection("prayerFeed").document(friend.userID).collection("prayerRequests").whereField("userID", isEqualTo: user.userID).getDocuments()
+            for document in refDeleteUser.documents {
+                try await document.reference.delete()
             }
         } catch {
             NetworkingLogger.error("FriendService.deleteFriend failed \(error)")
@@ -238,32 +225,32 @@ class FriendService {
     }
 
     // Main function to delete user data
-    func deletePerson(user: Person, friendsList: [Person]) async throws {
+    func deletePerson(userHolder: UserProfileHolder, friendsList: [Person]) async throws {
         Task {
             do {
                 // Delete user's prayer requests and feed
-                try await deleteDocuments(from: "prayerRequests", where: "userID", isEqualTo: user.userID)
-                try await deleteSubcollection(from: "prayerFeed", documentID: user.userID, subcollection: "prayerRequests")
+                try await deleteDocuments(from: "prayerRequests", where: "userID", isEqualTo: userHolder.person.userID)
+                try await deleteSubcollection(from: "prayerFeed", documentID: userHolder.person.userID, subcollection: "prayerRequests")
                 
                 // Delete all notifications
-                try await NotificationHelper().deleteAllNotifications(userID: user.userID)
+                try await NotificationHelper().deleteAllNotifications(userID: userHolder.person.userID)
                 
                 // Delete from each friend's feed
                 for friend in friendsList {
-                    try await deleteFriend(user: user, friend: friend)
+                    try await deleteFriend(user: userHolder.person, friend: friend)
                 }
 
                 // Delete user's friends list and prayer list
-                try await deleteSubcollection(from: "users", documentID: user.userID, subcollection: "friendsList")
-                try await deleteSubcollection(from: "users", documentID: user.userID, subcollection: "prayerList")
+                try await deleteSubcollection(from: "users", documentID: userHolder.person.userID, subcollection: "friendsList")
+                try await deleteSubcollection(from: "users", documentID: userHolder.person.userID, subcollection: "prayerList")
                 
                 // Delete user's profile and username
-                let usersRef = db.collection("users").document(user.userID)
+                let usersRef = db.collection("users").document(userHolder.person.userID)
                 if try await usersRef.getDocument().exists {
                     try await usersRef.delete()
                 }
                 
-                let usernameRef = db.collection("usernames").document(user.username)
+                let usernameRef = db.collection("usernames").document(userHolder.person.username)
                 if try await usernameRef.getDocument().exists {
                     try await usernameRef.delete()
                 }
@@ -300,15 +287,18 @@ class FriendService {
                 let email = document.get("email") as? String ?? ""
                 let firstName = document.get("firstName") as? String ?? ""
                 let lastName = document.get("lastName") as? String ?? ""
-                let state = document.get("state") as? String ?? ""
+                let friendState = Person.FriendState(rawValue: document.get("state") as? String ?? "") ?? .none
 //                let prayerCalendarInd = document.get("prayerCalendarInd") as? Bool ?? false
                 
-                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: state/*, prayerCalendarInd: prayerCalendarInd*/)
+                let person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName, friendState: friendState)
                 
-                if state == "pending" {
+                switch person.friendState {
+                case .pending:
                     pendingFriendsList.append(person)
-                } else if state == "approved" {
+                case .approved:
                     friendsList.append(person)
+                default:
+                    break
                 }
             }
         }
@@ -359,7 +349,6 @@ class FriendService {
                         let email = document.get("email") as? String ?? ""
                         
                         person = Person(userID: userID, username: username, email: email, firstName: firstName, lastName: lastName)
-//                    }
                 }
             }
         } catch {

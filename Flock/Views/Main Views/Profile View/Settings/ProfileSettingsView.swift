@@ -62,7 +62,12 @@ struct ProfileSettingsView: View {
 struct DeleteButton: View {
     @Environment(UserProfileHolder.self) var userHolder
     @Environment(FriendRequestListener.self) var friendRequestListener
+    
     @State private var isPresentingConfirm: Bool = false
+    @State private var isReauthenticating: Bool = false
+    @State private var password: String = ""
+    @State private var showErrorAlert: Bool = false
+    @State private var errorMessage: String = ""
     private var friendService = FriendService()
     
     var body: some View {
@@ -72,19 +77,59 @@ struct DeleteButton: View {
         .confirmationDialog("Are you sure?",
                             isPresented: $isPresentingConfirm) {
             Button("Delete Account and Sign Out", role: .destructive) {
-                Task {
-                    do {
-                        if userHolder.isFinished {
-                            try await friendService.deletePerson(user: userHolder.person, friendsList: friendRequestListener.acceptedFriendRequests)
-                        }
-                    } catch {
-                        ViewLogger.error("ProfileSettingsView DeleteAndSignout error \(error)")
-                    }
-                }
+                isReauthenticating = true
             }
         } message: {
             Text("Are you sure you would like to delete your account? Deleting account will remove all history of prayer requests both in your account and in any friend feeds, and will not be able to be restored.")
         }
+        .sheet(isPresented: $isReauthenticating) {
+            VStack(spacing: 16) {
+                Text("Reauthenticate")
+                    .font(.headline)
+                    .padding()
+                
+                SecureField("Enter your password", text: $password)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                HStack {
+                    Button("Cancel", role: .cancel) {
+                        isReauthenticating = false
+                        password = ""
+                    }
+                    .padding()
+                    
+                    Button("Confirm", role: .destructive) {
+                        Task {
+                            do {
+                                try await reauthenticateUser(password: password)
+                                if userHolder.isFinished {
+                                    try await friendService.deletePerson(userHolder: userHolder, friendsList: friendRequestListener.acceptedFriendRequests)
+                                }
+                                isReauthenticating = false
+                            } catch {
+                                errorMessage = error.localizedDescription
+                                showErrorAlert = true
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .alert(isPresented: $showErrorAlert) {
+                Alert(title: Text("Error"), message: Text(errorMessage), dismissButton: .default(Text("OK")))
+            }
+        }
+    }
+    
+    private func reauthenticateUser(password: String) async throws {
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "AuthError", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not found."])
+        }
+        
+        let credential = EmailAuthProvider.credential(withEmail: currentUser.email ?? "", password: password)
+        try await currentUser.reauthenticate(with: credential)
+        print("success reauthenticating")
     }
     
     func signOut() {

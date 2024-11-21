@@ -17,7 +17,7 @@ struct PostEditView: View {
     @State var person: Person = Person()
     @State var post: Post
     @State var showAddUpdateView = false
-    @State private var originalPrivacy = ""
+    @State private var originalPrivacy: Post.Privacy = .isPrivate
     @State private var isPresentingConfirm = false
     
     var body: some View {
@@ -35,14 +35,14 @@ struct PostEditView: View {
                         TextField("Title", text: $post.postTitle)
                         Picker("Type", selection: $post.postType) {
                             ForEach(Post.PostType.allCases, id: \.self) { type in
-                                Text(type.rawValue).tag(type.rawValue)
+                                Text(type.descriptionKey)
                             }
                         }
-                        if post.postType == "Prayer Request" {
+                        if post.postType == .prayerRequest {
                             Picker("Status", selection: $post.status) {
-                                Text("Current").tag("Current")
-                                Text("Answered").tag("Answered")
-                                Text("No Longer Needed").tag("No Longer Needed")
+                                ForEach(Post.Status.allCases, id: \.self) { type in
+                                    Text(type.descriptionKey)
+                                }
                             }
                         }
                         HStack {
@@ -118,12 +118,7 @@ struct PostEditView: View {
             post = try await PostOperationsService().getPost(prayerRequest: post, user: userHolder.person)
             prayerRequestUpdates = try await PostUpdateHelper().getPrayerRequestUpdates(prayerRequest: post, person: person)
             originalPrivacy = post.privacy
-            person = Person(
-                userID: post.userID,
-                username: post.username,
-                firstName: post.firstName,
-                lastName: post.lastName
-            )
+            person = post.person
         } catch {
             ViewLogger.error("Error retrieving post or updates: \(error)")
         }
@@ -141,7 +136,7 @@ struct PostEditView: View {
     func savePost() {
         Task {
             do {
-                if originalPrivacy != "private" && post.privacy == "private" {
+                if originalPrivacy != .isPrivate && post.privacy == .isPrivate {
                     try await FeedService().publicToPrivate(post: post, friendsList: friendRequestListener.acceptedFriendRequests)
                 }
                 try await PostOperationsService().editPost(post: post, person: person, friendsList: friendRequestListener.acceptedFriendRequests)
