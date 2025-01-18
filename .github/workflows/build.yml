@@ -1,10 +1,7 @@
-name: Build Project
+name: PR - Build and Test
 
 # Trigger the workflow on push or pull request to the main branch
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -14,35 +11,39 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.x
+          cache: yarn
+
       - name: Setup Expo
-        working-directory: ./FlockRN # Set working directory for this step
+        working-directory: ./FlockRN
         run: |
           yarn install
           yarn global add expo-cli
 
+      - name: Run tests
+        working-directory: ./FlockRN
+        run: |
+          yarn test
+
+      - name: Lint code
+        working-directory: ./FlockRN
+        run: |
+          yarn lint
+
       # Build Android APK
       - name: Build Android APK
-        working-directory: ./FlockRN # Set working directory for this step
+        working-directory: ./FlockRN
         run: |
-          expo build:android --no-wait  # Modify this for your specific build command
+          expo build:android --no-publish --non-interactive
 
       # Build iOS IPA (Note: Requires macOS runner)
       - name: Build iOS IPA
-        working-directory: ./FlockRN # Set working directory for this step
+        working-directory: ./FlockRN
         run: |
-          expo build:ios --no-wait  # Modify this for your specific build command
-
-      # Add additional steps to verify the build (e.g., run tests, linting, etc.)
-      - name: Run tests
-        working-directory: ./FlockRN # Set working directory for this step
-        run: |
-          yarn test  # Or run your test commands if applicable
-
-      - name: Lint code
-        working-directory: ./FlockRN # Set working directory for this step
-        run: |
-          yarn lint  # Or run linting commands if applicable
+          expo build:ios --no-publish --non-interactive
