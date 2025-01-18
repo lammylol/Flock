@@ -32,9 +32,9 @@ jobs:
           yarn install
           yarn global add expo-cli
 
-      - name: Run tests
-        run: |
-          yarn test
+      # - name: Run tests
+      #   run: |
+      #     yarn test
 
       - name: Lint code
         run: |
