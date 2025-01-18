@@ -1,3 +1,5 @@
+name: Build Project
+
 # Trigger the workflow on push or pull request to the main branch
 on:
   push:
@@ -16,29 +18,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Make the setup script executable
-      - name: Make setup.sh executable
-        run: chmod +x ./setup.sh
+      # Set the working directory to FlockRN for the rest of the workflow
+      - name: Set working directory to FlockRN
+        run: echo "Setting working directory to FlockRN"
 
-      # Run the setup script
+      # Run the setup script from FlockRN directory
+      - name: Make setup.sh executable
+        working-directory: ./FlockRN # Set working directory for this step
+        run: chmod +x ./setup.sh # Make setup.sh executable
+
       - name: Run setup script
-        run: ./setup.sh
+        working-directory: ./FlockRN # Set working directory for this step
+        run: ./setup.sh # Run the setup script
 
       # If using Expo, you may need to install Expo CLI globally
       - name: Install Expo CLI (if using Expo)
+        working-directory: ./FlockRN # Set working directory for this step
         run: |
           yarn global add expo-cli
 
       # Build Expo project (if using Expo)
       - name: Build Expo project (if using Expo)
+        working-directory: ./FlockRN # Set working directory for this step
         run: |
           expo build:android --no-wait  # Modify this for your specific build command
 
       # Add additional steps to verify the build (e.g., run tests, linting, etc.)
       - name: Run tests
+        working-directory: ./FlockRN # Set working directory for this step
         run: |
           yarn test  # Or run your test commands if applicable
 
       - name: Lint code
+        working-directory: ./FlockRN # Set working directory for this step
         run: |
           yarn lint  # Or run linting commands if applicable
