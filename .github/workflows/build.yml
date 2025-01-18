@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Test and Lint
     runs-on: macos-latest
     defaults:
       run:
