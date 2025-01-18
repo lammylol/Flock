@@ -9,6 +9,12 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./FlockRN
+    strategy:
+      matrix:
+        node-version: [22.x]
 
     steps:
       - name: Checkout code
@@ -17,33 +23,29 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 22.x
+          node-version: ${{ matrix.node-version }}
           cache: yarn
+          cache-dependency-path: "**/yarn.lock"
 
       - name: Setup Expo
-        working-directory: ./FlockRN
         run: |
           yarn install
           yarn global add expo-cli
 
       - name: Run tests
-        working-directory: ./FlockRN
         run: |
           yarn test
 
       - name: Lint code
-        working-directory: ./FlockRN
         run: |
           yarn lint
 
       # Build Android APK
-      - name: Build Android APK
-        working-directory: ./FlockRN
+      - name: Build Android
         run: |
           expo build:android --no-publish --non-interactive
 
       # Build iOS IPA (Note: Requires macOS runner)
-      - name: Build iOS IPA
-        working-directory: ./FlockRN
+      - name: Build iOS
         run: |
           expo build:ios --no-publish --non-interactive
