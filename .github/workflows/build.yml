@@ -1,0 +1,44 @@
+# Trigger the workflow on push or pull request to the main branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Use a Ubuntu environment to run the build
+
+    steps:
+      # Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Make the setup script executable
+      - name: Make setup.sh executable
+        run: chmod +x ./setup.sh
+
+      # Run the setup script
+      - name: Run setup script
+        run: ./setup.sh
+
+      # If using Expo, you may need to install Expo CLI globally
+      - name: Install Expo CLI (if using Expo)
+        run: |
+          yarn global add expo-cli
+
+      # Build Expo project (if using Expo)
+      - name: Build Expo project (if using Expo)
+        run: |
+          expo build:android --no-wait  # Modify this for your specific build command
+
+      # Add additional steps to verify the build (e.g., run tests, linting, etc.)
+      - name: Run tests
+        run: |
+          yarn test  # Or run your test commands if applicable
+
+      - name: Lint code
+        run: |
+          yarn lint  # Or run linting commands if applicable
