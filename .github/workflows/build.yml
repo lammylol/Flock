@@ -1,0 +1,42 @@
+name: PR - Test and Lint
+
+# Trigger the workflow on push or pull request to the main branch
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Test and Lint
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ./FlockRN
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: "**/yarn.lock"
+
+      - name: Setup Expo
+        run: |
+          yarn install
+          yarn global add expo-cli
+
+      - name: Run tests
+        run: |
+          yarn test-ci
+
+      - name: Lint code
+        run: |
+          yarn lint

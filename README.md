@@ -25,7 +25,30 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 
 ---  
 
-## Setup  
+### Setup  
+1. Navigate to FlockRN
+2. Run setup script
+```bash
+   chmod +x setup.sh
+   ./setup.sh
+```
+3. Install packages
+```bash
+yarn install
+```
+
+### Set up emulators
+1. IOS
+   - ensure xcode and ios simulator are installed
+2. Android
+   - [Install Andoird Studio](https://developer.android.com/studio)
+   - [Check you have an emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+
+### Running React Native (Expo)
+```bash
+yarn start
+```
+
 
 ### Linking Firebase  
 1. **Ask for Database Access:**  
@@ -38,3 +61,7 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 3. **Move the configuration files to the appropriate directories:**  
    - Dev plist: `Flock/Flock/dev/Firebase`  
    - Prod plist: `Flock/Flock/prod/Firebase`  
+
+## Deprecated
+Flockv1
+- swift based 
