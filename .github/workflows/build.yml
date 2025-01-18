@@ -1,4 +1,4 @@
-name: PR - Build and Test
+name: PR - Test and Lint
 
 # Trigger the workflow on push or pull request to the main branch
 on:
@@ -32,20 +32,10 @@ jobs:
           yarn install
           yarn global add expo-cli
 
-      # - name: Run tests
-      #   run: |
-      #     yarn test
+      - name: Run tests
+        run: |
+          yarn test-ci
 
       - name: Lint code
         run: |
           yarn lint
-
-      # Build Android APK
-      - name: Build Android
-        run: |
-          expo build:android --no-publish --non-interactive
-
-      # Build iOS IPA (Note: Requires macOS runner)
-      - name: Build iOS
-        run: |
-          expo build:ios --no-publish --non-interactive
