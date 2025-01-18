@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Use a Ubuntu environment to run the build
+    runs-on: macos-latest
 
     steps:
       # Checkout the code from the repository
@@ -32,7 +32,6 @@ jobs:
 
       # Build iOS IPA (Note: Requires macOS runner)
       - name: Build iOS IPA
-        runs-on: macos-latest # Use macOS runner to build iOS
         working-directory: ./FlockRN # Set working directory for this step
         run: |
           expo build:ios --no-wait  # Modify this for your specific build command
