@@ -25,23 +25,29 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 
 ---  
 
-## Setup  
+### Setup  
 1. Navigate to FlockRN
 2. Run setup script
-   - `chmod +x setup.sh`
-   - `./setup.sh`
+```bash
+   chmod +x setup.sh
+   ./setup.sh
+```
 3. Install packages
-   - `yarn install`
+```bash
+yarn install
+```
 
-## Set up emulators
+### Set up emulators
 1. IOS
    - ensure xcode and ios simulator are installed
 2. Android
    - [Install Andoird Studio](https://developer.android.com/studio)
-   - [Open AVD Manager](https://docs.expo.dev/workflow/android-studio-emulator/)
+   - [Check you have an emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 
-## Running React Native (Expo)
-`yarn start`
+### Running React Native (Expo)
+```bash
+yarn start
+```
 
 
 ### Linking Firebase  
