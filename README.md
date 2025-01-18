@@ -38,3 +38,7 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 3. **Move the configuration files to the appropriate directories:**  
    - Dev plist: `Flock/Flock/dev/Firebase`  
    - Prod plist: `Flock/Flock/prod/Firebase`  
+
+## Deprecated
+Flockv1
+- swift based 
