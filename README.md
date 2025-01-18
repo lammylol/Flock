@@ -26,6 +26,11 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 ---  
 
 ## Setup  
+1. Navigate to FlockRN
+2. Run setup script
+   - `chmod +x setup.sh`
+   - `./setup.sh`
+
 
 ### Linking Firebase  
 1. **Ask for Database Access:**  
