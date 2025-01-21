@@ -1,9 +1,9 @@
 # Flock  
 
-**Mission:**  
-To ‘feed my sheep’ by supporting each other through the act of prayer, support, and encouragement.  
+**Purpose:**  
+To inspire and empower people to pray more consistently, deepen their daily prayer habits, and cultivate a meaningful prayer life. 
 
-**Vision:**  
+**Mission:**  
 To become a centralized hub for prayer, inspiring the act of prayer across the globe among both big and small communities.  
 
 ---  
