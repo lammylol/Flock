@@ -13,7 +13,6 @@ export default function LoginScreen() {
     const handleLogin = async () => {
         try {
             const user = await logIn(email, password);
-            console.log(email, password)
             console.log('Login successful:', user);
             // Navigate to another screen after successful login
             router.replace('/(tabs)');
@@ -58,14 +57,12 @@ export default function LoginScreen() {
                         style={styles.textInput}
                         placeholder="Enter your email"
                         placeholderTextColor="#C6C6C8"
-                        value={email}
                     />
                     <TextInput
                         style={styles.textInput}
                         placeholder="Enter your password"
                         placeholderTextColor="#C6C6C8"
                         secureTextEntry
-                        value={password}
                     />
                     <TouchableOpacity style={styles.submitButton} onPress={handleLogin} >
                         <Text style={styles.submitText}>Login</Text>
