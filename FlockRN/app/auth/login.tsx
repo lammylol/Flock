@@ -4,11 +4,13 @@ import { ThemedView } from "@/components/ThemedView";
 import { auth } from "@/firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useState } from 'react';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const email = "";
-    const password = "";
+
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     const handleLogin = async () => {
         try {
@@ -17,7 +19,7 @@ export default function LoginScreen() {
             // Navigate to another screen after successful login
             router.replace('/(tabs)');
         } catch (error: any) {
-            console.error('Login error:', error.message);
+            console.error('Login error:', error.message + ' (' + email + '): ' + password);
             // alert(error.message); // Show user-friendly error
         }
     };
@@ -57,12 +59,15 @@ export default function LoginScreen() {
                         style={styles.textInput}
                         placeholder="Enter your email"
                         placeholderTextColor="#C6C6C8"
+                        onChangeText={email => setEmail(email.toLowerCase())}
+                        
                     />
                     <TextInput
                         style={styles.textInput}
                         placeholder="Enter your password"
                         placeholderTextColor="#C6C6C8"
                         secureTextEntry
+                        onChangeText={password => setPassword(password)}
                     />
                     <TouchableOpacity style={styles.submitButton} onPress={handleLogin} >
                         <Text style={styles.submitText}>Login</Text>
