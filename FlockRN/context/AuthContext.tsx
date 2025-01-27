@@ -1,7 +1,7 @@
 // Purpose: Create a context for user authentication. This context will be used to provide user 
 // authentication information to the entire application.
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import useAuth from '@/hooks/useAuth';
 import { User } from 'firebase/auth';
 
