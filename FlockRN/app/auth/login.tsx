@@ -1,10 +1,9 @@
-import { View, Text, Button, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { ThemedView } from "@/components/ThemedView";
 import { auth } from "@/firebase/firebaseConfig";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export default function LoginScreen() {
     const router = useRouter();

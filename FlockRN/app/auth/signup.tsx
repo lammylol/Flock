@@ -1,6 +1,4 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { useRouter } from "expo-router";
-import { ThemedView } from "@/components/ThemedView";
 import { auth } from "@/firebase/firebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
