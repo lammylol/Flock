@@ -99,7 +99,3 @@ const styles = StyleSheet.create({
         fontWeight: "500",
     },
 });
-
-function createUser(email: string, password: string) {
-    createUserWithEmailAndPassword(auth, email, password)
-}

@@ -29,7 +29,7 @@ export function AppContent() {
         router.replace('/auth/login');
       }
     }
-  }, [loaded, userIsAuthenticated, isAuthLoading]);
+  }, [loaded, userIsAuthenticated, isAuthLoading, router]);
 
     if (!loaded || isAuthLoading) {
     return null; // Wait for fonts to load and auth to resolve
