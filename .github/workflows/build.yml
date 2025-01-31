@@ -33,6 +33,10 @@ jobs:
           yarn install
           yarn global add expo-cli
 
+      - name: Generate types
+        run: |
+          yarn generate:types
+
       - name: Run tests
         run: |
           yarn test-ci
