@@ -3,7 +3,7 @@ import React from "react";
 import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { FAIconSymbol, IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -41,7 +41,16 @@ export default function TabLayout() {
         options={{
           title: "Prayer",
           tabBarIcon: ({ color }) => (
-            <IconSymbol type="FontAwesome5" size={28} name="praying-hands" color={color} />
+            <IconSymbol size={28} name="a.circle" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Account",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="account.fill" color={color} />
           ),
         }}
       />
