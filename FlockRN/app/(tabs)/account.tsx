@@ -5,6 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import ScrollView from '@/components/ScrollView';
 import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
+import { router } from 'expo-router';
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
@@ -15,7 +16,13 @@ export default function TabTwoScreen() {
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         {Platform.OS}
-        <Button label="Sign out" onPress={() => signOut} theme="primary" />
+        <Button
+          label="Sign out"
+          onPress={() => {
+            signOut;
+            router.replace('/auth/login');
+          }}
+        />
       </ThemedView>
     </ScrollView>
   );
