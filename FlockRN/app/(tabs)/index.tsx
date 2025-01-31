@@ -1,11 +1,11 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet } from 'react-native';
 
-import { HelloWave } from "@/components/HelloWave";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import ScrollView from "@/components/ScrollView";
-import useAuth from "@/hooks/useAuth";
-import { WeekCalendar } from "@/components/ui/calendar";
+import { HelloWave } from '@/components/HelloWave';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import ScrollView from '@/components/ScrollView';
+import useAuth from '@/hooks/useAuth';
+import { WeekCalendar } from '@/components/ui/calendar';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -20,21 +20,21 @@ export default function HomeScreen() {
         <WeekCalendar />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="default">Reminders</ThemedText>
-        <ThemedText>reminders go here</ThemedText>
+        <ThemedText type="default">{'Reminders'}</ThemedText>
+        <ThemedText>{'reminders go here'}</ThemedText>
       </ThemedView>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
 });

@@ -1,12 +1,12 @@
-import type { PropsWithChildren, ReactElement } from "react";
-import { StyleSheet } from "react-native";
+import type { PropsWithChildren, ReactElement } from 'react';
+import { StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedRef,
   useScrollViewOffset,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
-import { ThemedView } from "@/components/ThemedView";
-import { useBottomTabOverflow } from "@/components/ui/TabBarBackground";
+import { ThemedView } from '@/components/ThemedView';
+import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
 
 type Props = PropsWithChildren<{}>;
 
@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 32,
     gap: 16,
-    overflow: "hidden",
+    overflow: 'hidden',
+    padding: 32,
   },
 });

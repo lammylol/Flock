@@ -1,17 +1,17 @@
-import { StyleSheet, Image, Platform } from "react-native";
+import { StyleSheet, Platform } from 'react-native';
 
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import ScrollView from "@/components/ScrollView";
-import useAuth from "@/hooks/useAuth";
-import Button from "@/components/Button";
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import ScrollView from '@/components/ScrollView';
+import useAuth from '@/hooks/useAuth';
+import Button from '@/components/Button';
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
   return (
     <ScrollView>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">{user?.displayName ?? "Login"}</ThemedText>
+        <ThemedText type="title">{user?.displayName ?? 'Login'}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         {Platform.OS}
@@ -22,12 +22,12 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
   },
 });

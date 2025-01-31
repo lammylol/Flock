@@ -1,25 +1,25 @@
-import { StyleSheet, View, Pressable, Text } from "react-native";
+import { StyleSheet, View, Pressable, Text } from 'react-native';
 
 type Props = {
   label: string;
-  theme?: "primary";
+  theme?: 'primary';
   onPress?: () => void;
 };
 
 export default function Button({ label, theme, onPress }: Props) {
-  if (theme === "primary") {
+  if (theme === 'primary') {
     return (
       <View
         style={[
           styles.buttonContainer,
-          { borderWidth: 4, borderColor: "#ffd33d", borderRadius: 18 },
+          { borderWidth: 4, borderColor: '#ffd33d', borderRadius: 18 },
         ]}
       >
         <Pressable
-          style={[styles.button, { backgroundColor: "#fff" }]}
+          style={[styles.button, { backgroundColor: '#fff' }]}
           onPress={onPress}
         >
-          <Text style={[styles.buttonLabel, { color: "#25292e" }]}>
+          <Text style={[styles.buttonLabel, { color: '#25292e' }]}>
             {label}
           </Text>
         </Pressable>
@@ -31,7 +31,7 @@ export default function Button({ label, theme, onPress }: Props) {
     <View style={styles.buttonContainer}>
       <Pressable
         style={styles.button}
-        onPress={() => alert("You pressed a button.")}
+        onPress={() => alert('You pressed a button.')}
       >
         <Text style={styles.buttonLabel}>{label}</Text>
       </Pressable>
@@ -40,27 +40,27 @@ export default function Button({ label, theme, onPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    width: 320,
-    height: 68,
-    marginHorizontal: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 3,
-  },
   button: {
+    alignItems: 'center',
     borderRadius: 10,
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
+    flexDirection: 'row',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    height: 68,
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    padding: 3,
+    width: 320,
   },
   buttonIcon: {
     paddingRight: 8,
   },
   buttonLabel: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
   },
 });
