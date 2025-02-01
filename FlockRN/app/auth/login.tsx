@@ -44,6 +44,18 @@ export default function LoginScreen() {
 
       {/* Main Section */}
       <View style={styles.mainSection}>
+        <View style={styles.buttons}>
+          <TouchableOpacity style={styles.loginButton}>
+            <Text style={styles.loginText}>Login with Apple</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.loginButton}>
+            <Text style={styles.loginText}>Login with Google</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.loginButton}>
+            <Text style={styles.loginText}>Login with Facebook</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Email Login */}
         <View style={styles.emailLogin}>
           <View style={styles.frame}>
@@ -69,20 +81,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.authContainer}>
-          <View style={styles.buttons}>
-            <TouchableOpacity style={styles.loginButton}>
-              <Text style={styles.loginText}>Login with Apple</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.loginButton}>
-              <Text style={styles.loginText}>Login with Google</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.loginButton}>
-              <Text style={styles.loginText}>Login with Facebook</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Signup Section */}
         <Text style={styles.signupText}>
           Don't have an account?{' '}
@@ -102,10 +100,6 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  authContainer: {
-    alignSelf: 'stretch',
-    paddingTop: 10,
-  },
   buttons: {
     alignItems: 'center',
     alignSelf: 'stretch',
