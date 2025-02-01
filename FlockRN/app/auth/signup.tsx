@@ -11,6 +11,8 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
 
 export default function SignUpScreen() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,6 +46,24 @@ export default function SignUpScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Create an Account</Text>
 
+      <TextInput
+        style={styles.input}
+        placeholder="First name"
+        placeholderTextColor="#C6C6C8"
+        value={firstName}
+        onChangeText={setFirstName}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Last name"
+        placeholderTextColor="#C6C6C8"
+        value={lastName}
+        onChangeText={setLastName}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
       <TextInput
         style={styles.input}
         placeholder="Enter your email"

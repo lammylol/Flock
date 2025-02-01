@@ -1,27 +1,27 @@
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { StyleSheet, View, Pressable, Text } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import { ThemedText } from './ThemedText';
+
+const sizeMap = {
+  xs: { height: 20, width: 100 },
+  s: { height: 30, width: 200 },
+  m: { height: 40, width: 300 },
+  l: { height: 50, width: 400 },
+  xl: { height: 60, width: 500 },
+};
+type sizeType = keyof typeof sizeMap;
 
 type Props = {
   label: string;
-  lightColor?: string;
-  darkColor?: string;
+  size?: sizeType;
   onPress: () => void;
 };
 
-export default function Button({
-  label,
-  lightColor,
-  darkColor,
-  onPress,
-}: Props) {
-  const backgroundColor = useThemeColor(
-    { light: lightColor, dark: darkColor },
-    'background',
-  );
+export default function Button({ label, size = 's', onPress }: Props) {
+  const backgroundColor = useThemeColor({}, 'tint');
   return (
-    <View style={[{ backgroundColor }, styles.buttonContainer]}>
-      <Pressable style={styles.button} onPress={onPress}>
+    <View style={styles.buttonContainer}>
+      <Pressable style={[{ backgroundColor }, styles.button]} onPress={onPress}>
         <ThemedText style={styles.buttonLabel}>{label}</ThemedText>
       </Pressable>
     </View>
@@ -29,6 +29,14 @@ export default function Button({
 }
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    padding: 3,
+    height: 45,
+    width: 150,
+  },
   button: {
     alignItems: 'center',
     borderRadius: 10,
@@ -37,16 +45,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
   },
-  buttonContainer: {
-    alignItems: 'center',
-    height: 68,
-    justifyContent: 'center',
-    marginHorizontal: 20,
-    padding: 3,
-    width: 320,
-  },
   buttonLabel: {
-    color: '#fff',
     fontSize: 16,
   },
 });

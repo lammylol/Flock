@@ -43,7 +43,7 @@ export default function TabLayout() {
           options={{
             title: 'Prayer',
             tabBarIcon: ({ color }) => (
-              <FontAwesome5 color={color} size={28} name={'praying-hands'} />
+              <FontAwesome5 color={color} size={24} name={'praying-hands'} />
             ),
           }}
         />

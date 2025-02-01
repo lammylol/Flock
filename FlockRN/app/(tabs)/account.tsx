@@ -6,16 +6,17 @@ import ScrollView from '@/components/ScrollView';
 import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
+import { HelloWave } from '@/components/HelloWave';
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
   return (
     <ScrollView>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">{user?.displayName ?? 'Login'}</ThemedText>
+        <ThemedText type="title">{user?.displayName ?? 'Account'}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        {Platform.OS}
+        <ThemedText>{Platform.OS}</ThemedText>
         <Button
           label="Sign out"
           onPress={() => {
