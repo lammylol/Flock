@@ -1,83 +1,70 @@
-# Node dependencies
+# Node modules and dependencies
 node_modules/
-.yarn/
-.pnp.*
-.pnp.js
+yarn.lock
+package-lock.json
 
-# Yarn lock files
-.yarn-integrity
-.yarn-error.log
-
-# Expo
+# Expo specific
 .expo/
 .expo-shared/
-*.expo
-*.expo-devtools
 
-# Logs
+# Metro bundler cache
+metro-cache/
+
+# Build and output directories
+dist/
+build/
+out/
+
+# Logs and debugging
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-debug.log*
-metro.config.js
 
-# macOS
-.DS_Store
+# Environment variables
+.env*
+.env.local
+.env.development.local
+.env.production.local
+
+# Firebase
+firebase-debug.log
+firebase-debug.*
 
 # iOS
-ios/
-!ios/*.xcodeproj
-!ios/*.xcworkspace
-!ios/Podfile
-!ios/Podfile.lock
-!ios/fastlane/
-ios/Pods/
 ios/build/
-ios/*.mode1v3
-ios/*.pbxuser
-ios/*.xcworkspace/
-ios/*.xcuserstate
+ios/Pods/
+ios/Podfile.lock
+ios/*.xcworkspace
+ios/*.xcodeproj/project.xcworkspace
+ios/.DS_Store
+
 
 # Android
-android/
-!android/app/src/main/res/
+android/.gradle/
 android/app/build/
 android/build/
-android/.gradle/
 android/.idea/
-android/.cxx/
 android/local.properties
-android/app/src/main/assets/index.android.bundle
+android/key.properties
+android/app/debug.keystore
+android/.cxx/
 
-# Expo/Metro Bundler cache
-.expo/
-.expo-shared/
-.babelrc
+# Web
+.web-build/
 
-# TypeScript
-*.tsbuildinfo
-
-# Fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
-fastlane/test_output
-fastlane/*.log
-
-# Temporary files
-tmp/
-temp/
+# Miscellaneous
+.DS_Store
 *.swp
 *.swo
 *.sublime-project
 *.sublime-workspace
 
-# Build artifacts
-build/
-dist/
-.cache
+# Editor specific
 .idea/
 .vscode/
+*.iml
 
-# Misc
-.env*
+# Google services
+GoogleService-Info.plist
+google-services.json

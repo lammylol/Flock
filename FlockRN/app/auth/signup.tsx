@@ -6,9 +6,12 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { auth } from '@/firebase/firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '@/firebase/firebaseConfig';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { setDoc, doc } from 'firebase/firestore';
 import React, { useState } from 'react';
+import { router } from 'expo-router';
+import { FirestoreCollections } from '@/schema/firebaseCollections';
 
 export default function SignUpScreen() {
   const [firstName, setFirstName] = useState('');
@@ -30,9 +33,20 @@ export default function SignUpScreen() {
         password,
       );
       const user = userCredential.user;
+      await updateProfile(user, {
+        displayName: `${firstName || ''} ${lastName || ''}`.trim(),
+      });
+      await setDoc(doc(db, FirestoreCollections.USERS, user.uid), {
+        id: user.uid,
+        displayName: user.displayName,
+        firstName,
+        lastName,
+        email: user.email,
+        createdAt: new Date(),
+      });
       console.log('User created:', user);
       Alert.alert('Success', 'Account created successfully!');
-      // You can navigate to a different screen here, e.g., router.replace("/home");
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('Error creating account:', error.message);
       Alert.alert(

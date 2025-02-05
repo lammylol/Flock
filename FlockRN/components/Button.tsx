@@ -29,14 +29,6 @@ export default function Button({ label, size = 's', onPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 20,
-    padding: 3,
-    height: 45,
-    width: 150,
-  },
   button: {
     alignItems: 'center',
     borderRadius: 10,
@@ -44,6 +36,14 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     width: '100%',
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    height: 45,
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    padding: 3,
+    width: 150,
   },
   buttonLabel: {
     fontSize: 16,

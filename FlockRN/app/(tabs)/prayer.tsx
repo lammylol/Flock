@@ -12,9 +12,7 @@ export default function TabTwoScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Prayer</ThemedText>
       </ThemedView>
-      <ThemedText>
-        Prayers go here!
-      </ThemedText>
+      <ThemedText>Prayers go here!</ThemedText>
       <Collapsible title="Images">
         <ThemedText>
           For static images, you can use the{' '}
