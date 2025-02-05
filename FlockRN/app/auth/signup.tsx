@@ -12,6 +12,7 @@ import { setDoc, doc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { router } from 'expo-router';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
+import { FirebaseError } from 'firebase/app';
 
 export default function SignUpScreen() {
   const [firstName, setFirstName] = useState('');
@@ -47,12 +48,17 @@ export default function SignUpScreen() {
       console.log('User created:', user);
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)');
-    } catch (error) {
-      console.error('Error creating account:', error.message);
-      Alert.alert(
-        'Sign-Up Error',
-        error.message || 'Failed to create an account.',
-      );
+    } catch (error: unknown) {
+      if (error instanceof FirebaseError) {
+        console.error('Error creating account:', error.message);
+        Alert.alert(
+          'Sign-Up Error',
+          error.message || 'Failed to create an account.',
+        );
+      } else {
+        console.error('Unknown sign up error occurred:', error);
+        Alert.alert('Sign-Up Error', 'An unknown error occurred.');
+      }
     }
   };
 
