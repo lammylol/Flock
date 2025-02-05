@@ -72,8 +72,7 @@ export default function SignUpScreen() {
         placeholderTextColor="#C6C6C8"
         value={firstName}
         onChangeText={setFirstName}
-        keyboardType="email-address"
-        autoCapitalize="none"
+        autoCapitalize="words"
       />
       <TextInput
         style={styles.input}
@@ -81,8 +80,7 @@ export default function SignUpScreen() {
         placeholderTextColor="#C6C6C8"
         value={lastName}
         onChangeText={setLastName}
-        keyboardType="email-address"
-        autoCapitalize="none"
+        autoCapitalize="words"
       />
       <TextInput
         style={styles.input}
