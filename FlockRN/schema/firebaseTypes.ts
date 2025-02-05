@@ -6,6 +6,6 @@ export type Users = {
   firstName: string;
   lastName: string;
   email: string;
-  createdAt: timestamp;
+  createdAt: firebase.firestore.Timestamp;
 };
 
