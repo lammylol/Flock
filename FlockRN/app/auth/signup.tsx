@@ -5,7 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  useColorScheme,
 } from 'react-native';
+
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
@@ -13,13 +16,19 @@ import React, { useState } from 'react';
 import { router } from 'expo-router';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { FirebaseError } from 'firebase/app';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function SignUpScreen() {
+  const theme = useColorScheme() ?? 'light';
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // State variable to track password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
@@ -91,22 +100,40 @@ export default function SignUpScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your password"
-        placeholderTextColor="#C6C6C8"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm your password"
-        placeholderTextColor="#C6C6C8"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={{ ...styles.input, flex: 1 }}
+          placeholder="Enter your password"
+          placeholderTextColor="#C6C6C8"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={!showPassword}
+        />
+        <MaterialCommunityIcons
+          name={showPassword ? 'eye-off' : 'eye'}
+          size={24}
+          color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
+          style={styles.icon}
+          onPress={() => setShowPassword(!showPassword)}
+        />
+      </View>
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={{ ...styles.input, flex: 1 }}
+          placeholder="Confirm your password"
+          placeholderTextColor="#C6C6C8"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry={!showConfirmPassword}
+        />
+        <MaterialCommunityIcons
+          name={showConfirmPassword ? 'eye-off' : 'eye'}
+          size={24}
+          color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
+          style={styles.icon}
+          onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+        />
+      </View>
 
       <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
@@ -134,6 +161,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    marginLeft: 10,
   },
   input: {
     backgroundColor: '#fff',
