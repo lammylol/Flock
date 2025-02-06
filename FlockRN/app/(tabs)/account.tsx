@@ -3,13 +3,13 @@ import { StyleSheet, Platform } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import ScrollView from '@/components/ScrollView';
-import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
-import { HelloWave } from '@/components/HelloWave';
+import { signOut } from 'firebase/auth';
+import useAuthContext from '@/hooks/useAuthContext';
 
 export default function TabTwoScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuthContext();
   return (
     <ScrollView>
       <ThemedView style={styles.titleContainer}>

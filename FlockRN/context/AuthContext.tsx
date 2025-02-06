@@ -1,40 +1,43 @@
 // Purpose: Create a context for user authentication. This context will be used to provide user
 // authentication information to the entire application.
 
-import React, { createContext, useState, useEffect } from 'react';
-import useAuth from '@/hooks/useAuth';
-import { User } from 'firebase/auth';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '@/firebase/firebaseConfig';
 
 // Context Type for AuthContext
 interface AuthContextType {
   user: User | null;
-  userIsAuthenticated: boolean;
   isAuthLoading: boolean;
 }
 
 // Create a context
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 // Define provider props - ensures proper usage of AuthProvider.
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const { user, userIsAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Update isAuthLoading after the authentication process has completed
-    setIsAuthLoading(false);
-  }, [user]);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, userIsAuthenticated, isAuthLoading }}>
+    <AuthContext.Provider value={{ user, isAuthLoading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 // Export context for use in useAuthContext
-export { AuthContext };
+export { AuthProvider };

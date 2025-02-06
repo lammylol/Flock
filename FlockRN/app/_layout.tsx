@@ -18,7 +18,7 @@ import { AuthProvider } from '@/context/AuthContext';
 SplashScreen.preventAutoHideAsync();
 
 export function AppContent() {
-  const { userIsAuthenticated, isAuthLoading } = useAuthContext();
+  const { user, isAuthLoading } = useAuthContext();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -29,11 +29,11 @@ export function AppContent() {
     if (loaded && !isAuthLoading) {
       SplashScreen.hideAsync();
 
-      if (!userIsAuthenticated) {
+      if (!user) {
         router.replace('/auth/login');
       }
     }
-  }, [loaded, userIsAuthenticated, isAuthLoading, router]);
+  }, [loaded, user, isAuthLoading, router]);
 
   if (!loaded || isAuthLoading) {
     return null; // Wait for fonts to load and auth to resolve
@@ -42,7 +42,7 @@ export function AppContent() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
-        {userIsAuthenticated ? (
+        {user ? (
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         ) : (
           <Stack.Screen name="auth" options={{ headerShown: false }} />
