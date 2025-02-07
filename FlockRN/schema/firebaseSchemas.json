@@ -1,0 +1,10 @@
+{
+  "users": {
+    "id": "string",
+    "displayName": "string",
+    "firstName": "string",
+    "lastName": "string",
+    "email": "string",
+    "createdAt": "Timestamp"
+  }
+}

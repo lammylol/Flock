@@ -1,4 +1,4 @@
-// Purpose: Create a custom hook to use the AuthContext. 
+// Purpose: Create a custom hook to use the AuthContext.
 // This hook will be used to access the user and set boundaries for use.
 
 import { useContext } from 'react';

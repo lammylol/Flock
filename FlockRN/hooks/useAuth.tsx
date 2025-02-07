@@ -3,12 +3,12 @@
 
 import { useEffect, useState } from 'react';
 import { auth } from '@/firebase/firebaseConfig';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 
 export default function useAuth() {
   // State for storing the user
   const [user, setUser] = useState<User | null>(null);
-  
+
   // State for tracking whether the user is authenticated
   const [userIsAuthenticated, setUserIsAuthenticated] = useState(false);
 
@@ -26,5 +26,5 @@ export default function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  return { user, userIsAuthenticated };
+  return { user, userIsAuthenticated, signOut };
 }
