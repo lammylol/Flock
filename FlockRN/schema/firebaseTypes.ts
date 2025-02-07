@@ -8,4 +8,3 @@ export type Users = {
   email: string;
   createdAt: firebase.firestore.Timestamp;
 };
-
