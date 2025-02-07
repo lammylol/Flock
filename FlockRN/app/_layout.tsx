@@ -1,4 +1,8 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -24,30 +28,30 @@ export function AppContent() {
   useEffect(() => {
     if (loaded && !isAuthLoading) {
       SplashScreen.hideAsync();
-  
+
       if (!userIsAuthenticated) {
         router.replace('/auth/login');
       }
     }
   }, [loaded, userIsAuthenticated, isAuthLoading, router]);
 
-    if (!loaded || isAuthLoading) {
+  if (!loaded || isAuthLoading) {
     return null; // Wait for fonts to load and auth to resolve
   }
 
   return (
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          {userIsAuthenticated ? (
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          ) : (
-            <Stack.Screen name="auth" options={{ headerShown: false }} />
-          )}
-          <Stack.Screen name="about" options={{ title: 'About' }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        {userIsAuthenticated ? (
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        ) : (
+          <Stack.Screen name="auth" options={{ headerShown: false }} />
+        )}
+        <Stack.Screen name="about" options={{ title: 'About' }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </ThemeProvider>
   );
 }
 
