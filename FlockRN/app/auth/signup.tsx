@@ -17,6 +17,7 @@ import { router } from 'expo-router';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { FirebaseError } from 'firebase/app';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { logEvent } from 'expo-firebase-analytics';
 
 export default function SignUpScreen() {
   const theme = useColorScheme() ?? 'light';
@@ -54,7 +55,9 @@ export default function SignUpScreen() {
         email: user.email,
         createdAt: new Date(),
       });
-      console.log('User created:', user);
+      await logEvent('user_sign_up', {
+        method: 'email', // or 'google', 'facebook', etc.
+      });
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)');
     } catch (error: unknown) {

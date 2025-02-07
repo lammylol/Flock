@@ -10,6 +10,7 @@ import { auth } from '@/firebase/firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
+import { logEvent } from 'expo-firebase-analytics';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const user = await logIn(email, password);
-      console.log('Login successful:', user);
+      await logEvent('user_sign_in', user);
       // Navigate to another screen after successful login
       router.replace('/(tabs)');
     } catch (error: any) {
