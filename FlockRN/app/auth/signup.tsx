@@ -162,11 +162,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   icon: {
     marginLeft: 10,
   },
@@ -178,6 +173,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     padding: 10,
     width: '100%',
+  },
+  passwordContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
   },
   title: {
     color: '#000',
