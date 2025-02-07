@@ -3,7 +3,12 @@
 // service for handling prayer CRUD operations with Firebase
 
 import firestore from '@react-native-firebase/firestore';
-import { Prayer, CreatePrayerDTO, UpdatePrayerDTO, PrayerUpdate } from '@/types/firebase';
+import {
+  Prayer,
+  CreatePrayerDTO,
+  UpdatePrayerDTO,
+  PrayerUpdate,
+} from '@/types/firebase';
 
 class PrayerService {
   private db = firestore();
@@ -13,12 +18,12 @@ class PrayerService {
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
       const now = firestore.Timestamp.now();
-      
+
       const prayerRef = this.prayersCollection.doc();
       await prayerRef.set({
         ...data,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
       });
 
       // If prayer is public, add to author's feed
@@ -29,7 +34,7 @@ class PrayerService {
           .doc(prayerRef.id)
           .set({
             prayerId: prayerRef.id,
-            addedAt: now
+            addedAt: now,
           });
       }
 
@@ -43,12 +48,12 @@ class PrayerService {
   async getPrayer(prayerId: string): Promise<Prayer | null> {
     try {
       const doc = await this.prayersCollection.doc(prayerId).get();
-      
+
       if (!doc.exists) return null;
-      
+
       return {
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       } as Prayer;
     } catch (error) {
       console.error('Error getting prayer:', error);
@@ -63,9 +68,9 @@ class PrayerService {
         .orderBy('createdAt', 'desc')
         .get();
 
-      return snapshot.docs.map(doc => ({
+      return snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as Prayer[];
     } catch (error) {
       console.error('Error getting user prayers:', error);
@@ -76,10 +81,10 @@ class PrayerService {
   async updatePrayer(prayerId: string, data: UpdatePrayerDTO): Promise<void> {
     try {
       const now = firestore.Timestamp.now();
-      
+
       await this.prayersCollection.doc(prayerId).update({
         ...data,
-        updatedAt: now
+        updatedAt: now,
       });
 
       // Update feed entry if prayer visibility changes
@@ -95,7 +100,7 @@ class PrayerService {
             // Add to feed if making public
             await feedRef.set({
               prayerId: prayerId,
-              addedAt: now
+              addedAt: now,
             });
           } else {
             // Remove from feed if making private
@@ -113,7 +118,7 @@ class PrayerService {
     try {
       // Delete the prayer document
       await this.prayersCollection.doc(prayerId).delete();
-      
+
       // Remove from author's feed if it exists
       await this.feedsCollection
         .doc(authorId)
@@ -126,20 +131,22 @@ class PrayerService {
         .doc(prayerId)
         .collection('updates')
         .get();
-      
+
       const batch = this.db.batch();
       updates.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
       await batch.commit();
-        
     } catch (error) {
       console.error('Error deleting prayer:', error);
       throw error;
     }
   }
 
-  async addUpdate(prayerId: string, update: Omit<PrayerUpdate, 'id'>): Promise<string> {
+  async addUpdate(
+    prayerId: string,
+    update: Omit<PrayerUpdate, 'id'>,
+  ): Promise<string> {
     try {
       const updateRef = this.prayersCollection
         .doc(prayerId)
@@ -148,12 +155,12 @@ class PrayerService {
 
       await updateRef.set({
         ...update,
-        id: updateRef.id
+        id: updateRef.id,
       });
 
       // Update the prayer's updatedAt timestamp
       await this.prayersCollection.doc(prayerId).update({
-        updatedAt: firestore.Timestamp.now()
+        updatedAt: firestore.Timestamp.now(),
       });
 
       return updateRef.id;
@@ -171,9 +178,9 @@ class PrayerService {
         .orderBy('createdAt', 'desc')
         .get();
 
-      return snapshot.docs.map(doc => ({
+      return snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       })) as PrayerUpdate[];
     } catch (error) {
       console.error('Error getting prayer updates:', error);
@@ -184,19 +191,19 @@ class PrayerService {
   // Real-time listeners
   listenToPrayer(prayerId: string, callback: (prayer: Prayer | null) => void) {
     return this.prayersCollection.doc(prayerId).onSnapshot(
-      doc => {
+      (doc) => {
         if (!doc.exists) {
           callback(null);
           return;
         }
         callback({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
         } as Prayer);
       },
-      error => {
+      (error) => {
         console.error('Error listening to prayer:', error);
-      }
+      },
     );
   }
 
@@ -205,16 +212,16 @@ class PrayerService {
       .where('authorId', '==', userId)
       .orderBy('createdAt', 'desc')
       .onSnapshot(
-        snapshot => {
-          const prayers = snapshot.docs.map(doc => ({
+        (snapshot) => {
+          const prayers = snapshot.docs.map((doc) => ({
             id: doc.id,
-            ...doc.data()
+            ...doc.data(),
           })) as Prayer[];
           callback(prayers);
         },
-        error => {
+        (error) => {
           console.error('Error listening to user prayers:', error);
-        }
+        },
       );
   }
 }
