@@ -1,12 +1,20 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '../../services/prayer/prayerServices';
-import { auth } from '../../firebase/firebaseConfig';
 import type { CreatePrayerDTO } from '../../types/firebase';
+import useAuth from '@/hooks/useAuth';
 
 export default function CreatePrayerScreen() {
+  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
@@ -18,7 +26,7 @@ export default function CreatePrayerScreen() {
       return;
     }
 
-    if (!auth.currentUser?.uid) {
+    if (!user) {
       Alert.alert('Error', 'You must be logged in to create a prayer');
       return;
     }
@@ -29,14 +37,15 @@ export default function CreatePrayerScreen() {
         title: title.trim(),
         content: content.trim(),
         privacy: privacy,
-        authorId: auth.currentUser.uid,
+        authorId: user!.uid,
+        authorName: user!.displayName,
         status: 'Current' as const,
-        isPinned: false
-      };
+        isPinned: false,
+      } as CreatePrayerDTO;
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
-      router.back();
+      router.replace('/(tabs)/prayer');
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
@@ -54,7 +63,7 @@ export default function CreatePrayerScreen() {
         onChangeText={setTitle}
         maxLength={100}
       />
-      
+
       <TextInput
         style={[styles.input, styles.contentInput]}
         placeholder="Prayer Content"
@@ -76,7 +85,7 @@ export default function CreatePrayerScreen() {
         </Picker>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleCreatePrayer}
         disabled={isLoading}

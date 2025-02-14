@@ -20,7 +20,6 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const user = await logIn(email, password);
-      console.log('Login successful:', user);
       // Navigate to another screen after successful login
       router.replace('/(tabs)');
     } catch (error: any) {
@@ -217,7 +216,6 @@ async function logIn(email: string, password: string) {
       email,
       password,
     );
-    console.log('User logged in:', userCredential.user);
     return userCredential.user;
   } catch (error: any) {
     console.error('Login failed:', error);

@@ -54,7 +54,6 @@ export default function SignUpScreen() {
         email: user.email,
         createdAt: new Date(),
       });
-      console.log('User created:', user);
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)');
     } catch (error: unknown) {

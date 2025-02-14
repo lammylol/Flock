@@ -1,58 +1,51 @@
-import { StyleSheet, Image, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import ScrollView from '@/components/ScrollView';
+import { Prayer } from '@/types/firebase';
+import useAuth from '@/hooks/useAuth';
+import { useState } from 'react';
+import { prayerService } from '@/services/prayer/prayerServices';
+import { Colors } from '@/constants/Colors';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function TabTwoScreen() {
+  const { user } = useAuth();
+  const [userPrayers, setUserPrayers] = useState<Prayer[]>([]);
+
+  useFocusEffect(() => {
+    const fetchPrayers = async () => {
+      try {
+        if (!user) return;
+        const prayers = await prayerService.getUserPrayers(user.uid);
+        setUserPrayers(prayers);
+      } catch (error) {
+        console.error('Error fetching prayers:', error);
+      }
+    };
+    fetchPrayers();
+  });
   return (
     <ScrollView>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Prayer</ThemedText>
+        <ThemedText type="title">Prayers</ThemedText>
       </ThemedView>
-      <ThemedText>Prayers go here!</ThemedText>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the{' '}
-          <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to
-          provide files for different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText>{' '}
-          to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">
-            components/HelloWave.tsx
-          </ThemedText>{' '}
-          component uses the powerful{' '}
-          <ThemedText type="defaultSemiBold">
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-      </Collapsible>
+      <ThemedView style={styles.container}>
+        <ScrollView>
+          {userPrayers.map((prayer: Prayer) => (
+            <ThemedView
+              key={prayer.id}
+              style={{ flex: 1 }}
+              lightColor={Colors.light.tabIconDefault}
+              darkColor={Colors.dark.tabIconDefault}
+            >
+              <ThemedText>{prayer.title}</ThemedText>
+              <ThemedText>{prayer.content}</ThemedText>
+            </ThemedView>
+          ))}
+        </ScrollView>
+      </ThemedView>
     </ScrollView>
   );
 }
@@ -68,4 +61,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  container: {},
 });
