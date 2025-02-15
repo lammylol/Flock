@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { SafeAreaView, StyleSheet, Platform } from 'react-native';
-
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
@@ -11,7 +10,6 @@ import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <Tabs
@@ -44,6 +42,15 @@ export default function TabLayout() {
             title: 'Prayer',
             tabBarIcon: ({ color }) => (
               <FontAwesome5 color={color} size={24} name={'praying-hands'} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="createPrayer"
+          options={{
+            title: 'Create',
+            tabBarIcon: ({ color }) => (
+              <FontAwesome5 color={color} size={24} name={'plus-circle'} />
             ),
           }}
         />
