@@ -15,6 +15,7 @@ class PrayerService {
   private prayersCollection = this.db.collection('prayers');
   private feedsCollection = this.db.collection('feeds');
 
+  // Create a prayer document in Firebase.
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
       const now = firestore.Timestamp.now();
@@ -45,6 +46,7 @@ class PrayerService {
     }
   }
 
+  // Get a single prayer document from Firebase. If the document does not exist, return null. 
   async getPrayer(prayerId: string): Promise<Prayer | null> {
     try {
       const doc = await this.prayersCollection.doc(prayerId).get();
@@ -61,6 +63,7 @@ class PrayerService {
     }
   }
 
+  // Get all prayers that exist in Firebase for a specific user.
   async getUserPrayers(userId: string): Promise<Prayer[]> {
     try {
       const snapshot = await this.prayersCollection
@@ -78,6 +81,7 @@ class PrayerService {
     }
   }
 
+  // Edit a prayer document in Firebase.
   async updatePrayer(prayerId: string, data: UpdatePrayerDTO): Promise<void> {
     try {
       const now = firestore.Timestamp.now();
@@ -114,6 +118,7 @@ class PrayerService {
     }
   }
 
+  // Delete a prayer document from Firebase.
   async deletePrayer(prayerId: string, authorId: string): Promise<void> {
     try {
       // Delete the prayer document
@@ -143,6 +148,8 @@ class PrayerService {
     }
   }
 
+  // Add an update to a prayer document in Firebase. An update 
+  // provides new status on an existing prayer.
   async addUpdate(
     prayerId: string,
     update: Omit<PrayerUpdate, 'id'>,
@@ -170,6 +177,7 @@ class PrayerService {
     }
   }
 
+  // Retrieve all prayer updates from Firebase for a specific prayer.
   async getPrayerUpdates(prayerId: string): Promise<PrayerUpdate[]> {
     try {
       const snapshot = await this.prayersCollection
@@ -188,7 +196,11 @@ class PrayerService {
     }
   }
 
-  // Real-time listeners
+  // -------- Real-time listeners ------------
+
+  /* Listen to a specific prayer document in Firebase. If the document does not exist, return null.
+  This enables the user to retrieve updates to a prayer in real-time without needing to 
+  refresh to see changes.*/
   listenToPrayer(prayerId: string, callback: (prayer: Prayer | null) => void) {
     return this.prayersCollection.doc(prayerId).onSnapshot(
       (doc) => {
@@ -207,6 +219,8 @@ class PrayerService {
     );
   }
 
+  /* Listen to all prayers that exist in Firebase for a specific user. This enables
+  user to retrieve all new prayers in real-time without needing to refresh.*/
   listenToUserPrayers(userId: string, callback: (prayers: Prayer[]) => void) {
     return this.prayersCollection
       .where('authorId', '==', userId)
