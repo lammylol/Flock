@@ -6,7 +6,7 @@ import ScrollView from '@/components/ScrollView';
 import { Prayer } from '@/types/firebase';
 import useAuth from '@/hooks/useAuth';
 import { useState } from 'react';
-import { prayerService } from '@/services/prayer/prayerServices';
+import { prayerService } from '@/services/prayer/prayerService';
 import { Colors } from '@/constants/Colors';
 import { useFocusEffect } from '@react-navigation/native';
 
