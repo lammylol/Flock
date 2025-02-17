@@ -9,9 +9,13 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
-import { prayerService } from '../../services/prayer/prayerServices';
+import { prayerService } from '../../services/prayer/prayerService';
 import type { CreatePrayerDTO } from '../../types/firebase';
 import useAuth from '@/hooks/useAuth';
+import useAudioRecordingService from '@/services/recording/audioRecordingService';
+import { useSpeechRecognitionService, transcribeAudioFile } from '@/services/recording/transcriptionService';
+import { AudioModule } from 'expo-audio';
+import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 
 export default function CreatePrayerScreen() {
   const { user } = useAuth();
@@ -19,6 +23,9 @@ export default function CreatePrayerScreen() {
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
+  const { record, stopRecording, audioRecorder } = useAudioRecordingService();
+  const { transcription, setTranscription } = useSpeechRecognitionService();
+  const [recording, setRecording] = useState("none");
 
   const handleCreatePrayer = async () => {
     if (!title.trim() || !content.trim()) {
@@ -51,6 +58,54 @@ export default function CreatePrayerScreen() {
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRecordPrayer = async () => {
+    try {
+      const recordingPermissions = await AudioModule.getRecordingPermissionsAsync();
+      const speechRecognitionPermissions = await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
+
+      // console.log("recognitionStatus:", speechRecognitionPermissions.status);
+      // console.log("recognitionGranted:", speechRecognitionPermissions.granted);
+      // console.log("recognitionCan ask again:", speechRecognitionPermissions.canAskAgain);
+      // console.log("recognitionExpires:", speechRecognitionPermissions.expires);
+      // console.log("recordingStatus:", recordingPermissions.status);
+      // console.log("recordingGranted:", recordingPermissions.granted);
+      // console.log("recordingCan ask again:", recordingPermissions.canAskAgain);
+      // console.log("recordingExpires:", recordingPermissions.expires);
+
+      // Request permissions if not granted
+      if (!recordingPermissions.granted || !speechRecognitionPermissions.granted) {
+        const recordPermission = await AudioModule.requestRecordingPermissionsAsync();
+        const speechPermission = await ExpoSpeechRecognitionModule.requestSpeechRecognizerPermissionsAsync();
+
+        if (!recordPermission || !speechPermission) {
+          console.warn("Permissions not granted");
+          return;
+        }
+      };
+
+      // Start speech recording
+      if (recording == "none" || recording == "complete") {
+        setRecording("recording");
+        await record();
+      } else {
+        const uri = await stopRecording();
+        setRecording("complete");
+
+        // Start transcription
+        if (uri) {
+          setTranscription("Transcribing...");
+          await transcribeAudioFile(uri);
+          setRecording("none");
+        } else {
+          console.warn("Recording not complete or AudioURI not found");
+        }
+      };
+
+    } catch (error) {
+      console.error("Error during speech recognition setup:", error);
     }
   };
 
@@ -94,6 +149,29 @@ export default function CreatePrayerScreen() {
           {isLoading ? 'Creating...' : 'Create Prayer'}
         </Text>
       </TouchableOpacity>
+
+      {recording != "recording" ? (
+        <TouchableOpacity
+          onPress={handleRecordPrayer}
+          style={styles.button}
+        >
+          <Text style={styles.buttonText}>Start</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          onPress={() => stopRecording()}
+          style={[
+            styles.button,
+            { backgroundColor: '#FF0000' }
+          ]}
+        >
+          <Text style={styles.buttonText}>Stop</Text>
+        </TouchableOpacity>
+      )}
+
+      <Text>
+        {"transcription: " + transcription}
+      </Text>
     </View>
   );
 }
