@@ -21,7 +21,7 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Auth with AsyncStorage persistence
 const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
+  persistence: getReactNativePersistence(AsyncStorage),
 });
 
 // Initialize Firestore with settings for Expo Go

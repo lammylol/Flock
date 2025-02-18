@@ -1,12 +1,11 @@
-import { StyleSheet, Platform } from 'react-native';
-
+import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import ScrollView from '@/components/ScrollView';
 import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
-import { HelloWave } from '@/components/HelloWave';
+// Remove unused HelloWave import
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
@@ -16,11 +15,11 @@ export default function TabTwoScreen() {
         <ThemedText type="title">{user?.displayName ?? 'Account'}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText>{Platform.OS}</ThemedText>
+        <ThemedText>Your Account</ThemedText>
         <Button
           label="Sign out"
           onPress={() => {
-            signOut;
+            signOut(); // Fixed: Add parentheses to call the function
             router.replace('/auth/login');
           }}
         />

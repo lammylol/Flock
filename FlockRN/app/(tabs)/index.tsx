@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-
 import { HelloWave } from '@/components/HelloWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -13,15 +12,17 @@ export default function HomeScreen() {
   return (
     <ScrollView>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">{`Hi ${user?.displayName}`}</ThemedText>
+        <ThemedText type="title">
+          {`Hi ${user?.displayName || 'there'}`}
+        </ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <WeekCalendar />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="default">{'Reminders'}</ThemedText>
-        <ThemedText>{'reminders go here'}</ThemedText>
+        <ThemedText type="default">Reminders</ThemedText>
+        <ThemedText>reminders go here</ThemedText>
       </ThemedView>
     </ScrollView>
   );

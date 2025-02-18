@@ -1,10 +1,26 @@
 import { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '../../services/prayer/prayerServices';
 import { auth } from '../../firebase/firebaseConfig';
-import type { CreatePrayerDTO } from '../../types/firebase';
+// Remove unused CreatePrayerDTO import
+
+// Add Colors constant
+const Colors = {
+  primary: '#007AFF',
+  disabled: '#ccc',
+  text: '#fff',
+  background: '#fff',
+  border: '#ddd',
+};
 
 export default function CreatePrayerScreen() {
   const [title, setTitle] = useState('');
@@ -31,7 +47,7 @@ export default function CreatePrayerScreen() {
         privacy: privacy,
         authorId: auth.currentUser.uid,
         status: 'Current' as const,
-        isPinned: false
+        isPinned: false,
       };
 
       await prayerService.createPrayer(prayerData);
@@ -54,7 +70,7 @@ export default function CreatePrayerScreen() {
         onChangeText={setTitle}
         maxLength={100}
       />
-      
+
       <TextInput
         style={[styles.input, styles.contentInput]}
         placeholder="Prayer Content"
@@ -76,7 +92,7 @@ export default function CreatePrayerScreen() {
         </Picker>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleCreatePrayer}
         disabled={isLoading}
@@ -90,46 +106,46 @@ export default function CreatePrayerScreen() {
 }
 
 const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    padding: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.disabled,
+  },
+  buttonText: {
+    color: Colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
   container: {
+    backgroundColor: Colors.background,
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
   },
   contentInput: {
     height: 150,
   },
-  pickerContainer: {
+  input: {
+    borderColor: Colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    fontSize: 16,
     marginBottom: 16,
+    padding: 12,
   },
   label: {
     fontSize: 16,
     marginBottom: 8,
   },
   picker: {
+    borderColor: Colors.border,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
   },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  pickerContainer: {
+    marginBottom: 16,
   },
 });
