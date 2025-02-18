@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   line: {
-    borderBottomColor: Colors.dark.text,
+    borderBottomColor: Colors.black,
     borderBottomWidth: 1,
     width: 93,
   },
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   loginPage: {
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.secondary,  // Changed from Colors.background to Colors.secondary
     borderRadius: 44,
     flex: 1,
     justifyContent: 'flex-start',
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   missionText: {
-    color: '#000000',
+    color: Colors.black,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   signupLink: {
-    color: '#007aff',
+    color: Colors.link,
   },
   signupText: {
     fontSize: 16,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     alignItems: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: Colors.black,
     borderRadius: 15,
     justifyContent: 'center',
     paddingHorizontal: 10,
@@ -191,12 +191,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   submitText: {
-    color: '#ffffff',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: '500',
   },
   textInput: {
-    borderColor: '#C6C6C8',
+    borderColor: Colors.border,
     borderRadius: 15,
     borderWidth: 1,
     marginVertical: 10,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   welcome: {
-    color: '#000000',
+    color: Colors.black,
     fontSize: 48,
     fontWeight: '600',
     textAlign: 'left',
