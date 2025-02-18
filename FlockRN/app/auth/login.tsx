@@ -10,6 +10,8 @@ import { auth } from '@/firebase/firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
+import { FirebaseError } from 'firebase/app';
+import { Colors } from '@/constants/Colors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -21,14 +23,13 @@ export default function LoginScreen() {
     try {
       const user = await logIn(email, password);
       console.log('Login successful:', user);
-      // Navigate to another screen after successful login
       router.replace('/(tabs)');
-    } catch (error: any) {
-      console.error(
-        'Login error:',
-        error.message + ' (' + email + '): ' + password,
-      );
-      // alert(error.message); // Show user-friendly error
+    } catch (error) {
+      if (error instanceof FirebaseError) {
+        console.error('Login error:', error.message);
+      } else {
+        console.error('Unknown login error:', error);
+      }
     }
   };
 
@@ -125,13 +126,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   line: {
-    borderBottomColor: '#000000',
+    borderBottomColor: Colors.dark.text,
     borderBottomWidth: 1,
     width: 93,
   },
   loginButton: {
     alignItems: 'center',
-    backgroundColor: '#9d9fe1',
+    backgroundColor: Colors.primary,
     borderRadius: 15,
     height: 40,
     justifyContent: 'center',
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
   },
   loginPage: {
     alignItems: 'center',
-    backgroundColor: '#f1eee0',
+    backgroundColor: Colors.background,
     borderRadius: 44,
     flex: 1,
     justifyContent: 'flex-start',
@@ -149,13 +150,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   loginText: {
-    color: '#ffffff',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: '500',
   },
   mainSection: {
     alignItems: 'flex-start',
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.white,
     borderRadius: 20,
     justifyContent: 'flex-start',
     marginTop: 20,
@@ -217,10 +218,11 @@ async function logIn(email: string, password: string) {
       email,
       password,
     );
-    console.log('User logged in:', userCredential.user);
     return userCredential.user;
-  } catch (error: any) {
-    console.error('Login failed:', error);
-    throw new Error(error.message || 'Failed to log in. Please try again.');
+  } catch (error) {
+    if (error instanceof FirebaseError) {
+      throw error;
+    }
+    throw new Error('Failed to log in. Please try again.');
   }
 }

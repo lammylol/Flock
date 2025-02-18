@@ -8,13 +8,12 @@ import { WeekCalendar } from '@/components/ui/calendar';
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const greeting = user?.displayName ? `Hi ${user.displayName}` : 'Hi there';
 
   return (
     <ScrollView>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">
-          {`Hi ${user?.displayName || 'there'}`}
-        </ThemedText>
+        <ThemedText type="title">{greeting}</ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
@@ -22,7 +21,9 @@ export default function HomeScreen() {
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="default">Reminders</ThemedText>
-        <ThemedText>reminders go here</ThemedText>
+        <ThemedText type="body">
+          Your upcoming reminders will appear here
+        </ThemedText>
       </ThemedView>
     </ScrollView>
   );

@@ -5,7 +5,6 @@ import ScrollView from '@/components/ScrollView';
 import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
-// Remove unused HelloWave import
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
@@ -15,11 +14,10 @@ export default function TabTwoScreen() {
         <ThemedText type="title">{user?.displayName ?? 'Account'}</ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText>Your Account</ThemedText>
         <Button
-          label="Sign out"
+          label="Your Account"
           onPress={() => {
-            signOut(); // Fixed: Add parentheses to call the function
+            signOut();
             router.replace('/auth/login');
           }}
         />
