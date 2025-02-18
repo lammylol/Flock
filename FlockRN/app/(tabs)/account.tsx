@@ -1,5 +1,4 @@
 import { StyleSheet, Platform } from 'react-native';
-
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import ScrollView from '@/components/ScrollView';
@@ -7,9 +6,11 @@ import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
 import { HelloWave } from '@/components/HelloWave';
+import { auth } from '@/firebase/firebaseConfig'; // Add this import
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
+  
   return (
     <ScrollView>
       <ThemedView style={styles.titleContainer}>
@@ -19,8 +20,8 @@ export default function TabTwoScreen() {
         <ThemedText>{Platform.OS}</ThemedText>
         <Button
           label="Sign out"
-          onPress={() => {
-            signOut;
+          onPress={async () => {
+            await signOut(auth);  // Pass the auth instance
             router.replace('/auth/login');
           }}
         />
