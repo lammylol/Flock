@@ -28,6 +28,14 @@ module.exports = [
 
       quotes: ['error', 'single'],
       'prettier/prettier': ['error', { singleQuote: true }],
+      
+      // Added this rule configuration
+      'react-native/no-raw-text': [
+        'error',
+        {
+          skip: ['ThemedText'],
+        },
+      ],
     },
   },
 ];
