@@ -23,10 +23,11 @@ export default function CreatePrayerScreen() {
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
-  const { record, stopRecording, audioRecorder } = useAudioRecordingService();
+  const { record, stopRecording } = useAudioRecordingService();
   const { transcription, setTranscription } = useSpeechRecognitionService();
   const [recording, setRecording] = useState("none");
 
+  // function to handle prayer creation.
   const handleCreatePrayer = async () => {
     if (!title.trim() || !content.trim()) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -61,21 +62,16 @@ export default function CreatePrayerScreen() {
     }
   };
 
+  // function to handle the recording of prayer
   const handleRecordPrayer = async () => {
     try {
       const recordingPermissions = await AudioModule.getRecordingPermissionsAsync();
       const speechRecognitionPermissions = await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
 
-      // console.log("recognitionStatus:", speechRecognitionPermissions.status);
-      // console.log("recognitionGranted:", speechRecognitionPermissions.granted);
-      // console.log("recognitionCan ask again:", speechRecognitionPermissions.canAskAgain);
-      // console.log("recognitionExpires:", speechRecognitionPermissions.expires);
-      // console.log("recordingStatus:", recordingPermissions.status);
-      // console.log("recordingGranted:", recordingPermissions.granted);
-      // console.log("recordingCan ask again:", recordingPermissions.canAskAgain);
-      // console.log("recordingExpires:", recordingPermissions.expires);
+      console.log("recognitionGranted:", speechRecognitionPermissions.granted);
+      console.log("recordingGranted:", recordingPermissions.granted);
 
-      // Request permissions if not granted
+      // Request permissions to audio module if not granted
       if (!recordingPermissions.granted || !speechRecognitionPermissions.granted) {
         const recordPermission = await AudioModule.requestRecordingPermissionsAsync();
         const speechPermission = await ExpoSpeechRecognitionModule.requestSpeechRecognizerPermissionsAsync();
@@ -98,6 +94,7 @@ export default function CreatePrayerScreen() {
         if (uri) {
           setTranscription("Transcribing...");
           await transcribeAudioFile(uri);
+          setContent(transcription); // replace content text with transcription
           setRecording("none");
         } else {
           console.warn("Recording not complete or AudioURI not found");

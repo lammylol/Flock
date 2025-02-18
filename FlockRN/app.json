@@ -18,7 +18,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "googleServicesFile": "./firebase/google-services.json",
+      "googleServicesFile": "./firebase/GoogleService-Info.plist",
       "package": "com.lammylol.FlockRN"
     },
     "web": {
