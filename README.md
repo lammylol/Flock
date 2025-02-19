@@ -36,6 +36,10 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 ```bash
 yarn install
 ```
+```bash
+cd ios
+pod install
+```
 
 ### Set up emulators
 1. IOS
