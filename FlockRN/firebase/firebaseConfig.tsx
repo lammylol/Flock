@@ -2,9 +2,9 @@
 // and exports them for use in the application.
 
 // src/firebase.ts or src/firebaseConfig.ts
-import { initializeApp } from 'firebase/app';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeApp } from 'firebase/app'; // FirebaseApp initialization
+import { initializeFirestore } from 'firebase/firestore';
+import { getReactNativePersistence, initializeAuth } from 'firebase/auth'; // Firebase Auth
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {

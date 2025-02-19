@@ -10,12 +10,11 @@ export interface UserProfile {
   createdAt: Date;
 }
 
-export interface UserSettings {}
-
 export interface Prayer {
   id: string;
   content: string;
   authorId: string;
+  authorName: string;
   createdAt: Date;
   updatedAt: Date;
   status: 'Current' | 'Answered' | 'No Longer Needed';

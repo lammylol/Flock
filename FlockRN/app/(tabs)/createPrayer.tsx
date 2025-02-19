@@ -1,26 +1,13 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '../../services/prayer/prayerServices';
 import { auth } from '../../firebase/firebaseConfig';
-// Remove unused CreatePrayerDTO import
-
-// Add Colors constant
-const Colors = {
-  primary: '#007AFF',
-  disabled: '#ccc',
-  text: '#fff',
-  background: '#fff',
-  border: '#ddd',
-};
+import { Colors } from '@/constants/Colors';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { CreatePrayerDTO } from '@/types/firebase';
 
 export default function CreatePrayerScreen() {
   const [title, setTitle] = useState('');
@@ -46,9 +33,10 @@ export default function CreatePrayerScreen() {
         content: content.trim(),
         privacy: privacy,
         authorId: auth.currentUser.uid,
+        authorName: auth.currentUser!.displayName,
         status: 'Current' as const,
         isPinned: false,
-      };
+      } as CreatePrayerDTO;
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
@@ -62,7 +50,7 @@ export default function CreatePrayerScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder="Prayer Title"
@@ -80,8 +68,8 @@ export default function CreatePrayerScreen() {
         textAlignVertical="top"
       />
 
-      <View style={styles.pickerContainer}>
-        <Text style={styles.label}>Privacy:</Text>
+      <ThemedView style={styles.pickerContainer}>
+        <ThemedText style={styles.label}>Privacy:</ThemedText>
         <Picker
           selectedValue={privacy}
           onValueChange={(value) => setPrivacy(value)}
@@ -90,18 +78,18 @@ export default function CreatePrayerScreen() {
           <Picker.Item label="Private" value="private" />
           <Picker.Item label="Public" value="public" />
         </Picker>
-      </View>
+      </ThemedView>
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleCreatePrayer}
         disabled={isLoading}
       >
-        <Text style={styles.buttonText}>
+        <ThemedText style={styles.buttonText}>
           {isLoading ? 'Creating...' : 'Create Prayer'}
-        </Text>
+        </ThemedText>
       </TouchableOpacity>
-    </View>
+    </ThemedView>
   );
 }
 
@@ -116,12 +104,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.disabled,
   },
   buttonText: {
-    color: Colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
   container: {
-    backgroundColor: Colors.background,
     flex: 1,
     padding: 20,
   },

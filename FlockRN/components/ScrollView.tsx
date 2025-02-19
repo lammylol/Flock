@@ -5,7 +5,7 @@ import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { ThemedView } from '@/components/ThemedView';
 import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
 
-type Props = PropsWithChildren<{}>;
+type Props = PropsWithChildren;
 
 export default function ScrollView({ children }: Props) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();

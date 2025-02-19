@@ -1,12 +1,4 @@
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  useColorScheme,
-} from 'react-native';
+import { TextInput, StyleSheet, Alert, useColorScheme } from 'react-native';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
@@ -17,6 +9,9 @@ import { router } from 'expo-router';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { FirebaseError } from 'firebase/app';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import Button from '@/components/Button';
 
 export default function SignUpScreen() {
   const theme = useColorScheme() ?? 'light';
@@ -54,7 +49,6 @@ export default function SignUpScreen() {
         email: user.email,
         createdAt: new Date(),
       });
-      console.log('User created:', user);
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)');
     } catch (error: unknown) {
@@ -72,8 +66,8 @@ export default function SignUpScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create an Account</Text>
+    <ThemedView style={styles.container}>
+      <ThemedText style={styles.title}>Create an Account</ThemedText>
 
       <TextInput
         style={styles.input}
@@ -100,9 +94,9 @@ export default function SignUpScreen() {
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <View style={styles.passwordContainer}>
+      <ThemedView style={styles.passwordContainer}>
         <TextInput
-          style={{ ...styles.input, flex: 1 }}
+          style={styles.inputWithIcon}
           placeholder="Enter your password"
           placeholderTextColor="#C6C6C8"
           value={password}
@@ -116,10 +110,10 @@ export default function SignUpScreen() {
           style={styles.icon}
           onPress={() => setShowPassword(!showPassword)}
         />
-      </View>
-      <View style={styles.passwordContainer}>
+      </ThemedView>
+      <ThemedView style={styles.passwordContainer}>
         <TextInput
-          style={{ ...styles.input, flex: 1 }}
+          style={styles.inputWithIcon}
           placeholder="Confirm your password"
           placeholderTextColor="#C6C6C8"
           value={confirmPassword}
@@ -133,31 +127,16 @@ export default function SignUpScreen() {
           style={styles.icon}
           onPress={() => setShowConfirmPassword(!showConfirmPassword)}
         />
-      </View>
+      </ThemedView>
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
-    </View>
+      <Button label="Sign Up" onPress={handleSignUp} />
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    backgroundColor: '#007aff',
-    borderRadius: 10,
-    padding: 15,
-    width: '100%',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
   container: {
     alignItems: 'center',
-    backgroundColor: '#f1eee0',
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
@@ -166,23 +145,28 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   input: {
-    backgroundColor: '#fff',
-    borderColor: '#C6C6C8',
+    backgroundColor: Colors.white,
+    borderColor: Colors.border,
     borderRadius: 10,
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
     width: '100%',
   },
+  inputWithIcon: {},
   passwordContainer: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },
   title: {
-    color: '#000',
+    color: Colors.black,
     fontSize: 24,
     fontWeight: '600',
     marginBottom: 20,
   },
 });
+styles.inputWithIcon = {
+  ...StyleSheet.flatten(styles.input),
+  flex: 1,
+};
