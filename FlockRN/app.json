@@ -36,7 +36,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "./plugins/withCustomPodfile"
     ],
     "experiments": {
       "typedRoutes": true
