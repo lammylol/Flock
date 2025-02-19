@@ -10,6 +10,8 @@ import { auth } from '@/firebase/firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
+import { FirebaseError } from 'firebase/app';
+import { Colors } from '@/constants/Colors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -19,15 +21,15 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const user = await logIn(email, password);
+      await logIn(email, password);
       // Navigate to another screen after successful login
       router.replace('/(tabs)');
-    } catch (error: any) {
-      console.error(
-        'Login error:',
-        error.message + ' (' + email + '): ' + password,
-      );
-      // alert(error.message); // Show user-friendly error
+    } catch (error) {
+      if (error instanceof FirebaseError) {
+        console.error('Login error:', error.message);
+      } else {
+        console.error('Unknown login error:', error);
+      }
     }
   };
 
@@ -124,13 +126,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   line: {
-    borderBottomColor: '#000000',
+    borderBottomColor: Colors.black,
     borderBottomWidth: 1,
     width: 93,
   },
   loginButton: {
     alignItems: 'center',
-    backgroundColor: '#9d9fe1',
+    backgroundColor: Colors.primary,
     borderRadius: 15,
     height: 40,
     justifyContent: 'center',
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
   },
   loginPage: {
     alignItems: 'center',
-    backgroundColor: '#f1eee0',
+    backgroundColor: Colors.secondary, // Changed from Colors.background to Colors.secondary
     borderRadius: 44,
     flex: 1,
     justifyContent: 'flex-start',
@@ -148,13 +150,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   loginText: {
-    color: '#ffffff',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: '500',
   },
   mainSection: {
     alignItems: 'flex-start',
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.white,
     borderRadius: 20,
     justifyContent: 'flex-start',
     marginTop: 20,
@@ -162,7 +164,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   missionText: {
-    color: '#000000',
+    color: Colors.black,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -171,7 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   signupLink: {
-    color: '#007aff',
+    color: Colors.link,
   },
   signupText: {
     fontSize: 16,
@@ -181,7 +183,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     alignItems: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: Colors.black,
     borderRadius: 15,
     justifyContent: 'center',
     paddingHorizontal: 10,
@@ -189,12 +191,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   submitText: {
-    color: '#ffffff',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: '500',
   },
   textInput: {
-    borderColor: '#C6C6C8',
+    borderColor: Colors.border,
     borderRadius: 15,
     borderWidth: 1,
     marginVertical: 10,
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   welcome: {
-    color: '#000000',
+    color: Colors.black,
     fontSize: 48,
     fontWeight: '600',
     textAlign: 'left',
@@ -217,8 +219,10 @@ async function logIn(email: string, password: string) {
       password,
     );
     return userCredential.user;
-  } catch (error: any) {
-    console.error('Login failed:', error);
-    throw new Error(error.message || 'Failed to log in. Please try again.');
+  } catch (error) {
+    if (error instanceof FirebaseError) {
+      throw error;
+    }
+    throw new Error('Failed to log in. Please try again.');
   }
 }

@@ -51,11 +51,11 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    bottom: -90,
-    color: '#808080',
-    left: -35,
-    position: 'absolute',
+  imageStyle: {
+    alignSelf: 'center',
+  },
+  monoText: {
+    fontFamily: 'SpaceMono',
   },
   titleContainer: {
     flexDirection: 'row',

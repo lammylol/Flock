@@ -13,6 +13,8 @@ import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import useAuthContext from '@/hooks/useAuthContext';
 import { AuthProvider } from '@/context/AuthContext';
+// Import font instead of require
+import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -22,7 +24,7 @@ export function AppContent() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: SpaceMonoFont,
   });
 
   useEffect(() => {

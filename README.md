@@ -37,6 +37,16 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 yarn install
 ```
 
+Install pods to run developer build (ios only). 
+This project uses **expo-dev-client** because it has native dependencies. You **must** install expo-dev-client for it to work properly.
+```bash
+cd ios
+pod install
+```
+```bash
+npx expo install expo-dev-client
+```
+
 ### Set up emulators
 1. IOS
    - ensure xcode and ios simulator are installed

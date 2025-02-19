@@ -1,20 +1,15 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '../../services/prayer/prayerServices';
-import type { CreatePrayerDTO } from '../../types/firebase';
-import useAuth from '@/hooks/useAuth';
+import { auth } from '../../firebase/firebaseConfig';
+import { Colors } from '@/constants/Colors';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { CreatePrayerDTO } from '@/types/firebase';
 
 export default function CreatePrayerScreen() {
-  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
@@ -26,7 +21,7 @@ export default function CreatePrayerScreen() {
       return;
     }
 
-    if (!user) {
+    if (!auth.currentUser?.uid) {
       Alert.alert('Error', 'You must be logged in to create a prayer');
       return;
     }
@@ -37,15 +32,15 @@ export default function CreatePrayerScreen() {
         title: title.trim(),
         content: content.trim(),
         privacy: privacy,
-        authorId: user!.uid,
-        authorName: user!.displayName,
+        authorId: auth.currentUser.uid,
+        authorName: auth.currentUser!.displayName,
         status: 'Current' as const,
         isPinned: false,
       } as CreatePrayerDTO;
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
-      router.replace('/(tabs)/prayer');
+      router.back();
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
@@ -55,7 +50,7 @@ export default function CreatePrayerScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder="Prayer Title"
@@ -73,8 +68,8 @@ export default function CreatePrayerScreen() {
         textAlignVertical="top"
       />
 
-      <View style={styles.pickerContainer}>
-        <Text style={styles.label}>Privacy:</Text>
+      <ThemedView style={styles.pickerContainer}>
+        <ThemedText style={styles.label}>Privacy:</ThemedText>
         <Picker
           selectedValue={privacy}
           onValueChange={(value) => setPrivacy(value)}
@@ -83,62 +78,60 @@ export default function CreatePrayerScreen() {
           <Picker.Item label="Private" value="private" />
           <Picker.Item label="Public" value="public" />
         </Picker>
-      </View>
+      </ThemedView>
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleCreatePrayer}
         disabled={isLoading}
       >
-        <Text style={styles.buttonText}>
+        <ThemedText style={styles.buttonText}>
           {isLoading ? 'Creating...' : 'Create Prayer'}
-        </Text>
+        </ThemedText>
       </TouchableOpacity>
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    padding: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.disabled,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
   },
   contentInput: {
     height: 150,
   },
-  pickerContainer: {
+  input: {
+    borderColor: Colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    fontSize: 16,
     marginBottom: 16,
+    padding: 12,
   },
   label: {
     fontSize: 16,
     marginBottom: 8,
   },
   picker: {
+    borderColor: Colors.border,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
   },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  pickerContainer: {
+    marginBottom: 16,
   },
 });

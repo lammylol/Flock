@@ -29,6 +29,7 @@ import { FirestoreCollections } from '@/schema/firebaseCollections';
 
 class PrayerService {
   private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
+  private feedsCollection = collection(db, FirestoreCollections.FEED);
 
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
@@ -39,6 +40,21 @@ class PrayerService {
         createdAt: now,
         updatedAt: now,
       });
+
+      // If prayer is public, add to author's feed
+      if (data.privacy === 'public') {
+        const feedPrayerRef = doc(
+          db,
+          FirestoreCollections.FEED,
+          data.authorId,
+          FirestoreCollections.PRAYERS,
+          docRef.id,
+        );
+        await setDoc(feedPrayerRef, {
+          prayerId: docRef.id,
+          addedAt: now,
+        });
+      }
 
       return docRef.id;
     } catch (error) {
@@ -91,6 +107,31 @@ class PrayerService {
         ...data,
         updatedAt: now,
       });
+
+      // Update feed entry if prayer visibility changes
+      if (data.privacy !== undefined) {
+        const prayer = await this.getPrayer(prayerId);
+        if (prayer) {
+          const feedRef = doc(
+            db,
+            FirestoreCollections.FEED,
+            prayer.authorId,
+            FirestoreCollections.PRAYERS,
+            prayerId,
+          );
+
+          if (data.privacy === 'public') {
+            // Add to feed if making public
+            await setDoc(feedRef, {
+              prayerId: prayerId,
+              addedAt: now,
+            });
+          } else {
+            // Remove from feed if making private
+            await deleteDoc(feedRef);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error updating prayer:', error);
       throw error;
@@ -101,6 +142,18 @@ class PrayerService {
     try {
       // Delete the prayer document
       await deleteDoc(doc(this.prayersCollection, prayerId));
+
+      // Remove from author's feed if it exists
+      await deleteDoc(
+        doc(
+          db,
+          FirestoreCollections.FEED,
+          authorId,
+          FirestoreCollections.PRAYERS,
+          prayerId,
+        ),
+      );
+
       // Delete all updates subcollection
       const updatesRef = collection(
         this.prayersCollection,

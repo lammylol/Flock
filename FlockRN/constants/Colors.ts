@@ -7,6 +7,16 @@ const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
 export const Colors = {
+  // Common colors used across both themes
+  primary: '#9d9fe1', // Purple button color
+  secondary: '#f1eee0', // Beige background
+  white: '#ffffff',
+  black: '#000000',
+  border: '#C6C6C8',
+  link: '#007aff',
+  disabled: '#ccc',
+
+  // Theme-specific colors
   light: {
     text: '#11181C',
     background: '#fff',
