@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "googleServicesFile": "./firebase/GoogleService-Info.plist",
+      "googleServicesFile": "./firebase/google-services.json",
       "package": "com.lammylol.FlockRN"
     },
     "web": {

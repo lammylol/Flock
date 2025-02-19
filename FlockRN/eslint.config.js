@@ -6,7 +6,7 @@ const prettierConfig = require('eslint-config-prettier');
 
 module.exports = [
   {
-    ignores: ['node_modules', 'dist', 'build'],
+    ignores: ['node_modules', 'dist', 'build', 'ios', 'android', '**/*.d.ts'],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -28,7 +28,7 @@ module.exports = [
 
       quotes: ['error', 'single'],
       'prettier/prettier': ['error', { singleQuote: true }],
-      
+
       // Added this rule configuration
       'react-native/no-raw-text': [
         'error',

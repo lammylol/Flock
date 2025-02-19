@@ -1,24 +1,19 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
-import { prayerService } from '../../services/prayer/prayerService';
-import type { CreatePrayerDTO } from '../../types/firebase';
-import useAuth from '@/hooks/useAuth';
+import { prayerService } from '../../services/prayer/prayerServices';
+import { auth } from '../../firebase/firebaseConfig';
+import { Colors } from '@/constants/Colors';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { CreatePrayerDTO } from '@/types/firebase';
 import useAudioRecordingService from '@/services/recording/audioRecordingService';
 import { useSpeechRecognitionService, transcribeAudioFile } from '@/services/recording/transcriptionService';
 import { AudioModule } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 
 export default function CreatePrayerScreen() {
-  const { user } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
@@ -45,8 +40,8 @@ export default function CreatePrayerScreen() {
         title: title.trim(),
         content: content.trim(),
         privacy: privacy,
-        authorId: user!.uid,
-        authorName: user!.displayName,
+        authorId: auth.currentUser.uid,
+        authorName: auth.currentUser!.displayName,
         status: 'Current' as const,
         isPinned: false,
       } as CreatePrayerDTO;
@@ -107,7 +102,7 @@ export default function CreatePrayerScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <TextInput
         style={styles.input}
         placeholder="Prayer Title"
@@ -125,8 +120,8 @@ export default function CreatePrayerScreen() {
         textAlignVertical="top"
       />
 
-      <View style={styles.pickerContainer}>
-        <Text style={styles.label}>Privacy:</Text>
+      <ThemedView style={styles.pickerContainer}>
+        <ThemedText style={styles.label}>Privacy:</ThemedText>
         <Picker
           selectedValue={privacy}
           onValueChange={(value) => setPrivacy(value)}
@@ -135,45 +130,35 @@ export default function CreatePrayerScreen() {
           <Picker.Item label="Private" value="private" />
           <Picker.Item label="Public" value="public" />
         </Picker>
-      </View>
+      </ThemedView>
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleCreatePrayer}
         disabled={isLoading}
       >
-        <Text style={styles.buttonText}>
+        <ThemedText style={styles.buttonText}>
           {isLoading ? 'Creating...' : 'Create Prayer'}
-        </Text>
+        </ThemedText>
       </TouchableOpacity>
-
-      {recording != "recording" ? (
-        <TouchableOpacity
-          onPress={handleRecordPrayer}
-          style={styles.button}
-        >
-          <Text style={styles.buttonText}>Start</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          onPress={() => stopRecording()}
-          style={[
-            styles.button,
-            { backgroundColor: '#FF0000' }
-          ]}
-        >
-          <Text style={styles.buttonText}>Stop</Text>
-        </TouchableOpacity>
-      )}
-
-      <Text>
-        {"transcription: " + transcription}
-      </Text>
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    padding: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.disabled,
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   container: {
     flex: 1,
     padding: 20,

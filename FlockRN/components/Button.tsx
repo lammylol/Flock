@@ -8,19 +8,22 @@ const sizeMap = {
   m: { height: 40, width: 300 },
   l: { height: 50, width: 400 },
   xl: { height: 60, width: 500 },
-};
-type sizeType = keyof typeof sizeMap;
+} as const;
+
+type SizeType = keyof typeof sizeMap;
+
+const getSize = (size: SizeType) => sizeMap[size]; // Using sizeMap as a value
 
 type Props = {
   label: string;
-  size?: sizeType;
+  size?: SizeType;
   onPress: () => void;
 };
 
 export default function Button({ label, size = 's', onPress }: Props) {
   const backgroundColor = useThemeColor({}, 'tint');
   return (
-    <View style={styles.buttonContainer}>
+    <View style={[styles.buttonContainer, { ...getSize(size) }]}>
       <Pressable style={[{ backgroundColor }, styles.button]} onPress={onPress}>
         <ThemedText style={styles.buttonLabel}>{label}</ThemedText>
       </Pressable>

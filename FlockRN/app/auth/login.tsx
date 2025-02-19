@@ -21,7 +21,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const user = await logIn(email, password);
+      await logIn(email, password);
       // Navigate to another screen after successful login
       router.replace('/(tabs)');
     } catch (error) {
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   loginPage: {
     alignItems: 'center',
-    backgroundColor: Colors.secondary,  // Changed from Colors.background to Colors.secondary
+    backgroundColor: Colors.secondary, // Changed from Colors.background to Colors.secondary
     borderRadius: 44,
     flex: 1,
     justifyContent: 'flex-start',
