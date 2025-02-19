@@ -15,7 +15,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "generate:types": "ts-node schema/generateTypes.ts",
-    "clean": "rm -rf node_modules && rm -rf ios && rm -rf android"
+    "clean": "rm -rf node_modules && rm -rf ios && rm -rf android",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "jest": {
     "preset": "jest-expo"
@@ -29,9 +31,10 @@
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
+    "expo": "~52.0.35",
     "expo-blur": "~14.0.2",
     "expo-constants": "~17.0.4",
-    "expo-dev-client": "~5.0.9",
+    "expo-dev-client": "~5.0.12",
     "expo-font": "~13.0.3",
     "expo-haptics": "~14.0.1",
     "expo-linking": "~7.0.4",
