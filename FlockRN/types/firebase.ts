@@ -10,8 +10,6 @@ export interface UserProfile {
   createdAt: Date;
 }
 
-export interface UserSettings {}
-
 export interface Prayer {
   id: string;
   content: string;

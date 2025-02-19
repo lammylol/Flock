@@ -13,18 +13,14 @@ import {
   query,
   where,
   orderBy,
-  onSnapshot,
   Timestamp,
   writeBatch,
   setDoc,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
-import {
-  Prayer,
-  CreatePrayerDTO,
-  UpdatePrayerDTO,
-  PrayerUpdate,
-} from '@/types/firebase';
+import { Prayer, CreatePrayerDTO, UpdatePrayerDTO } from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 
 class PrayerService {
@@ -173,96 +169,98 @@ class PrayerService {
     }
   }
 
-  async addUpdate(
-    prayerId: string,
-    update: Omit<PrayerUpdate, 'id'>,
-  ): Promise<string> {
-    try {
-      const updatesRef = collection(
-        this.prayersCollection,
-        prayerId,
-        'updates',
-      );
-      const updateDoc = await addDoc(updatesRef, {
-        ...update,
-      });
+  // async addUpdate(
+  //   prayerId: string,
+  //   update: Omit<PrayerUpdate, 'id'>,
+  // ): Promise<string> {
+  //   try {
+  //     const updatesRef = collection(
+  //       this.prayersCollection,
+  //       prayerId,
+  //       'updates',
+  //     );
+  //     const updateDoc = await addDoc(updatesRef, {
+  //       ...update,
+  //     });
 
-      // Update the prayer's updatedAt timestamp
-      await updateDoc(doc(this.prayersCollection, prayerId), {
-        updatedAt: Timestamp.now(),
-      });
+  //     // Update the prayer's updatedAt timestamp
+  //     await updateDoc(doc(this.prayersCollection, prayerId), {
+  //       updatedAt: Timestamp.now(),
+  //     });
 
-      return updateDoc.id;
-    } catch (error) {
-      console.error('Error adding prayer update:', error);
-      throw error;
-    }
-  }
+  //     return updateDoc.id;
+  //   } catch (error) {
+  //     console.error('Error adding prayer update:', error);
+  //     throw error;
+  //   }
+  // }
 
-  async getPrayerUpdates(prayerId: string): Promise<PrayerUpdate[]> {
-    try {
-      const updatesRef = collection(
-        this.prayersCollection,
-        prayerId,
-        'updates',
-      );
-      const q = query(updatesRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
+  // async getPrayerUpdates(prayerId: string): Promise<PrayerUpdate[]> {
+  //   try {
+  //     const updatesRef = collection(
+  //       this.prayersCollection,
+  //       prayerId,
+  //       'updates',
+  //     );
+  //     const q = query(updatesRef, orderBy('createdAt', 'desc'));
+  //     const snapshot = await getDocs(q);
 
-      return snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as PrayerUpdate[];
-    } catch (error) {
-      console.error('Error getting prayer updates:', error);
-      throw error;
-    }
-  }
+  //     return snapshot.docs.map((doc) => ({
+  //       id: doc.id,
+  //       ...doc.data(),
+  //     })) as PrayerUpdate[];
+  //   } catch (error) {
+  //     console.error('Error getting prayer updates:', error);
+  //     throw error;
+  //   }
+  // }
 
-  // Real-time listeners
-  listenToPrayer(prayerId: string, callback: (prayer: Prayer | null) => void) {
-    const docRef = doc(this.prayersCollection, prayerId);
-    return onSnapshot(
-      docRef,
-      (doc) => {
-        if (!doc.exists()) {
-          callback(null);
-          return;
-        }
-        callback({
-          id: doc.id,
-          ...doc.data(),
-        } as Prayer);
-      },
-      (error) => {
-        console.error('Error listening to prayer:', error);
-      },
-    );
-  }
+  // // Real-time listeners
+  // listenToPrayer(prayerId: string, callback: (prayer: Prayer | null) => void) {
+  //   const docRef = doc(this.prayersCollection, prayerId);
+  //   return onSnapshot(
+  //     docRef,
+  //     (doc) => {
+  //       if (!doc.exists()) {
+  //         callback(null);
+  //         return;
+  //       }
+  //       callback({
+  //         id: doc.id,
+  //         ...doc.data(),
+  //       } as Prayer);
+  //     },
+  //     (error) => {
+  //       console.error('Error listening to prayer:', error);
+  //     },
+  //   );
+  // }
 
-  listenToUserPrayers(userId: string, callback: (prayers: Prayer[]) => void) {
-    const q = query(
-      this.prayersCollection,
-      where('authorId', '==', userId),
-      orderBy('createdAt', 'desc'),
-    );
+  // listenToUserPrayers(userId: string, callback: (prayers: Prayer[]) => void) {
+  //   const q = query(
+  //     this.prayersCollection,
+  //     where('authorId', '==', userId),
+  //     orderBy('createdAt', 'desc'),
+  //   );
 
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const prayers = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Prayer[];
-        callback(prayers);
-      },
-      (error) => {
-        console.error('Error listening to user prayers:', error);
-      },
-    );
-  }
+  //   return onSnapshot(
+  //     q,
+  //     (snapshot) => {
+  //       const prayers = snapshot.docs.map((doc) => ({
+  //         id: doc.id,
+  //         ...doc.data(),
+  //       })) as Prayer[];
+  //       callback(prayers);
+  //     },
+  //     (error) => {
+  //       console.error('Error listening to user prayers:', error);
+  //     },
+  //   );
+  // }
 
-  private convertDocToPrayer(docSnap: any): Prayer {
+  private convertDocToPrayer(
+    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+  ): Prayer {
     const data = docSnap.data();
     return {
       id: docSnap.id,

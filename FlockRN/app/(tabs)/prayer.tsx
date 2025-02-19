@@ -31,12 +31,12 @@ export default function TabTwoScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Prayers</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.container}>
+      <ThemedView>
         <ScrollView>
           {userPrayers.map((prayer: Prayer) => (
             <ThemedView
               key={prayer.id}
-              style={{ flex: 1 }}
+              style={styles.prayerContainer}
               lightColor={Colors.light.tabIconDefault}
               darkColor={Colors.dark.tabIconDefault}
             >
@@ -51,15 +51,9 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
-  imageStyle: {
-    alignSelf: 'center',
-  },
-  monoText: {
-    fontFamily: 'SpaceMono',
-  },
+  prayerContainer: { flex: 1 },
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
   },
-  container: {},
 });
