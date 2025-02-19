@@ -5187,6 +5187,11 @@ expo-asset@~11.0.3:
     invariant "^2.2.4"
     md5-file "^3.2.3"
 
+expo-audio@^0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/expo-audio/-/expo-audio-0.3.4.tgz#6a40b15bc813c8c4e0929afa2625ef9f922430d1"
+  integrity sha512-aVcLBmg5v/j30wxkKwm5iR719r/nacDMLdUb8zdLkp/Do5VIoG7D6YQU74VJ/q+3Oh2pjO7CiEvM9NUjP+3fQA==
+
 expo-blur@~14.0.2:
   version "14.0.2"
   resolved "https://registry.npmjs.org/expo-blur/-/expo-blur-14.0.2.tgz"
@@ -5333,6 +5338,11 @@ expo-router@~4.0.16:
     schema-utils "^4.0.1"
     semver "~7.6.3"
     server-only "^0.0.1"
+
+expo-speech-recognition@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/expo-speech-recognition/-/expo-speech-recognition-1.1.1.tgz#e6172b16898d47983116cff058ee806de91680d5"
+  integrity sha512-snQ1rsmQOXUIkkvwW3eCxSZ1FHYQ0lNLeguDTGX0Xg0xOug7zhQDk0/HppAvagfennQBYvQfAHvzUe936aK2LQ==
 
 expo-splash-screen@~0.29.20:
   version "0.29.20"
