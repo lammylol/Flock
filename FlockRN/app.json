@@ -11,7 +11,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lammylol.FlockRN",
-      "googleServicesFile": "./firebase/GoogleService-Info.plist"
+      "googleServicesFile": "./firebase/GoogleService-Info.plist",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "We need access to speech recognition to enable voice commands and transcription.",
+        "NSMicrophoneUsageDescription": "We need access to the microphone for capturing your voice input."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -36,7 +40,24 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone.",
+          "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+        }
+      ],
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": true
