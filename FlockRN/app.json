@@ -57,7 +57,8 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
         }
       ],
-      "expo-speech-recognition"
+      "expo-speech-recognition",
+      "./plugins/withCustomPodfile"
     ],
     "experiments": {
       "typedRoutes": true

@@ -3,9 +3,9 @@
 
 // src/firebase.ts or src/firebaseConfig.ts
 import { initializeApp } from 'firebase/app'; // FirebaseApp initialization
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import { getReactNativePersistence, initializeAuth } from 'firebase/auth'; // Firebase Auth
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDmba3sNUEgBjGbpy2e0ayQDsFa7DJvIMg',
@@ -19,11 +19,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// Export Firebase services
-const auth = initializeAuth(firebaseApp, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+// Initialize Auth with AsyncStorage persistence
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
 });
-const db = getFirestore(firebaseApp);
+
+// Initialize Firestore with settings for Expo Go
+const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+});
 
 export { auth, db };
-export default firebaseApp;
+export default app;
