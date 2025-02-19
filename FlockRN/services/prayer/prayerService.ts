@@ -274,23 +274,7 @@ class PrayerService {
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
     };
-  }
-
-  private convertDocToPrayer(docSnap: any): Prayer {
-    const data = docSnap.data();
-    return {
-      id: docSnap.id,
-      authorId: data.authorId,
-      authorName: data.authorName,
-      title: data.title,
-      content: data.content,
-      status: data.status,
-      isPinned: data.isPinned,
-      privacy: data.privacy,
-      createdAt: data.createdAt as Date,
-      updatedAt: data.updatedAt as Date,
-    };
-  }
-}
+  };
+};
 
 export const prayerService = new PrayerService();
