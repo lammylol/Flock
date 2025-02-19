@@ -36,6 +36,8 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 ```bash
 yarn install
 ```
+
+Install pods to run developer build (ios only)
 ```bash
 cd ios
 pod install
