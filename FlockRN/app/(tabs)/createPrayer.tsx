@@ -137,7 +137,6 @@ export default function CreatePrayerScreen() {
       >
         <Text style={styles.buttonText}>{recording === 'recording' ? 'Stop Recording' : 'Record Prayer'}</Text>
       </TouchableOpacity>
-      <Text>{"Transcription: " + transcription}</Text>
     </View>
   );
 }
