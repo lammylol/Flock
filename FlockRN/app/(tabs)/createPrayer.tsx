@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -25,32 +25,43 @@ export default function CreatePrayerScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { record, stopRecording } = useAudioRecordingService();
   const { transcription, setTranscription } = useSpeechRecognitionService();
-  const [recording, setRecording] = useState("none");
+  const [recording, setRecording] = useState<'none' | 'recording' | 'complete'>('none');
+  
+  useEffect(() => {
+    if (transcription) {
+      setContent(transcription);
+    }
+  }, [transcription]); // Runs whenever `transcription` changes
 
-  // function to handle prayer creation.
+  const requestPermissions = async () => {
+    const recordPermission = await AudioModule.getRecordingPermissionsAsync();
+    const speechPermission = await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
+
+    if (!recordPermission.granted || !speechPermission.granted) {
+      await AudioModule.requestRecordingPermissionsAsync();
+      await ExpoSpeechRecognitionModule.requestSpeechRecognizerPermissionsAsync();
+    }
+  };
+
   const handleCreatePrayer = async () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+      return Alert.alert('Error', 'Please fill in all fields');
     }
-
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to create a prayer');
-      return;
+      return Alert.alert('Error', 'You must be logged in to create a prayer');
     }
 
     setIsLoading(true);
     try {
-      const prayerData = {
+      const prayerData: CreatePrayerDTO = {
         title: title.trim(),
         content: content.trim(),
-        privacy: privacy,
-        authorId: user!.uid,
-        authorName: user!.displayName,
-        status: 'Current' as const,
+        privacy,
+        authorId: user.uid,
+        authorName: user.displayName,
+        status: 'Current',
         isPinned: false,
-      } as CreatePrayerDTO;
-
+      };
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
       router.replace('/(tabs)/prayer');
@@ -62,47 +73,26 @@ export default function CreatePrayerScreen() {
     }
   };
 
-  // function to handle the recording of prayer
   const handleRecordPrayer = async () => {
     try {
-      const recordingPermissions = await AudioModule.getRecordingPermissionsAsync();
-      const speechRecognitionPermissions = await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
+      await requestPermissions();
 
-      console.log("recognitionGranted:", speechRecognitionPermissions.granted);
-      console.log("recordingGranted:", recordingPermissions.granted);
-
-      // Request permissions to audio module if not granted
-      if (!recordingPermissions.granted || !speechRecognitionPermissions.granted) {
-        const recordPermission = await AudioModule.requestRecordingPermissionsAsync();
-        const speechPermission = await ExpoSpeechRecognitionModule.requestSpeechRecognizerPermissionsAsync();
-
-        if (!recordPermission || !speechPermission) {
-          console.warn("Permissions not granted");
-          return;
-        }
-      };
-
-      // Start speech recording
-      if (recording == "none" || recording == "complete") {
-        setRecording("recording");
+      if (recording === 'none' || recording === 'complete') {
+        setRecording('recording');
         await record();
       } else {
         const uri = await stopRecording();
-        setRecording("complete");
+        setRecording('complete');
 
-        // Start transcription
         if (uri) {
-          setTranscription("Transcribing...");
+          setTranscription('Transcribing...');
           await transcribeAudioFile(uri);
-          setContent(transcription); // replace content text with transcription
-          setRecording("none");
         } else {
-          console.warn("Recording not complete or AudioURI not found");
+          console.warn('Recording failed or AudioURI not found');
         }
-      };
-
+      }
     } catch (error) {
-      console.error("Error during speech recognition setup:", error);
+      console.error('Error during speech recognition:', error);
     }
   };
 
@@ -115,7 +105,6 @@ export default function CreatePrayerScreen() {
         onChangeText={setTitle}
         maxLength={100}
       />
-
       <TextInput
         style={[styles.input, styles.contentInput]}
         placeholder="Prayer Content"
@@ -124,96 +113,44 @@ export default function CreatePrayerScreen() {
         multiline
         textAlignVertical="top"
       />
-
       <View style={styles.pickerContainer}>
         <Text style={styles.label}>Privacy:</Text>
         <Picker
           selectedValue={privacy}
-          onValueChange={(value) => setPrivacy(value)}
+          onValueChange={setPrivacy}
           style={styles.picker}
         >
           <Picker.Item label="Private" value="private" />
           <Picker.Item label="Public" value="public" />
         </Picker>
       </View>
-
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleCreatePrayer}
         disabled={isLoading}
       >
-        <Text style={styles.buttonText}>
-          {isLoading ? 'Creating...' : 'Create Prayer'}
-        </Text>
+        <Text style={styles.buttonText}>{isLoading ? 'Creating...' : 'Create Prayer'}</Text>
       </TouchableOpacity>
-
-      {recording != "recording" ? (
-        <TouchableOpacity
-          onPress={handleRecordPrayer}
-          style={styles.button}
-        >
-          <Text style={styles.buttonText}>Start</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          onPress={() => stopRecording()}
-          style={[
-            styles.button,
-            { backgroundColor: '#FF0000' }
-          ]}
-        >
-          <Text style={styles.buttonText}>Stop</Text>
-        </TouchableOpacity>
-      )}
-
-      <Text>
-        {"transcription: " + transcription}
-      </Text>
+      <TouchableOpacity
+        onPress={handleRecordPrayer}
+        style={[styles.button, recording === 'recording' && styles.recordingButton]}
+      >
+        <Text style={styles.buttonText}>{recording === 'recording' ? 'Stop Recording' : 'Record Prayer'}</Text>
+      </TouchableOpacity>
+      <Text>{"Transcription: " + transcription}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  contentInput: {
-    height: 150,
-  },
-  pickerContainer: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-  },
-  picker: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16 },
+  contentInput: { height: 150 },
+  pickerContainer: { marginBottom: 16 },
+  label: { fontSize: 16, marginBottom: 8 },
+  picker: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8 },
+  button: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8, alignItems: 'center', marginVertical: 10 },
+  buttonDisabled: { backgroundColor: '#ccc' },
+  recordingButton: { backgroundColor: '#FF0000' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 });
