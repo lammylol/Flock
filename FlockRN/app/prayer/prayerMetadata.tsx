@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '../../services/prayer/prayerServices';
+import { analyzePrayerContent } from '../../services/ai/openAIService';
 import { auth } from '../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
@@ -17,6 +18,26 @@ export default function PrayerMetadataScreen() {
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleAIFill = async () => {
+    if (!content) {
+      Alert.alert('Error', 'No prayer content to analyze');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const analysis = await analyzePrayerContent(content);
+      setTitle(analysis.title);
+      setSelectedTags(analysis.tags);
+    } catch (error) {
+      console.error('Error using AI fill:', error);
+      Alert.alert('Error', 'Failed to analyze prayer. Please try again or fill manually.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const toggleTag = (tag: PrayerTag) => {
     if (selectedTags.includes(tag)) {
@@ -52,7 +73,7 @@ export default function PrayerMetadataScreen() {
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
-      router.push('/prayer');  // Navigate back to prayer tab
+      router.push('/prayer');
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
@@ -63,13 +84,26 @@ export default function PrayerMetadataScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Prayer Title"
-        value={title}
-        onChangeText={setTitle}
-        maxLength={100}
-      />
+      <ThemedView style={styles.titleContainer}>
+        <TextInput
+          style={[styles.input, styles.titleInput]}
+          placeholder="Prayer Title"
+          value={title}
+          onChangeText={setTitle}
+          maxLength={100}
+        />
+        <TouchableOpacity
+          style={[styles.aiButton, isAnalyzing && styles.aiButtonDisabled]}
+          onPress={handleAIFill}
+          disabled={isAnalyzing}
+        >
+          {isAnalyzing ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <ThemedText style={styles.aiButtonText}>AI Fill</ThemedText>
+          )}
+        </TouchableOpacity>
+      </ThemedView>
 
       <ThemedView style={styles.previewContainer}>
         <ThemedText style={styles.label}>Prayer Content:</ThemedText>
@@ -152,8 +186,32 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     fontSize: 16,
-    marginBottom: 16,
     padding: 12,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  titleInput: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  aiButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    padding: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  aiButtonDisabled: {
+    backgroundColor: Colors.disabled,
+  },
+  aiButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   label: {
     fontSize: 16,
