@@ -274,7 +274,7 @@ class PrayerService {
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
     };
-  };
-};
+  }
+}
 
 export const prayerService = new PrayerService();

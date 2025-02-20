@@ -51,10 +51,10 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {},
   prayerContainer: { flex: 1 },
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
   },
-  container: {},
 });

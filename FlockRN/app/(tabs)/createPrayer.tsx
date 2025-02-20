@@ -13,7 +13,10 @@ import { prayerService } from '../../services/prayer/prayerService';
 import type { CreatePrayerDTO } from '../../types/firebase';
 import useAuth from '@/hooks/useAuth';
 import useAudioRecordingService from '@/services/recording/audioRecordingService';
-import { useSpeechRecognitionService, transcribeAudioFile } from '@/services/recording/transcriptionService';
+import {
+  useSpeechRecognitionService,
+  transcribeAudioFile,
+} from '@/services/recording/transcriptionService';
 import { AudioModule } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 
@@ -25,8 +28,10 @@ export default function CreatePrayerScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { record, stopRecording } = useAudioRecordingService();
   const { transcription, setTranscription } = useSpeechRecognitionService();
-  const [recording, setRecording] = useState<'none' | 'recording' | 'complete'>('none');
-  
+  const [recording, setRecording] = useState<'none' | 'recording' | 'complete'>(
+    'none',
+  );
+
   useEffect(() => {
     if (transcription) {
       setContent(transcription);
@@ -35,7 +40,8 @@ export default function CreatePrayerScreen() {
 
   const requestPermissions = async () => {
     const recordPermission = await AudioModule.getRecordingPermissionsAsync();
-    const speechPermission = await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
+    const speechPermission =
+      await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
 
     if (!recordPermission.granted || !speechPermission.granted) {
       await AudioModule.requestRecordingPermissionsAsync();
@@ -129,27 +135,47 @@ export default function CreatePrayerScreen() {
         onPress={handleCreatePrayer}
         disabled={isLoading}
       >
-        <Text style={styles.buttonText}>{isLoading ? 'Creating...' : 'Create Prayer'}</Text>
+        <Text style={styles.buttonText}>
+          {isLoading ? 'Creating...' : 'Create Prayer'}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={handleRecordPrayer}
-        style={[styles.button, recording === 'recording' && styles.recordingButton]}
+        style={[
+          styles.button,
+          recording === 'recording' && styles.recordingButton,
+        ]}
       >
-        <Text style={styles.buttonText}>{recording === 'recording' ? 'Stop Recording' : 'Record Prayer'}</Text>
+        <Text style={styles.buttonText}>
+          {recording === 'recording' ? 'Stop Recording' : 'Record Prayer'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 16, fontSize: 16 },
-  contentInput: { height: 150 },
-  pickerContainer: { marginBottom: 16 },
-  label: { fontSize: 16, marginBottom: 8 },
-  picker: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8 },
-  button: { backgroundColor: '#007AFF', padding: 16, borderRadius: 8, alignItems: 'center', marginVertical: 10 },
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    marginVertical: 10,
+    padding: 16,
+  },
   buttonDisabled: { backgroundColor: '#ccc' },
-  recordingButton: { backgroundColor: '#FF0000' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  container: { backgroundColor: '#fff', flex: 1, padding: 20 },
+  contentInput: { height: 150 },
+  input: {
+    borderColor: '#ddd',
+    borderRadius: 8,
+    borderWidth: 1,
+    fontSize: 16,
+    marginBottom: 16,
+    padding: 12,
+  },
+  label: { fontSize: 16, marginBottom: 8 },
+  picker: { borderColor: '#ddd', borderRadius: 8, borderWidth: 1 },
+  pickerContainer: { marginBottom: 16 },
+  recordingButton: { backgroundColor: '#FF0000' },
 });
