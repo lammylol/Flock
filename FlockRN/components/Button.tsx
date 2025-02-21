@@ -3,7 +3,7 @@ import { StyleSheet, View, Pressable } from 'react-native';
 import { ThemedText } from './ThemedText';
 
 const sizeMap = {
-  xs: { height: 20, width: 100 },
+  xs: { height: 30, width: 100 },
   s: { height: 30, width: 200 },
   m: { height: 40, width: 300 },
   l: { height: 50, width: 400 },

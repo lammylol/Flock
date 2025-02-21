@@ -4,9 +4,39 @@
 
 export interface UserProfile {
   email: string;
+  username: string;
   firstName: string;
   lastName: string;
-  username: string;
+  displayName: string;
+  createdAt: Date;
+  friends: string[];
+  groups: string[];
+  friendRequestSent: FriendRequestSent[];
+  friendRequestReceived: FriendRequestReceived[];
+  // used for searching
+  normalizedUsername: string;
+  normalizedFirstName: string;
+  normalizedLastName: string;
+}
+
+export interface UserProfileResponse extends UserProfile {
+  id: string;
+}
+
+export interface FriendRequestSent {
+  to: string;
+  timestamp: Date;
+}
+export interface FriendRequestReceived {
+  from: string;
+  timestamp: Date;
+}
+
+export interface Group {
+  name: string;
+  description: string;
+  admins: string[];
+  members: string[];
   createdAt: Date;
 }
 

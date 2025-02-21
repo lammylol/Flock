@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
-import { auth } from '@/firebase/firebaseConfig';
+import { auth, db } from '@/firebase/firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { FirebaseError } from 'firebase/app';
 import { Colors } from '@/constants/Colors';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { FirestoreCollections } from '@/schema/firebaseCollections';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -21,7 +23,24 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      await logIn(email, password);
+      const user = await logIn(email, password);
+      const userRef = doc(db, FirestoreCollections.USERS, user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        await updateDoc(userRef, {
+          friends: userData?.friends || [],
+          groups: userData?.groups || [],
+          friendRequestSent: userData?.friendRequestSent || [],
+          friendRequestReceived: userData?.friendRequestReceived || [],
+          normalizedUsername: userData?.username?.toLowerCase() || '',
+          normalizedFirstName: userData?.firstName?.toLowerCase() || '',
+          normalizedLastName: userData?.lastName?.toLowerCase() || '',
+        });
+      } else {
+        console.warn('User document does not exist.');
+      }
       // Navigate to another screen after successful login
       router.replace('/(tabs)');
     } catch (error) {

@@ -16,6 +16,8 @@
     "format": "prettier --write .",
     "generate:types": "ts-node schema/generateTypes.ts",
     "clean": "rm -rf node_modules && rm -rf ios && rm -rf android",
+    "clean:ios": "rm -rf ios",
+    "clean:android": "rm -rf android",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
