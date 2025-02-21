@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_OPENAI_API_KEY as string,
+  apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY as string,
   dangerouslyAllowBrowser: true
 });
 
