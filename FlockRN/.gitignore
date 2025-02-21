@@ -60,4 +60,4 @@ app-example/
 *.swp
 *.swo
 *.lock
-*.tmp
+*.tmp.env
