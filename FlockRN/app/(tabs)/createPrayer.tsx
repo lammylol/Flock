@@ -60,8 +60,8 @@ export default function CreatePrayerScreen() {
     setIsLoading(true);
     try {
       const prayerData: CreatePrayerDTO = {
-        title: "This is not a test.",
-        content: "I've been having a crazy week. I can't believe it. I've been waiting for a long time for this, and it's finally happening. Baby Lam coming October 2024.",
+        title: title.trim(),
+        content: content.trim(),
         privacy,
         authorId: user.uid,
         authorName: user.displayName,
