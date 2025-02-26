@@ -11,8 +11,6 @@ export interface UserProfile {
   createdAt: Date;
   friends: string[];
   groups: string[];
-  friendRequestSent: FriendRequestSent[];
-  friendRequestReceived: FriendRequestReceived[];
   // used for searching
   normalizedUsername: string;
   normalizedFirstName: string;
@@ -23,12 +21,11 @@ export interface UserProfileResponse extends UserProfile {
   id: string;
 }
 
-export interface FriendRequestSent {
-  to: string;
-  timestamp: Date;
-}
-export interface FriendRequestReceived {
-  from: string;
+export interface FriendRequest {
+  userId: string;
+  username: string;
+  displayName: string;
+  status: 'pending' | 'accepted' | 'rejected';
   timestamp: Date;
 }
 
@@ -78,3 +75,10 @@ export type CreatePrayerDTO = Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdatePrayerDTO = Partial<
   Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>
 >;
+
+export interface ServiceResponse {
+  success: boolean;
+  message?: string;
+  errorCode?: string;
+  errorMessage?: string;
+}

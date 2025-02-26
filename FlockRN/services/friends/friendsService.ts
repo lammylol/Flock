@@ -3,11 +3,16 @@ import {
   FirestoreCollections,
   FriendRequestFields,
 } from '@/schema/firebaseCollections';
-import { UserProfileResponse } from '@/types/firebase';
+import {
+  FriendRequest,
+  ServiceResponse,
+  UserProfileResponse,
+} from '@/types/firebase';
 import {
   arrayUnion,
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -33,14 +38,16 @@ class FriendsService {
           where(field, '<=', lowerSearchTerm + '\uf8ff'),
         ),
       );
-
-      // Execute the queries concurrently
-
       const snapshots = await Promise.all(queries.map(getDocs));
-      const resultsMap = new Map<string, any>();
+
+      // dedupe results
+      const resultsMap = new Map<string, UserProfileResponse>();
       snapshots.forEach((snapshot) => {
         snapshot.forEach((doc) =>
-          resultsMap.set(doc.id, { id: doc.id, ...doc.data() }),
+          resultsMap.set(doc.id, {
+            id: doc.id,
+            ...doc.data(),
+          } as UserProfileResponse),
         );
       });
 
@@ -50,44 +57,67 @@ class FriendsService {
       return [];
     }
   }
-  async sendFriendRequest(senderId: string, receiverId: string) {
+  async sendFriendRequest(
+    sendingUser: UserProfileResponse,
+    receivingUser: UserProfileResponse,
+  ): Promise<ServiceResponse> {
     try {
-      // References for the friend request documents in both subcollections
+      const sendingUserId = sendingUser.id;
+      const receivingUserId = receivingUser.id;
+
       const senderSentRef = doc(
         this.userCollection,
-        senderId,
+        sendingUserId,
         FriendRequestFields.SENT,
-        receiverId,
+        receivingUserId,
       );
       const receiverReceivedRef = doc(
         this.userCollection,
-        receiverId,
+        receivingUserId,
         FriendRequestFields.RECEIVED,
-        senderId,
+        sendingUserId,
       );
 
-      // Create a batch write to update both documents atomically
       const batch = writeBatch(db);
-      batch.set(senderSentRef, {
-        to: receiverId,
-        status: 'pending',
-        timestamp: serverTimestamp(),
-      });
-      batch.set(receiverReceivedRef, {
-        from: senderId,
-        status: 'pending',
-        timestamp: serverTimestamp(),
-      });
+      batch.set(
+        senderSentRef,
+        {
+          userId: receivingUserId,
+          username: receivingUser.username,
+          displayName: receivingUser.displayName,
+          status: 'pending',
+          timestamp: new Date(),
+        } as FriendRequest,
+        { merge: true },
+      );
+      batch.set(
+        receiverReceivedRef,
+        {
+          userId: sendingUserId,
+          username: sendingUser.username,
+          displayName: sendingUser.displayName,
+          status: 'pending',
+          timestamp: new Date(),
+        } as FriendRequest,
+        { merge: true },
+      );
 
       // Commit the batch write
       await batch.commit();
       return { success: true };
     } catch (error) {
       console.error('Error sending friend request:', error);
-      return { success: false, error: error.message };
+      return {
+        success: false,
+        errorMessage:
+          error instanceof Error ? error.message : 'UNKNOWN_SEND_REQUEST_ERROR',
+      };
     }
   }
-  async acceptFriendRequest(senderId: string, receiverId: string) {
+  async acceptFriendRequest(
+    senderId: string,
+    receiverId: string,
+  ): Promise<ServiceResponse> {
     try {
       // References to the friend request documents
       const senderFriendRequestRef = doc(
@@ -110,11 +140,15 @@ class FriendsService {
       // Create a batch write to perform all operations atomically
       const batch = writeBatch(db);
 
-      // Remove friend request documents (you can choose to delete or update the status if you prefer)
-      batch.delete(senderFriendRequestRef);
-      batch.delete(receiverFriendRequestRef);
+      // Update the status of both friend requests to 'accepted'
+      batch.update(senderFriendRequestRef, {
+        status: 'accepted',
+      });
+      batch.update(receiverFriendRequestRef, {
+        status: 'accepted',
+      });
 
-      // Update both users' friend arrays
+      // Add both users to each other's friends array
       batch.update(senderUserRef, {
         friends: arrayUnion(receiverId),
       });
@@ -127,11 +161,17 @@ class FriendsService {
       return { success: true };
     } catch (error) {
       console.error('Error sending friend request:', error);
-      return { success: false, error: error.message };
+      return {
+        success: false,
+        errorMessage:
+          error instanceof Error
+            ? error.message
+            : 'UNKNOWN_ACCEPT_REQUEST_ERROR',
+      };
     }
   }
 
-  async getPendingFriendRequests(userId: string) {
+  async getPendingFriendRequests(userId: string): Promise<FriendRequest[]> {
     try {
       // Reference to the user's friendRequestsReceived subcollection
       const requestsRef = collection(
@@ -140,22 +180,43 @@ class FriendsService {
         FriendRequestFields.RECEIVED,
       );
 
-      // Query for pending requests. Here we assume that a pending request
-      // does not have an acceptedTimestamp field.
-      const q = query(requestsRef, where('acceptedTimestamp', '==', null));
-
       // Execute the query
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(requestsRef);
 
       // Map results into an array of objects
-      const pendingRequests = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const pendingRequests: FriendRequest[] = querySnapshot.docs.map(
+        (doc) => ({
+          ...doc.data(),
+        }),
+      ) as FriendRequest[];
+      console.log('pendingRequests:', pendingRequests);
 
       return pendingRequests;
     } catch (error) {
       console.error('Error fetching pending friend requests:', error);
+      return [];
+    }
+  }
+  async getSentFriendRequests(userId: string): Promise<FriendRequest[]> {
+    try {
+      // Reference to the user's friendRequestsSent subcollection
+      const requestsRef = collection(
+        this.userCollection,
+        userId,
+        FriendRequestFields.SENT,
+      );
+
+      // Execute the query
+      const querySnapshot = await getDocs(requestsRef);
+
+      // Map results into an array of objects
+      const sentRequests: FriendRequest[] = querySnapshot.docs.map((doc) => ({
+        ...doc.data(),
+      })) as FriendRequest[];
+      console.log('sentRequests:', sentRequests);
+      return sentRequests;
+    } catch (error) {
+      console.error('Error fetching sent friend requests:', error);
       return [];
     }
   }

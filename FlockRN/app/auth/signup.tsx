@@ -52,8 +52,6 @@ export default function SignUpScreen() {
         email: user.email,
         friends: [],
         groups: [],
-        friendRequestSent: [],
-        friendRequestReceived: [],
         createdAt: new Date(),
         // used for searching
         normalizedUsername: userName.toLowerCase(),

@@ -32,8 +32,6 @@ export default function LoginScreen() {
         await updateDoc(userRef, {
           friends: userData?.friends || [],
           groups: userData?.groups || [],
-          friendRequestSent: userData?.friendRequestSent || [],
-          friendRequestReceived: userData?.friendRequestReceived || [],
           normalizedUsername: userData?.username?.toLowerCase() || '',
           normalizedFirstName: userData?.firstName?.toLowerCase() || '',
           normalizedLastName: userData?.lastName?.toLowerCase() || '',
@@ -107,12 +105,6 @@ export default function LoginScreen() {
           <Link href="/auth/signup" style={styles.signupLink}>
             Sign Up
           </Link>
-          {/* <Text
-                        style={styles.signupLink}
-                        onPress={() => router.replace('/auth/signup')}
-                    >
-                        Sign up
-                    </Text> */}
         </Text>
       </View>
     </SafeAreaView>

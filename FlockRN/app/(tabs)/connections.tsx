@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import ScrollView from '@/components/ScrollView';
 import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { friendsService } from '@/services/friends/friendsService';
 import { Tabs } from '@/components/Tab';
-import { UserProfileResponse } from '@/types/firebase';
+import { FriendRequest, UserProfileResponse } from '@/types/firebase';
 
 export default function ConnectionsScreen() {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState<UserProfileResponse[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [selectedTab, setSelectedTab] = useState<'add' | 'requests'>('add');
 
   const handleSearchForUser = async () => {
@@ -23,13 +23,26 @@ export default function ConnectionsScreen() {
   };
 
   const handleSendFriendRequest = async (receiver: UserProfileResponse) => {
-    await friendsService.sendFriendRequest(user!.uid, receiver.id);
-    setSearchResults((prev) => prev.filter((u) => u.id !== receiver.id));
+    const res = await friendsService.sendFriendRequest(userProfile!, receiver);
+    if (res.success) {
+      setSearchResults((prev) => prev.filter((u) => u.id !== receiver.id));
+    }
   };
 
-  const fetchPendingRequests = async () => {
-    const requests = await friendsService.getPendingFriendRequests(user!.uid);
+  const handleFetchPendingRequests = async () => {
+    const requests = await friendsService.getPendingFriendRequests(
+      userProfile!.id,
+    );
     setPendingRequests(requests);
+  };
+
+  const handleFetchSentRequests = async () => {
+    const sent = await friendsService.getSentFriendRequests(userProfile!.id);
+    setSentRequests(sent);
+  };
+
+  const handleAcceptFriendRequest = async (requesterUserId: string) => {
+    await friendsService.acceptFriendRequest(userProfile!.id, requesterUserId);
   };
 
   return (
@@ -66,34 +79,51 @@ export default function ConnectionsScreen() {
               </ThemedView>
             )}
           />
-        </ThemedView>
-      ) : (
-        <ScrollView>
-          <ThemedView style={styles.container}>
-            <Button label="Refresh Requests" onPress={fetchPendingRequests} />
+          <ThemedView>
+            <ThemedText type="title">Sent Requests</ThemedText>
+            <Button
+              label="Refresh Requests"
+              onPress={handleFetchSentRequests}
+            />
             <FlatList
-              data={pendingRequests}
-              keyExtractor={(item) => item.id}
+              data={sentRequests}
+              keyExtractor={(item) => item.userId}
               renderItem={({ item }) => (
                 <ThemedView style={styles.userCard}>
-                  <ThemedText>{item.name} sent you a request</ThemedText>
-                  <Button
-                    label="Accept"
-                    onPress={() =>
-                      friendsService.acceptFriendRequest(user!.uid, item.id)
-                    }
-                  />
-                  {/* <Button
+                  <ThemedText>
+                    {item.displayName} {item.status}
+                  </ThemedText>
+                </ThemedView>
+              )}
+            />
+          </ThemedView>
+        </ThemedView>
+      ) : (
+        <ThemedView style={styles.container}>
+          <Button
+            label="Refresh Requests"
+            onPress={handleFetchPendingRequests}
+          />
+          <FlatList
+            data={pendingRequests}
+            keyExtractor={(item) => item.userId}
+            renderItem={({ item }) => (
+              <ThemedView style={styles.userCard}>
+                <ThemedText>{item.displayName} sent you a request</ThemedText>
+                <Button
+                  label="Accept"
+                  onPress={() => handleAcceptFriendRequest(item.userId)}
+                />
+                {/* <Button
                   label="Decline"
                   onPress={() =>
                     friendsService.declineFriendRequest(user!.uid, item.id)
                   }
                 /> */}
-                </ThemedView>
-              )}
-            />
-          </ThemedView>
-        </ScrollView>
+              </ThemedView>
+            )}
+          />
+        </ThemedView>
       )}
     </ThemedView>
   );
