@@ -12,10 +12,8 @@ import {
   arrayUnion,
   collection,
   doc,
-  getDoc,
   getDocs,
   query,
-  serverTimestamp,
   where,
   writeBatch,
 } from 'firebase/firestore';
@@ -141,12 +139,8 @@ class FriendsService {
       const batch = writeBatch(db);
 
       // Update the status of both friend requests to 'accepted'
-      batch.update(senderFriendRequestRef, {
-        status: 'accepted',
-      });
-      batch.update(receiverFriendRequestRef, {
-        status: 'accepted',
-      });
+      batch.delete(senderFriendRequestRef);
+      batch.delete(receiverFriendRequestRef);
 
       // Add both users to each other's friends array
       batch.update(senderUserRef, {
@@ -160,7 +154,7 @@ class FriendsService {
       await batch.commit();
       return { success: true };
     } catch (error) {
-      console.error('Error sending friend request:', error);
+      console.error('Error accepting friend request:', error);
       return {
         success: false,
         errorMessage:

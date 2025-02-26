@@ -42,7 +42,15 @@ export default function ConnectionsScreen() {
   };
 
   const handleAcceptFriendRequest = async (requesterUserId: string) => {
-    await friendsService.acceptFriendRequest(userProfile!.id, requesterUserId);
+    const res = await friendsService.acceptFriendRequest(
+      user!.uid,
+      requesterUserId,
+    );
+    if (res.success) {
+      setPendingRequests((prev) =>
+        prev.filter((r) => r.userId !== requesterUserId),
+      );
+    }
   };
 
   return (
