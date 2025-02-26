@@ -12,6 +12,7 @@ import {
   arrayUnion,
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   where,
@@ -117,37 +118,58 @@ class FriendsService {
     receiverId: string,
   ): Promise<ServiceResponse> {
     try {
-      // References to the friend request documents
       const senderFriendRequestRef = doc(
         this.userCollection,
-        senderId,
-        FriendRequestFields.SENT,
         receiverId,
+        FriendRequestFields.SENT,
+        senderId,
       );
       const receiverFriendRequestRef = doc(
         this.userCollection,
-        receiverId,
-        FriendRequestFields.RECEIVED,
         senderId,
+        FriendRequestFields.RECEIVED,
+        receiverId,
       );
 
       // References to the user documents
       const senderUserRef = doc(this.userCollection, senderId);
       const receiverUserRef = doc(this.userCollection, receiverId);
 
+      // Get the user details for sender and receiver (assuming you have the necessary fields)
+      const senderDoc = await getDoc(senderUserRef);
+      const receiverDoc = await getDoc(receiverUserRef);
+
+      // Assuming the user documents contain `displayName` and `userName` fields
+      const senderData = senderDoc.data() as UserProfileResponse;
+      const receiverData = receiverDoc.data() as UserProfileResponse;
+
+      const senderFriend = {
+        userId: senderId,
+        displayName: senderData?.displayName || '',
+        userName: senderData?.username || '',
+        createdAt: new Date().toISOString(), // Or use any timestamp logic you prefer
+      };
+
+      const receiverFriend = {
+        userId: receiverId,
+        displayName: receiverData?.displayName || '',
+        userName: receiverData?.username || '',
+        createdAt: new Date().toISOString(), // Or use any timestamp logic you prefer
+      };
+
       // Create a batch write to perform all operations atomically
       const batch = writeBatch(db);
 
-      // Update the status of both friend requests to 'accepted'
+      // Delete the friend request documents
       batch.delete(senderFriendRequestRef);
       batch.delete(receiverFriendRequestRef);
 
-      // Add both users to each other's friends array
+      // Add both users to each other's friends array (with detailed objects)
       batch.update(senderUserRef, {
-        friends: arrayUnion(receiverId),
+        friends: arrayUnion(receiverFriend), // Adding sender's friend object to receiver's friends list
       });
       batch.update(receiverUserRef, {
-        friends: arrayUnion(senderId),
+        friends: arrayUnion(senderFriend), // Adding receiver's friend object to sender's friends list
       });
 
       // Commit the batch
