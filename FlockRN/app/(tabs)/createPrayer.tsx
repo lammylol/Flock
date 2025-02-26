@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,13 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '../../services/prayer/prayerService';
 import type { CreatePrayerDTO } from '../../types/firebase';
 import useAuth from '@/hooks/useAuth';
-import useAudioRecordingService from '@/services/recording/audioRecordingService';
-import {
-  useSpeechRecognitionService,
-  transcribeAudioFile,
-} from '@/services/recording/transcriptionService';
-import { AudioModule } from 'expo-audio';
-import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
+import useRecording from '@/hooks/recording/useRecording';
 
 export default function CreatePrayerScreen() {
   const { user } = useAuth();
@@ -26,28 +20,7 @@ export default function CreatePrayerScreen() {
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
-  const { record, stopRecording } = useAudioRecordingService();
-  const { transcription, setTranscription } = useSpeechRecognitionService();
-  const [recording, setRecording] = useState<'none' | 'recording' | 'complete'>(
-    'none',
-  );
-
-  useEffect(() => {
-    if (transcription) {
-      setContent(transcription);
-    }
-  }, [transcription]); // Runs whenever `transcription` changes
-
-  const requestPermissions = async () => {
-    const recordPermission = await AudioModule.getRecordingPermissionsAsync();
-    const speechPermission =
-      await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
-
-    if (!recordPermission.granted || !speechPermission.granted) {
-      await AudioModule.requestRecordingPermissionsAsync();
-      await ExpoSpeechRecognitionModule.requestSpeechRecognizerPermissionsAsync();
-    }
-  };
+  const { recording, handleRecordPrayer } = useRecording(setContent);
 
   const handleCreatePrayer = async () => {
     if (!title.trim() || !content.trim()) {
@@ -64,7 +37,7 @@ export default function CreatePrayerScreen() {
         content: content.trim(),
         privacy,
         authorId: user.uid,
-        authorName: user.displayName,
+        authorName: user.displayName || '',
         status: 'Current',
         isPinned: false,
       };
@@ -76,29 +49,6 @@ export default function CreatePrayerScreen() {
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleRecordPrayer = async () => {
-    try {
-      await requestPermissions();
-
-      if (recording === 'none' || recording === 'complete') {
-        setRecording('recording');
-        await record();
-      } else {
-        const uri = await stopRecording();
-        setRecording('complete');
-
-        if (uri) {
-          setTranscription('Transcribing...');
-          await transcribeAudioFile(uri);
-        } else {
-          console.warn('Recording failed or AudioURI not found');
-        }
-      }
-    } catch (error) {
-      console.error('Error during speech recognition:', error);
     }
   };
 
