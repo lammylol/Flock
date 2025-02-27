@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,6 +13,7 @@ import { prayerService } from '../../services/prayer/prayerService';
 import type { CreatePrayerDTO } from '../../types/firebase';
 import useAuth from '@/hooks/useAuth';
 import useRecording from '@/hooks/recording/useRecording';
+import { ThemedView } from '@/components/ThemedView';
 
 export default function CreatePrayerScreen() {
   const { user } = useAuth();
@@ -21,6 +22,14 @@ export default function CreatePrayerScreen() {
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
   const { recording, handleRecordPrayer } = useRecording(setContent);
+
+  useEffect(() => {
+    // Automatically redirect to prayer write screen when this tab is selected
+    router.push('/prayer/prayerWrite');
+  }, []);
+
+  // // Return an empty view while redirecting
+  // return <ThemedView />;
 
   const handleCreatePrayer = async () => {
     if (!title.trim() || !content.trim()) {
