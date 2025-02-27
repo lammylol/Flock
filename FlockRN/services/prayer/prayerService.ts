@@ -273,6 +273,7 @@ class PrayerService {
       privacy: data.privacy,
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
+      tags: data.tags || [],
     };
   }
 }

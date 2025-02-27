@@ -37,6 +37,8 @@ export interface Group {
   createdAt: Date;
 }
 
+export type PrayerTag = 'Family' | 'Friends' | 'Finances' | 'Career' | 'Health';
+
 export interface Prayer {
   id: string;
   content: string;
@@ -48,6 +50,7 @@ export interface Prayer {
   privacy: 'public' | 'private';
   isPinned: boolean;
   title: string;
+  tags: PrayerTag[];  // New field
 }
 
 export interface PrayerUpdate {
