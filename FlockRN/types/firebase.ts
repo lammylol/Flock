@@ -4,9 +4,36 @@
 
 export interface UserProfile {
   email: string;
+  username: string;
   firstName: string;
   lastName: string;
+  displayName: string;
+  createdAt: Date;
+  friends: string[];
+  groups: string[];
+  // used for searching
+  normalizedUsername: string;
+  normalizedFirstName: string;
+  normalizedLastName: string;
+}
+
+export interface UserProfileResponse extends UserProfile {
+  id: string;
+}
+
+export interface FriendRequest {
+  userId: string;
   username: string;
+  displayName: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  timestamp: Date;
+}
+
+export interface Group {
+  name: string;
+  description: string;
+  admins: string[];
+  members: string[];
   createdAt: Date;
 }
 
@@ -48,3 +75,10 @@ export type CreatePrayerDTO = Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdatePrayerDTO = Partial<
   Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>
 >;
+
+export interface ServiceResponse {
+  success: boolean;
+  message?: string;
+  errorCode?: string;
+  errorMessage?: string;
+}

@@ -3,3 +3,8 @@ export enum FirestoreCollections {
   PRAYERS = 'prayers',
   FEED = 'feeds',
 }
+
+export enum FriendRequestFields {
+  RECEIVED = 'friendRequestsReceived',
+  SENT = 'friendRequestsSent',
+}

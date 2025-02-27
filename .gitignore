@@ -62,7 +62,6 @@ android/.cxx/
 
 # Editor specific
 .idea/
-.vscode/
 *.iml
 
 # Google services
