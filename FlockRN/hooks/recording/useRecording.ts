@@ -7,7 +7,7 @@ import { AudioModule } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { useEffect, useState } from 'react';
 import firebaseStorageService from '@/services/recording/firebaseStorageService';
-import { firebase } from '@react-native-firebase/auth';
+import useAuth from '@/hooks/useAuth';
 
 const useRecording = (setContent: (value: string) => void) => {
     const { record, stopRecording } = useAudioRecordingService();
@@ -15,6 +15,7 @@ const useRecording = (setContent: (value: string) => void) => {
     const [recording, setRecording] = useState<'none' | 'recording' | 'complete'>(
         'none',
     );
+    const { user } = useAuth(); // Get the user from the useAuth hook
 
     useEffect(() => {
         if (transcription) {
@@ -52,7 +53,7 @@ const useRecording = (setContent: (value: string) => void) => {
                     const blob = await response.blob();
 
                     // Upload the audio file to Firebase Storage with fileName as `users/${userId}/prayers/${userId}-${timestamp}.m4a`
-                    const fileName = `users/${firebase.auth().currentUser?.uid}/prayers/${firebase.auth().currentUser?.uid}-${Date.now()}.m4a`;
+                    const fileName = `users/${user?.uid}/prayers/${user?.uid}-${Date.now()}.m4a`;
 
                     await firebaseStorageService.uploadFile(blob, fileName);
                 } else {
