@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
-import { prayerService } from '../../services/prayer/prayerServices';
+import { prayerService } from '@/services/prayer/prayerService';
 import { analyzePrayerContent } from '../../services/ai/openAIService';
 import { auth } from '../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
