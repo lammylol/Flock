@@ -6,6 +6,8 @@ import {
 import { AudioModule } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { useEffect, useState } from 'react';
+import firebaseStorageService from '@/services/recording/firebaseStorageService';
+import { firebase } from '@react-native-firebase/auth';
 
 const useRecording = (setContent: (value: string) => void) => {
     const { record, stopRecording } = useAudioRecordingService();
@@ -45,6 +47,14 @@ const useRecording = (setContent: (value: string) => void) => {
                 if (uri) {
                     setTranscription('Transcribing...');
                     await transcribeAudioFile(uri);
+
+                    const response = await fetch(uri);
+                    const blob = await response.blob();
+
+                    // Upload the audio file to Firebase Storage with fileName as `users/${userId}/prayers/${userId}-${timestamp}.m4a`
+                    const fileName = `users/${firebase.auth().currentUser?.uid}/prayers/${firebase.auth().currentUser?.uid}-${Date.now()}.m4a`;
+
+                    await firebaseStorageService.uploadFile(blob, fileName);
                 } else {
                     console.warn('Recording failed or AudioURI not found');
                 }
