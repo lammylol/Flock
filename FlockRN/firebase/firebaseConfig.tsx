@@ -8,7 +8,7 @@ import { getReactNativePersistence, initializeAuth } from 'firebase/auth'; // Fi
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDmba3sNUEgBjGbpy2e0ayQDsFa7DJvIMg',
+  apiKey: 'AIzaSyD9L0NloykIZXb-Z7l1NRd56z2I74auvTA',
   authDomain: 'flock-dev-cb431.firebaseapp.com',
   projectId: 'flock-dev-cb431',
   storageBucket: 'flock-dev-cb431.firebasestorage.app',

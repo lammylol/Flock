@@ -1116,7 +1116,7 @@
     resolve-from "^5.0.0"
     semver "^7.6.0"
 
-"@expo/image-utils@^0.6.5":
+"@expo/image-utils@^0.6.4", "@expo/image-utils@^0.6.5":
   version "0.6.5"
   resolved "https://registry.npmjs.org/@expo/image-utils/-/image-utils-0.6.5.tgz"
   integrity sha512-RsS/1CwJYzccvlprYktD42KjyfWZECH6PPIEowvoSmXfGLfdViwcUEI4RvBfKX5Jli6P67H+6YmHvPTbGOboew==
