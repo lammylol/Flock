@@ -174,18 +174,6 @@ export default function PrayerMetadataScreen() {
           {isLoading ? 'Creating...' : 'Create Prayer'}
         </ThemedText>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={handleRecordPrayer}
-        style={[
-          styles.button,
-          recording === 'recording' && styles.recordingButton,
-        ]}
-      >
-        <ThemedText style={styles.buttonText}>
-          {recording === 'recording' ? 'Stop Recording' : 'Record Prayer'}
-        </ThemedText>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
