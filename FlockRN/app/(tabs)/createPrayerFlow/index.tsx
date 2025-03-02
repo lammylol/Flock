@@ -9,7 +9,6 @@ import useRecording from '@/hooks/recording/useRecording';
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { handleRecordPrayer, recording } = useRecording();
     
   const handleNext = () => {
     if (!content.trim()) {

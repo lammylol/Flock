@@ -67,7 +67,6 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
       await requestPermissions();
 
       if (recording === 'none' || recording === 'complete') {
-        resetRecording();
         setRecording('recording');
         await record();
       } else {
@@ -80,8 +79,13 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
           const blob = await response.blob();
           setAudioFile(blob);
 
-          setTranscription('Transcribing...');
+          const pastTranscription = transcription;
+          
+          setTranscription((prev) => prev ? `${prev} Transcribing...` : 'Transcribing...');
           await transcribeAudioFile(uri);
+
+          // Append transcription instead of replacing it
+          setTranscription((pastTranscription !== 'Transcribing...' ? `${pastTranscription} ${transcription}` : transcription));
         } else {
           console.warn('Recording failed or AudioURI not found');
         }

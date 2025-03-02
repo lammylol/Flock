@@ -33,7 +33,7 @@ export default function PrayerMetadataScreen() {
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { handleRecordPrayer, recording } = useRecording();
+  const { handleRecordPrayer, recording, transcription } = useRecording();
 
   const handleAIFill = async () => {
     if (!content) {
@@ -105,7 +105,7 @@ export default function PrayerMetadataScreen() {
       <ThemedView style={styles.titleContainer}>
         <TextInput
           style={[styles.input, styles.titleInput]}
-          placeholder="Prayer Title"
+          placeholder="prayer title"
           value={title}
           onChangeText={setTitle}
           maxLength={100}
@@ -125,7 +125,11 @@ export default function PrayerMetadataScreen() {
 
       <ThemedView style={styles.previewContainer}>
         <ThemedText style={styles.label}>Prayer Content:</ThemedText>
-        <ThemedText style={styles.previewText}>{content}</ThemedText>
+        <TextInput
+          style={styles.previewText}
+          placeholder= {transcription==='transcription unavailable' ? 'transcription unavailable' : ''}
+          value={content}
+        />
       </ThemedView>
 
       <ThemedView style={styles.tagsContainer}>
