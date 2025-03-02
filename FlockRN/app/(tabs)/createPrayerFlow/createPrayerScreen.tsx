@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
-import { prayerService } from '@/services/prayer/prayerService';
+import { prayerService } from '@/services/prayer/prayerService';T
 import type { CreatePrayerDTO } from '../../../types/firebase';
 import useAuth from '@/hooks/useAuth';
 import useRecording from '@/hooks/recording/useRecording';

@@ -186,7 +186,6 @@ export default function PrayerMetadataScreen() {
           {recording === 'recording' ? 'Stop Recording' : 'Record Prayer'}
         </ThemedText>
       </TouchableOpacity>
-
     </ScrollView>
   );
 }
@@ -226,8 +225,8 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 20,
     marginBottom: 100,
+    padding: 20,
   },
   input: {
     borderColor: Colors.border,
@@ -257,6 +256,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: 16,
     padding: 12,
+  },
+  recordingButton: {
+    alignItems: 'center',
+    backgroundColor: '#FF0000',
+    borderRadius: 8,
+    marginBottom: 32,
+    marginTop: 16,
+    padding: 16,
   },
   tagButton: {
     borderColor: Colors.border,
@@ -292,13 +299,5 @@ const styles = StyleSheet.create({
   titleInput: {
     flex: 1,
     marginBottom: 0,
-  },
-  recordingButton: { 
-    backgroundColor: '#FF0000',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginTop: 16,
-    marginBottom: 32,
-    padding: 16, 
   },
 });
