@@ -17,8 +17,8 @@ export default function PrayerWriteScreen() {
 
     // Navigate to metadata screen with the prayer content
     router.push({
-      pathname: '/prayer/prayerMetadata',
-      params: { content: content.trim() }
+      pathname: '/createPrayerFlow/prayerMetadata',
+      params: { content: content.trim() },
     });
   };
 
@@ -39,9 +39,7 @@ export default function PrayerWriteScreen() {
         onPress={handleNext}
         disabled={isLoading}
       >
-        <ThemedText style={styles.buttonText}>
-          Next
-        </ThemedText>
+        <ThemedText style={styles.buttonText}>Next</ThemedText>
       </TouchableOpacity>
     </ThemedView>
   );
@@ -75,5 +73,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: 16,
     padding: 12,
-  }
+  },
 });

@@ -45,7 +45,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="createPrayer"
+        name="createPrayerFlow"
         options={{
           title: 'Create',
           tabBarIcon: ({ color }) => (
