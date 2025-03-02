@@ -7,6 +7,7 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { SymbolView, SymbolViewProps, SFSymbol } from 'expo-symbols';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -38,18 +39,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="prayer"
         options={{
-          title: 'Prayer',
+          title: 'Prayers',
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 color={color} size={24} name={'praying-hands'} />
+            <FontAwesome5 color={color} size={21} name={'book'} />
           ),
         }}
       />
       <Tabs.Screen
         name="createPrayerFlow"
         options={{
-          title: 'Create',
+          title: 'Pray',
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 color={color} size={24} name={'plus-circle'} />
+            <FontAwesome5 color={color} size={21} name={'praying-hands'} />
           ),
         }}
       />
@@ -58,7 +59,7 @@ export default function TabLayout() {
         options={{
           title: 'Connections',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.circle.fill" color={color} />
+            <FontAwesome5 size={21} name={'user-friends'} color={color} />
           ),
         }}
       />
