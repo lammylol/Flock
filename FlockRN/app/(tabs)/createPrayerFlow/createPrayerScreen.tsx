@@ -39,6 +39,7 @@ export default function CreatePrayerScreen() {
     }
 
     setIsLoading(true);
+    
     try {
       const prayerData: CreatePrayerDTO = {
         title: title.trim(),

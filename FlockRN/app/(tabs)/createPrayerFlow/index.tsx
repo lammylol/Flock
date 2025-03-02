@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
+import useRecording from '@/hooks/recording/useRecording';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const { handleRecordPrayer, recording } = useRecording();
+    
   const handleNext = () => {
     if (!content.trim()) {
       Alert.alert('Error', 'Please write your prayer before continuing');
@@ -21,6 +23,19 @@ export default function PrayerWriteScreen() {
       params: { content: content.trim() },
     });
   };
+
+  const recordPrayer = () => {
+    // Record the prayer using the recording hook
+    router.push('/createPrayerFlow/voiceRecording');
+  };
+
+  const { resetRecording } = useRecording();
+
+  useFocusEffect(
+    useCallback(() => {
+      resetRecording(); // Reset state when navigating back to index
+    }, [])
+  );
 
   return (
     <ThemedView style={styles.container}>
@@ -41,6 +56,15 @@ export default function PrayerWriteScreen() {
       >
         <ThemedText style={styles.buttonText}>Next</ThemedText>
       </TouchableOpacity>
+
+
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={recordPrayer}
+        disabled={isLoading}
+      >
+        <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
+      </TouchableOpacity>
     </ThemedView>
   );
 }
@@ -51,6 +75,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderRadius: 8,
     padding: 16,
+    marginBottom: 16,
+    marginTop: 16,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,

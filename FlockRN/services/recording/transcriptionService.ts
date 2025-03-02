@@ -16,6 +16,7 @@ export function useSpeechRecognitionService() {
   });
 
   useSpeechRecognitionEvent('error', (event) => {
+    setTranscription('transcription unavailable');
     console.log('error code:', event.error, 'error message:', event.message);
   });
 

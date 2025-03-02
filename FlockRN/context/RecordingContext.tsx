@@ -19,6 +19,7 @@ interface RecordingContextType {
   transcription: string;
   permissionsGranted: boolean;
   requestPermissions: () => Promise<void>;
+  resetRecording: () => void;
 }
 
 // Create context that allows components to access recording state and functions.
@@ -48,6 +49,12 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resetRecording = () => {
+    setRecording('none'); // Reset context state
+    setTranscription(''); // Reset transcription state
+    setAudioFile(null); // Reset audio file state
+  };
+
   // This useEffect hook will run once when the component mounts.
   // It will request permissions for recording and speech recognition.
   // Can be removed here if permissions are only requested when user clicks 'record'.
@@ -60,6 +67,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
       await requestPermissions();
 
       if (recording === 'none' || recording === 'complete') {
+        resetRecording();
         setRecording('recording');
         await record();
       } else {
@@ -92,6 +100,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
         transcription,
         permissionsGranted,
         requestPermissions,
+        resetRecording,
       }}
     >
       {children}
