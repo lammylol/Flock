@@ -78,14 +78,8 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
           const response = await fetch(uri);
           const blob = await response.blob();
           setAudioFile(blob);
-
-          const pastTranscription = transcription;
-          
-          setTranscription((prev) => prev ? `${prev} Transcribing...` : 'Transcribing...');
+          // setTranscription('Transcribing...');
           await transcribeAudioFile(uri);
-
-          // Append transcription instead of replacing it
-          setTranscription((pastTranscription !== 'Transcribing...' ? `${pastTranscription} ${transcription}` : transcription));
         } else {
           console.warn('Recording failed or AudioURI not found');
         }

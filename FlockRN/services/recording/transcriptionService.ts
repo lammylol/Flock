@@ -9,9 +9,13 @@ import { Platform } from 'react-native';
 // Speech Recognition Service Hook. Enables expo-speech-recognition as a hook.
 export function useSpeechRecognitionService() {
   const [transcription, setTranscription] = useState('');
+  const pastTranscription = transcription;
 
   // ----------- speech recognition setup ---------------
   useSpeechRecognitionEvent('result', (event) => {
+    // const newTranscription = event.results[0]?.transcript
+    // Append transcription instead of replacing it
+    // setTranscription(`${pastTranscription} ${newTranscription}`);
     setTranscription(event.results[0]?.transcript);
   });
 

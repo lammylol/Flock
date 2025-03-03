@@ -11,7 +11,7 @@ export default function CreatePrayerFlowLayout() {
             options={{ 
               title: 'Record Prayer', 
               headerBackButtonDisplayMode: 'default',
-              headerBackTitle: 'Cancel',
+              headerBackTitle: 'Back',
             }}
           />
           <Stack.Screen

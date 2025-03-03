@@ -27,13 +27,19 @@ const PRAYER_TAGS: PrayerTag[] = [
 ];
 
 export default function PrayerMetadataScreen() {
-  const { content } = useLocalSearchParams<{ content: string }>();
+  const textContent = useLocalSearchParams<{ content?: string }>();
+  const [content, setContent] = useState(textContent?.content || '');
   const [title, setTitle] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { handleRecordPrayer, recording, transcription } = useRecording();
+  const { handleRecordPrayer, transcription } = useRecording();
+
+  // Update content when transcription is available
+  useEffect(() => {
+    if (transcription) setContent(transcription);
+  }, [transcription]);
 
   const handleAIFill = async () => {
     if (!content) {
@@ -129,6 +135,8 @@ export default function PrayerMetadataScreen() {
           style={styles.previewText}
           placeholder= {transcription==='transcription unavailable' ? 'transcription unavailable' : ''}
           value={content}
+          onChangeText={setContent}
+          multiline
         />
       </ThemedView>
 
