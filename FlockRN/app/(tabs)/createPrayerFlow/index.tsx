@@ -33,6 +33,7 @@ export default function PrayerWriteScreen() {
   useFocusEffect(
     useCallback(() => {
       resetRecording(); // Reset state when navigating back to index
+      setContent(''); // Reset content when navigating back to index
     }, [])
   );
 
