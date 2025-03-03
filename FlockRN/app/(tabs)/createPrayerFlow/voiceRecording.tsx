@@ -49,10 +49,9 @@ const VoiceRecording = () => {
   useEffect(() => {
     if (transcription) {
       setContent(transcription);
-      // setContent(transcription);
-      console.log(content);
+      console.log(transcription);
     } else {
-      setContent('Recording...');
+      setContent('no transcription available');
     }
   }, [transcription]);
 

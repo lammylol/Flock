@@ -14,16 +14,16 @@ export function useSpeechRecognitionService() {
   useSpeechRecognitionEvent('result', (event) => {
     // only fetch the final transcription
     if (event.isFinal) {
-      const fullTranscription = Array.from(event.results)
-        .map((result) => result?.transcript)
-        .join(' ');
+      const fullTranscription = event.results[0]?.transcript
+      // const fullTranscription = Array.from(event.results)
+      //   .map((result) => result?.transcript)
+      //   .join(' ');
 
       setTranscription((prev) => `${prev} ${fullTranscription}`.trim());
     }
   });
 
   useSpeechRecognitionEvent('error', (event) => {
-    setTranscription('transcription unavailable');
     console.log('error code:', event.error, 'error message:', event.message);
   });
 
