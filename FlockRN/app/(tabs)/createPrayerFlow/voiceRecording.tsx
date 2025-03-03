@@ -37,7 +37,9 @@ const VoiceRecording = () => {
 
   useEffect(() => {
     if (transcription) {
-      setContent(transcription);
+    setContent(transcription);
+      // setContent(transcription);
+      console.log(content);
     } else {
       setContent('Recording...');
     }
@@ -47,13 +49,9 @@ const VoiceRecording = () => {
 be carried over if "transcription unavailable. Transcription Unavailable is
 set in RecordingContext.tsx" */
   const handleFinish = () => {
-    const finalContent =
-      transcription === 'transcription unavailable' ? '' : transcription.trim();
-
     // Navigate to metadata screen with the prayer content
     router.push({
       pathname: '/createPrayerFlow/prayerMetadata',
-      params: { content: finalContent.trim() },
     });
   };
 

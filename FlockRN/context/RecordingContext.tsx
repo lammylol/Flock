@@ -78,7 +78,6 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
           const response = await fetch(uri);
           const blob = await response.blob();
           setAudioFile(blob);
-          // setTranscription('Transcribing...');
           await transcribeAudioFile(uri);
         } else {
           console.warn('Recording failed or AudioURI not found');

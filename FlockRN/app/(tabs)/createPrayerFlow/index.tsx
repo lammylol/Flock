@@ -5,6 +5,8 @@ import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import useRecording from '@/hooks/recording/useRecording';
+import { dismiss } from 'expo-router/build/global-state/routing';
+import { ScrollView } from 'react-native';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
@@ -39,6 +41,9 @@ export default function PrayerWriteScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <ScrollView 
+        keyboardShouldPersistTaps="handled" 
+        keyboardDismissMode="on-drag">
       <TextInput
         style={[styles.input, styles.contentInput]}
         placeholder="Write your prayer here..."
@@ -46,7 +51,6 @@ export default function PrayerWriteScreen() {
         onChangeText={setContent}
         multiline
         textAlignVertical="top"
-        autoFocus
       />
 
       <TouchableOpacity
@@ -65,6 +69,7 @@ export default function PrayerWriteScreen() {
       >
         <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
       </TouchableOpacity>
+      </ScrollView>
     </ThemedView>
   );
 }
