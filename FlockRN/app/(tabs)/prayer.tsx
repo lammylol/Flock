@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import ScrollView from '@/components/ScrollView';
@@ -51,7 +50,6 @@ export default function TabTwoScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {},
   prayerContainer: { flex: 1 },
   titleContainer: {
     flexDirection: 'row',

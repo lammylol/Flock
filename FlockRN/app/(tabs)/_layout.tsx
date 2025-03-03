@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
 import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
@@ -11,6 +11,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white'}} edges={['top']}>
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
@@ -20,7 +21,7 @@ export default function TabLayout() {
         tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
+            bottom: 0
           },
           default: {},
         }),
@@ -38,18 +39,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="prayer"
         options={{
-          title: 'Prayer',
+          title: 'Prayers',
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 color={color} size={24} name={'praying-hands'} />
+            <FontAwesome5 color={color} size={21} name={'book'} />
           ),
         }}
       />
       <Tabs.Screen
-        name="createPrayer"
+        name="createPrayerFlow"
         options={{
-          title: 'Create',
+          title: 'Pray',
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 color={color} size={24} name={'plus-circle'} />
+            <FontAwesome5 color={color} size={21} name={'praying-hands'} />
           ),
         }}
       />
@@ -58,7 +59,7 @@ export default function TabLayout() {
         options={{
           title: 'Connections',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.circle.fill" color={color} />
+            <FontAwesome5 size={21} name={'user-friends'} color={color} />
           ),
         }}
       />
@@ -72,5 +73,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </SafeAreaView>
   );
 }
