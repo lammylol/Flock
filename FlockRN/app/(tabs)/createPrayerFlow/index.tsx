@@ -11,7 +11,7 @@ import { ScrollView } from 'react-native';
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-    
+
   const handleNext = () => {
     if (!content.trim()) {
       Alert.alert('Error', 'Please write your prayer before continuing');
@@ -36,39 +36,39 @@ export default function PrayerWriteScreen() {
     useCallback(() => {
       resetRecording(); // Reset state when navigating back to index
       setContent(''); // Reset content when navigating back to index
-    }, [])
+    }, []),
   );
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView 
-        keyboardShouldPersistTaps="handled" 
-        keyboardDismissMode="on-drag">
-      <TextInput
-        style={[styles.input, styles.contentInput]}
-        placeholder="Write your prayer here..."
-        value={content}
-        onChangeText={setContent}
-        multiline
-        textAlignVertical="top"
-      />
-
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleNext}
-        disabled={isLoading}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
-        <ThemedText style={styles.buttonText}>Next</ThemedText>
-      </TouchableOpacity>
+        <TextInput
+          style={[styles.input, styles.contentInput]}
+          placeholder="Write your prayer here..."
+          value={content}
+          onChangeText={setContent}
+          multiline
+          textAlignVertical="top"
+        />
 
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleNext}
+          disabled={isLoading}
+        >
+          <ThemedText style={styles.buttonText}>Next</ThemedText>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={recordPrayer}
-        disabled={isLoading}
-      >
-        <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={recordPrayer}
+          disabled={isLoading}
+        >
+          <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
+        </TouchableOpacity>
       </ScrollView>
     </ThemedView>
   );
@@ -79,9 +79,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 8,
-    padding: 16,
     marginBottom: 16,
     marginTop: 16,
+    padding: 16,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,

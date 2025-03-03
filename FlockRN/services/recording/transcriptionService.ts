@@ -17,7 +17,7 @@ export function useSpeechRecognitionService() {
       const fullTranscription = Array.from(event.results)
         .map((result) => result?.transcript)
         .join(' ');
-  
+
       setTranscription((prev) => `${prev} ${fullTranscription}`.trim());
     }
   });
