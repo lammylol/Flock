@@ -1,12 +1,11 @@
+/* eslint-disable react-native/no-color-literals */
 // Screen for when voice recording is recording.
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import useRecording from '@/hooks/recording/useRecording';
-import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Timestamp } from 'firebase/firestore';
 import {
   RecordButton,
   FinishButton,
@@ -14,14 +13,7 @@ import {
 } from '@/components/RecordingButton';
 
 const VoiceRecording = () => {
-  const {
-    handleRecordPrayer,
-    recording,
-    transcription,
-    audioFile,
-    resetRecording,
-  } = useRecording();
-  const [content, setContent] = useState('Recording...');
+  const { handleRecordPrayer, recording, resetRecording } = useRecording();
   const [timer, setTimer] = useState(0);
 
   const formatTime = (seconds: number) => {
@@ -45,15 +37,6 @@ const VoiceRecording = () => {
       return () => clearInterval(interval); // Cleanup when recording changes or component unmounts
     }
   }, [recording]);
-
-  useEffect(() => {
-    if (transcription) {
-      setContent(transcription);
-      console.log(transcription);
-    } else {
-      setContent('no transcription available');
-    }
-  }, [transcription]);
 
   /* handles setting the content for the next screen. Transcription will not 
 be carried over if "transcription unavailable. Transcription Unavailable is

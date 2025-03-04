@@ -34,12 +34,19 @@ export default function PrayerMetadataScreen() {
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { handleRecordPrayer, transcription } = useRecording();
+  const { transcription, isTranscribing } = useRecording();
+  const [placeholder, setPlaceholder] = useState('');
 
   // Update content when transcription is available
   useEffect(() => {
-    if (transcription) setContent(transcription);
-  }, [transcription]);
+    if (isTranscribing) {
+      setPlaceholder('Transcribing...');
+    } else if (content === '' && !transcription) {
+      setPlaceholder('transcription unavailable');
+    } else if (transcription) {
+      setContent(transcription);
+    }
+  }, [isTranscribing, transcription]);
 
   const handleAIFill = async () => {
     if (!content) {
@@ -49,8 +56,9 @@ export default function PrayerMetadataScreen() {
 
     setIsAnalyzing(true);
     try {
-      const analysis = await analyzePrayerContent(content);
+      const analysis = await analyzePrayerContent(content, !!transcription);
       setTitle(analysis.title);
+      setContent(analysis.cleanedTranscription || content);
       setSelectedTags(analysis.tags);
     } catch (error) {
       console.error('Error using AI fill:', error);
@@ -133,11 +141,7 @@ export default function PrayerMetadataScreen() {
         <ThemedText style={styles.label}>Prayer Content:</ThemedText>
         <TextInput
           style={styles.previewText}
-          placeholder={
-            transcription === 'transcription unavailable'
-              ? 'transcription unavailable'
-              : ''
-          }
+          placeholder={placeholder}
           value={content}
           onChangeText={setContent}
           multiline

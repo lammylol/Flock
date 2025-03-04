@@ -15,8 +15,9 @@ import { ReactNode } from 'react';
 interface RecordingContextType {
   recording: 'none' | 'recording' | 'complete';
   handleRecordPrayer: () => Promise<void>;
-  audioFile: any;
+  audioFile: unknown;
   transcription: string;
+  isTranscribing: boolean;
   permissionsGranted: boolean;
   requestPermissions: () => Promise<void>;
   resetRecording: () => void;
@@ -29,7 +30,8 @@ export const RecordingContext = createContext<RecordingContextType | null>(
 
 export const RecordingProvider = ({ children }: { children: ReactNode }) => {
   const { record, stopRecording } = useAudioRecordingService();
-  const { transcription, setTranscription } = useSpeechRecognitionService();
+  const { transcription, setTranscription, isTranscribing } =
+    useSpeechRecognitionService();
   const [recording, setRecording] = useState<'none' | 'recording' | 'complete'>(
     'none',
   );
@@ -78,6 +80,8 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
           const response = await fetch(uri);
           const blob = await response.blob();
           setAudioFile(blob);
+
+          //transcribe the file and set the transcription
           await transcribeAudioFile(uri);
         } else {
           console.warn('Recording failed or AudioURI not found');
@@ -95,6 +99,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
         handleRecordPrayer,
         audioFile,
         transcription,
+        isTranscribing,
         permissionsGranted,
         requestPermissions,
         resetRecording,
