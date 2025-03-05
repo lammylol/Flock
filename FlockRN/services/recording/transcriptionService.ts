@@ -12,7 +12,15 @@ export function useSpeechRecognitionService() {
 
   // ----------- speech recognition setup ---------------
   useSpeechRecognitionEvent('result', (event) => {
-    setTranscription(event.results[0]?.transcript);
+    // only fetch the final transcription
+    if (event.isFinal) {
+      const fullTranscription = event.results[0]?.transcript
+      // const fullTranscription = Array.from(event.results)
+      //   .map((result) => result?.transcript)
+      //   .join(' ');
+
+      setTranscription((prev) => `${prev} ${fullTranscription}`.trim());
+    }
   });
 
   useSpeechRecognitionEvent('error', (event) => {
@@ -50,6 +58,7 @@ export async function transcribeAudioFile(
         chunkDelayMillis: undefined,
       },
       addsPunctuation: true,
+      continuous: false,
     });
   } catch (error) {
     console.error('Error during audio transcription setup:', error);

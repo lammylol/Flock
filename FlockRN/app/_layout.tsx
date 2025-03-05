@@ -3,7 +3,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -43,7 +43,7 @@ export function AppContent() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.view}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           {userIsAuthenticated ? (
@@ -56,12 +56,12 @@ export function AppContent() {
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  view: {
     flex: 1,
   },
 });
