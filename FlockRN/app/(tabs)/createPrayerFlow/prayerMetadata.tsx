@@ -133,7 +133,11 @@ export default function PrayerMetadataScreen() {
         <ThemedText style={styles.label}>Prayer Content:</ThemedText>
         <TextInput
           style={styles.previewText}
-          placeholder= {transcription==='transcription unavailable' ? 'transcription unavailable' : ''}
+          placeholder={
+            transcription === 'transcription unavailable'
+              ? 'transcription unavailable'
+              : ''
+          }
           value={content}
           onChangeText={setContent}
           multiline
