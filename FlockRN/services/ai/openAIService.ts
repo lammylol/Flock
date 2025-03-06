@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { PrayerTag } from '@/types/firebase';
-import Constants from 'expo-constants';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -10,15 +9,26 @@ const openai = new OpenAI({
 
 interface AIAnalysis {
   title: string;
+  cleanedTranscription?: string;
   tags: PrayerTag[];
 }
 
 export async function analyzePrayerContent(
   content: string,
+  hasTranscription: boolean,
 ): Promise<AIAnalysis> {
   if (!content?.trim()) {
     throw new Error('No prayer content provided');
   }
+
+  const systemPrompt = hasTranscription
+    ? `You are an AI that analyzes prayers that are transcribed from a voice recording
+       and suggests appropriate titles and tags, and edits the transcription content to 
+       make it as accurate as possible. Available tags are: Family, Friends, Finances, Career, Health. 
+       Return only JSON with \'title\' and \'content\' and \'tags\' fields. Choose maximum 2 most relevant tags.`
+    : `You are an AI that analyzes prayers and suggests appropriate titles and tags. 
+       Available tags are: Family, Friends, Finances, Career, Health. Return only JSON 
+       with \'title\' and \'tags\' fields. Choose maximum 2 most relevant tags.`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -26,12 +36,11 @@ export async function analyzePrayerContent(
       messages: [
         {
           role: 'system',
-          content:
-            'You are an AI that analyzes prayers and suggests appropriate titles and tags. Available tags are: Family, Friends, Finances, Career, Health. Return only JSON with \'title\' and \'tags\' fields. Choose maximum 2 most relevant tags.',
+          content: systemPrompt,
         },
         {
           role: 'user',
-          content: `Analyze this prayer and suggest a title and relevant tags: ${content}`,
+          content: `Analyze this prayer: ${content}`,
         },
       ],
       response_format: { type: 'json_object' },
@@ -47,12 +56,15 @@ export async function analyzePrayerContent(
       if (!result.title || !Array.isArray(result.tags)) {
         throw new Error('Invalid response structure');
       }
-    } catch (e) {
+    } catch {
       throw new Error('Failed to parse AI response');
     }
 
     return {
       title: result.title.trim(),
+      cleanedTranscription: hasTranscription
+        ? result.content.trim().replace(/(\r\n|\n|\r)/gm, ' ')
+        : undefined,
       tags: result.tags
         .filter((tag: string) =>
           ['Family', 'Friends', 'Finances', 'Career', 'Health'].includes(tag),

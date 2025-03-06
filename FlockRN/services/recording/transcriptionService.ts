@@ -9,17 +9,22 @@ import { Platform } from 'react-native';
 // Speech Recognition Service Hook. Enables expo-speech-recognition as a hook.
 export function useSpeechRecognitionService() {
   const [transcription, setTranscription] = useState('');
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   // ----------- speech recognition setup ---------------
   useSpeechRecognitionEvent('result', (event) => {
     // only fetch the final transcription
-    if (event.isFinal) {
-      const fullTranscription = event.results[0]?.transcript
-      // const fullTranscription = Array.from(event.results)
-      //   .map((result) => result?.transcript)
-      //   .join(' ');
+    try {
+      setIsTranscribing(true);
+      console.log('Transcribing audio file...');
+      if (event.isFinal) {
+        const fullTranscription = event.results[0]?.transcript;
 
-      setTranscription((prev) => `${prev} ${fullTranscription}`.trim());
+        setTranscription((prev) => `${prev} ${fullTranscription}`.trim());
+        setIsTranscribing(false);
+      }
+    } catch (error) {
+      console.error('Error during transcription:', error);
     }
   });
 
@@ -27,7 +32,7 @@ export function useSpeechRecognitionService() {
     console.log('error code:', event.error, 'error message:', event.message);
   });
 
-  return { transcription, setTranscription };
+  return { transcription, setTranscription, isTranscribing };
 }
 
 // Transcribe an Audio File (recording) using the Speech Recognition API

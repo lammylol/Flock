@@ -5,7 +5,6 @@ import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import useRecording from '@/hooks/recording/useRecording';
-import { dismiss } from 'expo-router/build/global-state/routing';
 import { ScrollView } from 'react-native';
 
 export default function PrayerWriteScreen() {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
-import { FontAwesome5, FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
 
 interface ButtonProps {
   icon: string;
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
   },
+  // eslint-disable-next-line react-native/no-color-literals
   text: {
     color: 'black',
     fontSize: 16,
