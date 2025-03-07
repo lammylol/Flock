@@ -37,7 +37,15 @@ export interface Group {
   createdAt: Date;
 }
 
-export type PrayerTag = 'Family' | 'Friends' | 'Finances' | 'Career' | 'Health';
+export type PrayerTag =
+  | 'Family'
+  | 'Friends'
+  | 'Finances'
+  | 'Career'
+  | 'Health'
+  | 'Current'
+  | 'Praise'
+  | 'Prayer Request';
 
 export interface Prayer {
   id: string;
