@@ -7,8 +7,8 @@ import { Prayer } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
-import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
-import ToggleSwitch from '@/components/toggleSwitch';
+// import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
+// import ToggleSwitch from '@/components/toggleSwitch';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,45 +25,45 @@ const PrayerView = () => {
 
   // const prayer = usePrayerStore((state) => state.prayers[id]); // Fetch from global store
 
-  return (
-    <View style={styles.container}>
-      {prayer && (
-        <View className="flex-1 bg-gray-50">
-          <PrayerContent title={prayer.title} content={prayer.content} />
-
-          <View className="px-4">
-            <TagsSection
-              tags={prayer.tags}
-              onTagPress={(tag) => console.log('Tag pressed:', tag.label)}
-            />
-          </View>
-
-          <View className="mt-6">
-            <SettingsRow
-              title="Privacy"
-              rightElement={
-                <View className="flex-row items-center">
-                  <Text className="text-gray-600 mr-2">Private</Text>
-                  <Text className="text-gray-400">􀎡</Text>
-                </View>
-              }
-              onPress={() => setIsPrivate(!isPrivate)}
-            />
-
-            <SettingsRow
-              title="􀉉 Enable Reminders"
-              rightElement={
-                <ToggleSwitch
-                  isEnabled={remindersEnabled}
-                  onToggle={() => setRemindersEnabled(!remindersEnabled)}
-                />
-              }
-            />
-          </View>
+return (
+  <View style={styles.container}>
+    {prayer && (
+      <Text>{prayer.content}</Text>
+      /* <View className="flex-1 bg-gray-50">
+        <PrayerContent title={prayer.title} content={prayer.content} />
+        <View className="px-4">
+          <TagsSection
+            tags={prayertags}
+            onTagPress={(tag) => console.log('Tag pressed:', tag.label)}
+          />
         </View>
-      )};
-    </View>
-  );
+
+        <View className="mt-6">
+          <SettingsRow
+            title="Privacy"
+            rightElement={
+              <View className="flex-row items-center">
+                <Text className="text-gray-600 mr-2">Private</Text>
+                <Text className="text-gray-400">􀎡</Text>
+              </View>
+            }
+            onPress={() => setIsPrivate(!isPrivate)}
+          />
+
+          <SettingsRow
+            title="􀉉 Enable Reminders"
+            rightElement={
+              <ToggleSwitch
+                isEnabled={remindersEnabled}
+                onToggle={() => setRemindersEnabled(!remindersEnabled)}
+              />
+            }
+          />
+        </View>
+      </View> */
+    )}
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
