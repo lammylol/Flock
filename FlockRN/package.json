@@ -7,7 +7,7 @@
     "dev:android": "expo start --go --android",
     "dev:ios": "expo start --go --ios",
     "dev:web": "expo start --go --web",
-    "start": "expo start --dev-client",
+    "start": "expo start",
     "test": "jest --watchAll",
     "test:ci": "jest --ci",
     "lint": "eslint .",
