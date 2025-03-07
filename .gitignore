@@ -12,25 +12,25 @@ expo-env.d.ts
 *.expo/
 
 # Native (iOS & Android)
-ios/build/
-ios/Pods/
-ios/Podfile.lock
-ios/*.xcworkspace
-ios/*.xcodeproj/
-ios/.DS_Store
+*/ios/build/
+*/ios/Pods/
+*/ios/Podfile.lock
+*/ios/*.xcworkspace
+*/ios/*.xcodeproj/
+*/ios/.DS_Store
 
-android/.gradle/
-android/.idea/
-android/app/build/
-android/build/
-android/local.properties
-android/key.properties
-android/app/debug.keystore
-android/.cxx/
-android/gradlew
-android/gradlew.bat
-android/gradle/wrapper/gradle-wrapper.jar
-android/gradle/wrapper/gradle-wrapper.properties
+*/android/.gradle/
+*/android/.idea/
+*/android/app/build/
+*/android/build/
+*/android/local.properties
+*/android/key.properties
+*/android/app/debug.keystore
+*/android/.cxx/
+*/android/gradlew
+*/android/gradlew.bat
+*/android/gradle/wrapper/gradle-wrapper.jar
+*/android/gradle/wrapper/gradle-wrapper.properties
 
 # Metro bundler
 .metro-health-check*
