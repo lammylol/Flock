@@ -37,9 +37,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="prayer"
+          name="prayers"
           options={{
-            title: 'Prayers',
+            title: 'Psrayer',
             tabBarIcon: ({ color }) => (
               <FontAwesome5 color={color} size={21} name={'book'} />
             ),

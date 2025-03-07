@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import ScrollView from '@/components/ScrollView';
@@ -8,10 +8,12 @@ import { useState } from 'react';
 import { prayerService } from '@/services/prayer/prayerService';
 import { Colors } from '@/constants/Colors';
 import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
 
 export default function TabTwoScreen() {
   const { user } = useAuth();
   const [userPrayers, setUserPrayers] = useState<Prayer[]>([]);
+  const colorScheme = useColorScheme() || 'light';
 
   useFocusEffect(() => {
     const fetchPrayers = async () => {
@@ -33,15 +35,23 @@ export default function TabTwoScreen() {
       <ThemedView>
         <ScrollView>
           {userPrayers.map((prayer: Prayer) => (
-            <ThemedView
+            <TouchableOpacity
               key={prayer.id}
-              style={styles.prayerContainer}
-              lightColor={Colors.light.tabIconDefault}
-              darkColor={Colors.dark.tabIconDefault}
+              style={[
+                styles.prayerContainer,
+                { backgroundColor: Colors[colorScheme].background }, // Auto theme
+              ]}
+              onPress={() => {
+                console.log(`Fetching prayer: ${prayer.id}`);
+                router.push({
+                  pathname: '/prayers/prayerView',
+                  params: { id: prayer.id },
+                });
+              }}
             >
               <ThemedText>{prayer.title}</ThemedText>
               <ThemedText>{prayer.content}</ThemedText>
-            </ThemedView>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       </ThemedView>
