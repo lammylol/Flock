@@ -1,6 +1,6 @@
-import create from "zustand";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // Ensure you import your Firebase config
+import create from 'zustand';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig'; // Ensure you import your Firebase config
 
 const usePrayerStore = create((set) => ({
   prayers: {}, // Cached prayers { [id]: { ...prayerData } }
@@ -10,7 +10,7 @@ const usePrayerStore = create((set) => ({
   fetchAllPrayers: async () => {
     set({ loading: true });
     try {
-      const querySnapshot = await getDocs(collection(db, "prayers"));
+      const querySnapshot = await getDocs(collection(db, 'prayers'));
       const prayers = {};
       querySnapshot.forEach((doc) => {
         prayers[doc.id] = { id: doc.id, ...doc.data() };
@@ -18,7 +18,7 @@ const usePrayerStore = create((set) => ({
 
       set({ prayers, loading: false });
     } catch (error) {
-      console.error("Error fetching prayers:", error);
+      console.error('Error fetching prayers:', error);
       set({ loading: false });
     }
   },
@@ -31,7 +31,7 @@ const usePrayerStore = create((set) => ({
       const existingPrayer = usePrayerStore.getState().prayers[id];
       if (existingPrayer) return; // Don't refetch if already in store
 
-      const docRef = doc(db, "prayers", id);
+      const docRef = doc(db, 'prayers', id);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -40,11 +40,11 @@ const usePrayerStore = create((set) => ({
           loading: false,
         }));
       } else {
-        console.warn("No such prayer!");
+        console.warn('No such prayer!');
         set({ loading: false });
       }
     } catch (error) {
-      console.error("Error fetching prayer:", error);
+      console.error('Error fetching prayer:', error);
       set({ loading: false });
     }
   },
