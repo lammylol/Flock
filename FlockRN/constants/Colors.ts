@@ -18,15 +18,17 @@ export const Colors = {
 
   // Theme-specific colors
   light: {
-    text: '#11181C',
-    background: '#fff',
+    textPrimary: '#11181C',
+    textSecondary: '#49454F',
+    background: '#ffffff',
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#ECEDEE',
+    textPrimary: '#ECEDEE',
+    textSecondary: '#49454F',
     background: '#151718',
     tint: tintColorDark,
     icon: '#9BA1A6',
