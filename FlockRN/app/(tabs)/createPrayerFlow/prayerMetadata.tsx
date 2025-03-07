@@ -40,7 +40,29 @@ export default function PrayerMetadataScreen() {
   const { transcription, isTranscribing } = useRecording();
   const [placeholder, setPlaceholder] = useState('');
 
-  // Update content when transcription is available
+  useEffect(() => {
+    // Automatically perform AI fill when content is available after navigation
+    const autoFillMetadata = async () => {
+      if (content && !title) {
+        setIsAnalyzing(true);
+        try {
+          const analysis = await analyzePrayerContent(content, !!transcription);
+          setTitle(analysis.title);
+          setContent(analysis.cleanedTranscription || content);
+          setSelectedTags(analysis.tags);
+        } catch (error) {
+          console.error('Error using AI fill:', error);
+          // Silent fail - don't show error to user for automatic fill
+        } finally {
+          setIsAnalyzing(false);
+        }
+      }
+    };
+
+    autoFillMetadata();
+  }, [content, transcription]);
+
+  // Make sure transcription is used when available
   useEffect(() => {
     if (isTranscribing) {
       setPlaceholder('Transcribing...');
@@ -50,29 +72,6 @@ export default function PrayerMetadataScreen() {
       setContent(transcription);
     }
   }, [isTranscribing, transcription]);
-
-  const handleAIFill = async () => {
-    if (!content) {
-      Alert.alert('Error', 'No prayer content to analyze');
-      return;
-    }
-
-    setIsAnalyzing(true);
-    try {
-      const analysis = await analyzePrayerContent(content, !!transcription);
-      setTitle(analysis.title);
-      setContent(analysis.cleanedTranscription || content);
-      setSelectedTags(analysis.tags);
-    } catch (error) {
-      console.error('Error using AI fill:', error);
-      Alert.alert(
-        'Error',
-        'Failed to analyze prayer. Please try again or fill manually.',
-      );
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
 
   const toggleTag = (tag: PrayerTag) => {
     if (selectedTags.includes(tag)) {
@@ -174,17 +173,9 @@ export default function PrayerMetadataScreen() {
               onChangeText={setTitle}
               maxLength={100}
             />
-            <TouchableOpacity
-              style={[styles.aiButton, isAnalyzing && styles.aiButtonDisabled]}
-              onPress={handleAIFill}
-              disabled={isAnalyzing}
-            >
-              {isAnalyzing ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <ThemedText style={styles.aiButtonText}>AI Fill</ThemedText>
-              )}
-            </TouchableOpacity>
+            {isAnalyzing && (
+              <ActivityIndicator color="#9747FF" size="small" />
+            )}
           </View>
         </View>
 
