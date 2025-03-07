@@ -10,10 +10,9 @@ import {
 import { router } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '@/services/prayer/prayerService';
-import type { CreatePrayerDTO } from '../../types/firebase';
+import type { CreatePrayerDTO } from '@/types/firebase';
 import useAuth from '@/hooks/useAuth';
 import useRecording from '@/hooks/recording/useRecording';
-import { ThemedView } from '@/components/ThemedView';
 
 export default function CreatePrayerScreen() {
   const { user } = useAuth();
@@ -21,11 +20,11 @@ export default function CreatePrayerScreen() {
   const [content, setContent] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
-  const { recording, handleRecordPrayer } = useRecording(setContent);
+  const { recording, handleRecordPrayer } = useRecording();
 
   useEffect(() => {
     // Automatically redirect to prayer write screen when this tab is selected
-    router.push('/prayer/prayerWrite');
+    router.push('/createPrayerFlow/prayerWrite');
   }, []);
 
   // // Return an empty view while redirecting
@@ -40,6 +39,7 @@ export default function CreatePrayerScreen() {
     }
 
     setIsLoading(true);
+
     try {
       const prayerData: CreatePrayerDTO = {
         title: title.trim(),

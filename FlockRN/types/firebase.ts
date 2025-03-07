@@ -50,7 +50,7 @@ export interface Prayer {
   privacy: 'public' | 'private';
   isPinned: boolean;
   title: string;
-  tags: PrayerTag[];  // New field
+  tags: PrayerTag[]; // New field
 }
 
 export interface PrayerUpdate {

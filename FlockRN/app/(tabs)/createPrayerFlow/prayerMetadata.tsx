@@ -1,24 +1,52 @@
-import { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '@/services/prayer/prayerService';
-import { analyzePrayerContent } from '../../services/ai/openAIService';
-import { auth } from '../../firebase/firebaseConfig';
+import { analyzePrayerContent } from '../../../services/ai/openAIService';
+import { auth } from '../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
+import useRecording from '@/hooks/recording/useRecording';
 
-const PRAYER_TAGS: PrayerTag[] = ['Family', 'Friends', 'Finances', 'Career', 'Health'];
+const PRAYER_TAGS: PrayerTag[] = [
+  'Family',
+  'Friends',
+  'Finances',
+  'Career',
+  'Health',
+];
 
 export default function PrayerMetadataScreen() {
-  const { content } = useLocalSearchParams<{ content: string }>();
+  const textContent = useLocalSearchParams<{ content?: string }>();
+  const [content, setContent] = useState(textContent?.content || '');
   const [title, setTitle] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const { transcription, isTranscribing } = useRecording();
+  const [placeholder, setPlaceholder] = useState('');
+
+  // Update content when transcription is available
+  useEffect(() => {
+    if (isTranscribing) {
+      setPlaceholder('Transcribing...');
+    } else if (content === '' && !transcription) {
+      setPlaceholder('transcription unavailable');
+    } else if (transcription) {
+      setContent(transcription);
+    }
+  }, [isTranscribing, transcription]);
 
   const handleAIFill = async () => {
     if (!content) {
@@ -28,12 +56,16 @@ export default function PrayerMetadataScreen() {
 
     setIsAnalyzing(true);
     try {
-      const analysis = await analyzePrayerContent(content);
+      const analysis = await analyzePrayerContent(content, !!transcription);
       setTitle(analysis.title);
+      setContent(analysis.cleanedTranscription || content);
       setSelectedTags(analysis.tags);
     } catch (error) {
       console.error('Error using AI fill:', error);
-      Alert.alert('Error', 'Failed to analyze prayer. Please try again or fill manually.');
+      Alert.alert(
+        'Error',
+        'Failed to analyze prayer. Please try again or fill manually.',
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -41,7 +73,7 @@ export default function PrayerMetadataScreen() {
 
   const toggleTag = (tag: PrayerTag) => {
     if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else {
       setSelectedTags([...selectedTags, tag]);
     }
@@ -87,7 +119,7 @@ export default function PrayerMetadataScreen() {
       <ThemedView style={styles.titleContainer}>
         <TextInput
           style={[styles.input, styles.titleInput]}
-          placeholder="Prayer Title"
+          placeholder="prayer title"
           value={title}
           onChangeText={setTitle}
           maxLength={100}
@@ -107,7 +139,13 @@ export default function PrayerMetadataScreen() {
 
       <ThemedView style={styles.previewContainer}>
         <ThemedText style={styles.label}>Prayer Content:</ThemedText>
-        <ThemedText style={styles.previewText}>{content}</ThemedText>
+        <TextInput
+          style={styles.previewText}
+          placeholder={placeholder}
+          value={content}
+          onChangeText={setContent}
+          multiline
+        />
       </ThemedView>
 
       <ThemedView style={styles.tagsContainer}>
@@ -161,49 +199,13 @@ export default function PrayerMetadataScreen() {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    padding: 16,
-    marginTop: 16,
-    marginBottom: 32,
-  },
-  buttonDisabled: {
-    backgroundColor: Colors.disabled,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  input: {
-    borderColor: Colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    fontSize: 16,
-    padding: 12,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  titleInput: {
-    flex: 1,
-    marginBottom: 0,
-  },
   aiButton: {
+    alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 8,
-    padding: 12,
     justifyContent: 'center',
-    alignItems: 'center',
     minWidth: 80,
+    padding: 12,
   },
   aiButtonDisabled: {
     backgroundColor: Colors.disabled,
@@ -212,6 +214,34 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  button: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    marginBottom: 16,
+    marginTop: 16,
+    padding: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.disabled,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  container: {
+    flex: 1,
+    marginBottom: 100,
+    padding: 20,
+  },
+  input: {
+    borderColor: Colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    fontSize: 16,
+    padding: 12,
   },
   label: {
     fontSize: 16,
@@ -229,27 +259,27 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   previewText: {
-    fontSize: 16,
-    padding: 12,
     borderColor: Colors.border,
     borderRadius: 8,
     borderWidth: 1,
+    fontSize: 16,
+    padding: 12,
   },
-  tagsContainer: {
-    marginBottom: 16,
-  },
-  tagButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  recordingButton: {
+    alignItems: 'center',
+    backgroundColor: '#FF0000',
+    borderRadius: 8,
+    marginBottom: 32,
+    marginTop: 16,
+    padding: 16,
   },
   tagButton: {
+    borderColor: Colors.border,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: Colors.border,
+    marginBottom: 8,
     padding: 8,
     paddingHorizontal: 16,
-    marginBottom: 8,
   },
   tagButtonSelected: {
     backgroundColor: Colors.primary,
@@ -260,5 +290,22 @@ const styles = StyleSheet.create({
   },
   tagButtonTextSelected: {
     color: '#fff',
+  },
+  tagButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tagsContainer: {
+    marginBottom: 16,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  titleInput: {
+    flex: 1,
+    marginBottom: 0,
   },
 });
