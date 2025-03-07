@@ -1,33 +1,60 @@
-# don't upload local build files
-ios/
-android/
-
-# Node modules and dependencies
+# Dependencies
 node_modules/
 yarn.lock
 package-lock.json
 
-# Expo specific
+# Expo
 .expo/
 .expo-shared/
+dist/
+web-build/
+expo-env.d.ts
+*.expo/
 
-# Metro bundler cache
+# Native (iOS & Android)
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+ios/*.xcworkspace
+ios/*.xcodeproj/
+ios/.DS_Store
+
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/local.properties
+android/key.properties
+android/app/debug.keystore
+android/.cxx/
+android/gradlew
+android/gradlew.bat
+android/gradle/wrapper/gradle-wrapper.jar
+android/gradle/wrapper/gradle-wrapper.properties
+
+# Metro bundler
+.metro-health-check*
 metro-cache/
 
-# Build and output directories
-dist/
+# Build outputs
 build/
 out/
 
-# Logs and debugging
+# Debug logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+debug.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
-# Environment variables
+# macOS
+.DS_Store
+*.pem
+
+# Local environment files
 .env*
 .env.local
+.env.*.local
 .env.development.local
 .env.production.local
 
@@ -35,39 +62,31 @@ yarn-error.log*
 firebase-debug.log
 firebase-debug.*
 
-# iOS
-ios/build/
-ios/Pods/
-ios/Podfile.lock
-ios/*.xcworkspace
-ios/*.xcodeproj/project.xcworkspace
-ios/.DS_Store
-
-
-# Android
-android/.gradle/
-android/app/build/
-android/build/
-android/.idea/
-android/local.properties
-android/key.properties
-android/app/debug.keystore
-android/.cxx/
-
-# Web
-.web-build/
+# TypeScript
+*.tsbuildinfo
 
 # Miscellaneous
-.DS_Store
 *.swp
 *.swo
-*.sublime-project
-*.sublime-workspace
+*.lock
+*.tmp
+*.tmp.env
+app-example/
 
-# Editor specific
+# Editor-specific
 .idea/
 *.iml
+*.sublime-project
+*.sublime-workspace
 
 # Google services
 GoogleService-Info.plist
 google-services.json
+
+# Security and keys
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
