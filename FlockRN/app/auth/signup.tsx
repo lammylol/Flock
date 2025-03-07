@@ -12,9 +12,11 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import Button from '@/components/Button';
+import { UserProfile } from '@/types/firebase';
 
 export default function SignUpScreen() {
   const theme = useColorScheme() ?? 'light';
+  const [userName, setUserName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -43,12 +45,19 @@ export default function SignUpScreen() {
       });
       await setDoc(doc(db, FirestoreCollections.USERS, user.uid), {
         id: user.uid,
+        username: userName,
         displayName: user.displayName,
         firstName,
         lastName,
         email: user.email,
+        friends: [],
+        groups: [],
         createdAt: new Date(),
-      });
+        // used for searching
+        normalizedUsername: userName.toLowerCase(),
+        normalizedFirstName: firstName.toLowerCase(),
+        normalizedLastName: lastName.toLowerCase(),
+      } as UserProfile);
       Alert.alert('Success', 'Account created successfully!');
       router.replace('/(tabs)');
     } catch (error: unknown) {
@@ -68,7 +77,13 @@ export default function SignUpScreen() {
   return (
     <ThemedView style={styles.container}>
       <ThemedText style={styles.title}>Create an Account</ThemedText>
-
+      <TextInput
+        style={styles.input}
+        placeholder="User name"
+        placeholderTextColor="#C6C6C8"
+        value={userName}
+        onChangeText={setUserName}
+      />
       <TextInput
         style={styles.input}
         placeholder="First name"

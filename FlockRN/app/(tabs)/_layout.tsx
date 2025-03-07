@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { SafeAreaView, StyleSheet, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
@@ -11,7 +11,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
@@ -21,7 +21,7 @@ export default function TabLayout() {
           tabBarStyle: Platform.select({
             ios: {
               // Use a transparent background on iOS to show the blur effect
-              position: 'absolute',
+              bottom: 0,
             },
             default: {},
           }),
@@ -37,20 +37,29 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="prayer"
+          name="prayers"
           options={{
-            title: 'Prayer',
+            title: 'Psrayer',
             tabBarIcon: ({ color }) => (
-              <FontAwesome5 color={color} size={24} name={'praying-hands'} />
+              <FontAwesome5 color={color} size={21} name={'book'} />
             ),
           }}
         />
         <Tabs.Screen
-          name="createPrayer"
+          name="createPrayerFlow"
           options={{
-            title: 'Create',
+            title: 'Pray',
             tabBarIcon: ({ color }) => (
-              <FontAwesome5 color={color} size={24} name={'plus-circle'} />
+              <FontAwesome5 color={color} size={21} name={'praying-hands'} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="connections"
+          options={{
+            title: 'Connections',
+            tabBarIcon: ({ color }) => (
+              <FontAwesome5 size={21} name={'user-friends'} color={color} />
             ),
           }}
         />
@@ -67,9 +76,3 @@ export default function TabLayout() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-});

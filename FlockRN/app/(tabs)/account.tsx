@@ -1,7 +1,6 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import ScrollView from '@/components/ScrollView';
 import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
@@ -11,12 +10,12 @@ export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
 
   return (
-    <ScrollView>
+    <ThemedView style={styles.container}>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">{user?.displayName ?? 'Account'}</ThemedText>
+        <ThemedText type="title">Account</ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText>{Platform.OS}</ThemedText>
+        <ThemedText>{user?.displayName}</ThemedText>
         <Button
           label="Sign out"
           onPress={async () => {
@@ -25,11 +24,14 @@ export default function TabTwoScreen() {
           }}
         />
       </ThemedView>
-    </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
