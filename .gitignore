@@ -18,6 +18,7 @@ expo-env.d.ts
 */ios/*.xcworkspace
 */ios/*.xcodeproj/
 */ios/.DS_Store
+*/ios/.xcode.env.local
 
 */android/.gradle/
 */android/.idea/
@@ -57,6 +58,7 @@ yarn-error.*
 .env.*.local
 .env.development.local
 .env.production.local
+!.env.example
 
 # Firebase
 firebase-debug.log
