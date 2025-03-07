@@ -52,4 +52,18 @@ fi
 echo "Running yarn install..."
 yarn install
 
+# Check if .env.example exists
+if [ ! -f ".env.example" ]; then
+    echo "Error: .env.example not found!"
+    exit 1
+fi
+
+# Copy .env.example to .env.local if .env.local does not exist
+if [ ! -f ".env.local" ]; then
+    cp .env.example .env.local
+    echo ".env.local created from .env.example"
+else
+    echo ".env.local already exists. No changes made."
+fi
+
 echo "Setup complete!"
