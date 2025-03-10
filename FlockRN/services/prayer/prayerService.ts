@@ -66,10 +66,9 @@ class PrayerService {
 
       if (!docSnap.exists()) return null;
 
-      return {
-        id: docSnap.id,
-        ...docSnap.data(),
-      } as Prayer;
+      if (!docSnap.exists()) return null;
+
+      return this.convertDocToPrayer(docSnap);
     } catch (error) {
       console.error('Error getting prayer:', error);
       throw error;
@@ -273,7 +272,7 @@ class PrayerService {
       privacy: data.privacy,
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
-      tags: data.tags || [],
+      tags: (data.tags || []).map((tag: string) => tag.toLowerCase()),
     };
   }
 }

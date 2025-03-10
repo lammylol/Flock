@@ -38,14 +38,14 @@ export interface Group {
 }
 
 export type PrayerTag =
-  | 'Family'
-  | 'Friends'
-  | 'Finances'
-  | 'Career'
-  | 'Health'
-  | 'Current'
-  | 'Praise'
-  | 'Prayer Request';
+  | 'family'
+  | 'friends'
+  | 'finances'
+  | 'career'
+  | 'health'
+  | 'current'
+  | 'praise'
+  | 'prayerRequest';
 
 export interface Prayer {
   id: string;
@@ -54,7 +54,7 @@ export interface Prayer {
   authorName: string;
   createdAt: Date;
   updatedAt: Date;
-  status: 'Current' | 'Answered' | 'No Longer Needed';
+  status: 'current' | 'answered' | 'noLongerNeeded';
   privacy: 'public' | 'private';
   isPinned: boolean;
   title: string;
