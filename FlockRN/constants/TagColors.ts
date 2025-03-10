@@ -6,14 +6,15 @@ export const tagColors = {
 
     // Tag colors for different categories
     selectedColors: {
-        current: '#925EFF',
-        personal: '#33A8FF',
-        family: '#94C9A9',
+        current: '#EEAA3C',
+        answered: '#5C5244',
+        personal: '#65558F',
+        family: '#75C9C8',
         urgent: '#FF33A1',
-        health: '#EEAA3C',
-        career: '#CF5C36',
+        health: '#CF5C36',
+        career: '#33A8FF',
         praise: '#94C9A9',
-        prayerRequest: '#F2D53C',
+        prayerRequest: '#925EFF',
         friends: '#FFB6C1',
     },
 };

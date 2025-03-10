@@ -2,6 +2,8 @@
 // 1/29/25
 // set all types for Firebase
 
+import { allTags } from '@/types/Tag';
+
 export interface UserProfile {
   email: string;
   username: string;
@@ -37,15 +39,7 @@ export interface Group {
   createdAt: Date;
 }
 
-export type PrayerTag =
-  | 'family'
-  | 'friends'
-  | 'finances'
-  | 'career'
-  | 'health'
-  | 'current'
-  | 'praise'
-  | 'prayerRequest';
+export type PrayerTag = (typeof allTags)[number];
 
 export interface Prayer {
   id: string;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { tagDisplayNames } from '@/constants/TagName';
+import { tagDisplayNames } from '@/types/Tag';
 import {
   View,
   Text,
@@ -12,16 +12,7 @@ import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
-
-const allTags: PrayerTag[] = [
-  'current',
-  'family',
-  'health',
-  'praise',
-  'career',
-  'prayerRequest',
-  'friends',
-];
+import { allTags } from '@/types/Tag';
 
 interface TagsListProps {
   prayerId: string;

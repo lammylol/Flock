@@ -1,5 +1,17 @@
 // tag display names. Separate from type.
 
+export const allTags = [
+    'current',
+    'family',
+    'health',
+    'praise',
+    'career',
+    'prayerRequest',
+    'friends',
+    'answered',
+    'personal',
+] as const;
+
 export const tagDisplayNames: { [key: string]: string } = {
     family: 'Family',
     friends: 'Friends',
@@ -9,4 +21,6 @@ export const tagDisplayNames: { [key: string]: string } = {
     current: 'Current',
     praise: 'Praise',
     prayerRequest: 'Prayer Request',
+    answered: 'Answered',
+    personal: 'Personal',
 };
