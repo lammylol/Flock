@@ -47,7 +47,7 @@ export default function CreatePrayerScreen() {
         privacy,
         authorId: user.uid,
         authorName: user.displayName || '',
-        status: 'Current',
+        status: 'current',
         isPinned: false,
       };
       await prayerService.createPrayer(prayerData);
