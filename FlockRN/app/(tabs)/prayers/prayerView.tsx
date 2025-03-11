@@ -29,21 +29,7 @@ const PrayerView = () => {
   }, [TagsSection]); // Scroll to bottom whenever messages change
 
   return (
-    <ScrollView
-      ref={scrollViewRef}
-      style={[
-        styles.scrollView,
-        {
-          backgroundColor: useThemeColor(
-            {
-              light: 'white',
-              dark: 'black',
-            },
-            'background',
-          ),
-        },
-      ]}
-    >
+    <ScrollView ref={scrollViewRef} style={styles.scrollView}>
       <ThemedView style={styles.mainBackground}>
         {prayer && (
           <ThemedView style={styles.container}>
