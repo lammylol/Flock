@@ -12,6 +12,7 @@ export const Colors = {
   // Common colors used across both themes
   primary: '#9d9fe1', // Purple button color
   secondary: '#f1eee0', // Beige background
+  purple: '#9747FF',
   white: '#ffffff',
   black: '#000000',
   brown1: '#EDE8DA',
