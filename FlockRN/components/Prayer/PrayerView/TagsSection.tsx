@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { tagDisplayNames } from '@/types/Tag';
+import { tagDisplayNames, allTags } from '@/types/Tag';
 import {
   View,
   Text,
@@ -9,19 +9,45 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
-import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
-import { allTags } from '@/types/Tag';
 
 interface TagsListProps {
   prayerId: string;
-  tags: PrayerTag[]; // Destructure the prop properly as an array of PrayerTag
+  tags: PrayerTag[];
 }
+
+const getTagColor = (tag: string) =>
+  Colors.tagColors.selectedColors[
+  tag as keyof typeof Colors.tagColors.selectedColors
+  ] || Colors.tagColors.defaultTag;
+
+const getTagName = (tag: string) => tagDisplayNames[tag] || tag;
+
+const sortTags = (selectedTags: PrayerTag[]): PrayerTag[] => {
+  return [...selectedTags].sort(
+    (a, b) => allTags.indexOf(a) - allTags.indexOf(b),
+  );
+};
+
+const handleEdgeCases = (tag: PrayerTag): PrayerTag => {
+  const tagMap: Partial<Record<PrayerTag, PrayerTag>> = {
+    answered: 'current',
+    current: 'answered',
+    prayerRequest: 'praise',
+    praise: 'prayerRequest',
+  };
+
+  return tagMap[tag] || tag;
+};
 
 const TagsList = ({ prayerId, tags }: TagsListProps) => {
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(tags);
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    setSelectedTags(sortTags(tags));
+  }, [tags]);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -29,85 +55,70 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
   };
 
   const toggleTag = (tag: PrayerTag) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
-
-  const getTagColor = (tag: string) => {
-    return (
-      Colors.tagColors.selectedColors[
-      tag as keyof typeof Colors.tagColors.selectedColors
-      ] || Colors.tagColors.defaultTag
-    );
-  };
-
-  const getTagName = (tag: string) => {
-    return tagDisplayNames[tag] || tag;
+    setSelectedTags((prev) => {
+      if (prev.includes(tag)) {
+        return sortTags(prev.filter((t) => t !== tag));
+      } else if (
+        ['current', 'answered', 'prayerRequest', 'praise'].includes(tag)
+      ) {
+        return sortTags([
+          ...prev.filter((t) => t !== handleEdgeCases(tag)),
+          tag,
+        ]);
+      } else {
+        return sortTags([...prev, tag]);
+      }
+    });
+    sortTags(tags);
   };
 
   const saveTags = async () => {
-    const prayerData = {
-      tags: selectedTags,
-    } as CreatePrayerDTO;
-
     toggleExpand();
-
     try {
-      await prayerService.updatePrayer(prayerId, prayerData);
+      await prayerService.updatePrayer(prayerId, {
+        tags: selectedTags,
+      } as CreatePrayerDTO);
     } catch {
-      console.log('error' + Error);
+      console.error('Error updating tags');
     }
   };
 
-  useEffect(() => {
-    setSelectedTags(tags);
-  }, []);
+  const renderTag = (tag: PrayerTag, isSelectable = false) => (
+    <TouchableOpacity
+      key={tag}
+      style={[
+        styles.tag,
+        {
+          backgroundColor: selectedTags.includes(tag)
+            ? getTagColor(tag)
+            : Colors.tagColors.defaultTag,
+        },
+      ]}
+      onPress={isSelectable ? () => toggleTag(tag) : toggleExpand}
+    >
+      <Text
+        style={[
+          styles.tagText,
+          selectedTags.includes(tag) && styles.selectedTagText,
+        ]}
+      >
+        {getTagName(tag)}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Tags:</Text>
-      {!expanded && (
-        <View>
-          <TouchableOpacity
-            style={styles.tagsContainer}
-            onPress={() => toggleExpand()}
-          >
-            {selectedTags.map((tag) => (
-              <View
-                key={tag}
-                style={[
-                  styles.tag,
-                  {
-                    backgroundColor: selectedTags.includes(tag)
-                      ? getTagColor(tag)
-                      : Colors.tagColors.defaultTag,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tagText,
-                    selectedTags.includes(tag) && styles.selectedTagText,
-                  ]}
-                >
-                  {getTagName(tag)}
-                </Text>
-              </View>
-            ))}
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => toggleExpand()}
-            >
-              <Feather name="edit-2" size={14} color="white" />
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </View>
-      )}
 
-      {expanded && (
+      {!expanded ? (
+        <TouchableOpacity style={styles.tagsContainer} onPress={toggleExpand}>
+          {selectedTags.map((tag) => renderTag(tag))}
+          <TouchableOpacity style={styles.editButton} onPress={toggleExpand}>
+            <Feather name="edit-2" size={14} color="white" />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      ) : (
         <View style={styles.containerExpanded}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -116,31 +127,8 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
                 <Text style={styles.doneText}>Done</Text>
               </TouchableOpacity>
             </View>
-
             <View style={styles.tagsContainer}>
-              {allTags.map((tag) => (
-                <TouchableOpacity
-                  key={tag}
-                  style={[
-                    styles.tag,
-                    {
-                      backgroundColor: selectedTags.includes(tag)
-                        ? getTagColor(tag)
-                        : Colors.tagColors.defaultTag,
-                    },
-                  ]}
-                  onPress={() => toggleTag(tag)}
-                >
-                  <Text
-                    style={
-                      (styles.tagText,
-                        selectedTags.includes(tag) && styles.selectedTagText)
-                    }
-                  >
-                    {getTagName(tag)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {allTags.map((tag) => renderTag(tag, true))}
             </View>
           </View>
         </View>
@@ -149,77 +137,46 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
   );
 };
 
-const specificColors = {
-  primary: '#EDE8DA',
-  secondary: '#9C8B77',
-  white: '#FFFFFF',
-  overlay: 'rgba(0, 0, 0, 0.5)',
-  selected: '#925EFF',
-};
-
 const styles = StyleSheet.create({
   container: {
     padding: 16,
   },
-  containerExpanded: {
-    marginHorizontal: -12,
-  },
-  doneText: {
-    color: specificColors.secondary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  containerExpanded: { marginHorizontal: -12 },
+  doneText: { color: Colors.brown2, fontSize: 16, fontWeight: '600' },
   editButton: {
     alignItems: 'center',
-    backgroundColor: specificColors.secondary,
+    backgroundColor: Colors.brown2,
     borderRadius: 12,
     height: 24,
     justifyContent: 'center',
     width: 24,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
+  label: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
   modalContent: {
-    backgroundColor: specificColors.primary,
+    backgroundColor: Colors.brown1,
     borderRadius: 12,
     padding: 12,
   },
   modalHeader: {
-    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  modalTitle: {
-    color: specificColors.secondary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  selectedTag: {
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  selectedTagText: {
-    color: specificColors.white,
-  },
+  modalTitle: { color: Colors.brown2, fontSize: 16, fontWeight: '600' },
+  selectedTagText: { color: Colors.white, fontWeight: '400' },
   tag: {
-    backgroundColor: specificColors.white,
+    backgroundColor: Colors.white,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  tagText: {
-    fontWeight: '500',
-  },
+  tagText: { fontWeight: '400' },
   tagsContainer: {
     alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    paddingRight: 20,
   },
 });
 

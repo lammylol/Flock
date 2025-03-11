@@ -272,7 +272,9 @@ class PrayerService {
       privacy: data.privacy,
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
-      tags: (data.tags || []).map((tag: string) => tag.toLowerCase()),
+      tags: (data.tags || []).map(
+        (tag: string) => tag.charAt(0).toLowerCase() + tag.slice(1),
+      ), // charAt(0) used because of edge cases like prayerRequest. Cannot full lowercase.
     };
   }
 }

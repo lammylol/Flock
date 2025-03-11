@@ -14,6 +14,8 @@ export const Colors = {
   secondary: '#f1eee0', // Beige background
   white: '#ffffff',
   black: '#000000',
+  brown1: '#EDE8DA',
+  brown2: '#9C8B77',
   border: '#C6C6C8',
   link: '#007aff',
   disabled: '#ccc',

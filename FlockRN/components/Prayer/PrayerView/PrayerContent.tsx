@@ -31,7 +31,8 @@ const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
 
 const styles = StyleSheet.create({
   contentText: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   titleText: {
     fontSize: 30,
