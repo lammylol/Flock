@@ -9,7 +9,6 @@ import { ScrollView } from 'react-native';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = () => {
     if (!content.trim()) {
@@ -54,17 +53,15 @@ export default function PrayerWriteScreen() {
         />
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.button, styles.buttonDisabled]}
           onPress={handleNext}
-          disabled={isLoading}
         >
           <ThemedText style={styles.buttonText}>Next</ThemedText>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.button, styles.buttonDisabled]}
           onPress={recordPrayer}
-          disabled={isLoading}
         >
           <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
         </TouchableOpacity>

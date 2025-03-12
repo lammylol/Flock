@@ -130,7 +130,7 @@ export default function PrayerMetadataScreen() {
           disabled={isAnalyzing}
         >
           {isAnalyzing ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator color={Colors.white} size="small" />
           ) : (
             <ThemedText style={styles.aiButtonText}>AI Fill</ThemedText>
           )}
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.disabled,
   },
   aiButtonText: {
-    color: '#fff',
+    color: Colors.white,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.disabled,
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -265,14 +265,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: 12,
   },
-  recordingButton: {
-    alignItems: 'center',
-    backgroundColor: '#FF0000',
-    borderRadius: 8,
-    marginBottom: 32,
-    marginTop: 16,
-    padding: 16,
-  },
   tagButton: {
     borderColor: Colors.border,
     borderRadius: 20,
@@ -289,7 +281,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   tagButtonTextSelected: {
-    color: '#fff',
+    color: Colors.white,
   },
   tagButtons: {
     flexDirection: 'row',

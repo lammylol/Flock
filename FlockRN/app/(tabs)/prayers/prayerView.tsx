@@ -8,7 +8,6 @@ import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
 import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
 import { ThemedView } from '@/components/ThemedView';
-import { useThemeColor } from '@/hooks/useThemeColor';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
