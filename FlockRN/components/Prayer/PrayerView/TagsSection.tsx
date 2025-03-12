@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { tagDisplayNames, allTags } from '@/types/Tag';
+import { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +7,7 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { tagDisplayNames, allTags } from '@/types/Tag';
 import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
@@ -19,25 +19,20 @@ interface TagsListProps {
 
 const getTagColor = (tag: string) =>
   Colors.tagColors.selectedColors[
-  tag as keyof typeof Colors.tagColors.selectedColors
+    tag as keyof typeof Colors.tagColors.selectedColors
   ] || Colors.tagColors.defaultTag;
 
 const getTagName = (tag: string) => tagDisplayNames[tag] || tag;
 
-const sortTags = (selectedTags: PrayerTag[]): PrayerTag[] => {
-  return [...selectedTags].sort(
-    (a, b) => allTags.indexOf(a) - allTags.indexOf(b),
-  );
-};
-
-const handleEdgeCases = (tag: PrayerTag): PrayerTag => {
+// Provide opposite tags to be deselected to ensure mutual exclusivity.
+// Current vs. Answered. Praise vs. Prayer Request.
+const oppositeTags = (tag: PrayerTag): PrayerTag => {
   const tagMap: Partial<Record<PrayerTag, PrayerTag>> = {
     answered: 'current',
     current: 'answered',
     prayerRequest: 'praise',
     praise: 'prayerRequest',
   };
-
   return tagMap[tag] || tag;
 };
 
@@ -46,30 +41,32 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    setSelectedTags(sortTags(tags));
+    setSelectedTags(tags);
   }, [tags]);
+
+  const sortedTags = useMemo(() => {
+    return [...selectedTags].sort(
+      (a, b) => allTags.indexOf(a) - allTags.indexOf(b),
+    );
+  }, [selectedTags]);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpanded(!expanded);
+    setExpanded((prev) => !prev);
   };
 
   const toggleTag = (tag: PrayerTag) => {
     setSelectedTags((prev) => {
       if (prev.includes(tag)) {
-        return sortTags(prev.filter((t) => t !== tag));
+        return prev.filter((t) => t !== tag);
       } else if (
         ['current', 'answered', 'prayerRequest', 'praise'].includes(tag)
       ) {
-        return sortTags([
-          ...prev.filter((t) => t !== handleEdgeCases(tag)),
-          tag,
-        ]);
+        return [...prev.filter((t) => t !== oppositeTags(tag)), tag];
       } else {
-        return sortTags([...prev, tag]);
+        return [...prev, tag];
       }
     });
-    sortTags(tags);
   };
 
   const saveTags = async () => {
@@ -107,13 +104,17 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
     </TouchableOpacity>
   );
 
+  const allTagsRendered = useMemo(
+    () => allTags.map((tag) => renderTag(tag, true)),
+    [selectedTags],
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Tags:</Text>
-
       {!expanded ? (
         <TouchableOpacity style={styles.tagsContainer} onPress={toggleExpand}>
-          {selectedTags.map((tag) => renderTag(tag))}
+          {sortedTags.map((tag) => renderTag(tag))}
           <TouchableOpacity style={styles.editButton} onPress={toggleExpand}>
             <Feather name="edit-2" size={14} color="white" />
           </TouchableOpacity>
@@ -127,9 +128,7 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
                 <Text style={styles.doneText}>Done</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.tagsContainer}>
-              {allTags.map((tag) => renderTag(tag, true))}
-            </View>
+            <View style={styles.tagsContainer}>{allTagsRendered}</View>
           </View>
         </View>
       )}
@@ -138,9 +137,7 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
+  container: { padding: 16 },
   containerExpanded: { marginHorizontal: -12 },
   doneText: { color: Colors.brown2, fontSize: 16, fontWeight: '600' },
   editButton: {

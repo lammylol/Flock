@@ -8,7 +8,6 @@ import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
 import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
 import { ThemedView } from '@/components/ThemedView';
-import { useThemeColor } from '@/hooks/useThemeColor';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,21 +28,7 @@ const PrayerView = () => {
   }, [TagsSection]); // Scroll to bottom whenever messages change
 
   return (
-    <ScrollView
-      ref={scrollViewRef}
-      style={[
-        styles.scrollView,
-        {
-          backgroundColor: useThemeColor(
-            {
-              light: 'white',
-              dark: 'black',
-            },
-            'background',
-          ),
-        },
-      ]}
-    >
+    <ScrollView ref={scrollViewRef} style={styles.scrollView}>
       <ThemedView style={styles.mainBackground}>
         {prayer && (
           <ThemedView style={styles.container}>

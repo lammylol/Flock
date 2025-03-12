@@ -16,7 +16,6 @@ import WaveForm from '@/components/ui/RecordingSymbol';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = () => {
     if (!content.trim()) {
@@ -63,10 +62,13 @@ export default function PrayerWriteScreen() {
         <TextInput
           style={styles.contentInput}
           placeholder="Write your prayer..."
+          style={styles.contentInput}
+          placeholder="Write your prayer..."
           value={content}
           onChangeText={setContent}
           multiline
           textAlignVertical="top"
+          placeholderTextColor="#777"
           placeholderTextColor="#777"
         />
 
@@ -87,38 +89,18 @@ export default function PrayerWriteScreen() {
 }
 
 const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    backgroundColor: '#9747FF', // Exact purple color specified
-    borderRadius: 30, // More rounded corners to match Figma
-    marginBottom: 16,
-    padding: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: Colors.disabled,
-  },
-  buttonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  contentInput: {
+  safeArea: {
     flex: 1,
-    backgroundColor: Colors.secondary, // Beige background
-    textAlignVertical: 'top',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    marginBottom: 16,
+    backgroundColor: Colors.white,
   },
   header: {
-    alignItems: 'center',
-    borderBottomColor: '#eee',
-    borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
   headerCenter: {
     // Empty center space where "Pray" used to be
@@ -134,8 +116,31 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 0,
   },
-  safeArea: {
-    backgroundColor: Colors.white,
+  contentInput: {
     flex: 1,
+    backgroundColor: Colors.secondary, // Beige background
+    textAlignVertical: 'top',
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 16,
   },
+  button: {
+    alignItems: 'center',
+    backgroundColor: '#9747FF', // Exact purple color specified
+    borderRadius: 30, // More rounded corners to match Figma
+    backgroundColor: '#9747FF', // Exact purple color specified
+    borderRadius: 30, // More rounded corners to match Figma
+    marginBottom: 16,
+    padding: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.disabled,
+  },
+  buttonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.white,
+  }
 });
