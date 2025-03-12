@@ -1,11 +1,10 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, Alert, View, SafeAreaView } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import useRecording from '@/hooks/recording/useRecording';
-import { ScrollView } from 'react-native';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
@@ -38,18 +37,28 @@ export default function PrayerWriteScreen() {
   );
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      >
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <ThemedText>Cancel</ThemedText>
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          {/* Removed "Pray" text from here */}
+        </View>
+        <TouchableOpacity>
+          <ThemedText>Save as Draft</ThemedText>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.mainContainer}>
         <TextInput
-          style={[styles.input, styles.contentInput]}
-          placeholder="Write your prayer here..."
+          style={styles.contentInput}
+          placeholder="Write your prayer..."
           value={content}
           onChangeText={setContent}
           multiline
           textAlignVertical="top"
+          placeholderTextColor="#777"
         />
 
         <TouchableOpacity
@@ -65,18 +74,53 @@ export default function PrayerWriteScreen() {
         >
           <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
         </TouchableOpacity>
-      </ScrollView>
-    </ThemedView>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  headerCenter: {
+    // Empty center space where "Pray" used to be
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  mainContainer: {
+    flex: 1,
+    padding: 16,
+    paddingTop: 0,
+  },
+  contentInput: {
+    flex: 1,
+    backgroundColor: Colors.secondary, // Beige background
+    textAlignVertical: 'top',
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 16,
+  },
   button: {
     alignItems: 'center',
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
+    backgroundColor: '#9747FF', // Exact purple color specified
+    borderRadius: 30, // More rounded corners to match Figma
     marginBottom: 16,
-    marginTop: 16,
     padding: 16,
   },
   buttonDisabled: {
@@ -85,20 +129,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
-  },
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  contentInput: {
-    height: 300,
-    marginBottom: 20,
-  },
-  input: {
-    borderColor: Colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    fontSize: 16,
-    padding: 12,
-  },
+    color: Colors.white,
+  }
 });
