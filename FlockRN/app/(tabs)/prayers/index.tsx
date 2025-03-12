@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import ScrollView from '@/components/ScrollView';
+import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { Prayer } from '@/types/firebase';
 import useAuth from '@/hooks/useAuth';
 import { useState } from 'react';
@@ -28,12 +28,12 @@ export default function TabTwoScreen() {
     fetchPrayers();
   });
   return (
-    <ScrollView>
+    <ThemedScrollView style={styles.header}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Prayers</ThemedText>
       </ThemedView>
       <ThemedView>
-        <ScrollView>
+        <ThemedScrollView>
           {userPrayers.map((prayer: Prayer) => (
             <TouchableOpacity
               key={prayer.id}
@@ -53,13 +53,16 @@ export default function TabTwoScreen() {
               <ThemedText>{prayer.content}</ThemedText>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </ThemedScrollView>
       </ThemedView>
-    </ScrollView>
+    </ThemedScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    padding: 32,
+  },
   prayerContainer: { flex: 1 },
   titleContainer: {
     flexDirection: 'row',
