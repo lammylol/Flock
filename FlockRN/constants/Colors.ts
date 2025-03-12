@@ -3,6 +3,8 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
+import { tagColors } from './TagColors';
+
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
@@ -12,6 +14,8 @@ export const Colors = {
   secondary: '#f1eee0', // Beige background
   white: '#ffffff',
   black: '#000000',
+  brown1: '#EDE8DA',
+  brown2: '#9C8B77',
   border: '#C6C6C8',
   link: '#007aff',
   disabled: '#ccc',
@@ -35,4 +39,7 @@ export const Colors = {
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
   },
+
+  // Tag Colors
+  tagColors: tagColors,
 };

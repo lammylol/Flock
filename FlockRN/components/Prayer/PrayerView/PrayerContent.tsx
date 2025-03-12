@@ -12,15 +12,15 @@ const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
   return (
     <View>
       <ThemedText
-        lightColor={'#49454F'}
-        darkColor={'#FFFF'}
+        lightColor={Colors.light.textSecondary}
+        darkColor={Colors.dark.textPrimary}
         style={styles.titleText}
       >
         {title}
       </ThemedText>
       <ThemedText
-        lightColor={'#49454F'}
-        darkColor={'#FFFF'}
+        lightColor={Colors.light.textSecondary}
+        darkColor={Colors.dark.textPrimary}
         style={styles.contentText}
       >
         {content}
@@ -31,7 +31,8 @@ const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
 
 const styles = StyleSheet.create({
   contentText: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   titleText: {
     fontSize: 30,

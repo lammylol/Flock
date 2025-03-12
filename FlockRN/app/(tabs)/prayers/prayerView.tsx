@@ -1,6 +1,6 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
-import React, { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Prayer } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
@@ -12,6 +12,7 @@ import { ThemedView } from '@/components/ThemedView';
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [prayer, setPrayer] = useState<Prayer | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     const fetchPrayer = async () => {
@@ -22,20 +23,21 @@ const PrayerView = () => {
     fetchPrayer();
   }, [id]);
 
-  // const prayer = usePrayerStore((state) => state.prayers[id]); // Fetch from global store
+  useEffect(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, [TagsSection]); // Scroll to bottom whenever messages change
 
   return (
-    <ThemedView style={styles.mainBackground}>
-      {prayer && (
-        <ThemedView style={styles.container}>
-          <PrayerContent title={prayer.title} content={prayer.content} />
-          <TagsSection
-            tags={prayer.tags}
-            onTagPress={(tag) => console.log('Tag pressed:', tag)}
-          />
-        </ThemedView>
-      )}
-    </ThemedView>
+    <ScrollView ref={scrollViewRef} style={styles.scrollView}>
+      <ThemedView style={styles.mainBackground}>
+        {prayer && (
+          <ThemedView style={styles.container}>
+            <PrayerContent title={prayer.title} content={prayer.content} />
+            <TagsSection prayerId={prayer.id} tags={prayer.tags} />
+          </ThemedView>
+        )}
+      </ThemedView>
+    </ScrollView>
   );
 };
 
@@ -48,7 +50,13 @@ const styles = StyleSheet.create({
   },
   mainBackground: {
     flex: 1,
-    paddingHorizontal: 15,
+    paddingBottom: 16,
+    paddingHorizontal: 10,
+  },
+  scrollView: {
+    flex: 1,
+    paddingBottom: 16,
+    paddingHorizontal: 10,
   },
 });
 
