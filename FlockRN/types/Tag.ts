@@ -10,7 +10,7 @@ export const allTags = [
   'career',
   'friends',
   'personal',
-] as const;
+];
 
 export const tagDisplayNames: { [key: string]: string } = {
   family: 'Family',

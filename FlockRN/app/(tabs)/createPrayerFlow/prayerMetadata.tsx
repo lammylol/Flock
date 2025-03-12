@@ -8,8 +8,6 @@ import {
   ActivityIndicator,
   View,
   Modal,
-  View,
-  Modal,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
@@ -29,8 +27,6 @@ export default function PrayerMetadataScreen() {
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   // Privacy Modal
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  // Privacy Modal
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -47,29 +43,7 @@ export default function PrayerMetadataScreen() {
           setTitle(analysis.title);
           setContent(analysis.cleanedTranscription || content);
           setSelectedTags(analysis.tags);
-        } catch (error) {
-          console.error('Error using AI fill:', error);
-          // Silent fail - don't show error to user for automatic fill
-        } finally {
-          setIsAnalyzing(false);
-        }
-      }
-    };
-
-    autoFillMetadata();
-  }, [content, transcription]);
-
-  // Make sure transcription is used when available
-  useEffect(() => {
-    // Automatically perform AI fill when content is available after navigation
-    const autoFillMetadata = async () => {
-      if (content && !title) {
-        setIsAnalyzing(true);
-        try {
-          const analysis = await analyzePrayerContent(content, !!transcription);
-          setTitle(analysis.title);
-          setContent(analysis.cleanedTranscription || content);
-          setSelectedTags(analysis.tags);
+          console.log(analysis.tags);
         } catch (error) {
           console.error('Error using AI fill:', error);
           // Silent fail - don't show error to user for automatic fill
@@ -135,7 +109,7 @@ export default function PrayerMetadataScreen() {
       setIsLoading(false);
     }
   };
-  
+
   // Return the Modal component at the end of the component
   const PrivacyModal = () => (
     <Modal
@@ -147,9 +121,12 @@ export default function PrayerMetadataScreen() {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <ThemedText style={styles.modalTitle}>Privacy Settings</ThemedText>
-          
+
           <TouchableOpacity
-            style={[styles.modalOption, privacy === 'private' && styles.selectedOption]}
+            style={[
+              styles.modalOption,
+              privacy === 'private' && styles.selectedOption,
+            ]}
             onPress={() => {
               setPrivacy('private');
               setShowPrivacyModal(false);
@@ -158,9 +135,12 @@ export default function PrayerMetadataScreen() {
             <ThemedText style={styles.modalOptionText}>Private</ThemedText>
             {privacy === 'private' && <ThemedText>✓</ThemedText>}
           </TouchableOpacity>
-          
+
           <TouchableOpacity
-            style={[styles.modalOption, privacy === 'public' && styles.selectedOption]}
+            style={[
+              styles.modalOption,
+              privacy === 'public' && styles.selectedOption,
+            ]}
             onPress={() => {
               setPrivacy('public');
               setShowPrivacyModal(false);
@@ -169,7 +149,7 @@ export default function PrayerMetadataScreen() {
             <ThemedText style={styles.modalOptionText}>Public</ThemedText>
             {privacy === 'public' && <ThemedText>✓</ThemedText>}
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={styles.modalCloseButton}
             onPress={() => setShowPrivacyModal(false)}
@@ -183,7 +163,10 @@ export default function PrayerMetadataScreen() {
 
   return (
     <>
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.section}>
           <View style={styles.titleContainer}>
             <TextInput
@@ -193,9 +176,7 @@ export default function PrayerMetadataScreen() {
               onChangeText={setTitle}
               maxLength={100}
             />
-            {isAnalyzing && (
-              <ActivityIndicator color="#9747FF" size="small" />
-            )}
+            {isAnalyzing && <ActivityIndicator color="#9747FF" size="small" />}
           </View>
         </View>
 
@@ -212,7 +193,7 @@ export default function PrayerMetadataScreen() {
         <View style={styles.section}>
           <ThemedText style={styles.label}>Tags:</ThemedText>
           <View style={styles.tagButtons}>
-            {PRAYER_TAGS.map((tag) => (
+            {allTags.map((tag) => (
               <TouchableOpacity
                 key={tag}
                 style={[
@@ -235,7 +216,7 @@ export default function PrayerMetadataScreen() {
         </View>
 
         <View style={styles.section}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.privacySelector}
             onPress={() => setShowPrivacyModal(true)}
           >
@@ -244,21 +225,11 @@ export default function PrayerMetadataScreen() {
               <ThemedText style={styles.privacyValue}>
                 {privacy === 'private' ? 'Private' : 'Public'}
               </ThemedText>
-              {privacy === 'private' && <ThemedText style={styles.lockIcon}>🔒</ThemedText>}
+              {privacy === 'private' && (
+                <ThemedText style={styles.lockIcon}>🔒</ThemedText>
+              )}
             </View>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.reminderContainer}>
-            <View style={styles.reminderLeft}>
-              <ThemedText style={styles.label}>📅 Enable Reminders</ThemedText>
-            </View>
-            <View style={styles.switchContainer}>
-              {/* Replace with actual Switch component */}
-              <View style={styles.switchOff} />
-            </View>
-          </View>
         </View>
 
         <TouchableOpacity
@@ -271,112 +242,13 @@ export default function PrayerMetadataScreen() {
           </ThemedText>
         </TouchableOpacity>
       </ScrollView>
-      
+
       <PrivacyModal />
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 24,
-  },
-  section: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
-    marginBottom: 12,
-    padding: 16,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  titleInput: {
-    flex: 1,
-    backgroundColor: Colors.secondary, // Same beige as prayer screen
-    borderRadius: 8,
-    fontSize: 16,
-    padding: 12,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  contentInput: {
-    backgroundColor: Colors.secondary, // Same beige as prayer screen
-    borderRadius: 8,
-    fontSize: 16,
-    padding: 12,
-    paddingTop: 12,
-    minHeight: 120,
-  },
-  tagButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 8,
-  },
-  tagButton: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginBottom: 4,
-  },
-  tagButtonSelected: {
-    backgroundColor: '#9747FF',
-  },
-  tagButtonText: {
-    fontSize: 14,
-  },
-  tagButtonTextSelected: {
-    color: '#fff',
-  },
-  privacySelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  privacyValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  privacyValue: {
-    fontSize: 16,
-    color: '#000',
-    marginRight: 4,
-  },
-  lockIcon: {
-    fontSize: 16,
-  },
-  reminderContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  reminderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  switchContainer: {
-    width: 40,
-    height: 24,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 12,
-    padding: 2,
-  },
-  switchOff: {
-    width: 20,
-    height: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-  },
   aiButton: {
     alignItems: 'center',
     backgroundColor: '#9747FF',
@@ -393,26 +265,51 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  buttonDisabled: {
+    backgroundColor: '#D1C4E9',
+  },
+  container: {
+    backgroundColor: '#fff',
+    flex: 1,
+  },
+  contentInput: {
+    backgroundColor: Colors.secondary, // Same beige as prayer screen
+    borderRadius: 8,
+    fontSize: 16,
+    padding: 12,
+    paddingTop: 12,
+    minHeight: 120,
+  },
   createButton: {
     alignItems: 'center',
     backgroundColor: '#9747FF',
     borderRadius: 30,
-    marginTop: 8,
     marginBottom: 16,
+    marginTop: 8,
     padding: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: '#D1C4E9',
   },
   createButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  lockIcon: {
+    fontSize: 16,
+  },
+  modalCloseButton: {
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    marginTop: 16,
+    padding: 16,
+  },
+  modalCloseText: {
+    color: '#007AFF',
+    fontWeight: 'bold',
   },
   modalContent: {
     backgroundColor: '#fff',
@@ -420,34 +317,99 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
   },
+  modalOption: {
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+  },
+  modalOptionText: {
+    fontSize: 16,
+  },
+  modalOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'center',
   },
-  modalOption: {
+  privacySelector: {
+    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+  },
+  privacyValue: {
+    color: '#000',
+    fontSize: 16,
+    marginRight: 4,
+  },
+  privacyValueContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 24,
+  },
+  section: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    marginBottom: 12,
+    padding: 16,
   },
   selectedOption: {
     backgroundColor: '#f8f8f8',
   },
-  modalOptionText: {
-    fontSize: 16,
+  switchContainer: {
+    backgroundColor: '#e0e0e0',
+    borderRadius: 12,
+    height: 24,
+    padding: 2,
+    width: 40,
   },
-  modalCloseButton: {
-    marginTop: 16,
-    padding: 16,
+  switchOff: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    height: 20,
+    width: 20,
+  },
+  tagButton: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginBottom: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  tagButtonSelected: {
+    backgroundColor: '#9747FF',
+  },
+  tagButtonText: {
+    fontSize: 14,
+  },
+  tagButtonTextSelected: {
+    color: '#fff',
+  },
+  tagButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 8,
+  },
+  titleContainer: {
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 8,
   },
-  modalCloseText: {
-    color: '#007AFF',
-    fontWeight: 'bold',
+  titleInput: {
+    flex: 1,
+    backgroundColor: Colors.secondary, // Same beige as prayer screen
+    borderRadius: 8,
+    fontSize: 16,
+    padding: 12,
   },
 });
