@@ -71,21 +71,15 @@ export default function PrayerWriteScreen() {
         />
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.button, !content.trim() && styles.buttonDisabled]}
           onPress={handleNext}
-          disabled={isLoading}
+          disabled={!content.trim()}
         >
           <ThemedText style={styles.buttonText}>Next</ThemedText>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={recordPrayer}
-          disabled={isLoading}
-        >
-          <View style={styles.recordingButton}>
-            <WaveForm />
-            <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
-          </View>
+
+        <TouchableOpacity style={styles.button} onPress={recordPrayer}>
+          <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -105,7 +99,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Colors.white,
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '600',
   },
   contentInput: {
@@ -139,14 +133,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     paddingTop: 0,
-  },
-  recordingButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.purple,
-    borderRadius: 30,
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'center',
   },
   safeArea: {
     backgroundColor: Colors.white,
