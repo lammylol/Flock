@@ -100,17 +100,6 @@ const styles = StyleSheet.create({
     padding: 16,
     textAlignVertical: 'top',
   },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 0,
-  },
-  headerCenter: {
-    alignItems: 'center',
-    flex: 1,
-  },
   mainContainer: {
     flex: 1,
     padding: 16,
