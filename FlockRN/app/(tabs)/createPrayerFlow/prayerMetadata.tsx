@@ -15,7 +15,7 @@ import { auth } from '../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
+import { CreatePrayerDTO, PrayerTag, UpdatePrayerDTO } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 
 const PRAYER_TAGS: PrayerTag[] = [
@@ -27,11 +27,30 @@ const PRAYER_TAGS: PrayerTag[] = [
 ];
 
 export default function PrayerMetadataScreen() {
-  const textContent = useLocalSearchParams<{ content?: string }>();
-  const [content, setContent] = useState(textContent?.content || '');
-  const [title, setTitle] = useState('');
-  const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
-  const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
+  const params = useLocalSearchParams<{ 
+    content?: string, 
+    id?: string, 
+    title?: string, 
+    privacy?: string, 
+    tags?: string, 
+    mode?: string 
+  }>();
+  
+  // Determine if we're in edit mode
+  const isEditMode = params.mode === 'edit';
+  const prayerId = params.id;
+  
+  // Parse tags if they exist in params
+  const initialTags: PrayerTag[] = params.tags 
+    ? JSON.parse(params.tags as string) 
+    : [];
+
+  const [content, setContent] = useState(params?.content || '');
+  const [title, setTitle] = useState(params?.title || '');
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
+    (params?.privacy as 'public' | 'private') || 'private'
+  );
+  const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
@@ -43,10 +62,11 @@ export default function PrayerMetadataScreen() {
       setPlaceholder('Transcribing...');
     } else if (content === '' && !transcription) {
       setPlaceholder('transcription unavailable');
-    } else if (transcription) {
+    } else if (transcription && !isEditMode) {
+      // Only set from transcription in create mode
       setContent(transcription);
     }
-  }, [isTranscribing, transcription]);
+  }, [isTranscribing, transcription, isEditMode, content]);
 
   const handleAIFill = async () => {
     if (!content) {
@@ -79,7 +99,7 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  const handleCreatePrayer = async () => {
+  const handleSubmit = async () => {
     if (!title.trim()) {
       Alert.alert('Error', 'Please add a title');
       return;
@@ -92,23 +112,39 @@ export default function PrayerMetadataScreen() {
 
     setIsLoading(true);
     try {
-      const prayerData = {
-        title: title.trim(),
-        content: content,
-        privacy: privacy,
-        tags: selectedTags,
-        authorId: auth.currentUser.uid,
-        authorName: auth.currentUser.displayName,
-        status: 'Current' as const,
-        isPinned: false,
-      } as CreatePrayerDTO;
+      if (isEditMode && prayerId) {
+        // Update existing prayer
+        const updateData: UpdatePrayerDTO = {
+          title: title.trim(),
+          content: content,
+          privacy: privacy,
+          tags: selectedTags,
+        };
 
-      await prayerService.createPrayer(prayerData);
-      Alert.alert('Success', 'Prayer created successfully');
+        await prayerService.updatePrayer(prayerId, updateData);
+        Alert.alert('Success', 'Prayer updated successfully');
+      } else {
+        // Create new prayer
+        const prayerData = {
+          title: title.trim(),
+          content: content,
+          privacy: privacy,
+          tags: selectedTags,
+          authorId: auth.currentUser.uid,
+          authorName: auth.currentUser.displayName,
+          status: 'Current' as const,
+          isPinned: false,
+        } as CreatePrayerDTO;
+
+        await prayerService.createPrayer(prayerData);
+        Alert.alert('Success', 'Prayer created successfully');
+      }
+      
+      // Navigate back to prayer list
       router.push('/prayer');
     } catch (error) {
-      console.error('Error creating prayer:', error);
-      Alert.alert('Error', 'Failed to create prayer. Please try again.');
+      console.error(`Error ${isEditMode ? 'updating' : 'creating'} prayer:`, error);
+      Alert.alert('Error', `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`);
     } finally {
       setIsLoading(false);
     }
@@ -187,11 +223,13 @@ export default function PrayerMetadataScreen() {
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleCreatePrayer}
+        onPress={handleSubmit}
         disabled={isLoading}
       >
         <ThemedText style={styles.buttonText}>
-          {isLoading ? 'Creating...' : 'Create Prayer'}
+          {isLoading 
+            ? (isEditMode ? 'Updating...' : 'Creating...') 
+            : (isEditMode ? 'Update Prayer' : 'Create Prayer')}
         </ThemedText>
       </TouchableOpacity>
     </ScrollView>
