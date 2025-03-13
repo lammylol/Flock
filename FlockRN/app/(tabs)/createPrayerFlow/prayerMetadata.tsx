@@ -14,7 +14,6 @@ import { prayerService } from '@/services/prayer/prayerService';
 import { analyzePrayerContent } from '../../../services/ai/openAIService';
 import { auth } from '../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
-import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
@@ -31,12 +30,23 @@ export default function PrayerMetadataScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
-  const [placeholder, setPlaceholder] = useState('');
+  const [placeholder, setPlaceholder] = useState('enter your prayer here');
 
   useEffect(() => {
-    // Automatically perform AI fill when content is available after navigation
-    const autoFillMetadata = async () => {
-      if (content && !title) {
+    if (isTranscribing) {
+      setPlaceholder('Transcribing...');
+    } else if (transcription) {
+      setContent(transcription); // This will trigger the next useEffect
+    } else if (content === '') {
+      setPlaceholder('transcription unavailable');
+    }
+  }, [isTranscribing, transcription]);
+
+  useEffect(() => {
+    // Perform AI fill when content is available after navigation, but after 4 seconds.
+    // This ensures that the full transcription is returned before before processing with AI.
+    const timer = setTimeout(async () => {
+      if (content && !title && !isTranscribing) {
         setIsAnalyzing(true);
         try {
           const analysis = await analyzePrayerContent(content, !!transcription);
@@ -51,21 +61,9 @@ export default function PrayerMetadataScreen() {
           setIsAnalyzing(false);
         }
       }
-    };
-
-    autoFillMetadata();
+    }, 4000);
+    return () => clearTimeout(timer);
   }, [content, transcription]);
-
-  // Make sure transcription is used when available
-  useEffect(() => {
-    if (isTranscribing) {
-      setPlaceholder('Transcribing...');
-    } else if (content === '' && !transcription) {
-      setPlaceholder('transcription unavailable');
-    } else if (transcription) {
-      setContent(transcription);
-    }
-  }, [isTranscribing, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
     if (selectedTags.includes(tag)) {
@@ -183,7 +181,7 @@ export default function PrayerMetadataScreen() {
         <View style={styles.section}>
           <TextInput
             style={styles.contentInput}
-            placeholder="Enter your prayer here..."
+            placeholder={placeholder}
             value={content}
             onChangeText={setContent}
             multiline
