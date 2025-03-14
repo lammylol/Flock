@@ -6,70 +6,64 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  View,
+  Modal,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Picker } from '@react-native-picker/picker';
 import { prayerService } from '@/services/prayer/prayerService';
 import { analyzePrayerContent } from '../../../services/ai/openAIService';
 import { auth } from '../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
-import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
-
-const PRAYER_TAGS: PrayerTag[] = [
-  'Family',
-  'Friends',
-  'Finances',
-  'Career',
-  'Health',
-];
+import { allTags } from '@/types/Tag';
 
 export default function PrayerMetadataScreen() {
   const textContent = useLocalSearchParams<{ content?: string }>();
   const [content, setContent] = useState(textContent?.content || '');
   const [title, setTitle] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
+  // Privacy Modal
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
-  const [placeholder, setPlaceholder] = useState('');
+  const [placeholder, setPlaceholder] = useState('enter your prayer here');
 
-  // Update content when transcription is available
   useEffect(() => {
     if (isTranscribing) {
       setPlaceholder('Transcribing...');
-    } else if (content === '' && !transcription) {
-      setPlaceholder('transcription unavailable');
     } else if (transcription) {
-      setContent(transcription);
+      setContent(transcription); // This will trigger the next useEffect
+    } else if (content === '') {
+      setPlaceholder('transcription unavailable');
     }
   }, [isTranscribing, transcription]);
 
-  const handleAIFill = async () => {
-    if (!content) {
-      Alert.alert('Error', 'No prayer content to analyze');
-      return;
-    }
-
-    setIsAnalyzing(true);
-    try {
-      const analysis = await analyzePrayerContent(content, !!transcription);
-      setTitle(analysis.title);
-      setContent(analysis.cleanedTranscription || content);
-      setSelectedTags(analysis.tags);
-    } catch (error) {
-      console.error('Error using AI fill:', error);
-      Alert.alert(
-        'Error',
-        'Failed to analyze prayer. Please try again or fill manually.',
-      );
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
+  useEffect(() => {
+    // Perform AI fill when content is available after navigation, but after 4 seconds.
+    // This ensures that the full transcription is returned before before processing with AI.
+    const timer = setTimeout(async () => {
+      if (content && !title && !isTranscribing) {
+        setIsAnalyzing(true);
+        try {
+          const analysis = await analyzePrayerContent(content, !!transcription);
+          setTitle(analysis.title);
+          setContent(analysis.cleanedTranscription || content);
+          setSelectedTags(analysis.tags);
+          console.log(analysis.tags);
+        } catch (error) {
+          console.error('Error using AI fill:', error);
+          // Silent fail - don't show error to user for automatic fill
+        } finally {
+          setIsAnalyzing(false);
+        }
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [content, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
     if (selectedTags.includes(tag)) {
@@ -101,11 +95,11 @@ export default function PrayerMetadataScreen() {
         authorName: auth.currentUser.displayName,
         status: 'Current' as const,
         isPinned: false,
-      } as CreatePrayerDTO;
+      } as unknown as CreatePrayerDTO;
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
-      router.push('/prayer');
+      router.push('/prayers');
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
@@ -114,190 +108,306 @@ export default function PrayerMetadataScreen() {
     }
   };
 
+  // Return the Modal component at the end of the component
+  const PrivacyModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={showPrivacyModal}
+      onRequestClose={() => setShowPrivacyModal(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <ThemedText style={styles.modalTitle}>Privacy Settings</ThemedText>
+
+          <TouchableOpacity
+            style={[
+              styles.modalOption,
+              privacy === 'private' && styles.selectedOption,
+            ]}
+            onPress={() => {
+              setPrivacy('private');
+              setShowPrivacyModal(false);
+            }}
+          >
+            <ThemedText style={styles.modalOptionText}>Private</ThemedText>
+            {privacy === 'private' && <ThemedText>✓</ThemedText>}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.modalOption,
+              privacy === 'public' && styles.selectedOption,
+            ]}
+            onPress={() => {
+              setPrivacy('public');
+              setShowPrivacyModal(false);
+            }}
+          >
+            <ThemedText style={styles.modalOptionText}>Public</ThemedText>
+            {privacy === 'public' && <ThemedText>✓</ThemedText>}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setShowPrivacyModal(false)}
+          >
+            <ThemedText style={styles.modalCloseText}>Cancel</ThemedText>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
   return (
-    <ScrollView style={styles.container}>
-      <ThemedView style={styles.titleContainer}>
-        <TextInput
-          style={[styles.input, styles.titleInput]}
-          placeholder="prayer title"
-          value={title}
-          onChangeText={setTitle}
-          maxLength={100}
-        />
-        <TouchableOpacity
-          style={[styles.aiButton, isAnalyzing && styles.aiButtonDisabled]}
-          onPress={handleAIFill}
-          disabled={isAnalyzing}
-        >
-          {isAnalyzing ? (
-            <ActivityIndicator color={Colors.white} size="small" />
-          ) : (
-            <ThemedText style={styles.aiButtonText}>AI Fill</ThemedText>
-          )}
-        </TouchableOpacity>
-      </ThemedView>
-
-      <ThemedView style={styles.previewContainer}>
-        <ThemedText style={styles.label}>Prayer Content:</ThemedText>
-        <TextInput
-          style={styles.previewText}
-          placeholder={placeholder}
-          value={content}
-          onChangeText={setContent}
-          multiline
-        />
-      </ThemedView>
-
-      <ThemedView style={styles.tagsContainer}>
-        <ThemedText style={styles.label}>Tags:</ThemedText>
-        <ThemedView style={styles.tagButtons}>
-          {PRAYER_TAGS.map((tag) => (
-            <TouchableOpacity
-              key={tag}
-              style={[
-                styles.tagButton,
-                selectedTags.includes(tag) && styles.tagButtonSelected,
-              ]}
-              onPress={() => toggleTag(tag)}
-            >
-              <ThemedText
-                style={[
-                  styles.tagButtonText,
-                  selectedTags.includes(tag) && styles.tagButtonTextSelected,
-                ]}
-              >
-                {tag}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
-        </ThemedView>
-      </ThemedView>
-
-      <ThemedView style={styles.pickerContainer}>
-        <ThemedText style={styles.label}>Privacy:</ThemedText>
-        <Picker
-          selectedValue={privacy}
-          onValueChange={(value: 'public' | 'private') => setPrivacy(value)}
-          style={styles.picker}
-        >
-          <Picker.Item label="Private" value="private" />
-          <Picker.Item label="Public" value="public" />
-        </Picker>
-      </ThemedView>
-
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleCreatePrayer}
-        disabled={isLoading}
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
       >
-        <ThemedText style={styles.buttonText}>
-          {isLoading ? 'Creating...' : 'Create Prayer'}
-        </ThemedText>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={styles.section}>
+          <View style={styles.titleContainer}>
+            <TextInput
+              style={styles.titleInput}
+              placeholder="Prayer title"
+              value={title}
+              onChangeText={setTitle}
+              maxLength={100}
+            />
+            {isAnalyzing && <ActivityIndicator color="#9747FF" size="small" />}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <TextInput
+            style={styles.contentInput}
+            placeholder={placeholder}
+            value={content}
+            onChangeText={setContent}
+            multiline
+          />
+        </View>
+
+        <View style={styles.section}>
+          <ThemedText style={styles.label}>Tags:</ThemedText>
+          <View style={styles.tagButtons}>
+            {allTags.map((tag) => (
+              <TouchableOpacity
+                key={tag}
+                style={[
+                  styles.tagButton,
+                  selectedTags.includes(tag) && styles.tagButtonSelected,
+                ]}
+                onPress={() => toggleTag(tag)}
+              >
+                <ThemedText
+                  style={[
+                    styles.tagButtonText,
+                    selectedTags.includes(tag) && styles.tagButtonTextSelected,
+                  ]}
+                >
+                  {tag}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.privacySelector}
+            onPress={() => setShowPrivacyModal(true)}
+          >
+            <ThemedText style={styles.label}>Privacy</ThemedText>
+            <View style={styles.privacyValueContainer}>
+              <ThemedText style={styles.privacyValue}>
+                {privacy === 'private' ? 'Private' : 'Public'}
+              </ThemedText>
+              {privacy === 'private' && (
+                <ThemedText style={styles.lockIcon}>🔒</ThemedText>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.createButton, isLoading && styles.buttonDisabled]}
+          onPress={handleCreatePrayer}
+          disabled={isLoading}
+        >
+          <ThemedText style={styles.createButtonText}>
+            {isLoading ? 'Creating...' : 'Add Prayer'}
+          </ThemedText>
+        </TouchableOpacity>
+      </ScrollView>
+
+      <PrivacyModal />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   aiButton: {
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: '#9747FF',
     borderRadius: 8,
     justifyContent: 'center',
     minWidth: 80,
     padding: 12,
   },
   aiButtonDisabled: {
-    backgroundColor: Colors.disabled,
+    backgroundColor: '#D1C4E9',
   },
   aiButtonText: {
-    color: Colors.white,
+    color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
-  button: {
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
+  buttonDisabled: {
+    backgroundColor: '#D1C4E9',
+  },
+  container: {
+    backgroundColor: '#fff',
+    flex: 1,
+  },
+  contentInput: {
+    backgroundColor: Colors.secondary, // Same beige as prayer screen
     borderRadius: 8,
+    fontSize: 16,
+    padding: 12,
+    paddingTop: 12,
+    minHeight: 120,
+  },
+  createButton: {
+    alignItems: 'center',
+    backgroundColor: '#9747FF',
+    borderRadius: 30,
     marginBottom: 16,
-    marginTop: 16,
+    marginTop: 8,
     padding: 16,
   },
-  buttonDisabled: {
-    backgroundColor: Colors.disabled,
-  },
-  buttonText: {
-    color: Colors.white,
+  createButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-  container: {
-    flex: 1,
-    marginBottom: 100,
-    padding: 20,
-  },
-  input: {
-    borderColor: Colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-    fontSize: 16,
-    padding: 12,
-  },
   label: {
     fontSize: 16,
-    marginBottom: 8,
+    fontWeight: '500',
   },
-  picker: {
-    borderColor: Colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  pickerContainer: {
-    marginBottom: 16,
-  },
-  previewContainer: {
-    marginBottom: 16,
-  },
-  previewText: {
-    borderColor: Colors.border,
-    borderRadius: 8,
-    borderWidth: 1,
+  lockIcon: {
     fontSize: 16,
-    padding: 12,
+  },
+  modalCloseButton: {
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    marginTop: 16,
+    padding: 16,
+  },
+  modalCloseText: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+  },
+  modalOption: {
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+  },
+  modalOptionText: {
+    fontSize: 16,
+  },
+  modalOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  privacySelector: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  privacyValue: {
+    color: '#000',
+    fontSize: 16,
+    marginRight: 4,
+  },
+  privacyValueContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 24,
+  },
+  section: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    marginBottom: 12,
+    padding: 16,
+  },
+  selectedOption: {
+    backgroundColor: '#f8f8f8',
+  },
+  switchContainer: {
+    backgroundColor: '#e0e0e0',
+    borderRadius: 12,
+    height: 24,
+    padding: 2,
+    width: 40,
+  },
+  switchOff: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    height: 20,
+    width: 20,
   },
   tagButton: {
-    borderColor: Colors.border,
+    backgroundColor: '#fff',
     borderRadius: 20,
-    borderWidth: 1,
-    marginBottom: 8,
-    padding: 8,
+    marginBottom: 4,
     paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   tagButtonSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: '#9747FF',
   },
   tagButtonText: {
     fontSize: 14,
   },
   tagButtonTextSelected: {
-    color: Colors.white,
+    color: '#fff',
   },
   tagButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-  },
-  tagsContainer: {
-    marginBottom: 16,
+    gap: 10,
+    marginTop: 8,
   },
   titleContainer: {
+    alignItems: 'center',
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 16,
   },
   titleInput: {
     flex: 1,
-    marginBottom: 0,
+    backgroundColor: Colors.secondary, // Same beige as prayer screen
+    borderRadius: 8,
+    fontSize: 16,
+    padding: 12,
   },
 });

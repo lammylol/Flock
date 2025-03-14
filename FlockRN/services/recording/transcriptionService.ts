@@ -16,9 +16,9 @@ export function useSpeechRecognitionService() {
     // only fetch the final transcription
     try {
       setIsTranscribing(true);
-      console.log('Transcribing audio file...');
       if (event.isFinal) {
         const fullTranscription = event.results[0]?.transcript;
+        console.log('Transcribing audio file...');
 
         setTranscription((prev) => `${prev} ${fullTranscription}`.trim());
         setIsTranscribing(false);
