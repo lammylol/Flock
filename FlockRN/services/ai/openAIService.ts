@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { PrayerTag } from '@/types/firebase';
+import { allTags } from '@/types/Tag';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -21,14 +22,13 @@ export async function analyzePrayerContent(
     throw new Error('No prayer content provided');
   }
 
-  const systemPrompt = hasTranscription
-    ? `You are an AI that analyzes prayers that are transcribed from a voice recording
-       and suggests appropriate titles and tags, and edits the transcription content to 
-       make it as accurate as possible. Available tags are: Family, Friends, Finances, Career, Health. 
-       Return only JSON with \'title\' and \'content\' and \'tags\' fields. Choose maximum 2 most relevant tags.`
-    : `You are an AI that analyzes prayers and suggests appropriate titles and tags. 
-       Available tags are: Family, Friends, Finances, Career, Health. Return only JSON 
-       with \'title\' and \'tags\' fields. Choose maximum 2 most relevant tags.`;
+  const hasTranscriptionPrompt = `, and edits the voice-transcription content to 
+       make it as accurate as possible to what the user intended to say`;
+
+  const systemPrompt = `You are an AI that analyzes prayers that are transcribed from a voice recording
+       and suggests appropriate titles and tags ${hasTranscription ? hasTranscriptionPrompt : ''}. Available tags are: ${allTags}.
+       All prayers should be a praise if it is about a highlight, and a prayer request if there is a need.
+       Return only JSON with \'title\' and \'content\' and \'tags\' fields. Choose maximum 2 most relevant tags.`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -66,9 +66,7 @@ export async function analyzePrayerContent(
         ? result.content.trim().replace(/(\r\n|\n|\r)/gm, ' ')
         : undefined,
       tags: result.tags
-        .filter((tag: string) =>
-          ['Family', 'Friends', 'Finances', 'Career', 'Health'].includes(tag),
-        )
+        .filter((tag: string) => allTags.includes(tag))
         .slice(0, 2),
     };
   } catch (error) {

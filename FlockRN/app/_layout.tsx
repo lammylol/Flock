@@ -45,7 +45,7 @@ export function AppContent() {
   return (
     <View style={styles.view}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
+        <Stack screenOptions={{ headerShown: false }}>
           {userIsAuthenticated ? (
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           ) : (

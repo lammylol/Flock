@@ -50,7 +50,7 @@ const PrayerView = () => {
   };
 
   return (
-    <ScrollView ref={scrollViewRef} style={styles.scrollView}>
+    <ThemedScrollView style={styles.scrollView}>
       <ThemedView style={styles.mainBackground}>
         {prayer && (
           <ThemedView style={styles.container}>
@@ -67,7 +67,7 @@ const PrayerView = () => {
           </ThemedView>
         )}
       </ThemedView>
-    </ScrollView>
+    </ThemedScrollView>
   );
 };
 

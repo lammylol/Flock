@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { HelloWave } from '@/components/HelloWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import ScrollView from '@/components/ScrollView';
+import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuth from '@/hooks/useAuth';
 import { WeekCalendar } from '@/components/ui/calendar';
 
@@ -11,7 +11,7 @@ export default function HomeScreen() {
   const greeting = user?.displayName ? `Hi ${user.displayName}` : 'Hi there';
 
   return (
-    <ScrollView>
+    <ThemedScrollView style={styles.header}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">{greeting}</ThemedText>
         <HelloWave />
@@ -25,11 +25,14 @@ export default function HomeScreen() {
           Your upcoming reminders will appear here
         </ThemedText>
       </ThemedView>
-    </ScrollView>
+    </ThemedScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    padding: 32,
+  },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
