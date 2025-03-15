@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Prayer } from '@/types/firebase';
-import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
 import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
@@ -17,7 +16,7 @@ const PrayerView = () => {
   const [prayer, setPrayer] = useState<Prayer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const backgroundColor = useThemeColor({}, 'background');
+  const colorScheme = useThemeColor({}, 'backgroundSecondary');
 
   useEffect(() => {
     fetchPrayer();
@@ -53,7 +52,12 @@ const PrayerView = () => {
         />
       ) : (
         prayer && (
-          <ThemedView style={[styles.innerContainer, { backgroundColor }]}>
+          <ThemedView
+            style={{
+              ...styles.innerContainer,
+              backgroundColor: colorScheme,
+            }}
+          >
             <PrayerContent title={prayer.title} content={prayer.content} />
             <TagsSection prayerId={prayer.id} tags={prayer.tags} />
           </ThemedView>
@@ -65,7 +69,6 @@ const PrayerView = () => {
 
 const styles = StyleSheet.create({
   innerContainer: {
-    backgroundColor: Colors.secondary,
     borderRadius: 20,
     flex: 0,
     padding: 16,
