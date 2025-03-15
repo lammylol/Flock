@@ -1,18 +1,30 @@
 import type { PropsWithChildren } from 'react';
-import { StyleSheet } from 'react-native';
+import {
+  RefreshControl,
+  ScrollViewProps,
+  StyleSheet,
+  useColorScheme,
+} from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
 
-type Props = PropsWithChildren & {
-  style?: object;
+type Props = PropsWithChildren<ScrollViewProps> & {
+  refreshing?: boolean; // Parent manages refresh state
+  onRefresh?: () => void; // Parent handles refresh logic
 };
 
-export function ThemedScrollView({ children, style }: Props) {
+export function ThemedScrollView({
+  children,
+  style,
+  refreshing,
+  onRefresh,
+  ...props
+}: Props) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const bottom = useBottomTabOverflow();
-  const backgroundColor = useThemeColor({}, 'background'); // Ensure background is themed
+  const backgroundColor = useThemeColor({}, 'background');
 
   return (
     <ThemedView style={styles.container}>
@@ -25,7 +37,16 @@ export function ThemedScrollView({ children, style }: Props) {
           { paddingBottom: bottom },
           style,
         ]}
-        style={{ backgroundColor }} // Apply theme-based background
+        style={[{ backgroundColor }, props.style]}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing ?? false}
+              onRefresh={onRefresh}
+            />
+          ) : undefined
+        }
+        {...props} // Spread all other props
       >
         {children}
       </Animated.ScrollView>

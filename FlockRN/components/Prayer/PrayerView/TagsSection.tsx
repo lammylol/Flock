@@ -11,6 +11,9 @@ import { tagDisplayNames, allTags } from '@/types/Tag';
 import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
+import { ThemedView } from '@/components/ThemedView';
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface TagsListProps {
   prayerId: string;
@@ -39,6 +42,10 @@ const oppositeTags = (tag: PrayerTag): PrayerTag => {
 const TagsList = ({ prayerId, tags }: TagsListProps) => {
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(tags);
   const [expanded, setExpanded] = useState(false);
+  const backgroundColor = useThemeColor(
+    { light: Colors.brown2, dark: Colors.black },
+    'background',
+  );
 
   useEffect(() => {
     setSelectedTags(tags);
@@ -110,8 +117,8 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Tags:</Text>
+    <ThemedView style={styles.container}>
+      <ThemedText style={styles.label}>Tags:</ThemedText>
       {!expanded ? (
         <TouchableOpacity style={styles.tagsContainer} onPress={toggleExpand}>
           {sortedTags.map((tag) => renderTag(tag))}
@@ -121,7 +128,7 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
         </TouchableOpacity>
       ) : (
         <View style={styles.containerExpanded}>
-          <View style={styles.modalContent}>
+          <ThemedView style={[styles.modalContent, { backgroundColor }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Editing Tags</Text>
               <TouchableOpacity onPress={saveTags}>
@@ -129,10 +136,10 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
               </TouchableOpacity>
             </View>
             <View style={styles.tagsContainer}>{allTagsRendered}</View>
-          </View>
+          </ThemedView>
         </View>
       )}
-    </View>
+    </ThemedView>
   );
 };
 
