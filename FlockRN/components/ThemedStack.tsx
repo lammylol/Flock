@@ -10,7 +10,7 @@ export function ThemedStack({ children }: { children: ReactNode }) {
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: Colors[colorScheme].background },
-        headerTintColor: Colors[colorScheme].tint,
+        headerTintColor: Colors[colorScheme].textPrimary,
       }}
     >
       {children}
