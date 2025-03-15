@@ -11,8 +11,6 @@ import { AuthProvider } from '@/context/AuthContext';
 // Import font instead of require
 import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { ThemedView } from '@/components/ThemedView';
-import { StatusBar } from 'expo-status-bar';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

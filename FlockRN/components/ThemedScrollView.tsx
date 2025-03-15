@@ -1,10 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import {
-  RefreshControl,
-  ScrollViewProps,
-  StyleSheet,
-  useColorScheme,
-} from 'react-native';
+import { RefreshControl, ScrollViewProps, StyleSheet } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
