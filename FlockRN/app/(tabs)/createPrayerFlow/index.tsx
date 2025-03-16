@@ -5,13 +5,13 @@ import {
   TouchableOpacity,
   Alert,
   View,
-  SafeAreaView,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import useRecording from '@/hooks/recording/useRecording';
 import WaveForm from '@/components/ui/RecordingSymbol';
+import { ThemedScrollView } from '@/components/ThemedScrollView';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
@@ -44,34 +44,32 @@ export default function PrayerWriteScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.mainContainer}>
-        <TextInput
-          style={styles.contentInput}
-          placeholder="Write your prayer..."
-          value={content}
-          onChangeText={setContent}
-          multiline
-          textAlignVertical="top"
-          placeholderTextColor="#777"
-        />
+    <ThemedScrollView style={styles.mainContainer}>
+      <TextInput
+        style={styles.contentInput}
+        placeholder="Write your prayer..."
+        value={content}
+        onChangeText={setContent}
+        multiline
+        textAlignVertical="top"
+        placeholderTextColor="#777"
+      />
 
-        <TouchableOpacity
-          style={[styles.button, !content.trim() && styles.buttonDisabled]}
-          onPress={handleNext}
-          disabled={!content.trim()}
-        >
-          <ThemedText style={styles.buttonText}>Next</ThemedText>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleNext}
+        disabled={!content.trim()}
+      >
+        <ThemedText style={styles.buttonText}>Next</ThemedText>
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={recordPrayer}>
-          <View style={styles.recordingButtonText}>
-            <WaveForm />
-            <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
-          </View>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <TouchableOpacity style={styles.button} onPress={recordPrayer}>
+        <View style={styles.recordingButtonText}>
+          <WaveForm />
+          <ThemedText style={styles.buttonText}>Record Prayer</ThemedText>
+        </View>
+      </TouchableOpacity>
+    </ThemedScrollView>
   );
 }
 
@@ -80,11 +78,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 30,
-    marginBottom: 16,
     padding: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: Colors.disabled,
   },
   buttonText: {
     color: Colors.white,
@@ -96,13 +90,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flex: 1,
     fontSize: 16,
-    marginBottom: 16,
     padding: 16,
     textAlignVertical: 'top',
   },
   mainContainer: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 20,
     paddingTop: 0,
   },
   recordingButtonText: {
@@ -110,9 +103,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     verticalAlign: 'middle',
-  },
-  safeArea: {
-    backgroundColor: Colors.white,
-    flex: 1,
   },
 });

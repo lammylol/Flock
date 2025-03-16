@@ -99,7 +99,7 @@ export default function PrayerMetadataScreen() {
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
-      router.push('/prayers');
+      router.push('/(prayers)');
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
@@ -179,13 +179,18 @@ export default function PrayerMetadataScreen() {
         </View>
 
         <View style={styles.section}>
-          <TextInput
-            style={styles.contentInput}
-            placeholder={placeholder}
-            value={content}
-            onChangeText={setContent}
-            multiline
-          />
+          <View style={styles.titleContainer}>
+            <TextInput
+              style={styles.contentInput}
+              placeholder={placeholder}
+              value={content}
+              onChangeText={setContent}
+              multiline
+            />
+            {isTranscribing && (
+              <ActivityIndicator color="#9747FF" size="small" />
+            )}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -401,6 +406,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     alignItems: 'center',
     flexDirection: 'row',
+    flex: 1,
     gap: 8,
   },
   titleInput: {

@@ -4,6 +4,7 @@ import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = PropsWithChildren<ScrollViewProps> & {
   refreshing?: boolean; // Parent manages refresh state
@@ -18,7 +19,12 @@ export function ThemedScrollView({
   ...props
 }: Props) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
+<<<<<<< Updated upstream
   const bottom = useBottomTabOverflow();
+  const backgroundColor = useThemeColor({}, 'background'); // Ensure background is themed
+=======
+  const bottomTabHeight = useBottomTabOverflow();
+  const insets = useSafeAreaInsets(); // Get safe area insets
   const backgroundColor = useThemeColor({}, 'background');
 
   return (
@@ -26,13 +32,15 @@ export function ThemedScrollView({
       <Animated.ScrollView
         ref={scrollRef}
         scrollEventThrottle={16}
-        scrollIndicatorInsets={{ bottom }}
+        scrollIndicatorInsets={{ bottom: bottomTabHeight }}
         contentContainerStyle={[
           styles.content,
-          { paddingBottom: bottom },
-          style,
+          { paddingBottom: bottomTabHeight - insets.bottom + 10 },
         ]}
-        style={[{ backgroundColor }, props.style]}
+<<<<<<< Updated upstream
+        style={{ backgroundColor }} // Apply theme-based background
+=======
+        style={[{ backgroundColor }, style]}
         refreshControl={
           onRefresh ? (
             <RefreshControl
@@ -56,6 +64,5 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1, // Ensures the content expands
     gap: 16,
-    paddingHorizontal: 32,
   },
 });
