@@ -1,25 +1,27 @@
 import type { PropsWithChildren } from 'react';
-import { StyleSheet } from 'react-native';
+import { RefreshControl, ScrollViewProps, StyleSheet } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useBottomTabOverflow } from '@/components/ui/TabBarBackground';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type Props = PropsWithChildren & {
-  style?: object;
+type Props = PropsWithChildren<ScrollViewProps> & {
+  refreshing?: boolean; // Parent manages refresh state
+  onRefresh?: () => void; // Parent handles refresh logic
 };
 
-export function ThemedScrollView({ children, style }: Props) {
+export function ThemedScrollView({
+  children,
+  style,
+  refreshing,
+  onRefresh,
+  ...props
+}: Props) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-<<<<<<< Updated upstream
-  const bottom = useBottomTabOverflow();
-  const backgroundColor = useThemeColor({}, 'background'); // Ensure background is themed
-=======
   const bottomTabHeight = useBottomTabOverflow();
   const insets = useSafeAreaInsets(); // Get safe area insets
   const backgroundColor = useThemeColor({}, 'background');
->>>>>>> Stashed changes
 
   return (
     <ThemedView style={styles.container}>
@@ -31,9 +33,6 @@ export function ThemedScrollView({ children, style }: Props) {
           styles.content,
           { paddingBottom: bottomTabHeight - insets.bottom + 10 },
         ]}
-<<<<<<< Updated upstream
-        style={{ backgroundColor }} // Apply theme-based background
-=======
         style={[{ backgroundColor }, style]}
         refreshControl={
           onRefresh ? (
@@ -46,7 +45,6 @@ export function ThemedScrollView({ children, style }: Props) {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={'on-drag'}
         {...props} // Spread all other props
->>>>>>> Stashed changes
       >
         {children}
       </Animated.ScrollView>
