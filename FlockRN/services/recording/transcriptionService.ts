@@ -13,26 +13,39 @@ export function useSpeechRecognitionService() {
 
   // ----------- speech recognition setup ---------------
   useSpeechRecognitionEvent('result', (event) => {
-    // only fetch the final transcription
     try {
-      setIsTranscribing(true);
       if (event.isFinal) {
+        console.log('Final transcription received.');
+
         const fullTranscription = event.results[0]?.transcript;
         console.log('Transcribing audio file...');
-
         setTranscription((prev) => `${prev} ${fullTranscription}`.trim());
-        setIsTranscribing(false);
       }
     } catch (error) {
       console.error('Error during transcription:', error);
     }
   });
 
+  // Reset when transcription truly stops
+  useSpeechRecognitionEvent('start', () => {
+    setIsTranscribing(true);
+  });
+
+  // Reset when transcription truly stops
+  useSpeechRecognitionEvent('end', () => {
+    // Consider waiting a bit before setting isTranscribing to false
+    setTimeout(() => setIsTranscribing(false), 500);
+  });
+
   useSpeechRecognitionEvent('error', (event) => {
     console.log('error code:', event.error, 'error message:', event.message);
   });
 
-  return { transcription, setTranscription, isTranscribing };
+  return {
+    transcription,
+    setTranscription,
+    isTranscribing,
+  };
 }
 
 // Transcribe an Audio File (recording) using the Speech Recognition API
