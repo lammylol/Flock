@@ -43,26 +43,26 @@ export default function PrayerMetadataScreen() {
   }, [isTranscribing, transcription]);
 
   useEffect(() => {
+    const analyzeContent = async () => {
+      setIsAnalyzing(true);
+      try {
+        const analysis = await analyzePrayerContent(content, !!transcription);
+        setTitle(analysis.title);
+        setContent(analysis.cleanedTranscription || content);
+        setSelectedTags(analysis.tags);
+        console.log(analysis.tags);
+      } catch (error) {
+        console.error('Error using AI fill:', error);
+        // Silent fail - don't show error to user for automatic fill
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
     // Perform AI fill when content is available after navigation, but after 4 seconds.
     // This ensures that the full transcription is returned before before processing with AI.
-    const timer = setTimeout(async () => {
-      if (content && !title && !isTranscribing) {
-        setIsAnalyzing(true);
-        try {
-          const analysis = await analyzePrayerContent(content, !!transcription);
-          setTitle(analysis.title);
-          setContent(analysis.cleanedTranscription || content);
-          setSelectedTags(analysis.tags);
-          console.log(analysis.tags);
-        } catch (error) {
-          console.error('Error using AI fill:', error);
-          // Silent fail - don't show error to user for automatic fill
-        } finally {
-          setIsAnalyzing(false);
-        }
-      }
-    }, 4000);
-    return () => clearTimeout(timer);
+    if (content && !title && !isTranscribing) {
+      analyzeContent();
+    }
   }, [content, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
