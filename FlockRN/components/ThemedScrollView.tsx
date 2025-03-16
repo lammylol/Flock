@@ -19,10 +19,6 @@ export function ThemedScrollView({
   ...props
 }: Props) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-<<<<<<< Updated upstream
-  const bottom = useBottomTabOverflow();
-  const backgroundColor = useThemeColor({}, 'background'); // Ensure background is themed
-=======
   const bottomTabHeight = useBottomTabOverflow();
   const insets = useSafeAreaInsets(); // Get safe area insets
   const backgroundColor = useThemeColor({}, 'background');
@@ -37,9 +33,6 @@ export function ThemedScrollView({
           styles.content,
           { paddingBottom: bottomTabHeight - insets.bottom + 10 },
         ]}
-<<<<<<< Updated upstream
-        style={{ backgroundColor }} // Apply theme-based background
-=======
         style={[{ backgroundColor }, style]}
         refreshControl={
           onRefresh ? (
@@ -49,6 +42,8 @@ export function ThemedScrollView({
             />
           ) : undefined
         }
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={'on-drag'}
         {...props} // Spread all other props
       >
         {children}
