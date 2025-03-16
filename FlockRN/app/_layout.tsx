@@ -8,7 +8,6 @@ import 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import useAuthContext from '@/hooks/useAuthContext';
 import { AuthProvider } from '@/context/AuthContext';
-// Import font instead of require
 import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
