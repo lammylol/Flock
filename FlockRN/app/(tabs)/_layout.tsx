@@ -12,6 +12,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      initialRouteName="(prayers)"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].textPrimary,
         tabBarButton: HapticTab,
@@ -23,16 +24,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="prayers"
+        name="(prayers)"
         options={{
           title: 'Prayer',
           tabBarIcon: ({ color }) => (
@@ -46,15 +38,6 @@ export default function TabLayout() {
           title: 'Pray',
           tabBarIcon: ({ color }) => (
             <FontAwesome5 color={color} size={21} name={'praying-hands'} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="connections"
-        options={{
-          title: 'Connections',
-          tabBarIcon: ({ color }) => (
-            <FontAwesome5 size={21} name={'user-friends'} color={color} />
           ),
         }}
       />
