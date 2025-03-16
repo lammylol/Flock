@@ -7,7 +7,6 @@ import {
   ScrollView,
   ActivityIndicator,
   View,
-  Modal,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
@@ -15,18 +14,35 @@ import { analyzePrayerContent } from '../../../services/ai/openAIService';
 import { auth } from '../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
-import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
+import { CreatePrayerDTO, PrayerTag, UpdatePrayerDTO } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import { allTags } from '@/types/Tag';
 
 export default function PrayerMetadataScreen() {
-  const textContent = useLocalSearchParams<{ content?: string }>();
-  const [content, setContent] = useState(textContent?.content || '');
-  const [title, setTitle] = useState('');
-  const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
-  // Privacy Modal
-  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<PrayerTag[]>([]);
+  const params = useLocalSearchParams<{
+    content?: string;
+    id?: string;
+    title?: string;
+    privacy?: string;
+    tags?: string;
+    mode?: string;
+  }>();
+
+  // Determine if we're in edit mode
+  const isEditMode = params.mode === 'edit';
+  const prayerId = params.id;
+
+  // Parse tags if they exist in params
+  const initialTags: PrayerTag[] = params.tags
+    ? JSON.parse(params.tags as string)
+    : [];
+
+  const [content, setContent] = useState(params?.content || '');
+  const [title, setTitle] = useState(params?.title || '');
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
+    (params?.privacy as 'public' | 'private') || 'private',
+  );
+  const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
@@ -39,6 +55,9 @@ export default function PrayerMetadataScreen() {
       setContent(transcription); // This will trigger the next useEffect
     } else if (content === '') {
       setPlaceholder('transcription unavailable');
+    } else if (transcription && !isEditMode) {
+      // Only set from transcription in create mode
+      setContent(transcription);
     }
   }, [isTranscribing, transcription]);
 
@@ -73,7 +92,7 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  const handleCreatePrayer = async () => {
+  const handleSubmit = async () => {
     if (!title.trim()) {
       Alert.alert('Error', 'Please add a title');
       return;
@@ -86,163 +105,185 @@ export default function PrayerMetadataScreen() {
 
     setIsLoading(true);
     try {
-      const prayerData = {
-        title: title.trim(),
-        content: content,
-        privacy: privacy,
-        tags: selectedTags,
-        authorId: auth.currentUser.uid,
-        authorName: auth.currentUser.displayName,
-        status: 'Current' as const,
-        isPinned: false,
-      } as unknown as CreatePrayerDTO;
+      if (isEditMode && prayerId) {
+        // Update existing prayer
+        const updateData: UpdatePrayerDTO = {
+          title: title.trim(),
+          content: content,
+          privacy: privacy,
+          tags: selectedTags,
+        };
 
-      await prayerService.createPrayer(prayerData);
-      Alert.alert('Success', 'Prayer created successfully');
-      router.push('/prayers');
+        await prayerService.updatePrayer(prayerId, updateData);
+        Alert.alert('Success', 'Prayer updated successfully');
+      } else {
+        // Create new prayer
+        const prayerData = {
+          title: title.trim(),
+          content: content,
+          privacy: privacy,
+          tags: selectedTags,
+          authorId: auth.currentUser.uid,
+          authorName: auth.currentUser.displayName,
+          status: 'Current' as const,
+          isPinned: false,
+        } as unknown as CreatePrayerDTO;
+
+        await prayerService.createPrayer(prayerData);
+        Alert.alert('Success', 'Prayer created successfully');
+        router.push('/prayer');
+      }
     } catch (error) {
-      console.error('Error creating prayer:', error);
-      Alert.alert('Error', 'Failed to create prayer. Please try again.');
+      console.error(
+        `Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
+        error,
+      );
+      Alert.alert(
+        'Error',
+        `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`,
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Return the Modal component at the end of the component
-  const PrivacyModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={showPrivacyModal}
-      onRequestClose={() => setShowPrivacyModal(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <ThemedText style={styles.modalTitle}>Privacy Settings</ThemedText>
+  // // Return the Modal component at the end of the component
+  // const PrivacyModal = () => (
+  //   <Modal
+  //     animationType="slide"
+  //     transparent={true}
+  //     visible={showPrivacyModal}
+  //     onRequestClose={() => setShowPrivacyModal(false)}
+  //   >
+  //     <View style={styles.modalOverlay}>
+  //       <View style={styles.modalContent}>
+  //         <ThemedText style={styles.modalTitle}>Privacy Settings</ThemedText>
 
-          <TouchableOpacity
-            style={[
-              styles.modalOption,
-              privacy === 'private' && styles.selectedOption,
-            ]}
-            onPress={() => {
-              setPrivacy('private');
-              setShowPrivacyModal(false);
-            }}
-          >
-            <ThemedText style={styles.modalOptionText}>Private</ThemedText>
-            {privacy === 'private' && <ThemedText>✓</ThemedText>}
-          </TouchableOpacity>
+  //         <TouchableOpacity
+  //           style={[
+  //             styles.modalOption,
+  //             privacy === 'private' && styles.selectedOption,
+  //           ]}
+  //           onPress={() => {
+  //             setPrivacy('private');
+  //             setShowPrivacyModal(false);
+  //           }}
+  //         >
+  //           <ThemedText style={styles.modalOptionText}>Private</ThemedText>
+  //           {privacy === 'private' && <ThemedText>✓</ThemedText>}
+  //         </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.modalOption,
-              privacy === 'public' && styles.selectedOption,
-            ]}
-            onPress={() => {
-              setPrivacy('public');
-              setShowPrivacyModal(false);
-            }}
-          >
-            <ThemedText style={styles.modalOptionText}>Public</ThemedText>
-            {privacy === 'public' && <ThemedText>✓</ThemedText>}
-          </TouchableOpacity>
+  //         <TouchableOpacity
+  //           style={[
+  //             styles.modalOption,
+  //             privacy === 'public' && styles.selectedOption,
+  //           ]}
+  //           onPress={() => {
+  //             setPrivacy('public');
+  //             setShowPrivacyModal(false);
+  //           }}
+  //         >
+  //           <ThemedText style={styles.modalOptionText}>Public</ThemedText>
+  //           {privacy === 'public' && <ThemedText>✓</ThemedText>}
+  //         </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.modalCloseButton}
-            onPress={() => setShowPrivacyModal(false)}
-          >
-            <ThemedText style={styles.modalCloseText}>Cancel</ThemedText>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
+  //         <TouchableOpacity
+  //           style={styles.modalCloseButton}
+  //           onPress={() => setShowPrivacyModal(false)}
+  //         >
+  //           <ThemedText style={styles.modalCloseText}>Cancel</ThemedText>
+  //         </TouchableOpacity>
+  //       </View>
+  //     </View>
+  //   </Modal>
+  // );
 
   return (
-    <>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={styles.section}>
-          <View style={styles.titleContainer}>
-            <TextInput
-              style={styles.titleInput}
-              placeholder="Prayer title"
-              value={title}
-              onChangeText={setTitle}
-              maxLength={100}
-            />
-            {isAnalyzing && <ActivityIndicator color="#9747FF" size="small" />}
-          </View>
-        </View>
-
-        <View style={styles.section}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <View style={styles.section}>
+        <View style={styles.titleContainer}>
           <TextInput
-            style={styles.contentInput}
-            placeholder={placeholder}
-            value={content}
-            onChangeText={setContent}
-            multiline
+            style={styles.titleInput}
+            placeholder="Prayer title"
+            value={title}
+            onChangeText={setTitle}
+            maxLength={100}
           />
+          {isAnalyzing && <ActivityIndicator color="#9747FF" size="small" />}
         </View>
+      </View>
 
-        <View style={styles.section}>
-          <ThemedText style={styles.label}>Tags:</ThemedText>
-          <View style={styles.tagButtons}>
-            {allTags.map((tag) => (
-              <TouchableOpacity
-                key={tag}
+      <View style={styles.section}>
+        <TextInput
+          style={styles.contentInput}
+          placeholder={placeholder}
+          value={content}
+          onChangeText={setContent}
+          multiline
+        />
+      </View>
+
+      <View style={styles.section}>
+        <ThemedText style={styles.label}>Tags:</ThemedText>
+        <View style={styles.tagButtons}>
+          {allTags.map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={[
+                styles.tagButton,
+                selectedTags.includes(tag) && styles.tagButtonSelected,
+              ]}
+              onPress={() => toggleTag(tag)}
+            >
+              <ThemedText
                 style={[
-                  styles.tagButton,
-                  selectedTags.includes(tag) && styles.tagButtonSelected,
+                  styles.tagButtonText,
+                  selectedTags.includes(tag) && styles.tagButtonTextSelected,
                 ]}
-                onPress={() => toggleTag(tag)}
               >
-                <ThemedText
-                  style={[
-                    styles.tagButtonText,
-                    selectedTags.includes(tag) && styles.tagButtonTextSelected,
-                  ]}
-                >
-                  {tag}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.privacySelector}
-            onPress={() => setShowPrivacyModal(true)}
-          >
-            <ThemedText style={styles.label}>Privacy</ThemedText>
-            <View style={styles.privacyValueContainer}>
-              <ThemedText style={styles.privacyValue}>
-                {privacy === 'private' ? 'Private' : 'Public'}
+                {tag}
               </ThemedText>
-              {privacy === 'private' && (
-                <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-              )}
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
         </View>
+      </View>
 
+      <View style={styles.section}>
         <TouchableOpacity
-          style={[styles.createButton, isLoading && styles.buttonDisabled]}
-          onPress={handleCreatePrayer}
-          disabled={isLoading}
+          style={styles.privacySelector}
+          onPress={() => setShowPrivacyModal(true)}
         >
-          <ThemedText style={styles.createButtonText}>
-            {isLoading ? 'Creating...' : 'Add Prayer'}
-          </ThemedText>
+          <ThemedText style={styles.label}>Privacy</ThemedText>
+          <View style={styles.privacyValueContainer}>
+            <ThemedText style={styles.privacyValue}>
+              {privacy === 'private' ? 'Private' : 'Public'}
+            </ThemedText>
+            {privacy === 'private' && (
+              <ThemedText style={styles.lockIcon}>🔒</ThemedText>
+            )}
+          </View>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
 
-      <PrivacyModal />
-    </>
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleSubmit}
+        disabled={isLoading}
+      >
+        <ThemedText style={styles.buttonText}>
+          {isLoading
+            ? isEditMode
+              ? 'Updating...'
+              : 'Creating...'
+            : isEditMode
+              ? 'Update Prayer'
+              : 'Create Prayer'}
+        </ThemedText>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
