@@ -99,7 +99,7 @@ export default function PrayerMetadataScreen() {
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
-      router.push('/(prayers)');
+      router.push('/prayers');
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
