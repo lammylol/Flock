@@ -14,7 +14,6 @@ import { useRouter } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import useAuthContext from '@/hooks/useAuthContext';
 import { AuthProvider } from '@/context/AuthContext';
-// Import font instead of require
 import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
