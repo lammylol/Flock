@@ -26,8 +26,9 @@ export default function TabLayout() {
             default: {},
           }),
         }}
+        initialRouteName="(prayers)"
       >
-        <Tabs.Screen
+        {/* <Tabs.Screen
           name="index"
           options={{
             title: 'Home',
@@ -35,9 +36,9 @@ export default function TabLayout() {
               <IconSymbol size={28} name="house.fill" color={color} />
             ),
           }}
-        />
+        /> */}
         <Tabs.Screen
-          name="prayers"
+          name="(prayers)"
           options={{
             title: 'Prayer',
             tabBarIcon: ({ color }) => (
@@ -46,7 +47,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="createPrayerFlow"
+          name="(createPrayer)"
           options={{
             title: 'Pray',
             tabBarIcon: ({ color }) => (

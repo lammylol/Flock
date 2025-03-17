@@ -1,5 +1,5 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Prayer } from '@/types/firebase';
@@ -13,7 +13,6 @@ import { ThemedScrollView } from '@/components/ThemedScrollView';
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [prayer, setPrayer] = useState<Prayer | null>(null);
-  const scrollViewRef = useRef<typeof ThemedScrollView>(null);
 
   useEffect(() => {
     const fetchPrayer = async () => {
@@ -23,10 +22,6 @@ const PrayerView = () => {
 
     fetchPrayer();
   }, [id]);
-
-  // useEffect(() => {
-  //   scrollViewRef.current?.scrollToEnd({ animated: true });
-  // }, [TagsSection]); // Scroll to bottom whenever messages change
 
   return (
     <ThemedScrollView style={styles.scrollView}>

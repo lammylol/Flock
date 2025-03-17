@@ -44,7 +44,7 @@ export default function TabTwoScreen() {
               onPress={() => {
                 console.log(`Fetching prayer: ${prayer.id}`);
                 router.push({
-                  pathname: '/prayers/prayerView',
+                  pathname: '/(prayers)/prayerView',
                   params: { id: prayer.id },
                 });
               }}
