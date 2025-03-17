@@ -52,15 +52,18 @@ export interface Prayer {
   privacy: 'public' | 'private';
   isPinned: boolean;
   title: string;
-  tags: PrayerTag[]; // New field
+  tags: PrayerTag[];
+  prayerPoints: string[];
 }
 
-export interface PrayerUpdate {
+export interface PrayerPoint {
   id: string;
+  title: string;
   content: string;
   createdAt: Date;
   authorId: string;
-  type: 'update' | 'answer';
+  prayerId: string;
+  type: 'request' | 'praise';
 }
 
 export interface Category {
