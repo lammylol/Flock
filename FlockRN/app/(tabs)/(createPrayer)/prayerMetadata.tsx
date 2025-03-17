@@ -99,7 +99,7 @@ export default function PrayerMetadataScreen() {
 
       await prayerService.createPrayer(prayerData);
       Alert.alert('Success', 'Prayer created successfully');
-      router.push('/prayers');
+      router.push('/(tabs)/(prayers)');
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
@@ -282,6 +282,7 @@ const styles = StyleSheet.create({
     padding: 12,
     paddingTop: 12,
     minHeight: 120,
+    flex: 1,
   },
   createButton: {
     alignItems: 'center',
