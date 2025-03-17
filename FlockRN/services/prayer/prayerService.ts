@@ -31,8 +31,11 @@ class PrayerService {
     try {
       const now = Timestamp.now();
 
-      const docRef = await addDoc(this.prayersCollection, {
+      const docRef = doc(this.prayersCollection);
+
+      await setDoc(docRef, {
         ...data,
+        id: docRef.id,
         createdAt: now,
         updatedAt: now,
       });
