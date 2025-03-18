@@ -11,6 +11,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import PrayerPointCard from '@/components/Prayer/PrayerPoints/PrayerPointCard';
 import useAuthContext from '@/hooks/useAuthContext';
+import { ThemedText } from '@/components/ThemedText';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,7 +52,19 @@ const PrayerView = () => {
           </ThemedView>
         )}
         {prayerPoints && (
-          <ThemedView style={styles.container}>
+          <ThemedView
+            style={
+              (styles.prayerPointsContainer,
+                { borderColor: Colors.primary, borderWidth: 1, borderRadius: 20 })
+            }
+          >
+            <ThemedText
+              lightColor={Colors.light.textSecondary}
+              darkColor={Colors.dark.textPrimary}
+              style={styles.prayerPointsText}
+            >
+              Prayer Points
+            </ThemedText>
             <PrayerPointCard
               title={prayerPoints[0].title}
               content={prayerPoints[0].content}
@@ -72,8 +85,20 @@ const styles = StyleSheet.create({
   },
   mainBackground: {
     flex: 1,
+    gap: 10,
     paddingBottom: 16,
     paddingHorizontal: 10,
+  },
+  prayerPointsContainer: {
+    borderRadius: 20,
+    flex: 0,
+    padding: 16,
+  },
+  prayerPointsText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    lineHeight: 30,
+    padding: 16,
   },
   scrollView: {
     flex: 1,

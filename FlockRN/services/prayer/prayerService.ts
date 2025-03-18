@@ -216,7 +216,7 @@ class PrayerService {
       const q = query(
         this.prayerPointsCollection,
         where('prayerId', '==', prayerId),
-        where('privacy', '==', 'public'), // Fetch only public prayer points
+        // where('privacy', '==', 'public'), // Fetch only public prayer points
         where('authorId', '==', user.uid), // OR fetch the user's own prayer points
         orderBy('createdAt', 'desc'),
       );
