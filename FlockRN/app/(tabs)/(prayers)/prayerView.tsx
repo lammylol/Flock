@@ -55,7 +55,7 @@ const PrayerView = () => {
           <ThemedView
             style={
               (styles.prayerPointsContainer,
-                { borderColor: Colors.primary, borderWidth: 1, borderRadius: 20 })
+              { borderColor: Colors.primary, borderWidth: 1, borderRadius: 20 })
             }
           >
             <ThemedText

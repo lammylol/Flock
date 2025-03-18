@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { FirebaseError } from 'firebase/app';
