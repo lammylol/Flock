@@ -28,6 +28,7 @@ export default function ScrollView({ children }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
   },
   content: {
     flex: 1,

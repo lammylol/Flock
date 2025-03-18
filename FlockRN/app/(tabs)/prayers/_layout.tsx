@@ -6,7 +6,7 @@ export default function prayers() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Prayers',
+          title: 'MyPrayers',
           headerShown: false,
         }}
       />

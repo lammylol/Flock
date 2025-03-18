@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     // Use border bottom for overall tab bar look
     borderBottomWidth: 1,
     borderColor: Colors.border,
+    marginBottom: 16,
   },
   tabButton: {
     alignItems: 'center',
