@@ -2,26 +2,44 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Prayer } from '@/types/firebase';
+import { Prayer, PrayerPoint } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
 import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
+import PrayerPointCard from '@/components/Prayer/PrayerPoints/PrayerPointCard';
+import useAuthContext from '@/hooks/useAuthContext';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [prayer, setPrayer] = useState<Prayer | null>(null);
+  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[] | null>(null);
+  const user = useAuthContext().user;
 
   useEffect(() => {
     const fetchPrayer = async () => {
       const fetchedPrayer = await prayerService.getPrayer(id);
+      console.log('Fetched Prayer:', fetchedPrayer);
       setPrayer(fetchedPrayer);
+      console.log('Current User:', user?.uid === fetchedPrayer?.authorId);
+      if (user && fetchedPrayer?.prayerPoints) {
+        const fetchedPrayerPoints = await prayerService.getPrayerPoints(
+          id,
+          user,
+        );
+        setPrayerPoints(fetchedPrayerPoints);
+      }
     };
 
     fetchPrayer();
   }, [id]);
+
+  // Logs the updated state properly
+  useEffect(() => {
+    console.log(prayerPoints);
+  }, [prayerPoints]);
 
   return (
     <ThemedScrollView style={styles.scrollView}>
@@ -30,6 +48,14 @@ const PrayerView = () => {
           <ThemedView style={styles.container}>
             <PrayerContent title={prayer.title} content={prayer.content} />
             <TagsSection prayerId={prayer.id} tags={prayer.tags} />
+          </ThemedView>
+        )}
+        {prayerPoints && (
+          <ThemedView style={styles.container}>
+            <PrayerPointCard
+              title={prayerPoints[0].title}
+              content={prayerPoints[0].content}
+            />
           </ThemedView>
         )}
       </ThemedView>

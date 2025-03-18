@@ -26,12 +26,12 @@ export async function analyzePrayerContent(
   const titlePrompt =
     'Title: A concise title for the prayer, with a maximum character limit of 10.';
 
-  const hasTranscriptionPrompt = `, an edited version of the voice-transcribed prayer, being as 
-  accurate as possible to what the user originally intended to say`;
+  const hasTranscriptionPrompt = `Content: Clean up the voice-transcribed prayed, being as 
+  accurate as possible to what the user originally intended to say.`;
 
   const tagPrompt = `Tags: A list of up to 4 relevant tags for the prayer, selected from this list: ${allTags}`;
 
-  const prayerPointPrompt = `Generate at least 1 and at most 3 prayer points. Each must be a type of either a 'prayer request' or 'praise'. 
+  const prayerPointPrompt = `Prayer Points: Generate at least 1 and at most 3 prayer points. Each must be a type of either a 'prayer request' or 'praise'. 
   Titles should be concise. Content should be clear and at most 50 words.`;
 
   const jsonFormat = `

@@ -51,6 +51,7 @@ export default function PrayerMetadataScreen() {
 
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
+    prayerId: string,
   ): Promise<string[]> => {
     try {
       // Transform prayer points
@@ -64,6 +65,7 @@ export default function PrayerMetadataScreen() {
           authorName: auth.currentUser?.displayName || 'Unknown',
           status: prayerPoint.status || 'open',
           privacy: prayerPoint.privacy ?? 'private',
+          prayerId: prayerId,
         }),
       );
 
@@ -138,7 +140,8 @@ export default function PrayerMetadataScreen() {
       const prayerId = await prayerService.createPrayer(prayerData);
 
       // get list of prayer point ids
-      const prayerPointIds = await handlePrayerPoints(prayerPoints);
+      const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
+
       const updatePrayerPoints = {
         prayerPoints: prayerPointIds,
       } as UpdatePrayerDTO;

@@ -44,7 +44,7 @@ set in RecordingContext.tsx" */
   const handleFinish = () => {
     // Navigate to metadata screen with the prayer content
     router.push({
-      pathname: '/createPrayerFlow/prayerMetadata',
+      pathname: '/(createPrayer)/prayerMetadata',
     });
   };
 
