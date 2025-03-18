@@ -20,25 +20,34 @@ import {
   DocumentData,
 } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
-import { Prayer, CreatePrayerDTO, UpdatePrayerDTO } from '@/types/firebase';
+import {
+  Prayer,
+  CreatePrayerDTO,
+  UpdatePrayerDTO,
+  PrayerPointDTO,
+} from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 
 class PrayerService {
   private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
+  private prayerPointsCollection = collection(
+    db,
+    FirestoreCollections.PRAYERPOINTS,
+  );
   private feedsCollection = collection(db, FirestoreCollections.FEED);
 
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
       const now = Timestamp.now();
 
-      const docRef = doc(this.prayersCollection);
-
-      await setDoc(docRef, {
+      const docRef = await addDoc(this.prayersCollection, {
         ...data,
-        id: docRef.id,
         createdAt: now,
         updatedAt: now,
       });
+
+      // After the document is created, update it with the generated ID
+      await updateDoc(docRef, { id: docRef.id });
 
       // If prayer is public, add to author's feed
       if (data.privacy === 'public') {
@@ -171,6 +180,33 @@ class PrayerService {
     }
   }
 
+  // Add a list of prayer points, then return the list of prayer IDs.
+  async addPrayerPoints(prayerPoints: PrayerPointDTO[]): Promise<string[]> {
+    const now = Timestamp.now();
+
+    try {
+      // Map prayerPoints to Firestore write promises
+      const writePromises = prayerPoints.map(async (point) => {
+        const docRef = await addDoc(this.prayerPointsCollection, {
+          ...point, // Use the actual prayer point data
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // After the document is created, update it with the generated ID
+        await updateDoc(docRef, { id: docRef.id });
+
+        return docRef.id;
+      });
+
+      // Wait for all Firestore writes to complete
+      return await Promise.all(writePromises);
+    } catch (error) {
+      console.error('Error adding prayer points:', error);
+      throw error;
+    }
+  }
+
   // async addUpdate(
   //   prayerId: string,
   //   update: Omit<PrayerUpdate, 'id'>,
@@ -277,7 +313,8 @@ class PrayerService {
       updatedAt: data.updatedAt as Date,
       tags: (data.tags || []).map(
         (tag: string) => tag.charAt(0).toLowerCase() + tag.slice(1),
-      ), // charAt(0) used because of edge cases like prayerRequest. Cannot full lowercase.
+      ),
+      prayerPoints: data.prayerPoints,
     };
   }
 }
