@@ -4,7 +4,12 @@ import { Stack } from 'expo-router';
 export default function CreatePrayerFlowLayout() {
   return (
     <RecordingProvider>
-      <Stack screenOptions={{ headerShown: true }}>
+      <Stack
+        screenOptions={{
+          headerShown: true,
+          headerShadowVisible: false,
+        }}
+      >
         <Stack.Screen name="index" options={{ title: 'Create Prayer' }} />
         <Stack.Screen
           name="voiceRecording"

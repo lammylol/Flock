@@ -1,7 +1,7 @@
 import { StyleSheet, TextInput } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import ScrollView from '@/components/ScrollView';
+import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { Prayer } from '@/types/firebase';
 import useAuth from '@/hooks/useAuth';
 import { useState } from 'react';
@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import PrayerCard from '@/components/Prayer/PrayerView/PrayerCard';
 import { Tabs } from '@/components/Tab';
+import ScrollView from '@/components/ScrollView';
 
 export default function TabTwoScreen() {
   const { user } = useAuth();
@@ -33,7 +34,7 @@ export default function TabTwoScreen() {
     fetchPrayers();
   });
   return (
-    <ScrollView>
+    <ThemedScrollView style={styles.header}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">My Prayers</ThemedText>
       </ThemedView>
@@ -68,11 +69,14 @@ export default function TabTwoScreen() {
           </ScrollView>
         )}
       </ThemedView>
-    </ScrollView>
+    </ThemedScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    padding: 32,
+  },
   input: {
     borderRadius: 25,
     borderWidth: 1,

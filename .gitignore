@@ -33,6 +33,13 @@ expo-env.d.ts
 */android/gradle/wrapper/gradle-wrapper.jar
 */android/gradle/wrapper/gradle-wrapper.properties
 
+# iOS Xcode-specific files
+ios/DerivedData/
+ios/*.xccheckout
+ios/*.xcodeproj/project.xcworkspace/
+ios/*.xcodeproj/xcuserdata/
+ios/FlockRN/Supporting/noop-file.swift
+
 # Metro bundler
 .metro-health-check*
 metro-cache/

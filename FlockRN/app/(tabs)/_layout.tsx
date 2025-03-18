@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -11,7 +11,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
@@ -26,8 +26,9 @@ export default function TabLayout() {
             default: {},
           }),
         }}
+        initialRouteName="(prayers)"
       >
-        <Tabs.Screen
+        {/* <Tabs.Screen
           name="index"
           options={{
             title: 'Home',
@@ -35,18 +36,18 @@ export default function TabLayout() {
               <IconSymbol size={28} name="house.fill" color={color} />
             ),
           }}
-        />
+        /> */}
         <Tabs.Screen
-          name="prayers"
+          name="(prayers)"
           options={{
-            title: 'Psrayer',
+            title: 'Prayer',
             tabBarIcon: ({ color }) => (
               <FontAwesome5 color={color} size={21} name={'book'} />
             ),
           }}
         />
         <Tabs.Screen
-          name="createPrayerFlow"
+          name="(createPrayer)"
           options={{
             title: 'Pray',
             tabBarIcon: ({ color }) => (
@@ -76,3 +77,10 @@ export default function TabLayout() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+});

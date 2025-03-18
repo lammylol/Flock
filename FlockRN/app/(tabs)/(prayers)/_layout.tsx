@@ -16,6 +16,7 @@ export default function prayers() {
           title: 'Prayer',
           headerBackButtonDisplayMode: 'default',
           headerBackTitle: 'Back',
+          headerShadowVisible: false,
         }}
       />
     </Stack>
