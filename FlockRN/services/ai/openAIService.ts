@@ -26,8 +26,11 @@ export async function analyzePrayerContent(
   const titlePrompt =
     'Title: A concise title for the prayer, with a maximum character limit of 10.';
 
-  const hasTranscriptionPrompt = `Content: The content is a transcription of a voice recording. 
-  Clean up punctuation, and fix any errors, being as close as possible to what the user originally said.`;
+  const hasTranscriptionPrompt = `Content: I have a transcribed prayer from a voice recording. Since it was transcribed automatically, 
+    there are likely errors in punctuation, grammar, and some words may have been misheard by the transcriber.
+    Please clean up the punctuation, grammar, and correct any clear transcription mistakes while keeping the prayer as
+    close to the original as possible, word for word. Do not rephrase or change the meaning; only fix clear errors.
+    Keep the tone and structure natural, as if the person had spoken clearly and fluently.`;
 
   const tagPrompt = `Tags: A list of up to 4 relevant tags for the prayer, selected from this list: ${allTags}`;
 
