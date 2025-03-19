@@ -15,7 +15,13 @@ import { analyzePrayerContent } from '../../../services/ai/openAIService';
 import { auth } from '../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
-import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
+import {
+  CreatePrayerDTO,
+  PrayerPoint,
+  PrayerPointDTO,
+  PrayerTag,
+  UpdatePrayerDTO,
+} from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import { allTags } from '@/types/Tag';
 
@@ -31,6 +37,7 @@ export default function PrayerMetadataScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
   const [placeholder, setPlaceholder] = useState('enter your prayer here');
+  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
 
   useEffect(() => {
     if (isTranscribing) {
@@ -42,6 +49,37 @@ export default function PrayerMetadataScreen() {
     }
   }, [isTranscribing, transcription]);
 
+  const handlePrayerPoints = async (
+    prayerPoints: PrayerPoint[],
+    prayerId: string,
+  ): Promise<string[]> => {
+    try {
+      // Transform prayer points
+      const mappedPrayerPoints: PrayerPointDTO[] = prayerPoints.map(
+        (prayerPoint) => ({
+          title: prayerPoint.title?.trim() || 'Untitled',
+          type: (prayerPoint.type?.trim() as 'request' | 'praise') || 'request',
+          content: prayerPoint.content?.trim() || '',
+          createdAt: new Date(),
+          authorId: auth.currentUser?.uid || 'unknown',
+          authorName: auth.currentUser?.displayName || 'Unknown',
+          status: prayerPoint.status || 'open',
+          privacy: prayerPoint.privacy ?? 'private',
+          prayerId: prayerId,
+        }),
+      );
+
+      // Save to Firestore
+      const prayerPointIds =
+        await prayerService.addPrayerPoints(mappedPrayerPoints);
+
+      return prayerPointIds;
+    } catch (err) {
+      console.error('Error parsing prayer points:', err);
+      return [];
+    }
+  };
+
   useEffect(() => {
     const analyzeContent = async () => {
       setIsAnalyzing(true);
@@ -50,6 +88,7 @@ export default function PrayerMetadataScreen() {
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
         setSelectedTags(analysis.tags);
+        setPrayerPoints(analysis.prayerPoints);
       } catch (error) {
         console.error('Error using AI fill:', error);
         // Silent fail - don't show error to user for automatic fill
@@ -92,11 +131,22 @@ export default function PrayerMetadataScreen() {
         tags: selectedTags,
         authorId: auth.currentUser.uid,
         authorName: auth.currentUser.displayName,
-        status: 'Current' as const,
+        status: 'open' as const,
         isPinned: false,
       } as unknown as CreatePrayerDTO;
 
-      await prayerService.createPrayer(prayerData);
+      const prayerId = await prayerService.createPrayer(prayerData);
+
+      // get list of prayer point ids
+      const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
+
+      const updatePrayerPoints = {
+        prayerPoints: prayerPointIds,
+      } as UpdatePrayerDTO;
+
+      // update the original prayer with the list of ids
+      await prayerService.updatePrayer(prayerId, updatePrayerPoints);
+
       Alert.alert('Success', 'Prayer created successfully');
       router.push('/(tabs)/(prayers)');
     } catch (error) {

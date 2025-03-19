@@ -48,19 +48,26 @@ export interface Prayer {
   authorName: string;
   createdAt: Date;
   updatedAt: Date;
-  status: 'current' | 'answered' | 'noLongerNeeded';
-  privacy: 'public' | 'private';
+  status: 'open' | 'closed'; // can be deprecated later
+  privacy: 'public' | 'private'; // can be deprecated later
   isPinned: boolean;
   title: string;
-  tags: PrayerTag[]; // New field
+  tags: PrayerTag[];
+  prayerPoints: string[];
 }
 
-export interface PrayerUpdate {
+export interface PrayerPoint {
   id: string;
+  title: string;
   content: string;
   createdAt: Date;
+  updatedAt: Date;
+  authorName: string;
   authorId: string;
-  type: 'update' | 'answer';
+  prayerId: string;
+  type: 'request' | 'praise';
+  status: 'open' | 'closed' | null;
+  privacy: 'public' | 'private';
 }
 
 export interface Category {
@@ -76,9 +83,16 @@ export interface FeedPrayer {
 }
 
 // DTOs for creating/updating
-export type CreatePrayerDTO = Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>;
+export type CreatePrayerDTO = Omit<
+  Prayer,
+  'id' | 'createdAt' | 'updatedAt' | 'prayerPointIds'
+>;
 export type UpdatePrayerDTO = Partial<
-  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>
+  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt' | 'prayerPointIds'>
+>;
+export type PrayerPointDTO = Omit<
+  PrayerPoint,
+  'id' | 'createdAt' | 'updatedAt' | 'prayerId'
 >;
 
 export interface ServiceResponse {

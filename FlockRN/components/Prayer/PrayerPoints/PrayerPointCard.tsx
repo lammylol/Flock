@@ -1,16 +1,16 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Colors } from '@/constants/Colors';
+import { Colors } from 'constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 
-interface PrayerContentProps {
+interface PrayerPointProps {
   title: string;
   content: string;
 }
 
-const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
+const PrayerPointCard: React.FC<PrayerPointProps> = ({ title, content }) => {
   return (
-    <View styles={styles.container}>
+    <View>
       <ThemedText
         lightColor={Colors.light.textSecondary}
         darkColor={Colors.dark.textPrimary}
@@ -30,17 +30,14 @@ const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 10,
-  },
   contentText: {
-    paddingVertical: 10,
+    fontSize: 16,
   },
   titleText: {
-    fontSize: 30,
+    fontSize: 20,
     fontWeight: 'bold',
     lineHeight: 30,
   },
 });
 
-export default PrayerContent;
+export default PrayerPointCard;

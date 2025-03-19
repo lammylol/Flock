@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { PrayerTag } from '@/types/firebase';
+import { PrayerPoint, PrayerTag } from '@/types/firebase';
 import { allTags } from '@/types/Tag';
 
 // Initialize OpenAI client
@@ -12,6 +12,7 @@ interface AIAnalysis {
   title: string;
   cleanedTranscription?: string;
   tags: PrayerTag[];
+  prayerPoints: PrayerPoint[];
 }
 
 export async function analyzePrayerContent(
@@ -22,13 +23,49 @@ export async function analyzePrayerContent(
     throw new Error('No prayer content provided');
   }
 
-  const hasTranscriptionPrompt = `, and edits the voice-transcription content to 
-       make it as accurate as possible to what the user intended to say`;
+  const titlePrompt =
+    'Title: A concise title for the prayer, with a maximum character limit of 10.';
 
-  const systemPrompt = `You are an AI that analyzes prayers that are transcribed from a voice recording
-       and suggests appropriate titles and tags ${hasTranscription ? hasTranscriptionPrompt : ''}. Available tags are: ${allTags}.
-       All prayers should be a praise if it is about a highlight, and a prayer request if there is a need.
-       Return only JSON with \'title\' and \'content\' and \'tags\' fields. Choose maximum 2 most relevant tags.`;
+  const hasTranscriptionPrompt = `Content: The content is a transcription of a voice recording. 
+  Clean up punctuation, and fix any errors, being as close as possible to what the user originally said.`;
+
+  const tagPrompt = `Tags: A list of up to 4 relevant tags for the prayer, selected from this list: ${allTags}`;
+
+  const prayerPointPrompt = `Prayer Points: Generate at least 1 and at most 3 prayer points. Each must be a type of either a 'prayer request' or 'praise'. 
+  Titles should be concise. Content should be clear and at most 50 words.`;
+
+  const jsonFormat = `
+  {
+    \"title\": \"string\",
+    ${hasTranscription ? '\"content\": \"string\",' : ''}
+    \"tags\": [\"string\"],
+    \"prayerPoints\": [
+      {
+        \"title\": \"string\",
+        \"type\": \"string\",
+        \"content\": \"string\"
+      }
+    ],
+  }
+`;
+
+  const rules = `
+    - Maintain a respectful and encouraging tone.
+    - Do not fabricate details not present in the prayer.
+    - Do not exceed the word limits for each field.
+    - Return only valid JSON in this format:
+    
+    ${jsonFormat}
+  `;
+
+  const systemPrompt = `You are an AI that analyzes prayers and suggests the following: 
+    ${titlePrompt}
+    ${tagPrompt}
+    ${hasTranscription ? hasTranscriptionPrompt : ''}
+    ${prayerPointPrompt}
+    ##Rules: 
+    ${rules}
+  `;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -68,6 +105,13 @@ export async function analyzePrayerContent(
       tags: result.tags
         .filter((tag: string) => allTags.includes(tag))
         .slice(0, 2),
+      prayerPoints: result.prayerPoints.map(
+        (prayerPoint: Omit<PrayerPoint, 'id' | 'createdAt' | 'authorId'>) => ({
+          title: prayerPoint.title.trim(),
+          type: prayerPoint.type.trim(),
+          content: prayerPoint.content.trim(),
+        }),
+      ),
     };
   } catch (error) {
     if (error instanceof OpenAI.APIError) {

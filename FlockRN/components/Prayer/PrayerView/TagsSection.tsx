@@ -156,7 +156,7 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
+  container: {},
   containerExpanded: { marginHorizontal: -12 },
   editButton: {
     alignItems: 'center',
