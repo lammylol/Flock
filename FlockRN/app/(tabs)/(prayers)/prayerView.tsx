@@ -22,9 +22,7 @@ const PrayerView = () => {
   useEffect(() => {
     const fetchPrayer = async () => {
       const fetchedPrayer = await prayerService.getPrayer(id);
-      console.log('Fetched Prayer:', fetchedPrayer);
       setPrayer(fetchedPrayer);
-      console.log('Current User:', user?.uid === fetchedPrayer?.authorId);
       if (user && fetchedPrayer?.prayerPoints) {
         const fetchedPrayerPoints = await prayerService.getPrayerPoints(
           id,
@@ -36,11 +34,6 @@ const PrayerView = () => {
 
     fetchPrayer();
   }, [id]);
-
-  // Logs the updated state properly
-  useEffect(() => {
-    console.log(prayerPoints);
-  }, [prayerPoints]);
 
   return (
     <ThemedScrollView style={styles.scrollView}>
@@ -67,6 +60,7 @@ const PrayerView = () => {
             </ThemedText>
             {prayerPoints.map((prayerPoint: PrayerPoint) => (
               <PrayerPointCard
+                key={prayerPoint.id}
                 title={prayerPoint.title}
                 content={prayerPoint.content}
               />
