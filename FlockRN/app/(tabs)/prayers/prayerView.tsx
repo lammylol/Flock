@@ -28,7 +28,7 @@ const PrayerView = () => {
       const fetchedPrayer = await prayerService.getPrayer(id);
       setPrayer(fetchedPrayer);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setError('Prayer could not be fetched. Please try again.');
     }
     setRefreshing(false);
