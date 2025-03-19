@@ -65,40 +65,43 @@ const PrayerView = () => {
         />
       ) : (
         prayer && (
-          <ThemedView
-            style={{
-              ...styles.innerContainer,
-              backgroundColor: colorScheme,
-            }}
-          >
-            <PrayerContent title={prayer.title} content={prayer.content} />
-            <TagsSection prayerId={prayer.id} tags={prayer.tags} />
-          </ThemedView>
-        )}
-        {prayerPoints && (
-          <ThemedView
-            style={[
-              styles.prayerPointsContainer,
-              { borderColor: Colors.secondary },
-            ]}
-          >
-            <ThemedText
-              lightColor={Colors.light.textSecondary}
-              darkColor={Colors.dark.textPrimary}
-              style={styles.prayerPointsText}
+          <>
+            <ThemedView
+              style={{
+                ...styles.innerContainer,
+                backgroundColor: colorScheme,
+              }}
             >
-              Prayer Points
-            </ThemedText>
-            {prayerPoints.map((prayerPoint: PrayerPoint) => (
-              <PrayerPointCard
-                key={prayerPoint.id}
-                title={prayerPoint.title}
-                content={prayerPoint.content}
-              />
-            ))}
-          </ThemedView>
-        )}
-      </ThemedView>
+              <PrayerContent title={prayer.title} content={prayer.content} />
+              <TagsSection prayerId={prayer.id} tags={prayer.tags} />
+            </ThemedView>
+
+            {prayerPoints && (
+              <ThemedView
+                style={[
+                  styles.prayerPointsContainer,
+                  { borderColor: Colors.secondary },
+                ]}
+              >
+                <ThemedText
+                  lightColor={Colors.light.textSecondary}
+                  darkColor={Colors.dark.textPrimary}
+                  style={styles.prayerPointsText}
+                >
+                  Prayer Points
+                </ThemedText>
+                {prayerPoints.map((prayerPoint: PrayerPoint) => (
+                  <PrayerPointCard
+                    key={prayerPoint.id}
+                    title={prayerPoint.title}
+                    content={prayerPoint.content}
+                  />
+                ))}
+              </ThemedView>
+            )}
+          </>
+        )
+      )}
     </ThemedScrollView>
   );
 };
