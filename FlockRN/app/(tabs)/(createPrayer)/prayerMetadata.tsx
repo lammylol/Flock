@@ -148,7 +148,8 @@ export default function PrayerMetadataScreen() {
       await prayerService.updatePrayer(prayerId, updatePrayerPoints);
 
       Alert.alert('Success', 'Prayer created successfully');
-      router.push('/(tabs)/(prayers)');
+      router.dismissAll(); // resets 'createPrayer' stack.
+      router.replace('/(tabs)/(prayers)');
     } catch (error) {
       console.error('Error creating prayer:', error);
       Alert.alert('Error', 'Failed to create prayer. Please try again.');
