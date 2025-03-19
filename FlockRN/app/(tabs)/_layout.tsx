@@ -11,20 +11,19 @@ export default function TabLayout() {
   const backgroundColor = useThemeColor({}, 'background');
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme].textPrimary,
-          tabBarButton: HapticTab,
-          headerShown: false,
-          tabBarStyle: {
-            backgroundColor: backgroundColor,
-            borderTopWidth: 0,
-          },
-        }}
-        initialRouteName="(prayers)"
-      >
-        {/* <Tabs.Screen
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme].textPrimary,
+        tabBarButton: HapticTab,
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: backgroundColor,
+          borderTopWidth: 0,
+        },
+      }}
+      initialRouteName="(prayers)"
+    >
+      {/* <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
@@ -33,43 +32,42 @@ export default function TabLayout() {
           ),
         }}
       /> */}
-        <Tabs.Screen
-          name="(prayers)"
-          options={{
-            title: 'Prayer',
-            tabBarIcon: ({ color }) => (
-              <FontAwesome5 color={color} size={21} name={'book'} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="(createPrayer)"
-          options={{
-            title: 'Pray',
-            tabBarIcon: ({ color }) => (
-              <FontAwesome5 color={color} size={21} name={'praying-hands'} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="connections"
-          options={{
-            title: 'Connections',
-            tabBarIcon: ({ color }) => (
-              <FontAwesome5 size={21} name={'user-friends'} color={color} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="account"
-          options={{
-            title: 'Account',
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="person.circle.fill" color={color} />
-            ),
-          }}
-        />
-      </Tabs>
-    </SafeAreaView>
+      <Tabs.Screen
+        name="(prayers)"
+        options={{
+          title: 'Prayer',
+          tabBarIcon: ({ color }) => (
+            <FontAwesome5 color={color} size={21} name={'book'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="(createPrayer)"
+        options={{
+          title: 'Pray',
+          tabBarIcon: ({ color }) => (
+            <FontAwesome5 color={color} size={21} name={'praying-hands'} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="connections"
+        options={{
+          title: 'Connections',
+          tabBarIcon: ({ color }) => (
+            <FontAwesome5 size={21} name={'user-friends'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: 'Account',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="person.circle.fill" color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
