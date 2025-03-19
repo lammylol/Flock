@@ -11,6 +11,8 @@ import { tagDisplayNames, allTags } from '@/types/Tag';
 import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
+import { ThemedText } from '@/components/ThemedText';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface TagsListProps {
   prayerId: string;
@@ -39,6 +41,15 @@ const oppositeTags = (tag: PrayerTag): PrayerTag => {
 const TagsList = ({ prayerId, tags }: TagsListProps) => {
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(tags);
   const [expanded, setExpanded] = useState(false);
+  const backgroundColor = useThemeColor(
+    { light: Colors.brown1, dark: Colors.black },
+    'background',
+  );
+  const textColor = useThemeColor({ light: Colors.brown2 }, 'textPrimary');
+  const tagLabelText = useThemeColor(
+    { light: Colors.light.textSecondary },
+    'textPrimary',
+  );
 
   useEffect(() => {
     setSelectedTags(tags);
@@ -111,7 +122,9 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Tags:</Text>
+      <ThemedText style={{ ...styles.tagsTitle, color: tagLabelText }}>
+        Tags:
+      </ThemedText>
       {!expanded ? (
         <TouchableOpacity style={styles.tagsContainer} onPress={toggleExpand}>
           {sortedTags.map((tag) => renderTag(tag))}
@@ -121,11 +134,17 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
         </TouchableOpacity>
       ) : (
         <View style={styles.containerExpanded}>
-          <View style={styles.modalContent}>
+          <View
+            style={[styles.modalContent, { backgroundColor: backgroundColor }]}
+          >
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Editing Tags</Text>
+              <Text style={{ ...styles.modalTitle, color: textColor }}>
+                Editing Tags
+              </Text>
               <TouchableOpacity onPress={saveTags}>
-                <Text style={styles.doneText}>Done</Text>
+                <Text style={{ ...styles.modalTitle, color: textColor }}>
+                  Done
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={styles.tagsContainer}>{allTagsRendered}</View>
@@ -137,9 +156,8 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
+  container: {},
   containerExpanded: { marginHorizontal: -12 },
-  doneText: { color: Colors.brown2, fontSize: 16, fontWeight: '600' },
   editButton: {
     alignItems: 'center',
     backgroundColor: Colors.brown2,
@@ -148,9 +166,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 24,
   },
-  label: { fontSize: 16, fontWeight: 'bold', marginBottom: 8 },
   modalContent: {
-    backgroundColor: Colors.brown1,
     borderRadius: 12,
     padding: 12,
   },
@@ -159,7 +175,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  modalTitle: { color: Colors.brown2, fontSize: 16, fontWeight: '600' },
+  modalTitle: { fontSize: 16, fontWeight: '500' },
   selectedTagText: { color: Colors.white, fontWeight: '400' },
   tag: {
     backgroundColor: Colors.white,
@@ -175,6 +191,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingRight: 20,
   },
+  tagsTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
 });
 
 export default TagsList;

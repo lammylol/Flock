@@ -20,11 +20,22 @@ import {
   DocumentData,
 } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
-import { Prayer, CreatePrayerDTO, UpdatePrayerDTO } from '@/types/firebase';
+import {
+  Prayer,
+  PrayerPoint,
+  CreatePrayerDTO,
+  UpdatePrayerDTO,
+  PrayerPointDTO,
+} from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
+import { User } from 'firebase/auth';
 
 class PrayerService {
   private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
+  private prayerPointsCollection = collection(
+    db,
+    FirestoreCollections.PRAYERPOINTS,
+  );
   private feedsCollection = collection(db, FirestoreCollections.FEED);
 
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
@@ -36,6 +47,9 @@ class PrayerService {
         createdAt: now,
         updatedAt: now,
       });
+
+      // After the document is created, update it with the generated ID
+      await updateDoc(docRef, { id: docRef.id });
 
       // If prayer is public, add to author's feed
       if (data.privacy === 'public') {
@@ -63,8 +77,6 @@ class PrayerService {
     try {
       const docRef = doc(this.prayersCollection, prayerId);
       const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) return null;
 
       if (!docSnap.exists()) return null;
 
@@ -168,6 +180,101 @@ class PrayerService {
     }
   }
 
+  // Add a list of prayer points, then return the list of prayer IDs.
+  async addPrayerPoints(prayerPoints: PrayerPointDTO[]): Promise<string[]> {
+    const now = Timestamp.now();
+
+    try {
+      // Map prayerPoints to Firestore write promises
+      const writePromises = prayerPoints.map(async (point) => {
+        const docRef = await addDoc(this.prayerPointsCollection, {
+          ...point, // Use the actual prayer point data
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // After the document is created, update it with the generated ID
+        await updateDoc(docRef, { id: docRef.id });
+
+        return docRef.id;
+      });
+
+      // Wait for all Firestore writes to complete
+      return await Promise.all(writePromises);
+    } catch (error) {
+      console.error('Error adding prayer points:', error);
+      throw error;
+    }
+  }
+
+  async getPrayerPoints(
+    prayerId: string,
+    user: User,
+  ): Promise<PrayerPoint[] | null> {
+    try {
+      // Query for public OR user's own prayer points
+      const q = query(
+        this.prayerPointsCollection,
+        where('prayerId', '==', prayerId),
+        // where('privacy', '==', 'public'), // Fetch only public prayer points
+        where('authorId', '==', user.uid), // OR fetch the user's own prayer points
+        orderBy('createdAt', 'desc'),
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) return null;
+
+      return querySnapshot.docs.map(
+        (doc) => this.convertDocToPrayerPoint(doc) as PrayerPoint,
+      );
+    } catch (error) {
+      console.error('Error getting prayer points:', error);
+      throw error;
+    }
+  }
+
+  private convertDocToPrayer(
+    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+  ): Prayer {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      authorId: data.authorId,
+      authorName: data.authorName,
+      title: data.title,
+      content: data.content,
+      status: data.status,
+      isPinned: data.isPinned,
+      privacy: data.privacy,
+      createdAt: data.createdAt as Date,
+      updatedAt: data.updatedAt as Date,
+      tags: (data.tags || []).map(
+        (tag: string) => tag.charAt(0).toLowerCase() + tag.slice(1),
+      ),
+      prayerPoints: data.prayerPoints,
+    };
+  }
+
+  private convertDocToPrayerPoint(
+    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+  ): PrayerPoint {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      authorId: data.authorId,
+      authorName: data.authorName,
+      title: data.title,
+      content: data.content,
+      status: data.status,
+      privacy: data.privacy,
+      createdAt: data.createdAt as Date,
+      updatedAt: data.updatedAt as Date,
+      prayerId: data.prayerId,
+      type: data.prayerType,
+    };
+  }
+
   // async addUpdate(
   //   prayerId: string,
   //   update: Omit<PrayerUpdate, 'id'>,
@@ -256,27 +363,6 @@ class PrayerService {
   //     },
   //   );
   // }
-
-  private convertDocToPrayer(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
-  ): Prayer {
-    const data = docSnap.data();
-    return {
-      id: docSnap.id,
-      authorId: data.authorId,
-      authorName: data.authorName,
-      title: data.title,
-      content: data.content,
-      status: data.status,
-      isPinned: data.isPinned,
-      privacy: data.privacy,
-      createdAt: data.createdAt as Date,
-      updatedAt: data.updatedAt as Date,
-      tags: (data.tags || []).map(
-        (tag: string) => tag.charAt(0).toLowerCase() + tag.slice(1),
-      ), // charAt(0) used because of edge cases like prayerRequest. Cannot full lowercase.
-    };
-  }
 }
 
 export const prayerService = new PrayerService();

@@ -1,8 +1,8 @@
 import { Stack } from 'expo-router';
-
+import { ThemedStack } from '@/components/ThemedStack';
 export default function prayers() {
   return (
-    <Stack>
+    <ThemedStack>
       <Stack.Screen
         name="index"
         options={{
@@ -19,6 +19,6 @@ export default function prayers() {
           headerShadowVisible: false,
         }}
       />
-    </Stack>
+    </ThemedStack>
   );
 }
