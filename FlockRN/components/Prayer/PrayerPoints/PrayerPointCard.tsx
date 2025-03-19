@@ -31,14 +31,12 @@ const PrayerPointCard: React.FC<PrayerPointProps> = ({ title, content }) => {
 
 const styles = StyleSheet.create({
   contentText: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    fontSize: 16,
   },
   titleText: {
     fontSize: 20,
     fontWeight: 'bold',
     lineHeight: 30,
-    padding: 16,
   },
 });
 

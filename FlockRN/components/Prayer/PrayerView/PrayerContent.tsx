@@ -10,7 +10,7 @@ interface PrayerContentProps {
 
 const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
   return (
-    <View>
+    <View styles={styles.container}>
       <ThemedText
         lightColor={Colors.light.textSecondary}
         darkColor={Colors.dark.textPrimary}
@@ -30,15 +30,16 @@ const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    gap: 10,
+  },
   contentText: {
-    paddingHorizontal: 16,
     paddingVertical: 10,
   },
   titleText: {
     fontSize: 30,
     fontWeight: 'bold',
     lineHeight: 30,
-    padding: 16,
   },
 });
 

@@ -53,10 +53,10 @@ const PrayerView = () => {
         )}
         {prayerPoints && (
           <ThemedView
-            style={
-              (styles.prayerPointsContainer,
-                { borderColor: Colors.primary, borderWidth: 1, borderRadius: 20 })
-            }
+            style={[
+              styles.prayerPointsContainer,
+              { borderColor: Colors.secondary },
+            ]}
           >
             <ThemedText
               lightColor={Colors.light.textSecondary}
@@ -81,26 +81,28 @@ const PrayerView = () => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.secondary,
-    borderRadius: 20,
+    borderRadius: 15,
     flex: 0,
-    padding: 16,
+    gap: 15,
+    padding: 25,
   },
   mainBackground: {
     flex: 1,
-    gap: 10,
+    gap: 20,
     paddingBottom: 16,
     paddingHorizontal: 10,
   },
   prayerPointsContainer: {
-    borderRadius: 20,
+    borderRadius: 15,
+    borderWidth: 1,
     flex: 0,
-    padding: 16,
+    gap: 15,
+    padding: 25,
   },
   prayerPointsText: {
     fontSize: 30,
     fontWeight: 'bold',
     lineHeight: 30,
-    padding: 16,
   },
   scrollView: {
     flex: 1,
