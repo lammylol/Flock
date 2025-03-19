@@ -45,7 +45,12 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
 
 const styles = StyleSheet.create({
   // eslint-disable-next-line react-native/no-color-literals
-  prayerContainer: { backgroundColor: 'transparent', width: '100%' },
+  prayerContainer: {
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    padding: 10,
+    width: '100%',
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',

@@ -1,88 +1,102 @@
-import { StyleSheet, TextInput } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { Prayer } from '@/types/firebase';
 import useAuth from '@/hooks/useAuth';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { prayerService } from '@/services/prayer/prayerService';
 
 import { useFocusEffect } from '@react-navigation/native';
 
 import PrayerCard from '@/components/Prayer/PrayerView/PrayerCard';
 import { Tabs } from '@/components/Tab';
-import ScrollView from '@/components/ScrollView';
+import SearchBar from '@/components/ui/SearchBar';
+import { User } from 'firebase/auth';
 
 export default function TabTwoScreen() {
   const { user } = useAuth();
   const [userPrayers, setUserPrayers] = useState<Prayer[]>([]);
-  const [searchText, setSearchText] = useState('');
   const [selectedTab, setSelectedTab] = useState<
     'prayerPoints' | 'userPrayers'
   >('userPrayers');
 
   useFocusEffect(() => {
-    const fetchPrayers = async () => {
-      try {
-        if (!user) return;
-        const prayers = await prayerService.getUserPrayers(user.uid);
+    const loadPrayers = async () => {
+      const prayers = await fetchPrayers(user);
+      if (prayers) {
         setUserPrayers(prayers);
-      } catch (error) {
-        console.error('Error fetching prayers:', error);
       }
     };
-    fetchPrayers();
+    loadPrayers();
   });
+
+  const handleRefreshPrayers = async () => {
+    const prayers = await fetchPrayers(user);
+    if (prayers) {
+      setUserPrayers(prayers);
+    }
+  };
+
+  const searchPrayers = useCallback((text: string) => {
+    if (!text) {
+      return setUserPrayers(userPrayers);
+    }
+    // Right now we filter prayers, in the future we need to actually search
+    // TODO: Implement search functionality
+    console.log('Searching for:', text);
+    const filteredPrayers = userPrayers.filter((prayer) =>
+      prayer.title.toLowerCase().includes(text.toLowerCase()),
+    );
+    setUserPrayers(filteredPrayers);
+  }, []);
+
   return (
-    <ThemedScrollView style={styles.header}>
+    <ThemedScrollView style={styles.header} onRefresh={handleRefreshPrayers}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">My Prayers</ThemedText>
       </ThemedView>
       <ThemedView>
-        <TextInput
-          style={styles.input}
-          placeholder="Search"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
+        <SearchBar placeholder="Search" onSearch={searchPrayers} />
         <Tabs
           tabs={[`Prayer Requests (${userPrayers.length})`, `Prayers (${0})`]}
           selectedIndex={selectedTab === 'prayerPoints' ? 0 : 1}
           onChange={(index) =>
             setSelectedTab(index === 0 ? 'prayerPoints' : 'userPrayers')
           }
-          indicatorColor="#1976d2"
-          textColor="#000"
         />
         {selectedTab === 'prayerPoints' && (
-          <ScrollView>
+          <ThemedScrollView>
             {userPrayers.map((prayer: Prayer) => (
               <PrayerCard key={prayer.id} prayer={prayer} />
             ))}
-          </ScrollView>
+          </ThemedScrollView>
         )}
         {selectedTab === 'userPrayers' && (
-          <ScrollView>
+          <ThemedScrollView>
             {userPrayers.map((prayer: Prayer) => (
               <PrayerCard key={prayer.id} prayer={prayer} />
             ))}
-          </ScrollView>
+          </ThemedScrollView>
         )}
       </ThemedView>
     </ThemedScrollView>
   );
 }
 
+const fetchPrayers = async (user: User | null) => {
+  try {
+    if (!user) return;
+    const prayers = await prayerService.getUserPrayers(user.uid);
+    return prayers;
+  } catch (error) {
+    console.error('Error fetching prayers:', error);
+  }
+};
+
 const styles = StyleSheet.create({
   header: {
     padding: 32,
-  },
-  input: {
-    borderRadius: 25,
-    borderWidth: 1,
-    height: 40,
-    marginBottom: 8,
-    paddingHorizontal: 8,
   },
   titleContainer: {
     flexDirection: 'row',

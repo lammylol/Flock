@@ -53,6 +53,7 @@
     "expo-web-browser": "~14.0.2",
     "firebase": "^11.3.1",
     "later": "^1.2.0",
+    "lodash": "^4.17.21",
     "openai": "^4.85.2",
     "or": "^0.2.0",
     "react": "18.3.1",
@@ -69,6 +70,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.17.16",
     "@types/react": "~18.3.12",
     "@types/react-test-renderer": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
