@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   titleText: {
-    fontSize: 30,
+    fontSize: 20,
     fontWeight: 'bold',
     lineHeight: 30,
     padding: 16,

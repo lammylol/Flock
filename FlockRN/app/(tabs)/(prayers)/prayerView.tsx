@@ -55,7 +55,7 @@ const PrayerView = () => {
           <ThemedView
             style={
               (styles.prayerPointsContainer,
-              { borderColor: Colors.primary, borderWidth: 1, borderRadius: 20 })
+                { borderColor: Colors.primary, borderWidth: 1, borderRadius: 20 })
             }
           >
             <ThemedText
@@ -65,10 +65,12 @@ const PrayerView = () => {
             >
               Prayer Points
             </ThemedText>
-            <PrayerPointCard
-              title={prayerPoints[0].title}
-              content={prayerPoints[0].content}
-            />
+            {prayerPoints.map((prayerPoint: PrayerPoint) => (
+              <PrayerPointCard
+                title={prayerPoint.title}
+                content={prayerPoint.content}
+              />
+            ))}
           </ThemedView>
         )}
       </ThemedView>
