@@ -72,7 +72,6 @@ export default function PrayerMetadataScreen() {
       // Save to Firestore
       const prayerPointIds =
         await prayerService.addPrayerPoints(mappedPrayerPoints);
-      console.log(prayerPointIds);
 
       return prayerPointIds;
     } catch (err) {
@@ -90,7 +89,6 @@ export default function PrayerMetadataScreen() {
         setContent(analysis.cleanedTranscription || content);
         setSelectedTags(analysis.tags);
         setPrayerPoints(analysis.prayerPoints);
-        console.log(prayerPoints);
       } catch (error) {
         console.error('Error using AI fill:', error);
         // Silent fail - don't show error to user for automatic fill

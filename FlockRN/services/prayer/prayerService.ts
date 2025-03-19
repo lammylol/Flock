@@ -222,9 +222,6 @@ class PrayerService {
       );
 
       const querySnapshot = await getDocs(q);
-      console.log(
-        `Fetched ${querySnapshot.docs.length} prayer points for prayerId: ${prayerId}`,
-      );
 
       if (querySnapshot.empty) return null;
 
