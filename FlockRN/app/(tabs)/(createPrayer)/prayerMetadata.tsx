@@ -50,7 +50,6 @@ export default function PrayerMetadataScreen() {
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
         setSelectedTags(analysis.tags);
-        console.log(analysis.tags);
       } catch (error) {
         console.error('Error using AI fill:', error);
         // Silent fail - don't show error to user for automatic fill

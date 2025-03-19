@@ -38,7 +38,7 @@ export function useSpeechRecognitionService() {
   });
 
   useSpeechRecognitionEvent('error', (event) => {
-    console.log('error code:', event.error, 'error message:', event.message);
+    console.error('error code:', event.error, 'error message:', event.message);
   });
 
   return {
