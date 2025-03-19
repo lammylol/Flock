@@ -1,42 +1,38 @@
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() || 'light';
+  const backgroundColor = useThemeColor({}, 'background');
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-          headerShown: false,
+          tabBarActiveTintColor: Colors[colorScheme].textPrimary,
           tabBarButton: HapticTab,
-          tabBarBackground: TabBarBackground,
-          tabBarStyle: Platform.select({
-            ios: {
-              // Use a transparent background on iOS to show the blur effect
-              bottom: 0,
-            },
-            default: {},
-          }),
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: backgroundColor,
+            borderTopWidth: 0,
+          },
         }}
         initialRouteName="(prayers)"
       >
         {/* <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Home',
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="house.fill" color={color} />
-            ),
-          }}
-        /> */}
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="house.fill" color={color} />
+          ),
+        }}
+      /> */}
         <Tabs.Screen
           name="(prayers)"
           options={{
@@ -77,10 +73,3 @@ export default function TabLayout() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.white,
-    flex: 1,
-  },
-});
