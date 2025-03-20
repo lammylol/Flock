@@ -29,56 +29,52 @@ export default function TabTwoScreen() {
 
   const loadPrayers = useCallback(async () => {
     const prayers = await fetchPrayers(user);
-    if (prayers) {
-      setUserPrayers(prayers);
-      setFilteredUserPrayers(prayers);
-    }
+    setUserPrayers(prayers);
+    setFilteredUserPrayers(prayers);
   }, [user]);
 
   const loadPrayerPoints = useCallback(async () => {
     const prayerPoints = await fetchPrayersPoints(user);
-    if (prayerPoints) {
-      setUserPrayerPoints(prayerPoints);
-      setFilteredUserPrayerPoints(prayerPoints);
-    }
+    setUserPrayerPoints(prayerPoints);
+    setFilteredUserPrayerPoints(prayerPoints);
   }, [user]);
 
   const loadAll = useCallback(() => {
     loadPrayers();
     loadPrayerPoints();
-  }, [user]);
+  }, [loadPrayers, loadPrayerPoints]);
 
   useFocusEffect(loadAll);
 
-  const searchPrayers = useCallback(
-    (text: string, selectedTab: TabType) => {
-      const searchText = text.trim();
-      // Right now we filter prayers, in the future we need to actually search
-      // TODO: Implement proper search functionality
-      console.log(searchText, selectedTab);
-      if (selectedTab === 'prayerPoints') {
-        const filteredPrayerPoints = userPrayerPoints.filter((prayerPoint) =>
-          prayerPoint.title?.toLowerCase().includes(searchText.toLowerCase()),
-        );
-        console.log(
-          'filteredPrayerPoints',
-          filteredPrayerPoints.length,
-          userPrayerPoints.length,
-        );
-        setFilteredUserPrayerPoints(filteredPrayerPoints);
-      } else {
-        const filteredPrayers = userPrayers.filter((prayer) =>
-          prayer.title?.toLowerCase().includes(searchText.toLowerCase()),
-        );
-        console.log(
-          'filteredPrayers',
-          filteredPrayers.length,
-          userPrayers.length,
-        );
-        setFilteredUserPrayers(filteredPrayers);
-      }
+  const filterPrayers = useCallback(
+    (text: string) => {
+      if (userPrayers.length === 0) return;
+      const filteredValues = userPrayers.filter((prayer) =>
+        prayer.title?.toLowerCase().includes(text),
+      );
+      setFilteredUserPrayers(filteredValues);
     },
-    [userPrayerPoints, userPrayers, selectedTab],
+    [userPrayers],
+  );
+
+  const filterPrayerPoints = useCallback(
+    (text: string) => {
+      if (userPrayerPoints.length === 0) return;
+      const filteredValues = userPrayerPoints.filter((prayerPoint) =>
+        prayerPoint.title?.toLowerCase().includes(text),
+      );
+      setFilteredUserPrayerPoints(filteredValues);
+    },
+    [userPrayerPoints],
+  );
+
+  const searchPrayers = useCallback(
+    (text: string) => {
+      const searchText = text.trim().toLowerCase();
+      filterPrayers(searchText);
+      filterPrayerPoints(searchText);
+    },
+    [filterPrayerPoints, filterPrayers],
   );
 
   return (
@@ -89,7 +85,7 @@ export default function TabTwoScreen() {
       <ThemedView>
         <SearchBar
           placeholder={`Search ${selectedTab === 'prayerPoints' ? 'Prayer Points' : 'Prayers'}`}
-          onSearch={(text: string) => searchPrayers(text, selectedTab)}
+          onSearch={searchPrayers}
         />
         <Tabs
           tabs={[
@@ -122,21 +118,23 @@ export default function TabTwoScreen() {
 
 const fetchPrayers = async (user: User | null) => {
   try {
-    if (!user) return;
+    if (!user) return [];
     const prayers = await prayerService.getUserPrayers(user.uid);
     return prayers;
   } catch (error) {
     console.error('Error fetching prayers:', error);
+    return [];
   }
 };
 
 const fetchPrayersPoints = async (user: User | null) => {
   try {
-    if (!user) return;
-    const prayers = await prayerService.getUserPrayerPoints(user.uid);
-    return prayers;
+    if (!user) return [];
+    const prayersPoints = await prayerService.getUserPrayerPoints(user.uid);
+    return prayersPoints;
   } catch (error) {
     console.error('Error fetching prayers:', error);
+    return [];
   }
 };
 

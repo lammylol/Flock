@@ -234,7 +234,7 @@ class PrayerService {
     }
   }
 
-  async getUserPrayerPoints(userId: string): Promise<PrayerPoint[] | null> {
+  async getUserPrayerPoints(userId: string): Promise<PrayerPoint[]> {
     try {
       // Query for public OR user's own prayer points
       const q = query(
@@ -246,7 +246,7 @@ class PrayerService {
 
       const querySnapshot = await getDocs(q);
 
-      if (querySnapshot.empty) return null;
+      if (querySnapshot.empty) return [];
 
       return querySnapshot.docs.map(
         (doc) => this.convertDocToPrayerPoint(doc) as PrayerPoint,

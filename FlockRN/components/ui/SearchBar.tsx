@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { debounce } from 'lodash';
 
@@ -12,12 +12,9 @@ export default function SearchBar({
 }: SearchBarProps): JSX.Element {
   const [searchText, setSearchText] = useState('');
 
-  const handleDebouncedSearch = useCallback(
-    debounce((text: string) => {
-      onSearch(text);
-    }, 500),
-    [],
-  );
+  const handleDebouncedSearch = debounce((text: string) => {
+    onSearch(text);
+  }, 500);
 
   const onChangeText = (text: string) => {
     setSearchText(text);
