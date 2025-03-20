@@ -92,7 +92,7 @@ export default function PrayerMetadataScreen() {
       } catch (error) {
         console.error('Error using AI fill:', error);
         // Silent fail - don't show error to user for automatic fill
-      } finally {
+      } finally {66
         setIsAnalyzing(false);
       }
     };

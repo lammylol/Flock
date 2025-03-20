@@ -21,7 +21,7 @@ interface TagsListProps {
 
 const getTagColor = (tag: string) =>
   Colors.tagColors.selectedColors[
-    tag as keyof typeof Colors.tagColors.selectedColors
+  tag as keyof typeof Colors.tagColors.selectedColors
   ] || Colors.tagColors.defaultTag;
 
 const getTagName = (tag: string) => tagDisplayNames[tag] || tag;
@@ -46,10 +46,6 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
     'background',
   );
   const textColor = useThemeColor({ light: Colors.brown2 }, 'textPrimary');
-  const tagLabelText = useThemeColor(
-    { light: Colors.light.textSecondary },
-    'textPrimary',
-  );
 
   useEffect(() => {
     setSelectedTags(tags);
@@ -122,9 +118,7 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
 
   return (
     <View style={styles.container}>
-      <ThemedText style={{ ...styles.tagsTitle, color: tagLabelText }}>
-        Tags:
-      </ThemedText>
+      <ThemedText style={{ ...styles.tagsTitle }}>Tags:</ThemedText>
       {!expanded ? (
         <TouchableOpacity style={styles.tagsContainer} onPress={toggleExpand}>
           {sortedTags.map((tag) => renderTag(tag))}

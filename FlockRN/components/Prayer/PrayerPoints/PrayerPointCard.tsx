@@ -6,35 +6,29 @@ import { ThemedText } from '@/components/ThemedText';
 interface PrayerPointProps {
   title: string;
   content: string;
-  mode: 'create' | 'update';
+  isEditMode: boolean;
 }
 
 const PrayerPointCard: React.FC<PrayerPointProps> = ({
   title,
   content,
-  mode,
+  isEditMode,
 }) => {
   const [editableTitle, setEditableTitle] = useState(title);
   const [editableContent, setEditableContent] = useState(content);
 
   return (
     <View>
-      {mode == 'update' ? (
+      {isEditMode ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}
           onChangeText={setEditableTitle}
         />
       ) : (
-        <ThemedText
-          lightColor={Colors.light.textSecondary}
-          darkColor={Colors.dark.textPrimary}
-          style={styles.titleText}
-        >
-          {editableTitle}
-        </ThemedText>
+        <ThemedText style={styles.titleText}>{editableTitle}</ThemedText>
       )}
-      {mode == 'update' ? (
+      {isEditMode ? (
         <TextInput
           style={[styles.contentText, styles.input]}
           value={editableContent}
@@ -42,13 +36,7 @@ const PrayerPointCard: React.FC<PrayerPointProps> = ({
           multiline
         />
       ) : (
-        <ThemedText
-          lightColor={Colors.light.textSecondary}
-          darkColor={Colors.dark.textPrimary}
-          style={styles.contentText}
-        >
-          {editableContent}
-        </ThemedText>
+        <ThemedText style={styles.contentText}>{editableContent}</ThemedText>
       )}
     </View>
   );
