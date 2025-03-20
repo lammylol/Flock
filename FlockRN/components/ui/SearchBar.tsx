@@ -31,6 +31,7 @@ export default function SearchBar({
         placeholder={placeholder}
         value={searchText}
         onChangeText={onChangeText}
+        clearButtonMode="while-editing"
       />
     </View>
   );
@@ -42,6 +43,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     height: 40,
+    marginVertical: 15,
     paddingHorizontal: 10,
   },
   input: {

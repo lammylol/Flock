@@ -1,6 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { Prayer } from '@/types/firebase';
-import { router } from 'expo-router';
+import { Prayer, PrayerPoint } from '@/types/firebase';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -9,9 +8,10 @@ import {
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export interface PrayerCardProps {
-  prayer: Prayer;
+  prayer: Prayer | PrayerPoint;
 }
 
 export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
@@ -21,23 +21,43 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
     <TouchableOpacity
       style={[
         styles.prayerContainer,
-        // { backgroundColor: Colors[colorScheme].background },
-        { backgroundColor: 'red' },
+        { backgroundColor: Colors[colorScheme].background },
       ]}
-      onPress={() => {
-        router.push({
-          pathname: '/prayers/prayerView',
-          params: { id: prayer.id },
-        });
-      }}
+      // onPress={() => {
+      //   router.push({
+      //     pathname: '/prayers/prayerView',
+      //     params: { id: prayer.id },
+      //   });
+      // }}
     >
       <ThemedText style={styles.title}>{prayer.title}</ThemedText>
-      <ThemedText numberOfLines={1} ellipsizeMode="tail" style={styles.content}>
+      <ThemedText numberOfLines={1} ellipsizeMode="tail" style={styles.preview}>
         {prayer.content}
       </ThemedText>
       <View style={styles.actionBar}>
-        <Button label={'Share'} onPress={() => {}} size="xs" />
-        <Button label={'Pray!'} onPress={() => {}} size="xs" />
+        <Button
+          label={'Share'}
+          onPress={() => {}}
+          size="s"
+          flex={1}
+          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+          startIcon={
+            <IconSymbol
+              name="square.and.arrow.up"
+              color={Colors[colorScheme].textPrimary}
+              size={16}
+            />
+          }
+          backgroundColor={Colors.grey1}
+        />
+        <Button
+          label={'🙏 Pray!'}
+          onPress={() => {}}
+          size="s"
+          flex={1}
+          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+          backgroundColor={Colors.brown3}
+        />
       </View>
     </TouchableOpacity>
   );
@@ -45,27 +65,26 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
 
 const styles = StyleSheet.create({
   // eslint-disable-next-line react-native/no-color-literals
+  actionBar: {
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    flex: 1,
+    gap: 15,
+  },
+  // eslint-disable-next-line react-native/no-color-literals
   prayerContainer: {
     backgroundColor: 'transparent',
     borderRadius: 10,
-    padding: 10,
+    padding: 7,
     width: '100%',
+  },
+  preview: {
+    fontSize: 14,
+    marginBottom: 13,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5, // Space between title and content
-  },
-  content: {
-    fontSize: 14,
-    color: 'gray', // Lighter color for the content
-    marginBottom: 5, // Space at the bottom
-  },
-
-  // eslint-disable-next-line react-native/no-color-literals
-  actionBar: {
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginBottom: 3, // Space between title and content
   },
 });

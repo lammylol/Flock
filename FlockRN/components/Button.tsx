@@ -1,33 +1,55 @@
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { StyleSheet, View, Pressable } from 'react-native';
+import { StyleSheet, Pressable, ViewStyle, TextStyle } from 'react-native';
 import { ThemedText } from './ThemedText';
 
 const sizeMap = {
-  xs: { height: 30, width: 100 },
-  s: { height: 30, width: 200 },
-  m: { height: 40, width: 300 },
-  l: { height: 50, width: 400 },
-  xl: { height: 60, width: 500 },
+  xs: { height: 25 },
+  s: { height: 33 },
+  m: { height: 40 },
+  l: { height: 50 },
+  xl: { height: 60 },
 } as const;
 
 type SizeType = keyof typeof sizeMap;
 
 const getSize = (size: SizeType) => sizeMap[size]; // Using sizeMap as a value
 
-type Props = {
+interface Props extends ViewStyle {
   label: string;
   size?: SizeType;
+  startIcon?: JSX.Element;
+  endIcon?: JSX.Element;
+  backgroundColor?: string;
+  textProps?: TextStyle;
   onPress: () => void;
-};
+}
 
-export default function Button({ label, size = 's', onPress }: Props) {
-  const backgroundColor = useThemeColor({}, 'tint');
+export default function Button({
+  label,
+  size = 's',
+  startIcon,
+  endIcon,
+  backgroundColor,
+  textProps,
+  onPress,
+  ...rest
+}: Props) {
+  const themedBackgroundColor = useThemeColor({}, 'tint');
   return (
-    <View style={[styles.buttonContainer, { ...getSize(size) }]}>
-      <Pressable style={[{ backgroundColor }, styles.button]} onPress={onPress}>
-        <ThemedText style={styles.buttonLabel}>{label}</ThemedText>
-      </Pressable>
-    </View>
+    <Pressable
+      style={[
+        styles.button,
+        { backgroundColor: backgroundColor ?? themedBackgroundColor },
+        { ...getSize(size), ...rest },
+      ]}
+      onPress={onPress}
+    >
+      {startIcon ?? null}
+      <ThemedText style={[styles.buttonLabel, { ...textProps }]}>
+        {label}
+      </ThemedText>
+      {endIcon ?? null}
+    </Pressable>
   );
 }
 
@@ -36,19 +58,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     flexDirection: 'row',
-    height: '100%',
+    gap: 5,
     justifyContent: 'center',
-    width: '100%',
-  },
-  buttonContainer: {
-    alignItems: 'center',
-    height: 45,
-    justifyContent: 'center',
-    marginHorizontal: 20,
     padding: 3,
-    width: 150,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 14,
   },
 });

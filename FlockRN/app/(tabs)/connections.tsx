@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, FlatList } from 'react-native';
+import { StyleSheet, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import useAuth from '@/hooks/useAuth';
@@ -7,6 +7,7 @@ import Button from '@/components/Button';
 import { friendsService } from '@/services/friends/friendsService';
 import { Tabs } from '@/components/Tab';
 import { FriendRequest, UserProfileResponse } from '@/types/firebase';
+import SearchBar from '@/components/ui/SearchBar';
 
 export default function ConnectionsScreen() {
   const { user, userProfile } = useAuth();
@@ -60,17 +61,13 @@ export default function ConnectionsScreen() {
         tabs={['Add Friend', 'Friend Requests']}
         selectedIndex={selectedTab === 'add' ? 0 : 1}
         onChange={(index) => setSelectedTab(index === 0 ? 'add' : 'requests')}
-        indicatorColor="#1976d2"
-        textColor="#000"
       />
 
       {selectedTab === 'add' ? (
         <ThemedView style={styles.container}>
-          <TextInput
-            style={styles.input}
+          <SearchBar
             placeholder="Search for a user..."
-            value={searchText}
-            onChangeText={setSearchText}
+            onSearch={setSearchText}
           />
           <Button label="Search" onPress={handleSearchForUser} />
           <FlatList
@@ -140,13 +137,6 @@ export default function ConnectionsScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-  },
-  input: {
-    borderRadius: 8,
-    borderWidth: 1,
-    height: 40,
-    marginBottom: 8,
-    paddingHorizontal: 8,
   },
   userCard: {
     alignItems: 'center',
