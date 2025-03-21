@@ -1,13 +1,13 @@
 import { Colors } from '@/constants/Colors';
 import React, { useRef, useEffect } from 'react';
 import {
-  Text,
   Animated,
   StyleSheet,
   LayoutChangeEvent,
   Pressable,
 } from 'react-native';
 import { ThemedView } from './ThemedView';
+import { ThemedText } from './ThemedText';
 
 type TabsProps = {
   tabs: string[];
@@ -21,8 +21,7 @@ export const Tabs: React.FC<TabsProps> = ({
   tabs,
   selectedIndex,
   onChange,
-  indicatorColor = '#1976d2',
-  textColor = '#000',
+  indicatorColor = Colors.primary,
 }) => {
   const indicatorAnim = useRef(new Animated.Value(0)).current;
   const tabWidths = useRef<number[]>([]);
@@ -66,7 +65,7 @@ export const Tabs: React.FC<TabsProps> = ({
             onPress={() => onChange(index)}
             onLayout={(e) => onTabLayout(e, index)}
           >
-            <Text style={[styles.tabText, { color: textColor }]}>{tab}</Text>
+            <ThemedText style={styles.tabText}>{tab}</ThemedText>
           </Pressable>
         ))}
       </ThemedView>
@@ -93,6 +92,7 @@ const styles = StyleSheet.create({
     // Use border bottom for overall tab bar look
     borderBottomWidth: 1,
     borderColor: Colors.border,
+    marginBottom: 16,
   },
   tabButton: {
     alignItems: 'center',

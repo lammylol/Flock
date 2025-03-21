@@ -17,9 +17,11 @@ export const Colors = {
   black: '#000000',
   brown1: '#EDE8DA',
   brown2: '#9C8B77',
+  brown3: '#F5E9DC',
   border: '#C6C6C8',
   link: '#007aff',
   disabled: '#ccc',
+  grey1: '#e6e6e6',
 
   // Theme-specific colors
   light: {

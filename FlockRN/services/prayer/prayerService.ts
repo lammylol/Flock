@@ -234,6 +234,29 @@ class PrayerService {
     }
   }
 
+  async getUserPrayerPoints(userId: string): Promise<PrayerPoint[]> {
+    try {
+      // Query for public OR user's own prayer points
+      const q = query(
+        this.prayerPointsCollection,
+        // where('privacy', '==', 'public'), // Fetch only public prayer points
+        where('authorId', '==', userId), // OR fetch the user's own prayer points
+        orderBy('createdAt', 'desc'),
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) return [];
+
+      return querySnapshot.docs.map(
+        (doc) => this.convertDocToPrayerPoint(doc) as PrayerPoint,
+      );
+    } catch (error) {
+      console.error('Error getting prayer points:', error);
+      throw error;
+    }
+  }
+
   private convertDocToPrayer(
     docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
   ): Prayer {

@@ -1,4 +1,5 @@
 const eslintPluginReactNative = require('eslint-plugin-react-native');
+const eslintPluginReactHooks = require('eslint-plugin-react-hooks');
 const eslintPluginPrettier = require('eslint-plugin-prettier');
 const eslintPluginTypeScript = require('@typescript-eslint/eslint-plugin');
 const eslintParserTypeScript = require('@typescript-eslint/parser');
@@ -19,6 +20,7 @@ module.exports = [
     plugins: {
       '@typescript-eslint': eslintPluginTypeScript,
       'react-native': eslintPluginReactNative,
+      'react-hooks': eslintPluginReactHooks,
       prettier: eslintPluginPrettier,
     },
     rules: {
@@ -28,7 +30,7 @@ module.exports = [
 
       quotes: ['error', 'single'],
       'prettier/prettier': ['error', { singleQuote: true }],
-
+      'react-hooks/exhaustive-deps': 'warn',
       // Added this rule configuration
       'react-native/no-raw-text': [
         'error',
