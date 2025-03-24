@@ -44,6 +44,7 @@ export default function PrayerMetadataScreen() {
   );
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
   const [placeholder, setPlaceholder] = useState('Enter your prayer here');
@@ -83,6 +84,42 @@ export default function PrayerMetadataScreen() {
       prevTags.includes(tag)
         ? prevTags.filter(t => t !== tag)
         : [...prevTags, tag]
+    );
+  };
+
+  const handleDelete = async () => {
+    // Confirm deletion
+    Alert.alert(
+      'Delete Prayer',
+      'Are you sure you want to delete this prayer? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (!prayerId || !auth.currentUser?.uid) {
+              Alert.alert('Error', 'Cannot delete prayer');
+              return;
+            }
+
+            setIsDeleting(true);
+            try {
+              await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
+              Alert.alert('Success', 'Prayer deleted successfully');
+              router.push('/prayers');
+            } catch (error) {
+              console.error('Error deleting prayer:', error);
+              Alert.alert('Error', 'Failed to delete prayer. Please try again.');
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
     );
   };
 
@@ -220,6 +257,18 @@ export default function PrayerMetadataScreen() {
         </View>
       </View>
 
+      {isEditMode && (
+        <TouchableOpacity
+          style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
+          onPress={handleDelete}
+          disabled={isDeleting}
+        >
+          <ThemedText style={styles.deleteButtonText}>
+            {isDeleting ? 'Deleting...' : 'Delete Prayer'}
+          </ThemedText>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleSubmit}
@@ -303,6 +352,18 @@ const styles = StyleSheet.create({
   },
   lockIcon: {
     fontSize: 16,
+  },
+  deleteButton: {
+    backgroundColor: Colors.purple,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  deleteButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
   button: {
     backgroundColor: Colors.primary,
