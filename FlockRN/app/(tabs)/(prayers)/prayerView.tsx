@@ -1,7 +1,7 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
-import { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
@@ -23,6 +23,8 @@ const PrayerView = () => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
+  const isOwner = prayer && user && prayer.authorId === user.uid;
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     fetchPrayer();
@@ -52,6 +54,27 @@ const PrayerView = () => {
     fetchPrayer();
   };
 
+  useEffect(() => {
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, [TagsSection]); // Scroll to bottom whenever messages change
+
+  const handleEdit = () => {
+    if (!prayer) return;
+
+    // Navigate to metadata screen with all the prayer data
+    router.push({
+      pathname: '/(createPrayer)/prayerMetadata',
+      params: {
+        id: prayer.id,
+        content: prayer.content,
+        title: prayer.title,
+        privacy: prayer.privacy,
+        tags: JSON.stringify(prayer.tags),
+        mode: 'edit',
+      },
+    });
+  };
+
   return (
     <ThemedScrollView
       style={styles.scrollView}
@@ -72,6 +95,11 @@ const PrayerView = () => {
                 backgroundColor: colorScheme,
               }}
             >
+              {isOwner && (
+                <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
+                  <ThemedText style={styles.editButtonText}>Edit</ThemedText>
+                </TouchableOpacity>
+              )}
               <PrayerContent title={prayer.title} content={prayer.content} />
               <TagsSection prayerId={prayer.id} tags={prayer.tags} />
             </ThemedView>
@@ -112,6 +140,19 @@ const styles = StyleSheet.create({
     flex: 0,
     gap: 15,
     padding: 25,
+  },
+  editButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  editButtonText: {
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: '600',
   },
   mainBackground: {
     flex: 1,

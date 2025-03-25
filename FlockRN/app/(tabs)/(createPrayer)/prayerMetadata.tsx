@@ -98,23 +98,6 @@ export default function PrayerMetadataScreen() {
   };
 
   useEffect(() => {
-    // Perform AI fill when content is available after navigation
-    const timer = setTimeout(async () => {
-      if (content && !title && !isTranscribing) {
-        setIsAnalyzing(true);
-        try {
-          const analysis = await analyzePrayerContent(content, !!transcription);
-          setTitle(analysis.title);
-          setContent(analysis.cleanedTranscription || content);
-          setSelectedTags(analysis.tags);
-        } catch (error) {
-          console.error('Error using AI fill:', error);
-        } finally {
-          setIsAnalyzing(false);
-        }
-      }
-    }, 4000);
-    return () => clearTimeout(timer);
     const analyzeContent = async () => {
       setIsAnalyzing(true);
       try {
@@ -138,7 +121,7 @@ export default function PrayerMetadataScreen() {
   }, [content, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
-    setSelectedTags(prevTags => 
+    setSelectedTags(prevTags =>
       prevTags.includes(tag)
         ? prevTags.filter(t => t !== tag)
         : [...prevTags, tag]
@@ -168,7 +151,7 @@ export default function PrayerMetadataScreen() {
             try {
               await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
               Alert.alert('Success', 'Prayer deleted successfully');
-              router.push('/prayers');
+              router.push('/(prayers)');
             } catch (error) {
               console.error('Error deleting prayer:', error);
               Alert.alert('Error', 'Failed to delete prayer. Please try again.');
@@ -205,7 +188,7 @@ export default function PrayerMetadataScreen() {
 
         await prayerService.updatePrayer(prayerId, updateData);
         Alert.alert('Success', 'Prayer updated successfully');
-        router.push('/prayers');
+        router.push('/(prayers)');
       } else {
         // Create new prayer
         const prayerData: CreatePrayerDTO = {
@@ -221,19 +204,19 @@ export default function PrayerMetadataScreen() {
 
         const prayerId = await prayerService.createPrayer(prayerData);
 
-      // get list of prayer point ids
-      const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
+        // get list of prayer point ids
+        const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
 
-      const updatePrayerPoints = {
-        prayerPoints: prayerPointIds,
-      } as UpdatePrayerDTO;
+        const updatePrayerPoints = {
+          prayerPoints: prayerPointIds,
+        } as UpdatePrayerDTO;
 
-      // update the original prayer with the list of ids
-      await prayerService.updatePrayer(prayerId, updatePrayerPoints);
+        // update the original prayer with the list of ids
+        await prayerService.updatePrayer(prayerId, updatePrayerPoints);
 
         Alert.alert('Success', 'Prayer created successfully');
         router.dismissAll(); // resets 'createPrayer' stack.
-      router.replace('/(tabs)/(prayers)');
+        router.replace('/(tabs)/(prayers)');
       }
     } catch (error) {
       console.error(
@@ -250,7 +233,7 @@ export default function PrayerMetadataScreen() {
   };
 
   return (
-    <ThemedScrollView 
+    <ThemedScrollView
       contentContainerStyle={styles.scrollContent}
     >
       <View style={styles.section}>
@@ -262,16 +245,16 @@ export default function PrayerMetadataScreen() {
           maxLength={100}
         />
         {isAnalyzing && (
-          <ActivityIndicator 
-            color={Colors.primary} 
-            size="small" 
+          <ActivityIndicator
+            color={Colors.primary}
+            size="small"
             style={styles.activityIndicator}
           />
         )}
       </View>
 
       <View style={styles.section}>
-          <View style={styles.titleContainer}>
+        <View style={styles.titleContainer}>
           <TextInput
             style={styles.contentInput}
             placeholder={placeholder}
@@ -279,10 +262,10 @@ export default function PrayerMetadataScreen() {
             onChangeText={setContent}
             multiline
           />
-            {isTranscribing && (
-              <ActivityIndicator color="#9747FF" size="small" />
-            )}
-          </View>
+          {isTranscribing && (
+            <ActivityIndicator color="#9747FF" size="small" />
+          )}
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -293,10 +276,10 @@ export default function PrayerMetadataScreen() {
               key={tag}
               style={[
                 styles.tagButton,
-                { 
-                  backgroundColor: selectedTags.includes(tag) 
+                {
+                  backgroundColor: selectedTags.includes(tag)
                     ? Colors.tagColors.selectedColors[tag] || Colors.primary
-                    : Colors.tagColors.defaultTag 
+                    : Colors.tagColors.defaultTag
                 },
               ]}
               onPress={() => toggleTag(tag)}
@@ -304,10 +287,10 @@ export default function PrayerMetadataScreen() {
               <ThemedText
                 style={[
                   styles.tagButtonText,
-                  { 
-                    color: selectedTags.includes(tag) 
-                      ? Colors.white 
-                      : Colors.light.textPrimary 
+                  {
+                    color: selectedTags.includes(tag)
+                      ? Colors.white
+                      : Colors.light.textPrimary
                   },
                 ]}
               >
@@ -457,5 +440,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
   },
 });
