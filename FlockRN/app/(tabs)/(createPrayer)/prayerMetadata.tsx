@@ -14,7 +14,6 @@ import { auth } from '../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { CreatePrayerDTO, PrayerTag, UpdatePrayerDTO } from '@/types/firebase';
 import {
   CreatePrayerDTO,
   PrayerPoint,
