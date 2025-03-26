@@ -13,6 +13,7 @@ import PrayerCard from '@/components/Prayer/PrayerView/PrayerCard';
 import { Tabs } from '@/components/Tab';
 import SearchBar from '@/components/ui/SearchBar';
 import { User } from 'firebase/auth';
+import { FloatingAddPrayerButton } from '@/components/Prayer/PrayerView/FloatingAddPrayerButton';
 
 type TabType = 'prayerPoints' | 'userPrayers';
 
@@ -78,41 +79,44 @@ export default function TabTwoScreen() {
   );
 
   return (
-    <ThemedScrollView style={styles.header} onRefresh={loadAll}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">My Prayers</ThemedText>
-      </ThemedView>
-      <ThemedView>
-        <SearchBar
-          placeholder={`Search ${selectedTab === 'prayerPoints' ? 'Prayer Points' : 'Prayers'}`}
-          onSearch={searchPrayers}
-        />
-        <Tabs
-          tabs={[
-            `Prayer Requests (${userPrayerPoints.length})`,
-            `Prayers (${userPrayers.length})`,
-          ]}
-          selectedIndex={selectedTab === 'prayerPoints' ? 0 : 1}
-          onChange={(index) =>
-            setSelectedTab(index === 0 ? 'prayerPoints' : 'userPrayers')
-          }
-        />
-        {selectedTab === 'prayerPoints' && (
-          <ThemedScrollView>
-            {filteredUserPrayerPoints.map((prayerPoint: PrayerPoint) => (
-              <PrayerCard key={prayerPoint.id} prayer={prayerPoint} />
-            ))}
-          </ThemedScrollView>
-        )}
-        {selectedTab === 'userPrayers' && (
-          <ThemedScrollView>
-            {filteredUserPrayers.map((prayer: Prayer) => (
-              <PrayerCard key={prayer.id} prayer={prayer} />
-            ))}
-          </ThemedScrollView>
-        )}
-      </ThemedView>
-    </ThemedScrollView>
+    <ThemedView style={styles.container}>
+      <ThemedScrollView style={styles.scrollView} onRefresh={loadAll}>
+        <ThemedView style={styles.titleContainer}>
+          <ThemedText type="title">My Prayers</ThemedText>
+        </ThemedView>
+        <ThemedView>
+          <SearchBar
+            placeholder={`Search ${selectedTab === 'prayerPoints' ? 'Prayer Points' : 'Prayers'}`}
+            onSearch={searchPrayers}
+          />
+          <Tabs
+            tabs={[
+              `Prayer Requests (${userPrayerPoints.length})`,
+              `Prayers (${userPrayers.length})`,
+            ]}
+            selectedIndex={selectedTab === 'prayerPoints' ? 0 : 1}
+            onChange={(index) =>
+              setSelectedTab(index === 0 ? 'prayerPoints' : 'userPrayers')
+            }
+          />
+          {selectedTab === 'prayerPoints' && (
+            <ThemedScrollView>
+              {filteredUserPrayerPoints.map((prayerPoint: PrayerPoint) => (
+                <PrayerCard key={prayerPoint.id} prayer={prayerPoint} />
+              ))}
+            </ThemedScrollView>
+          )}
+          {selectedTab === 'userPrayers' && (
+            <ThemedScrollView>
+              {filteredUserPrayers.map((prayer: Prayer) => (
+                <PrayerCard key={prayer.id} prayer={prayer} />
+              ))}
+            </ThemedScrollView>
+          )}
+        </ThemedView>
+      </ThemedScrollView>
+      <FloatingAddPrayerButton />
+    </ThemedView>
   );
 }
 
@@ -139,11 +143,15 @@ const fetchPrayersPoints = async (user: User | null) => {
 };
 
 const styles = StyleSheet.create({
-  header: {
+  scrollView: {
     padding: 32,
   },
   titleContainer: {
     flexDirection: 'row',
     gap: 8,
   },
+  container: {
+    flex: 1,
+    position: 'relative'
+  }
 });

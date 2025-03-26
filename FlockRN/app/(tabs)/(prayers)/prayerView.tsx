@@ -63,7 +63,7 @@ const PrayerView = () => {
 
     // Navigate to metadata screen with all the prayer data
     router.push({
-      pathname: '/(createPrayer)/prayerMetadata',
+      pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: {
         id: prayer.id,
         content: prayer.content,
