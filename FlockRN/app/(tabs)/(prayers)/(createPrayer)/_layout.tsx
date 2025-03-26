@@ -9,6 +9,7 @@ export default function CreatePrayerFlowLayout() {
           headerShown: true,
           headerShadowVisible: false,
         }}
+        initialRouteName="index"
       >
         <Stack.Screen
           name="index"

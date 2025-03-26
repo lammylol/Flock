@@ -41,7 +41,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="(createPrayer)"
         options={{
           title: 'Pray',
@@ -49,7 +49,7 @@ export default function TabLayout() {
             <FontAwesome5 color={color} size={21} name={'praying-hands'} />
           ),
         }}
-      />
+      /> */}
       {/* <Tabs.Screen
         name="connections"
         options={{

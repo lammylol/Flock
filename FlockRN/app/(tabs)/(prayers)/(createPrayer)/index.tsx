@@ -1,13 +1,12 @@
-import { useCallback, useLayoutEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
   Alert,
   View,
-  Button,
   Platform,
-  Keyboard,
+  Button
 } from 'react-native';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -16,6 +15,7 @@ import useRecording from '@/hooks/recording/useRecording';
 import WaveForm from '@/components/ui/RecordingSymbol';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
+import { HeaderButton } from '@/components/ui/HeaderButton';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
@@ -29,14 +29,14 @@ export default function PrayerWriteScreen() {
 
     // Navigate to metadata screen with the prayer content
     router.push({
-      pathname: '/(tabs)/(createPrayer)/prayerMetadata',
+      pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: { content: content.trim() },
     });
   };
 
   const recordPrayer = () => {
     // Record the prayer using the recording hook
-    router.push('/(tabs)/(createPrayer)/voiceRecording');
+    router.push('/(tabs)/(prayers)/(createPrayer)/voiceRecording');
   };
 
   const { resetRecording } = useRecording();
@@ -56,13 +56,20 @@ export default function PrayerWriteScreen() {
     >
       <Stack.Screen
         options={{
-          headerRight: () => (isFocused || content) ? <Button onPress={handleNext} title="Next" /> : null,
-          headerLeft: () => isFocused ? <Button onPress={Keyboard.dismiss} title="Cancel" /> : null,
+          headerRight: () =>
+            <HeaderButton
+              onPress={handleNext}
+              label="Next"
+            />,
+          headerLeft: () =>
+            <HeaderButton
+              onPress={router.back}
+              label="Cancel"
+            />,
+          // headerRight: () => (isFocused || content) ? <Button onPress={handleNext} title="Next" /> : null,
+          // headerLeft: () => isFocused ? <Button onPress={router.back} title="Cancel" /> : null,
           title: "Add Prayer",
-          headerTitleStyle: {
-            fontSize: 20,
-            fontWeight: '600',
-          }
+          headerTitleStyle: styles.headerTitleStyle
         }}
       />
       <ThemedScrollView style={styles.inputContainer}>
@@ -121,4 +128,8 @@ const styles = StyleSheet.create({
     gap: 8,
     verticalAlign: 'middle',
   },
+  headerTitleStyle: {
+    fontSize: 16,
+    fontWeight: '500',
+  }
 });
