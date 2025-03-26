@@ -58,6 +58,11 @@ export default function PrayerWriteScreen() {
         options={{
           headerRight: () => (isFocused || content) ? <Button onPress={handleNext} title="Next" /> : null,
           headerLeft: () => isFocused ? <Button onPress={Keyboard.dismiss} title="Cancel" /> : null,
+          title: "Add Prayer",
+          headerTitleStyle: {
+            fontSize: 20,
+            fontWeight: '600',
+          }
         }}
       />
       <ThemedScrollView style={styles.inputContainer}>
