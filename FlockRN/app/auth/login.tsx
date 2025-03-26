@@ -40,7 +40,7 @@ export default function LoginScreen() {
         console.warn('User document does not exist.');
       }
       // Navigate to another screen after successful login
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/(prayers)');
     } catch (error) {
       if (error instanceof FirebaseError) {
         console.error('Login error:', error.message);
