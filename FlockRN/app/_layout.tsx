@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import useAuthContext from '@/hooks/useAuthContext';
@@ -26,7 +26,11 @@ export function AppContent() {
     if (loaded && !isAuthLoading) {
       SplashScreen.hideAsync();
 
-      if (!userIsAuthenticated) {
+      if (userIsAuthenticated) {
+        // Redirect to tabs if authenticated
+        router.replace('/(tabs)/(prayers)');
+      } else {
+        // Redirect to login if not authenticated
         router.replace('/auth/login');
       }
     }
@@ -44,11 +48,6 @@ export function AppContent() {
           headerStyle: { backgroundColor },
         }}
       >
-        {userIsAuthenticated ? (
-          <Stack.Screen name="(tabs)" />
-        ) : (
-          <Stack.Screen name="auth" />
-        )}
         <Stack.Screen name="about" options={{ title: 'About' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
