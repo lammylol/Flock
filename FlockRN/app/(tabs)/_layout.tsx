@@ -50,7 +50,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="connections"
         options={{
           title: 'Connections',
@@ -58,7 +58,7 @@ export default function TabLayout() {
             <FontAwesome5 size={21} name={'user-friends'} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="account"
         options={{

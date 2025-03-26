@@ -10,7 +10,12 @@ export default function CreatePrayerFlowLayout() {
           headerShadowVisible: false,
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'Create Prayer' }} />
+        <Stack.Screen
+          name="index"
+          options={{
+            title: 'Add Prayer',
+          }}
+        />
         <Stack.Screen
           name="voiceRecording"
           options={{
