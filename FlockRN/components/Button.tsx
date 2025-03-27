@@ -22,6 +22,7 @@ interface Props extends ViewStyle {
   backgroundColor?: string;
   textProps?: TextStyle;
   onPress: () => void;
+  style?: ViewStyle;
 }
 
 export default function Button({
@@ -32,6 +33,7 @@ export default function Button({
   backgroundColor,
   textProps,
   onPress,
+  style,
   ...rest
 }: Props) {
   const themedBackgroundColor = useThemeColor({}, 'tint');
@@ -41,6 +43,7 @@ export default function Button({
         styles.button,
         { backgroundColor: backgroundColor ?? themedBackgroundColor },
         { ...getSize(size), ...rest },
+        style
       ]}
       onPress={onPress}
     >
