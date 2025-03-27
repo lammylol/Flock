@@ -9,6 +9,7 @@ import {
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { router } from 'expo-router';
 
 export interface PrayerCardProps {
   prayer: Prayer | PrayerPoint;
@@ -23,12 +24,17 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         styles.prayerContainer,
         { backgroundColor: Colors[colorScheme].background },
       ]}
-      // onPress={() => {
-      //   router.push({
-      //     pathname: '/prayers/prayerView',
-      //     params: { id: prayer.id },
-      //   });
-      // }}
+      onPress={() => {
+        router.push({
+          pathname: '/(tabs)/(prayers)/prayerView',
+          params: {
+            id:
+              'prayerId' in prayer
+                ? (prayer as PrayerPoint).prayerId
+                : (prayer as Prayer).id,
+          },
+        });
+      }}
     >
       <ThemedText style={styles.title}>{prayer.title}</ThemedText>
       <ThemedText numberOfLines={1} ellipsizeMode="tail" style={styles.preview}>

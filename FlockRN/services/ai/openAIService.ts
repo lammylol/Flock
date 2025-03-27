@@ -54,7 +54,6 @@ export async function analyzePrayerContent(
   const rules = `
     - Maintain a respectful and encouraging tone.
     - Do not fabricate details not present in the prayer.
-    - Do not exceed the word limits for each field.
     - Return only valid JSON in this format:
     
     ${jsonFormat}

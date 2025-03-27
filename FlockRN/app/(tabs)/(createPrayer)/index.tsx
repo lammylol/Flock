@@ -24,14 +24,14 @@ export default function PrayerWriteScreen() {
 
     // Navigate to metadata screen with the prayer content
     router.push({
-      pathname: '/(createPrayer)/prayerMetadata',
+      pathname: '/(tabs)/(createPrayer)/prayerMetadata',
       params: { content: content.trim() },
     });
   };
 
   const recordPrayer = () => {
     // Record the prayer using the recording hook
-    router.push('/(createPrayer)/voiceRecording');
+    router.push('/(tabs)/(createPrayer)/voiceRecording');
   };
 
   const { resetRecording } = useRecording();
