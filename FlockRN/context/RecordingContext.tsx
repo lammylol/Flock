@@ -9,7 +9,7 @@ import {
 } from '@/services/recording/transcriptionService';
 import { AudioModule } from 'expo-audio';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
-import { useEffect, useState, createContext } from 'react';
+import { useEffect, useState, createContext, useCallback } from 'react';
 import { ReactNode } from 'react';
 
 interface RecordingContextType {
@@ -38,7 +38,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
   const [audioFile, setAudioFile] = useState<Blob | null>(null);
   const [permissionsGranted, setPermissions] = useState(false);
 
-  const requestPermissions = async () => {
+  const requestPermissions = useCallback(async () => {
     const recordPermission = await AudioModule.getRecordingPermissionsAsync();
     const speechPermission =
       await ExpoSpeechRecognitionModule.getSpeechRecognizerPermissionsAsync();
@@ -49,7 +49,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setPermissions(true);
     }
-  };
+  }, [setPermissions]);
 
   const resetRecording = () => {
     setRecording('none'); // Reset context state
@@ -64,7 +64,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
     requestPermissions();
   }, []);
 
-  const handleRecordPrayer = async () => {
+  const handleRecordPrayer = useCallback(async () => {
     try {
       await requestPermissions();
 
@@ -90,7 +90,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Error during speech recognition:', error);
     }
-  };
+  }, [record, stopRecording, recording, requestPermissions]);
 
   return (
     <RecordingContext.Provider

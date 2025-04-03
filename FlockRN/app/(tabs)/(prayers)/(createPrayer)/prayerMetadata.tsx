@@ -64,7 +64,7 @@ export default function PrayerMetadataScreen() {
     } else if (content === '') {
       setPlaceholder('Transcription unavailable');
     }
-  }, [content, isTranscribing, transcription]);
+  }, [isTranscribing, transcription]);
 
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
@@ -118,7 +118,7 @@ export default function PrayerMetadataScreen() {
     if (content && !title && !isTranscribing) {
       analyzeContent();
     }
-  }, [content, isTranscribing, title, transcription]);
+  }, [content, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
     setSelectedTags((prevTags) =>

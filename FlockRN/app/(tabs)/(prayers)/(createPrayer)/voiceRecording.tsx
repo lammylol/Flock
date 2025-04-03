@@ -24,7 +24,7 @@ const VoiceRecording = () => {
 
   useEffect(() => {
     handleRecordPrayer();
-  }, [handleRecordPrayer]);
+  }, []);
 
   // set timer only when recording is active
   useEffect(() => {

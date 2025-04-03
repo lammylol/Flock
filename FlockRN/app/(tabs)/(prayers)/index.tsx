@@ -6,9 +6,7 @@ import { Prayer, PrayerPoint } from '@/types/firebase';
 import useAuth from '@/hooks/useAuth';
 import { useCallback, useState } from 'react';
 import { prayerService } from '@/services/prayer/prayerService';
-
 import { useFocusEffect } from '@react-navigation/native';
-
 import PrayerCard from '@/components/Prayer/PrayerView/PrayerCard';
 import { Tabs } from '@/components/Tab';
 import SearchBar from '@/components/ui/SearchBar';
