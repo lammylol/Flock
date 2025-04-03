@@ -33,7 +33,7 @@ export async function analyzePrayerContent(
 
   const tagPrompt = `Tags: A list of up to 4 relevant tags for the prayer, selected from this list: ${allTags}`;
 
-  const prayerPointPrompt = `Prayer Points: Generate at least 1 and at most 3 prayer points. Each must be a type of either a 'prayer request' or 'praise'. 
+  const prayerPointPrompt = `Prayer Points: Generate at most 3 prayer points. Each must be a type of either a 'prayer request' or 'praise'. 
   Titles should be concise. Content should be clear and at most 50 words.`;
 
   const jsonFormat = `

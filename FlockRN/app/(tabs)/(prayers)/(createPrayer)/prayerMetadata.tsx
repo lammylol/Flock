@@ -14,6 +14,7 @@ import { auth } from '../../../../firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
+import uuid from 'react-native-uuid';
 import {
   CreatePrayerDTO,
   PrayerPoint,
@@ -23,6 +24,7 @@ import {
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import { allTags } from '@/types/Tag';
+import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 
 export default function PrayerMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -46,7 +48,7 @@ export default function PrayerMetadataScreen() {
   const [content, setContent] = useState(params?.content || '');
   const [title, setTitle] = useState(params?.title || '');
   const [privacy, setPrivacy] = useState<'public' | 'private'>(
-    (params?.privacy as 'public' | 'private') || 'private'
+    (params?.privacy as 'public' | 'private') || 'private',
   );
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +66,7 @@ export default function PrayerMetadataScreen() {
     } else if (content === '') {
       setPlaceholder('Transcription unavailable');
     }
-  }, [isTranscribing, transcription]);
+  }, [content, isTranscribing, transcription]);
 
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
@@ -105,11 +107,18 @@ export default function PrayerMetadataScreen() {
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
         setSelectedTags(analysis.tags);
-        setPrayerPoints(analysis.prayerPoints);
+
+        // Assign a UUID if the prayer point doesn't already have an ID
+        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
+          ...point,
+          id: uuid.v4(), // Ensure each has a unique ID
+        }));
+
+        setPrayerPoints(updatedPrayerPoints);
       } catch (error) {
         console.error('Error using AI fill:', error);
         // Silent fail - don't show error to user for automatic fill
-      } finally {66
+      } finally {
         setIsAnalyzing(false);
       }
     };
@@ -118,13 +127,13 @@ export default function PrayerMetadataScreen() {
     if (content && !title && !isTranscribing) {
       analyzeContent();
     }
-  }, [content, transcription]);
+  }, [content, isTranscribing, title, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
-    setSelectedTags(prevTags =>
+    setSelectedTags((prevTags) =>
       prevTags.includes(tag)
-        ? prevTags.filter(t => t !== tag)
-        : [...prevTags, tag]
+        ? prevTags.filter((t) => t !== tag)
+        : [...prevTags, tag],
     );
   };
 
@@ -151,16 +160,19 @@ export default function PrayerMetadataScreen() {
             try {
               await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
               Alert.alert('Success', 'Prayer deleted successfully');
-              router.push('/(prayers)');
+              router.push('/(tabs)/(prayers)');
             } catch (error) {
               console.error('Error deleting prayer:', error);
-              Alert.alert('Error', 'Failed to delete prayer. Please try again.');
+              Alert.alert(
+                'Error',
+                'Failed to delete prayer. Please try again.',
+              );
             } finally {
               setIsDeleting(false);
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -233,9 +245,7 @@ export default function PrayerMetadataScreen() {
   };
 
   return (
-    <ThemedScrollView
-      contentContainerStyle={styles.scrollContent}
-    >
+    <ThemedScrollView contentContainerStyle={styles.scrollContent}>
       <View style={styles.section}>
         <TextInput
           style={styles.titleInput}
@@ -262,9 +272,7 @@ export default function PrayerMetadataScreen() {
             onChangeText={setContent}
             multiline
           />
-          {isTranscribing && (
-            <ActivityIndicator color="#9747FF" size="small" />
-          )}
+          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
         </View>
       </View>
 
@@ -279,7 +287,7 @@ export default function PrayerMetadataScreen() {
                 {
                   backgroundColor: selectedTags.includes(tag)
                     ? Colors.tagColors.selectedColors[tag] || Colors.primary
-                    : Colors.tagColors.defaultTag
+                    : Colors.tagColors.defaultTag,
                 },
               ]}
               onPress={() => toggleTag(tag)}
@@ -290,7 +298,7 @@ export default function PrayerMetadataScreen() {
                   {
                     color: selectedTags.includes(tag)
                       ? Colors.white
-                      : Colors.light.textPrimary
+                      : Colors.light.textPrimary,
                   },
                 ]}
               >
@@ -314,6 +322,14 @@ export default function PrayerMetadataScreen() {
           </View>
         </View>
       </View>
+
+      <PrayerPointSection
+        prayerPoints={prayerPoints}
+        editable={true}
+        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+          setPrayerPoints(updatedPrayerPoints)
+        }
+      />
 
       {isEditMode && (
         <TouchableOpacity
@@ -347,91 +363,16 @@ export default function PrayerMetadataScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-    padding: 16,
-    paddingBottom: 24,
-    backgroundColor: Colors.light.background,
-  },
-  section: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 12,
-    marginBottom: 12,
-    padding: 16,
-  },
-  titleInput: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 8,
-    fontSize: 16,
-    padding: 12,
-    marginBottom: 8,
-  },
   activityIndicator: {
     alignSelf: 'center',
   },
-  contentInput: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 8,
-    fontSize: 16,
-    minHeight: 120,
-    flex: 1,
-    padding: 12,
-    textAlignVertical: 'top',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  tagButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  tagButton: {
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  tagButtonText: {
-    fontSize: 14,
-  },
-  privacySelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  privacyValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  privacyValue: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  lockIcon: {
-    fontSize: 16,
-  },
-  deleteButton: {
-    backgroundColor: Colors.purple,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  deleteButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
   button: {
+    alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
     flexDirection: 'row',
     flex: 1,
-    gap: 8,
+    padding: 16,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,
@@ -441,5 +382,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  contentInput: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 8,
+    flex: 1,
+    fontSize: 16,
+    textAlignVertical: 'top',
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.purple,
+    borderRadius: 12,
+    padding: 16,
+  },
+  deleteButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+  },
+  lockIcon: {
+    fontSize: 16,
+  },
+  privacySelector: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  privacyValue: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  privacyValueContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  scrollContent: {
+    backgroundColor: Colors.light.background,
+    flexGrow: 1,
+    gap: 10,
+    padding: 16,
+    paddingBottom: 24,
+  },
+  section: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 12,
+    padding: 16,
+  },
+  tagButton: {
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  tagButtonText: {
+    fontSize: 14,
+  },
+  tagButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  titleContainer: {},
+  titleInput: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 8,
+    fontSize: 16,
   },
 });
