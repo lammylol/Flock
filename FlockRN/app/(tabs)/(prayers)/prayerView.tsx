@@ -11,9 +11,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import PrayerPointCard from '@/components/Prayer/PrayerPoints/PrayerPointCard';
 import useAuthContext from '@/hooks/useAuthContext';
-import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
+import ContentUnavailable from '@/components/Errors/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 
 const PrayerView = () => {
