@@ -143,6 +143,14 @@ const fetchPrayersPoints = async (user: User | null) => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
   scrollView: {
     padding: 32,
   },
@@ -150,8 +158,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  container: {
-    flex: 1,
-    position: 'relative'
-  }
 });

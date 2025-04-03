@@ -1,5 +1,5 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Prayer, PrayerPoint } from '@/types/firebase';
@@ -9,8 +9,10 @@ import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
-import ContentUnavailable from '@/components/Errors/ContentUnavailable';
+import { ThemedText } from '@/components/ThemedText';
+import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { Colors } from '@/constants/Colors';
 import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 
 const PrayerView = () => {
@@ -24,13 +26,8 @@ const PrayerView = () => {
   const isOwner = prayer && user && prayer.authorId === user.uid;
   const scrollViewRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    fetchPrayer();
-  }, [id]);
-
-  const fetchPrayer = async () => {
+  const fetchPrayer = useCallback(async () => {
     try {
-      // throw new Error('Simulated error'); // Force an error
       const fetchedPrayer = await prayerService.getPrayer(id);
       setPrayer(fetchedPrayer);
       if (user && fetchedPrayer?.prayerPoints) {
@@ -43,9 +40,14 @@ const PrayerView = () => {
     } catch (err) {
       console.error(err);
       setError('Prayer could not be fetched. Please try again.');
+    } finally {
+      setRefreshing(false);
     }
-    setRefreshing(false);
-  };
+  }, [id, user]);
+
+  useEffect(() => {
+    fetchPrayer();
+  }, [fetchPrayer, id]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -54,7 +56,7 @@ const PrayerView = () => {
 
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
-  }, [TagsSection]); // Scroll to bottom whenever messages change
+  }, []); // Scroll to bottom whenever messages change
 
   const handleEdit = () => {
     if (!prayer) return;
@@ -94,7 +96,10 @@ const PrayerView = () => {
               }}
             >
               {isOwner && (
-                <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
+                <TouchableOpacity
+                  onPress={handleEdit}
+                  style={styles.editButton}
+                >
                   <ThemedText style={styles.editButtonText}>Edit</ThemedText>
                 </TouchableOpacity>
               )}
@@ -111,12 +116,6 @@ const PrayerView = () => {
 };
 
 const styles = StyleSheet.create({
-  innerContainer: {
-    borderRadius: 15,
-    flex: 0,
-    gap: 15,
-    padding: 25,
-  },
   editButton: {
     alignSelf: 'flex-end',
     backgroundColor: Colors.primary,
@@ -130,23 +129,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  mainBackground: {
-    flex: 1,
-    gap: 20,
-    paddingBottom: 16,
-    paddingHorizontal: 10,
-  },
-  prayerPointsContainer: {
+  innerContainer: {
     borderRadius: 15,
-    borderWidth: 1,
     flex: 0,
     gap: 15,
     padding: 25,
-  },
-  prayerPointsText: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    lineHeight: 30,
   },
   scrollView: {
     flex: 1,

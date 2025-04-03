@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 
 interface PrayerContentProps {
@@ -10,7 +9,7 @@ interface PrayerContentProps {
 
 const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
   return (
-    <View styles={styles.container}>
+    <View style={styles.container}>
       <ThemedText style={styles.titleText}>{title}</ThemedText>
       <ThemedText style={styles.contentText}>{content}</ThemedText>
     </View>

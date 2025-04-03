@@ -24,7 +24,7 @@ const VoiceRecording = () => {
 
   useEffect(() => {
     handleRecordPrayer();
-  }, []);
+  }, [handleRecordPrayer]);
 
   // set timer only when recording is active
   useEffect(() => {
@@ -44,7 +44,7 @@ set in RecordingContext.tsx" */
   const handleFinish = () => {
     // Navigate to metadata screen with the prayer content
     router.push({
-      pathname: '/(createPrayer)/prayerMetadata',
+      pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
     });
   };
 

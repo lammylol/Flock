@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -87,33 +87,36 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
     }
   };
 
-  const renderTag = (tag: PrayerTag, isSelectable = false) => (
-    <TouchableOpacity
-      key={tag}
-      style={[
-        styles.tag,
-        {
-          backgroundColor: selectedTags.includes(tag)
-            ? getTagColor(tag)
-            : Colors.tagColors.defaultTag,
-        },
-      ]}
-      onPress={isSelectable ? () => toggleTag(tag) : toggleExpand}
-    >
-      <Text
+  const renderTag = useCallback(
+    (tag: PrayerTag, isSelectable = false) => (
+      <TouchableOpacity
+        key={tag}
         style={[
-          styles.tagText,
-          selectedTags.includes(tag) && styles.selectedTagText,
+          styles.tag,
+          {
+            backgroundColor: selectedTags.includes(tag)
+              ? getTagColor(tag)
+              : Colors.tagColors.defaultTag,
+          },
         ]}
+        onPress={isSelectable ? () => toggleTag(tag) : toggleExpand}
       >
-        {getTagName(tag)}
-      </Text>
-    </TouchableOpacity>
+        <Text
+          style={[
+            styles.tagText,
+            selectedTags.includes(tag) && styles.selectedTagText,
+          ]}
+        >
+          {getTagName(tag)}
+        </Text>
+      </TouchableOpacity>
+    ),
+    [selectedTags],
   );
 
   const allTagsRendered = useMemo(
     () => allTags.map((tag) => renderTag(tag, true)),
-    [selectedTags],
+    [renderTag],
   );
 
   return (
