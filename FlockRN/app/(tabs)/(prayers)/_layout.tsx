@@ -18,6 +18,19 @@ export default function prayers() {
           headerBackButtonDisplayMode: 'default',
           headerBackTitle: 'Back',
           headerShadowVisible: false,
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
+        name="(createPrayer)"
+        options={{
+          title: 'Add Prayer',
+          headerBackButtonDisplayMode: 'default',
+          headerBackTitle: 'Back',
+          headerShadowVisible: false,
+          headerShown: false,
+          animation: 'slide_from_bottom',
+          animationDuration: 30,
         }}
       />
     </ThemedStack>

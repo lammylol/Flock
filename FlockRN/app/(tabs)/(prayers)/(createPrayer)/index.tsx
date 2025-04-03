@@ -107,6 +107,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
   },
+  headerTitleStyle: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
   inputContainer: {
     flex: 1,
   },
