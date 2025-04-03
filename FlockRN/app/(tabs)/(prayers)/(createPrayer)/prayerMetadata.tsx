@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
-import { analyzePrayerContent } from '../../../../services/ai/openAIService';
-import { auth } from '../../../../firebase/firebaseConfig';
+import { analyzePrayerContent } from '@/services/ai/openAIService';
+import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
