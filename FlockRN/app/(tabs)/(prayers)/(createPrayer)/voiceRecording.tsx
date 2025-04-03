@@ -24,6 +24,7 @@ const VoiceRecording = () => {
 
   useEffect(() => {
     handleRecordPrayer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // set timer only when recording is active
