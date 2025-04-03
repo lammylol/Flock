@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, type ViewProps } from 'react-native';
+import { KeyboardAvoidingView, type ViewProps } from 'react-native';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
 
@@ -20,7 +20,10 @@ export function ThemedKeyboardAvoidingView({
     'background',
   );
 
-  return <KeyboardAvoidingView
-    style={[{ backgroundColor }, style]}
-    {...otherProps} />;
+  return (
+    <KeyboardAvoidingView
+      style={[{ backgroundColor }, style]}
+      {...otherProps}
+    />
+  );
 }

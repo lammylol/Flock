@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { ThemedStack } from '@/components/ThemedStack';
+
 export default function prayers() {
   return (
     <ThemedStack>

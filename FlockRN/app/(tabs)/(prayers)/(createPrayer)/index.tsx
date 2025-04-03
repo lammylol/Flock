@@ -6,7 +6,6 @@ import {
   Alert,
   View,
   Platform,
-  Button
 } from 'react-native';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -19,7 +18,6 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 
 export default function PrayerWriteScreen() {
   const [content, setContent] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
 
   const handleNext = () => {
     if (!content.trim()) {
@@ -45,7 +43,7 @@ export default function PrayerWriteScreen() {
     useCallback(() => {
       resetRecording(); // Reset state when navigating back to index
       setContent(''); // Reset content when navigating back to index
-    }, []),
+    }, [resetRecording]),
   );
 
   return (
@@ -56,20 +54,12 @@ export default function PrayerWriteScreen() {
     >
       <Stack.Screen
         options={{
-          headerRight: () =>
-            <HeaderButton
-              onPress={handleNext}
-              label="Next"
-            />,
-          headerLeft: () =>
-            <HeaderButton
-              onPress={router.back}
-              label="Cancel"
-            />,
-          // headerRight: () => (isFocused || content) ? <Button onPress={handleNext} title="Next" /> : null,
-          // headerLeft: () => isFocused ? <Button onPress={router.back} title="Cancel" /> : null,
-          title: "Add Prayer",
-          headerTitleStyle: styles.headerTitleStyle
+          headerRight: () => <HeaderButton onPress={handleNext} label="Next" />,
+          headerLeft: () => (
+            <HeaderButton onPress={router.back} label="Cancel" />
+          ),
+          title: 'Add Prayer',
+          headerTitleStyle: styles.headerTitleStyle,
         }}
       />
       <ThemedScrollView style={styles.inputContainer}>
@@ -78,8 +68,6 @@ export default function PrayerWriteScreen() {
           placeholder="Write your prayer..."
           value={content}
           onChangeText={setContent}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           multiline
           textAlignVertical="top"
           placeholderTextColor="#777"
@@ -115,12 +103,16 @@ const styles = StyleSheet.create({
     padding: 16,
     textAlignVertical: 'top',
   },
+  headerTitleStyle: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
   inputContainer: {
-    flex: 1
+    flex: 1,
   },
   mainContainer: {
     flex: 1,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
   recordingButtonText: {
     alignItems: 'center',
@@ -128,8 +120,4 @@ const styles = StyleSheet.create({
     gap: 8,
     verticalAlign: 'middle',
   },
-  headerTitleStyle: {
-    fontSize: 16,
-    fontWeight: '500',
-  }
 });

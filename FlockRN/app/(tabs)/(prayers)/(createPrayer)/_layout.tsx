@@ -27,7 +27,11 @@ export default function CreatePrayerFlowLayout() {
         />
         <Stack.Screen
           name="prayerMetadata"
-          options={{ title: 'Edit Prayer' }}
+          options={{
+            title: 'Edit Prayer',
+            headerBackButtonDisplayMode: 'default',
+            headerBackTitle: 'Back',
+          }}
         />
       </Stack>
     </RecordingProvider>
