@@ -49,7 +49,6 @@ export default function PrayerMetadataScreen() {
   const [title, setTitle] = useState(params?.title || '');
   const [privacy, setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
-    (params?.privacy as 'public' | 'private') || 'private',
   );
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,300 +67,299 @@ export default function PrayerMetadataScreen() {
       setPlaceholder('Transcription unavailable');
     }
   }, [content, isTranscribing, transcription]);
-}, [content, isTranscribing, transcription]);
 
-const handlePrayerPoints = async (
-  prayerPoints: PrayerPoint[],
-  prayerId: string,
-): Promise<string[]> => {
-  try {
-    // Transform prayer points
-    const mappedPrayerPoints: PrayerPointDTO[] = prayerPoints.map(
-      (prayerPoint) => ({
-        title: prayerPoint.title?.trim() || 'Untitled',
-        type: (prayerPoint.type?.trim() as 'request' | 'praise') || 'request',
-        content: prayerPoint.content?.trim() || '',
-        createdAt: new Date(),
-        authorId: auth.currentUser?.uid || 'unknown',
-        authorName: auth.currentUser?.displayName || 'Unknown',
-        status: prayerPoint.status || 'open',
-        privacy: prayerPoint.privacy ?? 'private',
-        prayerId: prayerId,
-      }),
-    );
-
-    // Save to Firestore
-    const prayerPointIds =
-      await prayerService.addPrayerPoints(mappedPrayerPoints);
-
-    return prayerPointIds;
-  } catch (err) {
-    console.error('Error parsing prayer points:', err);
-    return [];
-  }
-};
-
-useEffect(() => {
-  const analyzeContent = async () => {
-    setIsAnalyzing(true);
+  const handlePrayerPoints = async (
+    prayerPoints: PrayerPoint[],
+    prayerId: string,
+  ): Promise<string[]> => {
     try {
-      const analysis = await analyzePrayerContent(content, !!transcription);
-      setTitle(analysis.title);
-      setContent(analysis.cleanedTranscription || content);
-      setSelectedTags(analysis.tags);
+      // Transform prayer points
+      const mappedPrayerPoints: PrayerPointDTO[] = prayerPoints.map(
+        (prayerPoint) => ({
+          title: prayerPoint.title?.trim() || 'Untitled',
+          type: (prayerPoint.type?.trim() as 'request' | 'praise') || 'request',
+          content: prayerPoint.content?.trim() || '',
+          createdAt: new Date(),
+          authorId: auth.currentUser?.uid || 'unknown',
+          authorName: auth.currentUser?.displayName || 'Unknown',
+          status: prayerPoint.status || 'open',
+          privacy: prayerPoint.privacy ?? 'private',
+          prayerId: prayerId,
+        }),
+      );
 
-      // Assign a UUID if the prayer point doesn't already have an ID
-      const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
-        ...point,
-        id: uuid.v4(), // Ensure each has a unique ID
-      }));
+      // Save to Firestore
+      const prayerPointIds =
+        await prayerService.addPrayerPoints(mappedPrayerPoints);
 
-      setPrayerPoints(updatedPrayerPoints);
-    } catch (error) {
-      console.error('Error using AI fill:', error);
-      // Silent fail - don't show error to user for automatic fill
-    } finally {
-      setIsAnalyzing(false);
+      return prayerPointIds;
+    } catch (err) {
+      console.error('Error parsing prayer points:', err);
+      return [];
     }
   };
-  // Perform AI fill when content is available after navigation, but after 4 seconds.
-  // This ensures that the full transcription is returned before before processing with AI.
-  if (content && !title && !isTranscribing) {
-    analyzeContent();
-  }
-}, [content, isTranscribing, title, transcription]);
 
-const toggleTag = (tag: PrayerTag) => {
-  setSelectedTags(prevTags =>
-    prevTags.includes(tag)
-      ? prevTags.filter((t) => t !== tag)
-      : [...prevTags, tag],
-  );
-};
+  useEffect(() => {
+    const analyzeContent = async () => {
+      setIsAnalyzing(true);
+      try {
+        const analysis = await analyzePrayerContent(content, !!transcription);
+        setTitle(analysis.title);
+        setContent(analysis.cleanedTranscription || content);
+        setSelectedTags(analysis.tags);
 
-const handleDelete = async () => {
-  // Confirm deletion
-  Alert.alert(
-    'Delete Prayer',
-    'Are you sure you want to delete this prayer? This action cannot be undone.',
-    [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          if (!prayerId || !auth.currentUser?.uid) {
-            Alert.alert('Error', 'Cannot delete prayer');
-            return;
-          }
+        // Assign a UUID if the prayer point doesn't already have an ID
+        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
+          ...point,
+          id: uuid.v4(), // Ensure each has a unique ID
+        }));
 
-          setIsDeleting(true);
-          try {
-            await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
-            Alert.alert('Success', 'Prayer deleted successfully');
-            router.push('/(tabs)/(prayers)');
-          } catch (error) {
-            console.error('Error deleting prayer:', error);
-            Alert.alert(
-              'Error',
-              'Failed to delete prayer. Please try again.',
-            );
-          } finally {
-            setIsDeleting(false);
-          }
-        },
-      },
-    ],
-  );
-};
-
-const handleSubmit = async () => {
-  if (!title.trim()) {
-    Alert.alert('Error', 'Please add a title');
-    return;
-  }
-
-  if (!auth.currentUser?.uid) {
-    Alert.alert('Error', 'You must be logged in to create a prayer');
-    return;
-  }
-
-  setIsLoading(true);
-  try {
-    if (isEditMode && prayerId) {
-      // Update existing prayer
-      const updateData: UpdatePrayerDTO = {
-        title: title.trim(),
-        content: content,
-        privacy: privacy,
-        tags: selectedTags,
-      };
-
-      await prayerService.updatePrayer(prayerId, updateData);
-      Alert.alert('Success', 'Prayer updated successfully');
-      router.push('/(tabs)/(prayers)');
-    } else {
-      // Create new prayer
-      const prayerData: CreatePrayerDTO = {
-        title: title.trim(),
-        content: content,
-        privacy: privacy,
-        tags: selectedTags,
-        authorId: auth.currentUser.uid,
-        authorName: auth.currentUser.displayName,
-        status: 'open',
-        isPinned: false,
-      };
-
-      const prayerId = await prayerService.createPrayer(prayerData);
-
-      // get list of prayer point ids
-      const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
-
-      const updatePrayerPoints = {
-        prayerPoints: prayerPointIds,
-      } as UpdatePrayerDTO;
-
-      // update the original prayer with the list of ids
-      await prayerService.updatePrayer(prayerId, updatePrayerPoints);
-
-      Alert.alert('Success', 'Prayer created successfully');
-      router.dismissAll(); // resets 'createPrayer' stack.
-      router.replace('/(tabs)/(prayers)');
+        setPrayerPoints(updatedPrayerPoints);
+      } catch (error) {
+        console.error('Error using AI fill:', error);
+        // Silent fail - don't show error to user for automatic fill
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
+    // Perform AI fill when content is available after navigation, but after 4 seconds.
+    // This ensures that the full transcription is returned before before processing with AI.
+    if (content && !title && !isTranscribing) {
+      analyzeContent();
     }
-  } catch (error) {
-    console.error(
-      `Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
-      error,
+  }, [content, isTranscribing, title, transcription]);
+
+  const toggleTag = (tag: PrayerTag) => {
+    setSelectedTags((prevTags) =>
+      prevTags.includes(tag)
+        ? prevTags.filter((t) => t !== tag)
+        : [...prevTags, tag],
     );
+  };
+
+  const handleDelete = async () => {
+    // Confirm deletion
     Alert.alert(
-      'Error',
-      `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`,
+      'Delete Prayer',
+      'Are you sure you want to delete this prayer? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (!prayerId || !auth.currentUser?.uid) {
+              Alert.alert('Error', 'Cannot delete prayer');
+              return;
+            }
+
+            setIsDeleting(true);
+            try {
+              await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
+              Alert.alert('Success', 'Prayer deleted successfully');
+              router.push('/(tabs)/(prayers)');
+            } catch (error) {
+              console.error('Error deleting prayer:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete prayer. Please try again.',
+              );
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
     );
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
-return (
-  <ThemedScrollView contentContainerStyle={styles.scrollContent}>
-    <View style={styles.section}>
-      <TextInput
-        style={styles.titleInput}
-        placeholder="Prayer title"
-        value={title}
-        onChangeText={setTitle}
-        maxLength={100}
-      />
-      {isAnalyzing && (
-        <ActivityIndicator
-          color={Colors.primary}
-          size="small"
-          style={styles.activityIndicator}
-        />
-      )}
-    </View>
+  const handleSubmit = async () => {
+    if (!title.trim()) {
+      Alert.alert('Error', 'Please add a title');
+      return;
+    }
 
-    <View style={styles.section}>
-      <View style={styles.titleContainer}>
+    if (!auth.currentUser?.uid) {
+      Alert.alert('Error', 'You must be logged in to create a prayer');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isEditMode && prayerId) {
+        // Update existing prayer
+        const updateData: UpdatePrayerDTO = {
+          title: title.trim(),
+          content: content,
+          privacy: privacy,
+          tags: selectedTags,
+        };
+
+        await prayerService.updatePrayer(prayerId, updateData);
+        Alert.alert('Success', 'Prayer updated successfully');
+        router.push('/(tabs)/(prayers)');
+      } else {
+        // Create new prayer
+        const prayerData: CreatePrayerDTO = {
+          title: title.trim(),
+          content: content,
+          privacy: privacy,
+          tags: selectedTags,
+          authorId: auth.currentUser.uid,
+          authorName: auth.currentUser.displayName,
+          status: 'open',
+          isPinned: false,
+        };
+
+        const prayerId = await prayerService.createPrayer(prayerData);
+
+        // get list of prayer point ids
+        const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
+
+        const updatePrayerPoints = {
+          prayerPoints: prayerPointIds,
+        } as UpdatePrayerDTO;
+
+        // update the original prayer with the list of ids
+        await prayerService.updatePrayer(prayerId, updatePrayerPoints);
+
+        Alert.alert('Success', 'Prayer created successfully');
+        router.dismissAll(); // resets 'createPrayer' stack.
+        router.replace('/(tabs)/(prayers)');
+      }
+    } catch (error) {
+      console.error(
+        `Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
+        error,
+      );
+      Alert.alert(
+        'Error',
+        `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`,
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <ThemedScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.section}>
         <TextInput
-          style={styles.contentInput}
-          placeholder={placeholder}
-          value={content}
-          onChangeText={setContent}
-          multiline
+          style={styles.titleInput}
+          placeholder="Prayer title"
+          value={title}
+          onChangeText={setTitle}
+          maxLength={100}
         />
-        {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
+        {isAnalyzing && (
+          <ActivityIndicator
+            color={Colors.primary}
+            size="small"
+            style={styles.activityIndicator}
+          />
+        )}
       </View>
-    </View>
 
-    <View style={styles.section}>
-      <ThemedText style={styles.label}>Tags:</ThemedText>
-      <View style={styles.tagButtons}>
-        {allTags.map((tag) => (
-          <TouchableOpacity
-            key={tag}
-            style={[
-              styles.tagButton,
-              {
-                backgroundColor: selectedTags.includes(tag)
-                  ? Colors.tagColors.selectedColors[tag] || Colors.primary
-                  : Colors.tagColors.defaultTag,
-              },
-            ]}
-            onPress={() => toggleTag(tag)}
-          >
-            <ThemedText
-              style={[
-                styles.tagButtonText,
-                {
-                  color: selectedTags.includes(tag)
-                    ? Colors.white
-                    : Colors.light.textPrimary,
-                },
-              ]}
-            >
-              {tag}
-            </ThemedText>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-
-    <View style={styles.section}>
-      <View style={styles.privacySelector}>
-        <ThemedText style={styles.label}>Privacy</ThemedText>
-        <View style={styles.privacyValueContainer}>
-          <ThemedText style={styles.privacyValue}>
-            {privacy === 'private' ? 'Private' : 'Public'}
-          </ThemedText>
-          {privacy === 'private' && (
-            <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-          )}
+      <View style={styles.section}>
+        <View style={styles.titleContainer}>
+          <TextInput
+            style={styles.contentInput}
+            placeholder={placeholder}
+            value={content}
+            onChangeText={setContent}
+            multiline
+          />
+          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
         </View>
       </View>
-    </View>
 
-    <PrayerPointSection
-      prayerPoints={prayerPoints}
-      editable={true}
-      onChange={(updatedPrayerPoints: PrayerPoint[]) =>
-        setPrayerPoints(updatedPrayerPoints)
-      }
-    />
+      <View style={styles.section}>
+        <ThemedText style={styles.label}>Tags:</ThemedText>
+        <View style={styles.tagButtons}>
+          {allTags.map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={[
+                styles.tagButton,
+                {
+                  backgroundColor: selectedTags.includes(tag)
+                    ? Colors.tagColors.selectedColors[tag] || Colors.primary
+                    : Colors.tagColors.defaultTag,
+                },
+              ]}
+              onPress={() => toggleTag(tag)}
+            >
+              <ThemedText
+                style={[
+                  styles.tagButtonText,
+                  {
+                    color: selectedTags.includes(tag)
+                      ? Colors.white
+                      : Colors.light.textPrimary,
+                  },
+                ]}
+              >
+                {tag}
+              </ThemedText>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
-    {isEditMode && (
+      <View style={styles.section}>
+        <View style={styles.privacySelector}>
+          <ThemedText style={styles.label}>Privacy</ThemedText>
+          <View style={styles.privacyValueContainer}>
+            <ThemedText style={styles.privacyValue}>
+              {privacy === 'private' ? 'Private' : 'Public'}
+            </ThemedText>
+            {privacy === 'private' && (
+              <ThemedText style={styles.lockIcon}>🔒</ThemedText>
+            )}
+          </View>
+        </View>
+      </View>
+
+      <PrayerPointSection
+        prayerPoints={prayerPoints}
+        editable={true}
+        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+          setPrayerPoints(updatedPrayerPoints)
+        }
+      />
+
+      {isEditMode && (
+        <TouchableOpacity
+          style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
+          onPress={handleDelete}
+          disabled={isDeleting}
+        >
+          <ThemedText style={styles.deleteButtonText}>
+            {isDeleting ? 'Deleting...' : 'Delete Prayer'}
+          </ThemedText>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
-        style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
-        onPress={handleDelete}
-        disabled={isDeleting}
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleSubmit}
+        disabled={isLoading}
       >
-        <ThemedText style={styles.deleteButtonText}>
-          {isDeleting ? 'Deleting...' : 'Delete Prayer'}
+        <ThemedText style={styles.buttonText}>
+          {isLoading
+            ? isEditMode
+              ? 'Updating...'
+              : 'Creating...'
+            : isEditMode
+              ? 'Update Prayer'
+              : 'Create Prayer'}
         </ThemedText>
       </TouchableOpacity>
-    )}
-
-    <TouchableOpacity
-      style={[styles.button, isLoading && styles.buttonDisabled]}
-      onPress={handleSubmit}
-      disabled={isLoading}
-    >
-      <ThemedText style={styles.buttonText}>
-        {isLoading
-          ? isEditMode
-            ? 'Updating...'
-            : 'Creating...'
-          : isEditMode
-            ? 'Update Prayer'
-            : 'Create Prayer'}
-      </ThemedText>
-    </TouchableOpacity>
-  </ThemedScrollView>
-);
+    </ThemedScrollView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -371,123 +369,87 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: Colors.primary,
-    activityIndicator: {
-      alignSelf: 'center',
-    },
-    button: {
-      alignItems: 'center',
-      backgroundColor: Colors.primary,
-      borderRadius: 12,
-      flexDirection: 'row',
-      flex: 1,
-      gap: 8,
-      padding: 16,
-    },
-    buttonDisabled: {
-      backgroundColor: Colors.disabled,
-    },
-    buttonText: {
-      color: Colors.white,
-      buttonDisabled: {
-        backgroundColor: Colors.disabled,
-      },
-      buttonText: {
-        color: Colors.white,
-        fontSize: 16,
-        fontWeight: '600',
-        textAlign: 'center',
-        fontWeight: '600',
-        textAlign: 'center',
-      },
-      contentInput: {
-        backgroundColor: Colors.secondary,
-        borderRadius: 8,
-        flex: 1,
-        flex: 1,
-        fontSize: 16,
-        minHeight: 120,
-        padding: 12,
-        textAlignVertical: 'top',
-      },
-      deleteButton: {
-        alignItems: 'center',
-        backgroundColor: Colors.purple,
-        borderRadius: 12,
-        marginBottom: 16,
-        padding: 16,
-      },
-      deleteButtonText: {
-        color: Colors.white,
-        fontSize: 16,
-        fontWeight: '600',
-      },
-      label: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginBottom: 8,
-      },
-      lockIcon: {
-        fontSize: 16,
-      },
-      privacySelector: {
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-      },
-      privacyValue: {
-        fontSize: 16,
-        marginRight: 4,
-      },
-      privacyValueContainer: {
-        alignItems: 'center',
-        lockIcon: {
-          fontSize: 16,
-        },
-        privacySelector: {
-          alignItems: 'center',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        },
-        privacyValue: {
-          fontSize: 16,
-          marginRight: 4,
-        },
-        privacyValueContainer: {
-          alignItems: 'center',
-          flexDirection: 'row',
-        },
-        scrollContent: {
-          backgroundColor: Colors.light.background,
-          flexGrow: 1,
-          gap: 10,
-          padding: 16,
-          paddingBottom: 24,
-        },
-        section: {
-          backgroundColor: Colors.secondary,
-          borderRadius: 12,
-          padding: 16,
-        },
-        tagButton: {
-          borderRadius: 20,
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-        },
-        tagButtonText: {
-          fontSize: 14,
-        },
-        tagButtons: {
-          tagButtons: {
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 10,
-            flexWrap: 'wrap',
-            gap: 10,
-          },
-          titleContainer: {},
-          titleInput: {
-            backgroundColor: Colors.secondary,
-            borderRadius: 8,
-            fontSize: 16,
-          },
-        });
+    borderRadius: 12,
+    flexDirection: 'row',
+    flex: 1,
+    gap: 8,
+    padding: 16,
+  },
+  buttonDisabled: {
+    backgroundColor: Colors.disabled,
+  },
+  buttonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  contentInput: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 8,
+    fontSize: 16,
+    textAlignVertical: 'top',
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.purple,
+    borderRadius: 12,
+    padding: 16,
+  },
+  deleteButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  lockIcon: {
+    fontSize: 16,
+  },
+  privacySelector: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  privacyValue: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  privacyValueContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  scrollContent: {
+    backgroundColor: Colors.light.background,
+    flexGrow: 1,
+    gap: 10,
+    padding: 16,
+    paddingBottom: 24,
+  },
+  section: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 12,
+    padding: 16,
+  },
+  tagButton: {
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  tagButtonText: {
+    fontSize: 14,
+  },
+  tagButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  titleContainer: {},
+  titleInput: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 8,
+    fontSize: 16,
+  },
+});
