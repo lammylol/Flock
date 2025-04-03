@@ -41,6 +41,7 @@ export default function Button({
         styles.button,
         { backgroundColor: backgroundColor ?? themedBackgroundColor },
         { ...getSize(size), ...rest },
+        style,
       ]}
       onPress={onPress}
     >

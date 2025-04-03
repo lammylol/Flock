@@ -37,7 +37,7 @@ export const Tabs: React.FC<TabsProps> = ({
         useNativeDriver: false,
       }).start();
     }
-  }, [selectedIndex, tabWidths.current]);
+  }, [indicatorAnim, selectedIndex, tabs.length]);
 
   const onTabLayout = (event: LayoutChangeEvent, index: number) => {
     const { width } = event.nativeEvent.layout;
