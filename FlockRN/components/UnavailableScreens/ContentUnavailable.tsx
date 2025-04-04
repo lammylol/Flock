@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '../ThemedView';
@@ -7,14 +7,16 @@ import { ThemedView } from '../ThemedView';
 interface ContentUnvailableProps {
   errorTitle: string;
   errorMessage: string;
+  textAlign?: ViewStyle['alignItems'];
 }
 
 const ContentUnavailable: React.FC<ContentUnvailableProps> = ({
   errorTitle,
   errorMessage,
+  textAlign,
 }) => {
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, { alignItems: textAlign }]}>
       <ThemedText
         lightColor={Colors.light.textPrimary}
         darkColor={Colors.dark.textPrimary}

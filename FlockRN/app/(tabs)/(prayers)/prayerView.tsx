@@ -3,17 +3,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Prayer, PrayerPoint } from '@/types/firebase';
-import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
 import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import PrayerPointCard from '@/components/Prayer/PrayerPoints/PrayerPointCard';
 import useAuthContext from '@/hooks/useAuthContext';
+import { ThemedText } from '@/components/ThemedText';
 import ContentUnavailable from '@/components/Errors/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { ThemedText } from '@/components/ThemedText';
+import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -107,29 +106,7 @@ const PrayerView = () => {
               <TagsSection prayerId={prayer.id} tags={prayer.tags} />
             </ThemedView>
 
-            {prayerPoints && (
-              <ThemedView
-                style={[
-                  styles.prayerPointsContainer,
-                  { borderColor: Colors.secondary },
-                ]}
-              >
-                <ThemedText
-                  lightColor={Colors.light.textSecondary}
-                  darkColor={Colors.dark.textPrimary}
-                  style={styles.prayerPointsText}
-                >
-                  Prayer Points
-                </ThemedText>
-                {prayerPoints.map((prayerPoint: PrayerPoint) => (
-                  <PrayerPointCard
-                    key={prayerPoint.id}
-                    title={prayerPoint.title}
-                    content={prayerPoint.content}
-                  />
-                ))}
-              </ThemedView>
-            )}
+            {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
           </>
         )
       )}

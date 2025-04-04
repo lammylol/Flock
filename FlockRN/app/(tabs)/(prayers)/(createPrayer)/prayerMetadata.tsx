@@ -9,11 +9,12 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
-import { analyzePrayerContent } from '../../../../services/ai/openAIService';
-import { auth } from '../../../../firebase/firebaseConfig';
+import { analyzePrayerContent } from '@/services/ai/openAIService';
+import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
+import uuid from 'react-native-uuid';
 import {
   CreatePrayerDTO,
   PrayerPoint,
@@ -23,6 +24,7 @@ import {
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import { allTags } from '@/types/Tag';
+import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 
 export default function PrayerMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -107,7 +109,14 @@ export default function PrayerMetadataScreen() {
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
         setSelectedTags(analysis.tags);
-        setPrayerPoints(analysis.prayerPoints);
+
+        // Assign a UUID if the prayer point doesn't already have an ID
+        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
+          ...point,
+          id: uuid.v4(), // Ensure each has a unique ID
+        }));
+
+        setPrayerPoints(updatedPrayerPoints);
       } catch (error) {
         console.error('Error using AI fill:', error);
         // Silent fail - don't show error to user for automatic fill
@@ -153,7 +162,7 @@ export default function PrayerMetadataScreen() {
             try {
               await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
               Alert.alert('Success', 'Prayer deleted successfully');
-              router.push('/(prayers)');
+              router.push('/(tabs)/(prayers)');
             } catch (error) {
               console.error('Error deleting prayer:', error);
               Alert.alert(
@@ -316,6 +325,14 @@ export default function PrayerMetadataScreen() {
         </View>
       </View>
 
+      <PrayerPointSection
+        prayerPoints={prayerPoints}
+        editable={true}
+        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+          setPrayerPoints(updatedPrayerPoints)
+        }
+      />
+
       {isEditMode && (
         <TouchableOpacity
           style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
@@ -372,17 +389,13 @@ const styles = StyleSheet.create({
   contentInput: {
     backgroundColor: Colors.secondary,
     borderRadius: 8,
-    flex: 1,
     fontSize: 16,
-    minHeight: 120,
-    padding: 12,
     textAlignVertical: 'top',
   },
   deleteButton: {
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 12,
-    marginBottom: 16,
     padding: 16,
   },
   deleteButtonText: {
@@ -393,7 +406,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 8,
   },
   lockIcon: {
     fontSize: 16,
@@ -414,13 +426,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     backgroundColor: Colors.light.background,
     flexGrow: 1,
+    gap: 10,
     padding: 16,
     paddingBottom: 24,
   },
   section: {
     backgroundColor: Colors.secondary,
     borderRadius: 12,
-    marginBottom: 12,
     padding: 16,
   },
   tagButton: {
@@ -436,11 +448,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  titleContainer: {},
   titleInput: {
     backgroundColor: Colors.secondary,
     borderRadius: 8,
     fontSize: 16,
-    marginBottom: 8,
-    padding: 12,
   },
 });

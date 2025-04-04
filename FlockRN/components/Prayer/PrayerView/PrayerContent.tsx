@@ -11,20 +11,8 @@ interface PrayerContentProps {
 const PrayerContent: React.FC<PrayerContentProps> = ({ title, content }) => {
   return (
     <View style={styles.container}>
-      <ThemedText
-        lightColor={Colors.light.textSecondary}
-        darkColor={Colors.dark.textPrimary}
-        style={styles.titleText}
-      >
-        {title}
-      </ThemedText>
-      <ThemedText
-        lightColor={Colors.light.textSecondary}
-        darkColor={Colors.dark.textPrimary}
-        style={styles.contentText}
-      >
-        {content}
-      </ThemedText>
+      <ThemedText style={styles.titleText}>{title}</ThemedText>
+      <ThemedText style={styles.contentText}>{content}</ThemedText>
     </View>
   );
 };
