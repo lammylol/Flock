@@ -10,9 +10,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
 import { ThemedText } from '@/components/ThemedText';
-import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
+import ContentUnavailable from '@/components/Errors/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { Colors } from '@/constants/Colors';
 import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 
 const PrayerView = () => {

@@ -47,7 +47,9 @@ export default function PrayerMetadataScreen() {
 
   const [content, setContent] = useState(params?.content || '');
   const [title, setTitle] = useState(params?.title || '');
-  const [privacy, setPrivacy] = useState<'public' | 'private'>(
+  // TODO implement privacy setting
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [privacy, _setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
@@ -66,7 +68,7 @@ export default function PrayerMetadataScreen() {
     } else if (content === '') {
       setPlaceholder('Transcription unavailable');
     }
-  }, [isTranscribing, transcription]);
+  }, [content, isTranscribing, transcription]);
 
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
@@ -127,7 +129,7 @@ export default function PrayerMetadataScreen() {
     if (content && !title && !isTranscribing) {
       analyzeContent();
     }
-  }, [content, transcription]);
+  }, [content, isTranscribing, title, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
     setSelectedTags((prevTags) =>

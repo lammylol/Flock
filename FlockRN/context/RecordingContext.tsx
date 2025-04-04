@@ -62,9 +62,10 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
   // Can be removed here if permissions are only requested when user clicks 'record'.
   useEffect(() => {
     requestPermissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleRecordPrayer = useCallback(async () => {
+  const handleRecordPrayer = async () => {
     try {
       await requestPermissions();
 
@@ -73,16 +74,25 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
         await record();
       } else {
         const uri = await stopRecording();
+
         setRecording('complete');
 
         // Set audio file to be used for transcription.
         if (uri) {
           const response = await fetch(uri);
           const blob = await response.blob();
-          setAudioFile(blob);
+
+          if (blob) {
+            setAudioFile(blob);
+          } else {
+            console.warn('Failed to convert recording to Blob');
+          }
 
           //transcribe the file and set the transcription
-          await transcribeAudioFile(uri);
+          // Ensure the file is fully set before transcribing
+          setTimeout(async () => {
+            await transcribeAudioFile(uri);
+          }, 500);
         } else {
           console.warn('Recording failed or AudioURI not found');
         }
@@ -90,7 +100,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Error during speech recognition:', error);
     }
-  }, [record, stopRecording, recording, requestPermissions]);
+  };
 
   return (
     <RecordingContext.Provider
