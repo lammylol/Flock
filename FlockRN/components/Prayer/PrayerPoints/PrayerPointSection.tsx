@@ -1,181 +1,151 @@
-// PrayerPointSection.tsx - Updated component with revised layout
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Colors } from 'constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
-import { Colors } from '@/constants/Colors';
 import { PrayerPoint } from '@/types/firebase';
+import { ThemedView } from '@/components/ThemedView';
+import PrayerPointCard from './PrayerPointCard';
+import { Entypo } from '@expo/vector-icons'; // Ensure this import is correct and matches your project setup
+import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
+import DraggableFlatList from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-// Define available prayer point types
-export type PrayerPointType = 'request' | 'praise' | 'repentance';
-
-interface PrayerPointSectionProps {
+interface PrayerPointProps {
   prayerPoints: PrayerPoint[];
-  onChange: (updatedPrayerPoints: PrayerPoint[]) => void;
+  onChange?: (prayerPoints: PrayerPoint[]) => void;
 }
 
-const PrayerPointSection: React.FC<PrayerPointSectionProps> = ({
+const PrayerPointSection: React.FC<PrayerPointProps> = ({
   prayerPoints,
   onChange,
 }) => {
-  // Toggle a type for a specific prayer point
-  const toggleType = (pointIndex: number, type: PrayerPointType) => {
-    const updatedPoints = [...prayerPoints];
-    const point = { ...updatedPoints[pointIndex] };
-    
-    // Initialize types array if it doesn't exist
-    if (!point.types) {
-      point.types = [];
-    }
-    
-    // Toggle the type (add if not present, remove if present)
-    if (point.types.includes(type)) {
-      point.types = point.types.filter(t => t !== type);
-    } else {
-      point.types = [...point.types, type];
-    }
-    
-    updatedPoints[pointIndex] = point;
-    onChange(updatedPoints);
+  const [isEditMode, setEditMode] = useState(false);
+  const [data, setData] = useState(prayerPoints);
+
+  useEffect(() => {
+    setData(prayerPoints);
+  }, [prayerPoints]); // Update data when prayerPoints change
+
+  const handleEdit = () => {
+    setEditMode((isEditMode) => !isEditMode);
+    onChange?.(data);
   };
 
-  return (
-    <View style={styles.container}>
-      <ThemedText style={styles.sectionTitle}>Prayer Points</ThemedText>
-      
-      {prayerPoints.length === 0 ? (
-        <ThemedText style={styles.emptyText}>
-          No prayer points detected. AI will analyze your prayer content automatically.
-        </ThemedText>
-      ) : (
-        <View style={styles.pointsContainer}>
-          {prayerPoints.map((point, index) => (
-            <View key={point.id || index} style={styles.pointItem}>
-              {/* Title is first */}
-              <ThemedText style={styles.pointTitle}>
-                {point.title || 'Untitled'}
-              </ThemedText>
-              
-              {/* Content follows the title */}
-              <ThemedText style={styles.pointContent}>
-                {point.content}
-              </ThemedText>
-              
-              {/* Type bubbles are at the bottom */}
-              <View style={styles.typeContainer}>
-                <TypeBubble 
-                  label="Request" 
-                  isSelected={point.types?.includes('request')} 
-                  onPress={() => toggleType(index, 'request')}
-                />
-                <TypeBubble 
-                  label="Praise" 
-                  isSelected={point.types?.includes('praise')} 
-                  onPress={() => toggleType(index, 'praise')}
-                />
-                <TypeBubble 
-                  label="Repentance" 
-                  isSelected={point.types?.includes('repentance')} 
-                  onPress={() => toggleType(index, 'repentance')}
-                />
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-};
+  const handleDelete = (id: string) => {
+    const prayerPointsFiltered = prayerPoints.filter(
+      (prayerPoint) => prayerPoint.id != id,
+    );
+    setData(prayerPointsFiltered);
+    onChange?.(data);
+  };
 
-interface TypeBubbleProps {
-  label: string;
-  isSelected: boolean;
-  onPress: () => void;
-}
+  // This function is called when the order of prayer points changes
+  const handleDragEnd = ({ data }) => {
+    setData(data);
+  };
 
-const TypeBubble: React.FC<TypeBubbleProps> = ({ label, isSelected, onPress }) => {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.typeBubble,
-        isSelected ? styles.selectedBubble : styles.unselectedBubble,
-      ]}
-      onPress={onPress}
+  return prayerPoints.length > 0 ? (
+    <ThemedView
+      style={[styles.prayerPointsContainer, { borderColor: Colors.secondary }]}
     >
-      <ThemedText
-        style={[
-          styles.typeBubbleText,
-          isSelected ? styles.selectedBubbleText : styles.unselectedBubbleText,
-        ]}
-      >
-        {label}
-      </ThemedText>
-    </TouchableOpacity>
+      <View style={styles.titleHeader}>
+        <ThemedText style={styles.prayerPointsText}>Prayer Points</ThemedText>
+        <TouchableOpacity onPress={handleEdit} style={styles.editContainer}>
+          {!isEditMode && (
+            <ThemedView style={styles.editButton}>
+              <Entypo name="edit" size={10} color={Colors.white} />
+            </ThemedView>
+          )}
+          <ThemedText style={styles.editText}>
+            {!isEditMode ? 'Edit' : 'Done'}
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
+      {isEditMode ? (
+        // Edit mode: render prayer points as cards
+        // Draggable mode: render prayer points with drag functionality
+        <GestureHandlerRootView>
+          <DraggableFlatList
+            scrollEnabled={false}
+            data={data}
+            renderItem={({ item, drag }) => (
+              <PrayerPointCard
+                key={item.id}
+                title={item.title}
+                content={item.content}
+                isEditMode={isEditMode}
+                drag={drag}
+                onDelete={() => handleDelete(item.id)}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+            onDragEnd={handleDragEnd}
+          />
+        </GestureHandlerRootView>
+      ) : (
+        data.map((prayerPoint: PrayerPoint) => (
+          <PrayerPointCard
+            key={prayerPoint.id}
+            title={prayerPoint.title}
+            content={prayerPoint.content}
+            isEditMode={isEditMode}
+          />
+        ))
+      )}
+    </ThemedView>
+  ) : (
+    // If no prayer points are available, show a content unavailable message
+    <ThemedView
+      style={[styles.prayerPointsContainer, { borderColor: Colors.secondary }]}
+    >
+      <View style={styles.titleHeader}>
+        <ThemedText style={styles.prayerPointsText}>Prayer Points</ThemedText>
+      </View>
+      <ContentUnavailable
+        errorTitle="No Prayer Points"
+        errorMessage="There are currently no prayer points available."
+        textAlign="flex-start"
+      />
+    </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 12,
+  editButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.light.textPrimary,
+    borderRadius: 12,
+    fontWeight: 'bold',
+    gap: 10,
+    height: 18,
+    justifyContent: 'center',
+    width: 18,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontStyle: 'italic',
-    color: Colors.light.textSecondary,
-    fontSize: 16,
-  },
-  pointsContainer: {
-    gap: 16,
-  },
-  pointItem: {
-    backgroundColor: Colors.light.background,
-    borderRadius: 8,
-    padding: 12,
-    gap: 10, // Add spacing between elements
-  },
-  pointTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  pointContent: {
-    fontSize: 16,
-    color: Colors.light.textSecondary,
-    marginBottom: 10, // Add bottom margin to separate from tags
-  },
-  typeContainer: {
+  editContainer: {
+    alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center', // Center the bubbles horizontally
-    gap: 10, // Increased spacing between bubbles
-    marginTop: 4, // Add a bit of space at the top
+    gap: 5,
   },
-  typeBubble: {
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 3,
-    borderWidth: 1.5, // Add outline to bubbles
-    minWidth: 90, // Set minimum width for consistent sizing
-    alignItems: 'center', // Center text in bubble
+  editText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  selectedBubble: {
-    backgroundColor: Colors.purple,
-    borderColor: Colors.purple, // Matching border color when selected
+  prayerPointsContainer: {
+    borderRadius: 15,
+    borderWidth: 1,
+    gap: 15,
+    padding: 25,
+    width: '100%', // Make it responsive to parent width
   },
-  unselectedBubble: {
-    backgroundColor: 'transparent', // Clear background when not selected
-    borderColor: Colors.purple, // Consistent border color for app
+  prayerPointsText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    lineHeight: 30,
   },
-  selectedBubbleText: {
-    color: Colors.white,
-    fontWeight: '500',
-    fontSize: 16,
-  },
-  unselectedBubbleText: {
-    color: Colors.purple, // Use purple text to match app style when unselected
-    fontSize: 16,
+  titleHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
 
