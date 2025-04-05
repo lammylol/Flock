@@ -18,7 +18,7 @@ export function HeaderButton({
 
   return (
     <Button
-      size={'l'}
+      size={'m'}
       onPress={onPress}
       label={label}
       textProps={StyleSheet.flatten([

@@ -1,11 +1,10 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
-import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
@@ -14,6 +13,7 @@ import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailab
 import { useThemeColor } from '@/hooks/useThemeColor';
 import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 import { Colors } from '@/constants/Colors';
+import { HeaderButton } from '@/components/ui/HeaderButton';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -67,13 +67,28 @@ const PrayerView = () => {
       params: {
         id: prayer.id,
         content: prayer.content,
-        title: prayer.title,
         privacy: prayer.privacy,
-        tags: JSON.stringify(prayer.tags),
         mode: 'edit',
       },
     });
   };
+
+  const formattedDate = (() => {
+    if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
+
+    const date =
+      prayer.createdAt instanceof Date
+        ? prayer.createdAt
+        : typeof prayer.createdAt === 'object' && 'seconds' in prayer.createdAt
+          ? new Date(prayer.createdAt.seconds * 1000)
+          : new Date(prayer.createdAt);
+
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  })();
 
   return (
     <ThemedScrollView
@@ -89,24 +104,21 @@ const PrayerView = () => {
       ) : (
         prayer && (
           <>
-            <ThemedView
-              style={{
-                ...styles.innerContainer,
-                backgroundColor: colorScheme,
+            <Stack.Screen
+              options={{
+                headerRight: () =>
+                  isOwner && <HeaderButton onPress={handleEdit} label="Edit" />,
+                // headerLeft: () => (
+                //   <HeaderButton onPress={router.back} label="Back" />
+                // ),
+                // title: 'Prayer',
               }}
-            >
-              {isOwner && (
-                <TouchableOpacity
-                  onPress={handleEdit}
-                  style={styles.editButton}
-                >
-                  <ThemedText style={styles.editButtonText}>Edit</ThemedText>
-                </TouchableOpacity>
-              )}
-              <PrayerContent title={prayer.title} content={prayer.content} />
-              <TagsSection prayerId={prayer.id} tags={prayer.tags} />
-            </ThemedView>
-
+            />
+            <PrayerContent
+              title={formattedDate}
+              content={prayer.content}
+              backgroundColor={colorScheme}
+            />
             {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
           </>
         )
@@ -116,25 +128,6 @@ const PrayerView = () => {
 };
 
 const styles = StyleSheet.create({
-  editButton: {
-    alignSelf: 'flex-end',
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    marginBottom: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  editButtonText: {
-    color: Colors.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  innerContainer: {
-    borderRadius: 15,
-    flex: 0,
-    gap: 15,
-    padding: 25,
-  },
   scrollView: {
     flex: 1,
     paddingBottom: 16,

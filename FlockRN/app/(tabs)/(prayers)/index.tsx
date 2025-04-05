@@ -113,7 +113,18 @@ export default function TabTwoScreen() {
           )}
         </ThemedView>
       </ThemedScrollView>
-      <FloatingAddPrayerButton />
+      <FloatingAddPrayerButton
+        label="+Add Prayer"
+        route={'/(tabs)/(prayers)/(createPrayer)'}
+        bottom={80}
+        right={30}
+      />
+      <FloatingAddPrayerButton
+        label="+Add Prayer Point"
+        route={'/(tabs)/(prayers)/(createPrayerPoint)'}
+        bottom={25}
+        right={30}
+      />
     </ThemedView>
   );
 }
