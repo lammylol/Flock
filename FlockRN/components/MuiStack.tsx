@@ -1,6 +1,8 @@
+/* eslint-disable react-native/no-color-literals */
+/* eslint-disable react-native/no-inline-styles */
 // Stack.tsx
 import React from 'react';
-import { ViewStyle } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import { ThemedView } from './ThemedView';
 
 type Direction = 'row' | 'column';
@@ -25,18 +27,18 @@ const MuiStack: React.FC<MuiStackProps> = ({
   return (
     <ThemedView style={[{ flexDirection: direction }, style]} {...rest}>
       {childrenArray.map((child, index) => (
-        <ThemedView
+        <View
           key={index}
           style={
             index < childrenArray.length - 1
               ? direction === 'row'
-                ? { marginRight: spacing }
-                : { marginBottom: spacing }
+                ? { marginRight: spacing, backgroundColor: 'transparent' }
+                : { marginBottom: spacing, backgroundColor: 'transparent' }
               : undefined
           }
         >
           {child}
-        </ThemedView>
+        </View>
       ))}
     </ThemedView>
   );

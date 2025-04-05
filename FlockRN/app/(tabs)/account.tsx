@@ -28,9 +28,7 @@ export default function TabTwoScreen() {
         <ThemedText>{user?.displayName}</ThemedText>
         {(Object.keys(userOptInFlags) as UserOptInFlags[]).map((optInFlag) => (
           <MuiStack direction="row" key={optInFlag.toString()}>
-            {/* Use the actual flag name for translation */}
             <ThemedText>{flagTranslations.optInFlags[optInFlag]}</ThemedText>
-
             <Switch
               trackColor={{ false: '#767577', true: '#81b0ff' }}
               thumbColor={userOptInFlags[optInFlag] ? '#f5dd4b' : '#f4f3f4'}
