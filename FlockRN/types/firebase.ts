@@ -55,8 +55,6 @@ export interface Prayer {
   prayerPoints: string[];
   prayerTypes: PrayerType[];
   tags?: PrayerTag[];
-  status?: 'open' | 'answered' | 'closed';
-  isPinned?: boolean;
 }
 
 export interface PrayerPoint {
