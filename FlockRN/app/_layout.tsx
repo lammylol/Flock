@@ -28,7 +28,7 @@ export function AppContent() {
       router.replace('/(tabs)/(prayers)');
     } else {
       // Redirect to login if not authenticated
-      router.replace('/auth/login');
+      router.replace('/auth/introFlow');
     }
   }, [router, userIsAuthenticated]);
 

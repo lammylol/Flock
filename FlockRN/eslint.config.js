@@ -30,8 +30,8 @@ module.exports = [
 
       quotes: ['error', 'single'],
       'prettier/prettier': ['error', { singleQuote: true }],
-      'react-hooks/exhaustive-deps': 'warn',
-      // Added this rule configuration
+      'react-hooks/exhaustive-deps': 'error',
+      'react-native/sort-styles': 'off',
       'react-native/no-raw-text': [
         'error',
         {
