@@ -24,7 +24,7 @@ import {
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import { allTags } from '@/types/Tag';
-import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
+import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 
 export default function PrayerMetadataScreen() {
   const params = useLocalSearchParams<{

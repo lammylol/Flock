@@ -7,11 +7,11 @@ import useAuth from '@/hooks/useAuth';
 import { useCallback, useState } from 'react';
 import { prayerService } from '@/services/prayer/prayerService';
 import { useFocusEffect } from '@react-navigation/native';
-import PrayerCard from '@/components/Prayer/PrayerView/PrayerCard';
+import PrayerCard from '@/components/Prayer/PrayerViews/PrayerCard';
 import { Tabs } from '@/components/Tab';
 import SearchBar from '@/components/ui/SearchBar';
 import { User } from 'firebase/auth';
-import { FloatingAddPrayerButton } from '@/components/Prayer/PrayerView/FloatingAddPrayerButton';
+import { FloatingAddPrayerButton } from '@/components/Prayer/PrayerViews/FloatingAddPrayerButton';
 
 type TabType = 'prayerPoints' | 'userPrayers';
 

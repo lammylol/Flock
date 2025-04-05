@@ -4,8 +4,7 @@ import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { prayerService } from '@/services/prayer/prayerService';
-import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
-import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
+import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
@@ -16,7 +15,7 @@ import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSecti
 import { Colors } from '@/constants/Colors';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 
-const PrayerView = () => {
+const PrayerPointView = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [prayer, setPrayer] = useState<Prayer | null>(null);
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[] | null>(null);
@@ -136,4 +135,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PrayerView;
+export default PrayerPointView;
