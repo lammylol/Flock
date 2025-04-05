@@ -15,3 +15,14 @@ export const flagTranslations = {
     optInAI: 'Opt-In to AI',
   },
 };
+
+export const userIntroFlowAsyncStorageKey = 'userIntroFlow';
+export enum UserIntroFlow {
+  hasIntroDisclosures = 'hasIntroDisclosures',
+}
+export type UserIntroFlowType = {
+  [key in UserIntroFlow]: boolean;
+};
+export const defaultUserIntroFlowState = {
+  [UserIntroFlow.hasIntroDisclosures]: false,
+};

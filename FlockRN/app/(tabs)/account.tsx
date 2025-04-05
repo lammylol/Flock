@@ -1,4 +1,4 @@
-import { StyleSheet, Switch } from 'react-native';
+import { Alert, StyleSheet, Switch } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import useAuth from '@/hooks/useAuth';
@@ -8,6 +8,7 @@ import { auth } from '@/firebase/firebaseConfig';
 import MuiStack from '@/components/MuiStack';
 import useUserContext from '@/hooks/useUserContext';
 import { flagTranslations, UserOptInFlags } from '@/types/UserFlags';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
@@ -17,6 +18,15 @@ export default function TabTwoScreen() {
     const updatedFlags = { ...userOptInFlags };
     updatedFlags[flag] = !updatedFlags[flag];
     await toggleUserOptInFlagState(flag);
+  };
+
+  const handleResetData = async () => {
+    try {
+      await AsyncStorage.clear();
+      Alert.alert('Success', 'All AsyncStorage data has been cleared!');
+    } catch (_error) {
+      Alert.alert('Error', 'Failed to clear AsyncStorage data.');
+    }
   };
 
   return (
@@ -38,6 +48,7 @@ export default function TabTwoScreen() {
             />
           </MuiStack>
         ))}
+        <Button label="Reset All Async Storage" onPress={handleResetData} />
         <Button
           label="Sign out"
           onPress={async () => {
