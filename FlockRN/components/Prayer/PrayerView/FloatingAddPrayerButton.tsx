@@ -4,24 +4,39 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 
-export function FloatingAddPrayerButton() {
+export interface FloatingPrayerButtonProps {
+  label: string;
+  route: string;
+  bottom: number;
+  right: number;
+}
+
+export function FloatingAddPrayerButton({
+  label,
+  route,
+  bottom,
+  right,
+}: FloatingPrayerButtonProps): JSX.Element {
   const colorScheme = useColorScheme();
 
   const handleFloatingButtonPress = () => {
-    router.push('/(tabs)/(prayers)/(createPrayer)');
+    router.push(route);
   };
 
   return (
     <Button
       size={'l'}
       onPress={handleFloatingButtonPress}
-      label={'+ Add Prayer'}
+      label={label}
       textProps={StyleSheet.flatten([
         styles.floatingButtonText,
         { color: Colors.white },
       ])}
       backgroundColor={colorScheme == 'dark' ? Colors.secondary : Colors.black}
-      style={styles.floatingButton}
+      style={StyleSheet.flatten([
+        styles.floatingButton,
+        { bottom: bottom, right: right },
+      ])}
     />
   );
 }
@@ -30,12 +45,10 @@ const styles = StyleSheet.create({
   floatingButton: {
     alignItems: 'center',
     borderRadius: 25,
-    bottom: 25,
     elevation: 5, // Adds shadow for Android
     justifyContent: 'center',
     paddingHorizontal: 20, // Horizontal padding inside the button
     position: 'absolute',
-    right: 30,
     shadowColor: Colors.black, // Adds shadow for iOS
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
