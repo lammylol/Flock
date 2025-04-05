@@ -111,6 +111,7 @@ export default function PrayerMetadataScreen() {
         const analysis = await openAiService.analyzePrayerContent(
           content,
           !!transcription,
+          userOptInFlags.optInAI,
         );
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
