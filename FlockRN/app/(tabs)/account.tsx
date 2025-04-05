@@ -54,11 +54,13 @@ export default function TabTwoScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    flex: 1,
+    padding: 32,
   },
   stepContainer: {
     gap: 8,
     marginBottom: 8,
+    paddingTop: 16,
   },
   titleContainer: {
     flexDirection: 'row',
