@@ -206,6 +206,8 @@ class PrayerService {
       throw error;
     }
   }
+  // Add a list of prayer points, then return the list of prayer IDs.
+  async addPrayerPoint(prayerPoints: PrayerPointDTO): Promise<string[]> { }
 
   async getPrayerPoints(
     prayerId: string,

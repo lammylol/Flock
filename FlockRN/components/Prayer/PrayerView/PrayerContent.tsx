@@ -69,9 +69,9 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 20,
     flex: 0,
-    gap: 10,
+    gap: 12,
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 25,
   },
   contentText: {
     fontSize: 16,

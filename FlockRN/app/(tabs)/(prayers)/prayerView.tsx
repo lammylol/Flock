@@ -76,15 +76,18 @@ const PrayerView = () => {
   const formattedDate = (() => {
     if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
 
-    if (prayer.createdAt instanceof Date) {
-      return prayer.createdAt.toLocaleDateString();
-    }
+    const date =
+      prayer.createdAt instanceof Date
+        ? prayer.createdAt
+        : typeof prayer.createdAt === 'object' && 'seconds' in prayer.createdAt
+          ? new Date(prayer.createdAt.seconds * 1000)
+          : new Date(prayer.createdAt);
 
-    if (typeof prayer.createdAt === 'object' && 'seconds' in prayer.createdAt) {
-      return new Date(prayer.createdAt.seconds * 1000).toLocaleDateString();
-    }
-
-    return new Date(prayer.createdAt).toLocaleDateString();
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   })();
 
   return (
