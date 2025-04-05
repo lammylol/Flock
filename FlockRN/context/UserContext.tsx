@@ -5,6 +5,10 @@ import {
   defaultUserOptInFlagState,
   UserOptInFlagsType,
   UserOptInFlags,
+  UserIntroFlowType,
+  defaultUserIntroFlowState,
+  userIntroFlowAsyncStorageKey,
+  UserIntroFlow,
 } from '@/types/UserFlags';
 
 interface UserContextType {
@@ -14,6 +18,11 @@ interface UserContextType {
     value: boolean,
   ) => Promise<void>;
   toggleUserOptInFlagState: (key: UserOptInFlags) => Promise<void>;
+  userIntroFlowFlags: UserIntroFlowType;
+  updateUserIntroFlowFlagState: (
+    key: UserIntroFlow,
+    value: boolean,
+  ) => Promise<void>;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(
@@ -28,6 +37,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const [userOptInFlags, setUserOptInFlags] = useState<UserOptInFlagsType>(
     defaultUserOptInFlagState,
   );
+  const [userIntroFlowFlags, setUserIntroFlowFlags] =
+    useState<UserIntroFlowType>(defaultUserIntroFlowState);
 
   useEffect(() => {
     const fetchUserOptInFlagState = async () => {
@@ -45,8 +56,24 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         console.error('Error loading feature flags:', error);
       }
     };
+    const fetchUserIntroFlowFlagState = async () => {
+      try {
+        const storedFlags = await AsyncStorage.getItem(
+          userIntroFlowAsyncStorageKey,
+        );
+        if (storedFlags) {
+          setUserIntroFlowFlags(JSON.parse(storedFlags));
+        } else {
+          // Default feature flags if no stored flags are found
+          setUserIntroFlowFlags(defaultUserIntroFlowState);
+        }
+      } catch (error) {
+        console.error('Error loading feature flags:', error);
+      }
+    };
 
     fetchUserOptInFlagState();
+    fetchUserIntroFlowFlagState();
   }, []);
 
   const updateUserOptInFlagState = async (
@@ -87,12 +114,32 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
   };
 
+  const updateUserIntroFlowFlagState = async (
+    key: UserIntroFlow,
+    value: boolean,
+  ) => {
+    try {
+      if (userIntroFlowFlags) {
+        const updatedFlags = { ...userIntroFlowFlags, [key]: value };
+        await AsyncStorage.setItem(
+          userIntroFlowAsyncStorageKey,
+          JSON.stringify(updatedFlags),
+        );
+        setUserIntroFlowFlags(updatedFlags);
+      }
+    } catch (error) {
+      console.error('Error updating feature flag:', error);
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
         userOptInFlags,
         updateUserOptInFlagState,
         toggleUserOptInFlagState,
+        userIntroFlowFlags,
+        updateUserIntroFlowFlagState,
       }}
     >
       {children}

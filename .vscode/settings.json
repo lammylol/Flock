@@ -1,13 +1,12 @@
 {
-  "cSpell.words": [
-    "Firestore"
-  ],
+  "cSpell.words": ["Firestore"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
+    "source.fixAll.eslint": true
   },
   "editor.formatOnSave": true,
   "eslint.validate": [
     "javascript",
+    "javascriptreact",
     "typescript",
     "typescriptreact"
   ]

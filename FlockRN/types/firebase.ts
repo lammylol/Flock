@@ -2,7 +2,7 @@
 // 1/29/25
 // set all types for Firebase
 
-import { allTags, prayerTypes } from '@/types/Tag';
+import { allTags } from '@/types/Tag';
 
 export interface UserProfile {
   email: string;

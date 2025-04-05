@@ -10,12 +10,14 @@ import { AuthProvider } from '@/context/AuthContext';
 import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { UserProvider } from '@/context/UserContext';
+import useUserContext from '@/hooks/useUserContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export function AppContent() {
   const { userIsAuthenticated, isAuthLoading } = useAuthContext();
+  const { userIntroFlowFlags } = useUserContext();
   const router = useRouter();
   const backgroundColor = useThemeColor({}, 'background');
   const [loaded] = useFonts({
@@ -26,11 +28,14 @@ export function AppContent() {
     if (userIsAuthenticated) {
       // Redirect to tabs if authenticated
       router.replace('/(tabs)/(prayers)');
+    } else if (!userIntroFlowFlags.hasIntroDisclosures) {
+      // Redirect to intro flow if this is their first time
+      router.replace('/auth/introFlow');
     } else {
       // Redirect to login if not authenticated
       router.replace('/auth/login');
     }
-  }, [router, userIsAuthenticated]);
+  }, [router, userIntroFlowFlags.hasIntroDisclosures, userIsAuthenticated]);
 
   useEffect(() => {
     if (loaded && !isAuthLoading) {
