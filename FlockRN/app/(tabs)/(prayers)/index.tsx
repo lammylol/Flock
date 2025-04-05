@@ -144,10 +144,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-    position: 'relative',
-  },
   scrollView: {
     padding: 32,
   },
