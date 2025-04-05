@@ -259,6 +259,78 @@ class PrayerService {
     }
   }
 
+  //added for PrayerPoint CRUD
+  async updatePrayerPoint(prayerPointId: string, data: Partial<PrayerPointDTO>): Promise<void> {
+    try {
+      const now = Timestamp.now();
+      const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
+      
+      await updateDoc(prayerPointRef, {
+        ...data,
+        updatedAt: now,
+      });
+      
+      // If the prayer point's privacy status changes, we might need to handle feed visibility
+      // Similar to how you handle it in updatePrayer()
+      if (data.privacy !== undefined) {
+        // Fetch the prayer point to get its prayerId
+        const prayerPoint = await this.getPrayerPointById(prayerPointId);
+        if (prayerPoint && prayerPoint.prayerId) {
+          // You may want to update the prayer's updatedAt timestamp
+          await updateDoc(doc(this.prayersCollection, prayerPoint.prayerId), {
+            updatedAt: now,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating prayer point:', error);
+      throw error;
+    }
+  }
+
+  async deletePrayerPoint(prayerPointId: string): Promise<void> {
+    try {
+      // Get the prayer point to access its prayerId before deletion
+      const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
+      const prayerPointSnap = await getDoc(prayerPointRef);
+      
+      if (!prayerPointSnap.exists()) {
+        throw new Error('Prayer point not found');
+      }
+      
+      const prayerPointData = prayerPointSnap.data();
+      const prayerId = prayerPointData.prayerId;
+      
+      // Delete the prayer point document
+      await deleteDoc(prayerPointRef);
+      
+      // Update the parent prayer's updatedAt timestamp
+      if (prayerId) {
+        await updateDoc(doc(this.prayersCollection, prayerId), {
+          updatedAt: Timestamp.now(),
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting prayer point:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to get a single prayer point by ID
+  async getPrayerPointById(prayerPointId: string): Promise<PrayerPoint | null> {
+    try {
+      const docRef = doc(this.prayerPointsCollection, prayerPointId);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) return null;
+      
+      return this.convertDocToPrayerPoint(docSnap);
+    } catch (error) {
+      console.error('Error getting prayer point:', error);
+      throw error;
+    }
+  }
+
   private convertDocToPrayer(
     docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
   ): Prayer {
