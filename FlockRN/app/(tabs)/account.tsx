@@ -24,7 +24,7 @@ export default function TabTwoScreen() {
     try {
       await AsyncStorage.clear();
       Alert.alert('Success', 'All AsyncStorage data has been cleared!');
-    } catch (_error) {
+    } catch {
       Alert.alert('Error', 'Failed to clear AsyncStorage data.');
     }
   };
