@@ -1,11 +1,10 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import 'react-native-reanimated';
-import { useRouter } from 'expo-router';
 import useAuthContext from '@/hooks/useAuthContext';
 import { AuthProvider } from '@/context/AuthContext';
 import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
@@ -22,19 +21,28 @@ export function AppContent() {
     SpaceMono: SpaceMonoFont,
   });
 
+  const directUserToFirstScreen = useCallback(() => {
+    if (userIsAuthenticated) {
+      // Redirect to tabs if authenticated
+      router.replace('/(tabs)/(prayers)');
+    } else {
+      // Redirect to login if not authenticated
+      router.replace('/auth/login');
+    }
+  }, [router, userIsAuthenticated]);
+
   useEffect(() => {
     if (loaded && !isAuthLoading) {
       SplashScreen.hideAsync();
-
-      if (userIsAuthenticated) {
-        // Redirect to tabs if authenticated
-        router.replace('/(tabs)/(prayers)');
-      } else {
-        // Redirect to login if not authenticated
-        router.replace('/auth/login');
-      }
+      directUserToFirstScreen();
     }
-  }, [loaded, userIsAuthenticated, isAuthLoading, router]);
+  }, [
+    loaded,
+    userIsAuthenticated,
+    isAuthLoading,
+    router,
+    directUserToFirstScreen,
+  ]);
 
   if (!loaded || isAuthLoading) {
     return null; // Wait for fonts to load and auth to resolve

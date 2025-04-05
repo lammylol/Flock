@@ -28,8 +28,6 @@
     "@expo/vector-icons": "^14.0.2",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-firebase/app": "21.7.1",
-    "@react-native-firebase/auth": "21.7.1",
-    "@react-native-firebase/firestore": "21.7.1",
     "@react-native-picker/picker": "2.9.0",
     "@react-native-vector-icons/common": "^11.0.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
@@ -71,6 +69,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.16",
     "@types/node": "^22.13.10",
