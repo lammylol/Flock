@@ -10,7 +10,7 @@ interface MuiStackProps {
   spacing?: number;
   direction?: Direction;
   style?: ViewStyle;
-  [key: string]: any; // Allow other optional props
+  [key: string]: unknown; // Allow other optional props
 }
 
 const MuiStack: React.FC<MuiStackProps> = ({

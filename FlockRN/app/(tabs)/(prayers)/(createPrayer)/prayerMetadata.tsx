@@ -136,7 +136,14 @@ export default function PrayerMetadataScreen() {
     if (content && !title && !isTranscribing && userOptInFlags.optInAI) {
       analyzeContent();
     }
-  }, [content, isTranscribing, title, transcription]);
+  }, [
+    content,
+    isTranscribing,
+    openAiService,
+    title,
+    transcription,
+    userOptInFlags.optInAI,
+  ]);
 
   const toggleTag = (tag: PrayerTag) => {
     setSelectedTags((prevTags) =>
@@ -218,7 +225,7 @@ export default function PrayerMetadataScreen() {
           privacy: privacy,
           tags: selectedTags,
           authorId: auth.currentUser.uid,
-          authorName: auth.currentUser.displayName,
+          authorName: auth.currentUser.displayName ?? 'Unknown',
           status: 'open',
           isPinned: false,
         };

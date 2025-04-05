@@ -27,7 +27,7 @@ export default function TabTwoScreen() {
       <ThemedView style={styles.stepContainer}>
         <ThemedText>{user?.displayName}</ThemedText>
         {(Object.keys(userOptInFlags) as UserOptInFlags[]).map((optInFlag) => (
-          <MuiStack direction="row" key={optInFlag}>
+          <MuiStack direction="row" key={optInFlag.toString()}>
             {/* Use the actual flag name for translation */}
             <ThemedText>{flagTranslations.optInFlags[optInFlag]}</ThemedText>
 
