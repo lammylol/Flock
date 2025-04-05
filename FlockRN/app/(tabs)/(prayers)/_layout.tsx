@@ -33,6 +33,18 @@ export default function prayers() {
           animationDuration: 30,
         }}
       />
+      <Stack.Screen
+        name="(createPrayerPoint)"
+        options={{
+          title: 'Add Prayer Point',
+          headerBackButtonDisplayMode: 'default',
+          headerBackTitle: 'Back',
+          headerShadowVisible: false,
+          headerShown: true,
+          animation: 'slide_from_bottom',
+          animationDuration: 30,
+        }}
+      />
     </ThemedStack>
   );
 }

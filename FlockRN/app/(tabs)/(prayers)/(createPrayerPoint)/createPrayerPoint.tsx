@@ -9,12 +9,10 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
-import { analyzePrayerContent } from '@/services/ai/openAIService';
 import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import uuid from 'react-native-uuid';
 import {
   CreatePrayerDTO,
   PrayerPoint,
@@ -22,11 +20,12 @@ import {
   PrayerTag,
   UpdatePrayerDTO,
 } from '@/types/firebase';
-import useRecording from '@/hooks/recording/useRecording';
 import { allTags } from '@/types/Tag';
 import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
+import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
-export default function PrayerMetadataScreen() {
+export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
     content?: string;
     id?: string;
@@ -55,20 +54,8 @@ export default function PrayerMetadataScreen() {
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { transcription, isTranscribing } = useRecording();
   const [placeholder, setPlaceholder] = useState('Enter your prayer here');
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
-
-  useEffect(() => {
-    if (isTranscribing) {
-      setPlaceholder('Transcribing...');
-    } else if (transcription) {
-      setContent(transcription);
-    } else if (content === '') {
-      setPlaceholder('Transcription unavailable');
-    }
-  }, [content, isTranscribing, transcription]);
 
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
@@ -104,36 +91,6 @@ export default function PrayerMetadataScreen() {
       return [];
     }
   };
-
-  useEffect(() => {
-    const analyzeContent = async () => {
-      setIsAnalyzing(true);
-      try {
-        const analysis = await analyzePrayerContent(content, !!transcription);
-        setTitle(analysis.title);
-        setContent(analysis.cleanedTranscription || content);
-        setSelectedTags(analysis.tags);
-
-        // Assign a UUID if the prayer point doesn't already have an ID
-        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
-          ...point,
-          id: uuid.v4(), // Ensure each has a unique ID
-        }));
-
-        setPrayerPoints(updatedPrayerPoints);
-      } catch (error) {
-        console.error('Error using AI fill:', error);
-        // Silent fail - don't show error to user for automatic fill
-      } finally {
-        setIsAnalyzing(false);
-      }
-    };
-    // Perform AI fill when content is available after navigation, but after 4 seconds.
-    // This ensures that the full transcription is returned before before processing with AI.
-    if (content && !title && !isTranscribing && !isEditMode) {
-      analyzeContent();
-    }
-  }, [content, isTranscribing, title, transcription]);
 
   const toggleTag = (tag: PrayerTag) => {
     setSelectedTags((prevTags) =>
@@ -250,37 +207,18 @@ export default function PrayerMetadataScreen() {
     }
   };
 
+  const colorScheme = useThemeColor({}, 'backgroundSecondary');
+
   return (
     <ThemedScrollView contentContainerStyle={styles.scrollContent}>
-      <View style={styles.section}>
-        <TextInput
-          style={styles.titleInput}
-          placeholder="Prayer title"
-          value={title}
-          onChangeText={setTitle}
-          maxLength={100}
-        />
-        {isAnalyzing && (
-          <ActivityIndicator
-            color={Colors.primary}
-            size="small"
-            style={styles.activityIndicator}
-          />
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.titleContainer}>
-          <TextInput
-            style={styles.contentInput}
-            placeholder={placeholder}
-            value={content}
-            onChangeText={setContent}
-            multiline
-          />
-          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
-        </View>
-      </View>
+      <PrayerContent
+        title={title}
+        content={content}
+        isEditMode={!isEditMode}
+        titlePlaceholder={'Title'}
+        contentPlaceholder={'Enter your prayer here'}
+        backgroundColor={colorScheme}
+      ></PrayerContent>
 
       <View style={styles.section}>
         <ThemedText style={styles.label}>Tags:</ThemedText>
@@ -329,14 +267,6 @@ export default function PrayerMetadataScreen() {
         </View>
       </View>
 
-      <PrayerPointSection
-        prayerPoints={prayerPoints}
-        editable={true}
-        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
-          setPrayerPoints(updatedPrayerPoints)
-        }
-      />
-
       {isEditMode && (
         <TouchableOpacity
           style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
@@ -369,17 +299,16 @@ export default function PrayerMetadataScreen() {
 }
 
 const styles = StyleSheet.create({
-  activityIndicator: {
-    alignSelf: 'center',
-  },
   button: {
     alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    flexDirection: 'row',
-    flex: 1,
-    gap: 8,
-    padding: 16,
+    bottom: 20,
+    justifyContent: 'center',
+    left: 20,
+    paddingVertical: 16,
+    position: 'absolute',
+    right: 20,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,
@@ -389,12 +318,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  contentInput: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 8,
-    fontSize: 16,
-    textAlignVertical: 'top',
   },
   deleteButton: {
     alignItems: 'center',
@@ -451,11 +374,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-  },
-  titleContainer: {},
-  titleInput: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 8,
-    fontSize: 16,
   },
 });
