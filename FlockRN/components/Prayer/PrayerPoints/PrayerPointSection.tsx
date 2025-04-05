@@ -50,12 +50,17 @@ const PrayerPointSection: React.FC<PrayerPointSectionProps> = ({
         <View style={styles.pointsContainer}>
           {prayerPoints.map((point, index) => (
             <View key={point.id || index} style={styles.pointItem}>
-              {/* Title is now on its own row */}
+              {/* Title is first */}
               <ThemedText style={styles.pointTitle}>
                 {point.title || 'Untitled'}
               </ThemedText>
               
-              {/* Type bubbles are centered below the title */}
+              {/* Content follows the title */}
+              <ThemedText style={styles.pointContent}>
+                {point.content}
+              </ThemedText>
+              
+              {/* Type bubbles are at the bottom */}
               <View style={styles.typeContainer}>
                 <TypeBubble 
                   label="Request" 
@@ -73,11 +78,6 @@ const PrayerPointSection: React.FC<PrayerPointSectionProps> = ({
                   onPress={() => toggleType(index, 'repentance')}
                 />
               </View>
-              
-              {/* Content follows below the type bubbles */}
-              <ThemedText style={styles.pointContent}>
-                {point.content}
-              </ThemedText>
             </View>
           ))}
         </View>
@@ -144,12 +144,13 @@ const styles = StyleSheet.create({
   pointContent: {
     fontSize: 16,
     color: Colors.light.textSecondary,
-    marginTop: 6,
+    marginBottom: 10, // Add bottom margin to separate from tags
   },
   typeContainer: {
     flexDirection: 'row',
     justifyContent: 'center', // Center the bubbles horizontally
     gap: 10, // Increased spacing between bubbles
+    marginTop: 4, // Add a bit of space at the top
   },
   typeBubble: {
     borderRadius: 16,

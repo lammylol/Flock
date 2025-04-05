@@ -237,7 +237,7 @@ export default function PrayerMetadataScreen() {
     <ThemedScrollView contentContainerStyle={styles.scrollContent}>
       {/* 1. Prayer Points Section with Summary Header */}
       <View style={styles.section}>
-        <ThemedText style={styles.summaryHeader}>
+        <ThemedText type="default" style={styles.headerText}>
           Here's a summary of what you prayed:
         </ThemedText>
         <PrayerPointSection
@@ -263,8 +263,9 @@ export default function PrayerMetadataScreen() {
         </View>
       </View>
 
-      {/* 3. Prayer Content */}
+      {/* 3. Prayer Content Section with Title */}
       <View style={styles.section}>
+        <ThemedText type="default" style={styles.headerText}>Prayer</ThemedText>
         <View style={styles.contentContainer}>
           <TextInput
             style={styles.contentInput}
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
   activityIndicator: {
     alignSelf: 'center',
   },
-  summaryHeader: {
+  headerText: {
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 12,
