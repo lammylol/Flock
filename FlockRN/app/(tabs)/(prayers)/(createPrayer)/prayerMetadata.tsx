@@ -180,8 +180,8 @@ export default function PrayerMetadataScreen() {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please add a title');
-      return;
+      // Generate a title from the first few words of content if title is empty
+      setTitle(content.split(' ').slice(0, 3).join(' ') || 'Untitled Prayer');
     }
 
     if (!auth.currentUser?.uid) {
@@ -248,36 +248,18 @@ export default function PrayerMetadataScreen() {
 
   return (
     <ThemedScrollView contentContainerStyle={styles.scrollContent}>
+      {/* 1. Prayer Points Section */}
       <View style={styles.section}>
-        <TextInput
-          style={styles.titleInput}
-          placeholder="Prayer title"
-          value={title}
-          onChangeText={setTitle}
-          maxLength={100}
+        <PrayerPointSection
+          prayerPoints={prayerPoints}
+          editable={true}
+          onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+            setPrayerPoints(updatedPrayerPoints)
+          }
         />
-        {isAnalyzing && (
-          <ActivityIndicator
-            color={Colors.primary}
-            size="small"
-            style={styles.activityIndicator}
-          />
-        )}
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.titleContainer}>
-          <TextInput
-            style={styles.contentInput}
-            placeholder={placeholder}
-            value={content}
-            onChangeText={setContent}
-            multiline
-          />
-          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
-        </View>
-      </View>
-
+      {/* 2. Tags Section */}
       <View style={styles.section}>
         <ThemedText style={styles.label}>Tags:</ThemedText>
         <View style={styles.tagButtons}>
@@ -311,6 +293,7 @@ export default function PrayerMetadataScreen() {
         </View>
       </View>
 
+      {/* 3. Privacy Section */}
       <View style={styles.section}>
         <View style={styles.privacySelector}>
           <ThemedText style={styles.label}>Privacy</ThemedText>
@@ -325,13 +308,26 @@ export default function PrayerMetadataScreen() {
         </View>
       </View>
 
-      <PrayerPointSection
-        prayerPoints={prayerPoints}
-        editable={true}
-        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
-          setPrayerPoints(updatedPrayerPoints)
-        }
-      />
+      {/* 4. Prayer Content */}
+      <View style={styles.section}>
+        <View style={styles.contentContainer}>
+          <TextInput
+            style={styles.contentInput}
+            placeholder={placeholder}
+            value={content}
+            onChangeText={setContent}
+            multiline
+          />
+          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
+          {isAnalyzing && (
+            <ActivityIndicator
+              color={Colors.primary}
+              size="small"
+              style={styles.activityIndicator}
+            />
+          )}
+        </View>
+      </View>
 
       {isEditMode && (
         <TouchableOpacity
@@ -370,9 +366,10 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.purple, // Changed to use the purple color
     borderRadius: 12,
     flexDirection: 'row',
+    justifyContent: 'center', // Added to center content
     flex: 1,
     gap: 8,
     padding: 16,
@@ -385,11 +382,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+    width: '100%', // Ensure text takes full width for center alignment
+  },
+  contentContainer: {
+    position: 'relative',
   },
   contentInput: {
     backgroundColor: Colors.secondary,
     borderRadius: 8,
     fontSize: 16,
+    minHeight: 120,
+    padding: 12,
     textAlignVertical: 'top',
   },
   deleteButton: {
@@ -447,11 +450,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-  },
-  titleContainer: {},
-  titleInput: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 8,
-    fontSize: 16,
   },
 });
