@@ -5,35 +5,19 @@ import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
 import { auth } from '@/firebase/firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
-import { userFlags, UserFlags } from '@/types/UserFlags';
 import MuiStack from '@/components/MuiStack';
+import useUserContext from '@/hooks/useUserContext';
+import { flagTranslations, UserOptInFlags } from '@/types/UserFlags';
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
+  const { userOptInFlags, toggleUserOptInFlagState } = useUserContext();
 
-  const [optInAI, setOptInAI] = useState(false);
-
-  const handleToggleOptInToAI = async () => {
-    const newOptInStatus = !optInAI;
-    await AsyncStorage.setItem(
-      UserFlags.optInAI,
-      newOptInStatus.toString(),
-      () => {
-        setOptInAI(newOptInStatus);
-      },
-    );
+  const handleToggleUserOptInFlag = async (flag: UserOptInFlags) => {
+    const updatedFlags = { ...userOptInFlags };
+    updatedFlags[flag] = !updatedFlags[flag];
+    await toggleUserOptInFlagState(flag);
   };
-
-  useEffect(() => {
-    const checkOptInStatus = async () => {
-      const status = await AsyncStorage.getItem(UserFlags.optInAI);
-      setOptInAI(status === 'true');
-    };
-
-    checkOptInStatus();
-  }, []);
 
   return (
     <ThemedView style={styles.container}>
@@ -42,16 +26,17 @@ export default function TabTwoScreen() {
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText>{user?.displayName}</ThemedText>
+        {(Object.keys(userOptInFlags) as UserOptInFlags[]).map((optInFlag) => (
+          <MuiStack direction="row" key={optInFlag}>
+            {/* Use the actual flag name for translation */}
+            <ThemedText>{flagTranslations.optInFlags[optInFlag]}</ThemedText>
 
-        {userFlags.map((flag) => (
-          <MuiStack direction="row" key={flag.type}>
-            <ThemedText>{flag.displayName}</ThemedText>
             <Switch
               trackColor={{ false: '#767577', true: '#81b0ff' }}
-              thumbColor={optInAI ? '#f5dd4b' : '#f4f3f4'}
+              thumbColor={userOptInFlags[optInFlag] ? '#f5dd4b' : '#f4f3f4'}
               ios_backgroundColor="#3e3e3e"
-              onValueChange={handleToggleOptInToAI}
-              value={optInAI}
+              onValueChange={() => handleToggleUserOptInFlag(optInFlag)} // Use the actual flag name to toggle
+              value={userOptInFlags[optInFlag] || false}
             />
           </MuiStack>
         ))}

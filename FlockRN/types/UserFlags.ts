@@ -1,12 +1,17 @@
-export type userFlagTypes = {
-  type: string;
-  displayName: string;
-};
-
-export enum UserFlags {
+export const userOptInFlagAsyncStorageKey = 'userControlledFlags';
+export enum UserOptInFlags {
   optInAI = 'optInAI',
 }
+export type UserOptInFlagsType = {
+  [key in UserOptInFlags]: boolean;
+};
 
-export const userFlags: userFlagTypes[] = [
-  { type: UserFlags.optInAI, displayName: 'AI integration' },
-];
+export const defaultUserOptInFlagState = {
+  [UserOptInFlags.optInAI]: false,
+};
+
+export const flagTranslations = {
+  optInFlags: {
+    optInAI: 'Opt-In to AI',
+  },
+};

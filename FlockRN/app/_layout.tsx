@@ -9,6 +9,7 @@ import useAuthContext from '@/hooks/useAuthContext';
 import { AuthProvider } from '@/context/AuthContext';
 import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { UserProvider } from '@/context/UserContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -72,7 +73,9 @@ const styles = StyleSheet.create({
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <AppContent />
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
     </AuthProvider>
   );
 }
