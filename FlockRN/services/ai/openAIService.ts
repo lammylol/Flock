@@ -31,7 +31,19 @@ export default class OpenAiService {
   async analyzePrayerContent(
     content: string,
     hasTranscription: boolean,
+    isAiEnabled: boolean,
   ): Promise<AIAnalysis> {
+    if (!isAiEnabled) {
+      console.warn(
+        'AI service is disabled. Please fill in the details manually.',
+      );
+      return {
+        title: '',
+        cleanedTranscription: '',
+        tags: [],
+        prayerPoints: [],
+      };
+    }
     if (!content?.trim()) {
       throw new Error('No prayer content provided');
     }

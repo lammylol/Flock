@@ -32,9 +32,13 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   useEffect(() => {
     const fetchUserOptInFlagState = async () => {
       try {
+        const allKeys = await AsyncStorage.getAllKeys();
+        console.log(allKeys); // This will give you all the keys in AsyncStorage
+
         const storedFlags = await AsyncStorage.getItem(
           userOptInFlagAsyncStorageKey,
         );
+        console.log('Stored flags:', storedFlags);
         if (storedFlags) {
           setUserOptInFlags(JSON.parse(storedFlags));
         } else {
@@ -70,9 +74,21 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const toggleUserOptInFlagState = async (key: UserOptInFlags) => {
     if (userOptInFlags) {
       const newValue = !userOptInFlags[key];
-      await AsyncStorage.setItem(key, newValue.toString());
+
+      // Update the flag in the local state
       const updatedFlags = { ...userOptInFlags, [key]: newValue };
       setUserOptInFlags(updatedFlags);
+
+      try {
+        // Store the entire flags object in AsyncStorage under the userOptInFlagAsyncStorageKey
+        await AsyncStorage.setItem(
+          userOptInFlagAsyncStorageKey,
+          JSON.stringify(updatedFlags),
+        );
+        console.log('Stored flags:', updatedFlags);
+      } catch (error) {
+        console.error('Error saving flags to AsyncStorage:', error);
+      }
     }
   };
 
