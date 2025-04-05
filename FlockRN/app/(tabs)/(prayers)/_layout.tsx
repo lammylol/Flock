@@ -22,6 +22,16 @@ export default function prayers() {
         }}
       />
       <Stack.Screen
+        name="prayerPointView"
+        options={{
+          title: 'Prayer Point',
+          headerBackButtonDisplayMode: 'default',
+          headerBackTitle: 'Back',
+          headerShadowVisible: false,
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
         name="(createPrayer)"
         options={{
           title: 'Add Prayer',

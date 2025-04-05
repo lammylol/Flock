@@ -25,15 +25,19 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         { backgroundColor: Colors[colorScheme].background },
       ]}
       onPress={() => {
-        router.push({
-          pathname: '/(tabs)/(prayers)/prayerView',
-          params: {
-            id:
-              'prayerId' in prayer
-                ? (prayer as PrayerPoint).prayerId
-                : (prayer as Prayer).id,
-          },
-        });
+        if ('prayerId' in prayer) {
+          // If it's a PrayerPoint, navigate to PrayerPointView
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerPointView',
+            params: { prayerPoint: JSON.stringify(prayer) },
+          });
+        } else {
+          // If it's a Prayer, navigate to PrayerView
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerView',
+            params: { id: (prayer as Prayer).id },
+          });
+        }
       }}
     >
       <ThemedText style={styles.title}>{prayer.title}</ThemedText>
@@ -43,7 +47,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
       <View style={styles.actionBar}>
         <Button
           label={'Share'}
-          onPress={() => {}}
+          onPress={() => { }}
           size="s"
           flex={1}
           textProps={{ fontSize: 14, fontWeight: 'semibold' }}
@@ -58,7 +62,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         />
         <Button
           label={'🙏 Pray!'}
-          onPress={() => {}}
+          onPress={() => { }}
           size="s"
           flex={1}
           textProps={{ fontSize: 14, fontWeight: 'semibold' }}

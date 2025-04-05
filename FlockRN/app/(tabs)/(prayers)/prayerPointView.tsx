@@ -14,27 +14,30 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import { Colors } from '@/constants/Colors';
 import { HeaderButton } from '@/components/ui/HeaderButton';
+import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
 
 const PrayerPointView = () => {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { prayerPoint } = useLocalSearchParams() as {
+    prayerPoint: string;
+  };
+  const parsedPrayerPoint = prayerPoint ? JSON.parse(prayerPoint) : null;
+  console.log('Parsed Prayer Point:', parsedPrayerPoint);
   const [prayer, setPrayer] = useState<Prayer | null>(null);
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[] | null>(null);
   const user = useAuthContext().user;
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const colorScheme = useThemeColor({}, 'backgroundSecondary');
+  const backgroundColor = useThemeColor({}, 'backgroundSecondary');
+  const textColor = useThemeColor({}, 'textPrimary');
   const isOwner = prayer && user && prayer.authorId === user.uid;
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const fetchPrayer = useCallback(async () => {
+  const fetchPrayerPoint = useCallback(async () => {
     try {
       const fetchedPrayer = await prayerService.getPrayer(id);
       setPrayer(fetchedPrayer);
       if (user && fetchedPrayer?.prayerPoints) {
-        const fetchedPrayerPoints = await prayerService.getPrayerPoints(
-          id,
-          user,
-        );
+        const fetchedPrayerPoints = await prayerService.getPrayerPoints(user);
         setPrayerPoints(fetchedPrayerPoints);
       }
     } catch (err) {
@@ -43,11 +46,7 @@ const PrayerPointView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [id, user]);
-
-  useEffect(() => {
-    fetchPrayer();
-  }, [fetchPrayer, id]);
+  }, [user]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -59,29 +58,30 @@ const PrayerPointView = () => {
   }, []); // Scroll to bottom whenever messages change
 
   const handleEdit = () => {
-    if (!prayer) return;
+    if (!prayerPoint) return;
 
     // Navigate to metadata screen with all the prayer data
     router.push({
       pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: {
-        id: prayer.id,
-        content: prayer.content,
-        privacy: prayer.privacy,
+        id: parsedPrayerPoint.id,
+        content: parsedPrayerPoint.content,
+        privacy: parsedPrayerPoint.privacy,
         mode: 'edit',
       },
     });
   };
 
   const formattedDate = (() => {
-    if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
+    if (!parsedPrayerPoint?.createdAt) return 'Unknown Date'; // Handle missing date
 
     const date =
-      prayer.createdAt instanceof Date
-        ? prayer.createdAt
-        : typeof prayer.createdAt === 'object' && 'seconds' in prayer.createdAt
-          ? new Date(prayer.createdAt.seconds * 1000)
-          : new Date(prayer.createdAt);
+      parsedPrayerPoint.createdAt instanceof Date
+        ? parsedPrayerPoint.createdAt
+        : typeof parsedPrayerPoint.createdAt === 'object' &&
+          'seconds' in parsedPrayerPoint.createdAt
+          ? new Date(parsedPrayerPoint.createdAt.seconds * 1000)
+          : new Date(parsedPrayerPoint.createdAt);
 
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -102,7 +102,7 @@ const PrayerPointView = () => {
           errorMessage="Sorry, your prayer can't be loaded right now."
         />
       ) : (
-        prayer && (
+        parsedPrayerPoint && (
           <>
             <Stack.Screen
               options={{
@@ -114,10 +114,14 @@ const PrayerPointView = () => {
                 // title: 'Prayer',
               }}
             />
+            <ThemedText style={[styles.createdAtText, { color: textColor }]}>
+              Created at: {formattedDate}
+            </ThemedText>
+
             <PrayerContent
-              title={formattedDate}
-              content={prayer.content}
-              backgroundColor={colorScheme}
+              title={parsedPrayerPoint?.title}
+              content={parsedPrayerPoint.content}
+              backgroundColor={backgroundColor}
             />
             {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
           </>
@@ -128,8 +132,14 @@ const PrayerPointView = () => {
 };
 
 const styles = StyleSheet.create({
+  createdAtText: {
+    fontSize: 14,
+    fontWeight: '300',
+    marginBottom: 0,
+  },
   scrollView: {
     flex: 1,
+    gap: 10,
     paddingBottom: 16,
     paddingHorizontal: 20,
   },

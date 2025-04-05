@@ -1,19 +1,15 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { prayerService } from '@/services/prayer/prayerService';
-import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
-import TagsSection from '@/components/Prayer/PrayerView/TagsSection';
-import { ThemedView } from '@/components/ThemedView';
+import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
-import { ThemedText } from '@/components/ThemedText';
 import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
-import { Colors } from '@/constants/Colors';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 
 const PrayerView = () => {

@@ -11,6 +11,7 @@ interface PrayerContentProps {
   titlePlaceholder?: string;
   contentPlaceholder?: string;
   backgroundColor?: string;
+  tags?: 
 }
 
 export function PrayerContent({
@@ -61,6 +62,10 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{content}</ThemedText>
       )}
+      <TagsSection
+        prayerId={parsedPrayerPoint.id}
+        tags={parsedPrayerPoint.tags}
+      ></TagsSection>
     </View>
   );
 }
