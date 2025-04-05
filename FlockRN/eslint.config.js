@@ -40,4 +40,14 @@ module.exports = [
       ],
     },
   },
+  // Test-specific overrides
+  {
+    files: ['**/__tests__/**/*.[jt]s?(x)', '**/*.test.[jt]s?(x)'],
+    rules: {
+      'react-native/no-inline-styles': 'off',
+      'react-native/no-color-literals': 'off',
+      'no-console': 'off',
+      'no-undef': 'off',
+    },
+  },
 ];

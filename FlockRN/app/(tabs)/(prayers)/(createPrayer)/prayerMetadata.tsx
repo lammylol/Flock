@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
-import { analyzePrayerContent } from '@/services/ai/openAIService';
 import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
@@ -25,8 +24,12 @@ import {
 import useRecording from '@/hooks/recording/useRecording';
 import { allTags } from '@/types/Tag';
 import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
+import useUserContext from '@/hooks/useUserContext';
+import OpenAiService from '@/services/ai/openAIService';
 
 export default function PrayerMetadataScreen() {
+  const { userOptInFlags } = useUserContext();
+  const openAiService = OpenAiService.getInstance();
   const params = useLocalSearchParams<{
     content?: string;
     id?: string;
@@ -105,7 +108,11 @@ export default function PrayerMetadataScreen() {
     const analyzeContent = async () => {
       setIsAnalyzing(true);
       try {
-        const analysis = await analyzePrayerContent(content, !!transcription);
+        const analysis = await openAiService.analyzePrayerContent(
+          content,
+          !!transcription,
+          userOptInFlags.optInAI,
+        );
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
         setSelectedTags(analysis.tags);
@@ -126,10 +133,17 @@ export default function PrayerMetadataScreen() {
     };
     // Perform AI fill when content is available after navigation, but after 4 seconds.
     // This ensures that the full transcription is returned before before processing with AI.
-    if (content && !title && !isTranscribing) {
+    if (content && !title && !isTranscribing && userOptInFlags.optInAI) {
       analyzeContent();
     }
-  }, [content, isTranscribing, title, transcription]);
+  }, [
+    content,
+    isTranscribing,
+    openAiService,
+    title,
+    transcription,
+    userOptInFlags.optInAI,
+  ]);
 
   const toggleTag = (tag: PrayerTag) => {
     setSelectedTags((prevTags) =>
@@ -211,7 +225,7 @@ export default function PrayerMetadataScreen() {
           privacy: privacy,
           tags: selectedTags,
           authorId: auth.currentUser.uid,
-          authorName: auth.currentUser.displayName,
+          authorName: auth.currentUser.displayName ?? 'Unknown',
           status: 'open',
           isPinned: false,
         };
