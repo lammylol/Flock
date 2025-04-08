@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { PrayerType } from '@/types/firebase';
 
 export function PrayerContent({
   editMode,
@@ -27,22 +28,38 @@ export function PrayerContent({
   const content = selectedPrayer?.content;
   const tags = selectedPrayer?.tags || [];
 
-  const [updatedTags, setUpdatedTags] = useState<string[]>(tags);
+  const [updatedTags, setUpdatedTags] = useState<PrayerType[]>(tags);
   const [editableTitle, setEditableTitle] = useState(title);
   const [editableContent, setEditableContent] = useState(content);
 
   const handleTitleChange = (text: string) => {
     setEditableTitle(text);
-    updateCollection({ ...selectedPrayer }, prayerOrPrayerPoint);
+    if (selectedPrayer) {
+      const updatedPrayer = { ...selectedPrayer, title: editableTitle || '' };
+      updateCollection(updatedPrayer, prayerOrPrayerPoint);
+    }
   };
 
   const handleContentChange = (text: string) => {
     setEditableContent(text);
-    updateCollection({ ...selectedPrayer }, prayerOrPrayerPoint);
+    if (selectedPrayer) {
+      const updatedPrayer = {
+        ...selectedPrayer,
+        content: editableContent || '',
+      };
+      updateCollection(updatedPrayer, prayerOrPrayerPoint);
+    }
   };
 
-  const handleTagsChange = (newTags: string[]) => {
-    setUpdatedTags(newTags);
+  const handleTagsChange = (tags: PrayerType[]) => {
+    setUpdatedTags(tags);
+    if (selectedPrayer) {
+      const updatedPrayer = {
+        ...selectedPrayer,
+        tags: updatedTags || [],
+      };
+      updateCollection(updatedPrayer, prayerOrPrayerPoint);
+    }
   };
 
   const formattedDate = (() => {

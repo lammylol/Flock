@@ -11,6 +11,7 @@ import { PrayerType } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { prayerTags } from '@/types/Tag';
 
 interface TagsListProps {
   tags: PrayerType[];
@@ -87,7 +88,7 @@ const TagsList = ({ tags, onChange }: TagsListProps) => {
   );
 
   const allTagsRendered = useMemo(
-    () => tags.map((tag) => renderTag(tag, true)),
+    () => prayerTags.map((tag) => renderTag(tag, true)),
     [renderTag],
   );
 

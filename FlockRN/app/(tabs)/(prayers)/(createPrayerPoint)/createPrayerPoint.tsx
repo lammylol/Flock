@@ -7,12 +7,9 @@ import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import {
-  PrayerPoint,
   CreatePrayerPointDTO,
-  PrayerTag,
   PrayerType,
   UpdatePrayerDTO,
-  PrayerType,
 } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -58,42 +55,41 @@ export default function PrayerPointMetadataScreen() {
 
   const handleDelete = async () => {
     // Confirm deletion
-    Alert.alert(
-      'Delete Prayer',
-      'Are you sure you want to delete this prayer? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            if (!prayerId || !auth.currentUser?.uid) {
-              Alert.alert('Error', 'Cannot delete prayer');
-              return;
-            }
-
-  //           setIsDeleting(true);
-  //           try {
-  //             await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
-  //             Alert.alert('Success', 'Prayer deleted successfully');
-  //             router.push('/(tabs)/(prayers)');
-  //           } catch (error) {
-  //             console.error('Error deleting prayer:', error);
-  //             Alert.alert(
-  //               'Error',
-  //               'Failed to delete prayer. Please try again.',
-  //             );
-  //           } finally {
-  //             setIsDeleting(false);
-  //           }
-  //         },
-  //       },
-  //     ],
-  //   );
-  // };
+    // Alert.alert(
+    //   'Delete Prayer',
+    //   'Are you sure you want to delete this prayer? This action cannot be undone.',
+    //   [
+    //     {
+    //       text: 'Cancel',
+    //       style: 'cancel',
+    //     },
+    //     {
+    //       text: 'Delete',
+    //       style: 'destructive',
+    //       onPress: async () => {
+    //         if (!prayerId || !auth.currentUser?.uid) {
+    //           Alert.alert('Error', 'Cannot delete prayer');
+    //           return;
+    //         }
+    //         setIsDeleting(true);
+    //         try {
+    //           await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
+    //           Alert.alert('Success', 'Prayer deleted successfully');
+    //           router.push('/(tabs)/(prayers)');
+    //         } catch (error) {
+    //           console.error('Error deleting prayer:', error);
+    //           Alert.alert(
+    //             'Error',
+    //             'Failed to delete prayer. Please try again.',
+    //           );
+    //         } finally {
+    //           setIsDeleting(false);
+    //         }
+    //       },
+    //     },
+    //   ],
+    // );
+  };
 
   const handleSubmit = async () => {
     if (!title.trim()) {
