@@ -29,7 +29,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
           // If it's a PrayerPoint, navigate to PrayerPointView
           router.push({
             pathname: '/(tabs)/(prayers)/prayerPointView',
-            params: { prayerPoint: JSON.stringify(prayer) },
+            params: { id: prayer.id },
           });
         } else {
           // If it's a Prayer, navigate to PrayerView

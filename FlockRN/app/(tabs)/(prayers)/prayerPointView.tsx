@@ -1,44 +1,46 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Prayer, PrayerPoint } from '@/types/firebase';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
-import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
 import { ThemedText } from '@/components/ThemedText';
 import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
-import { Colors } from '@/constants/Colors';
 import { HeaderButton } from '@/components/ui/HeaderButton';
-import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
 const PrayerPointView = () => {
-  const { prayerPoint } = useLocalSearchParams() as {
-    prayerPoint: string;
+  const { id: prayerPointId } = useLocalSearchParams() as {
+    id: string;
   };
-  const parsedPrayerPoint = prayerPoint ? JSON.parse(prayerPoint) : null;
-  console.log('Parsed Prayer Point:', parsedPrayerPoint);
-  const [prayer, setPrayer] = useState<Prayer | null>(null);
-  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[] | null>(null);
+
+  const { userPrayerPoints, updateCollection } = usePrayerCollection();
+
+  // Use the collection to get the latest data
+  const prayerPoint =
+    userPrayerPoints.find((p) => p.id === prayerPointId) || null;
+
   const user = useAuthContext().user;
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const backgroundColor = useThemeColor({}, 'backgroundSecondary');
   const textColor = useThemeColor({}, 'textPrimary');
-  const isOwner = prayer && user && prayer.authorId === user.uid;
+  const isOwner = prayerPoint && user && prayerPoint.authorId === user.uid;
   const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    console.log('PrayerPointId:', prayerPointId);
+  }, [prayerPointId]);
 
   const fetchPrayerPoint = useCallback(async () => {
     try {
-      const fetchedPrayer = await prayerService.getPrayer(id);
-      setPrayer(fetchedPrayer);
-      if (user && fetchedPrayer?.prayerPoints) {
-        const fetchedPrayerPoints = await prayerService.getPrayerPoints(user);
-        setPrayerPoints(fetchedPrayerPoints);
+      const fetchedPrayer = await prayerService.getPrayerPoint(prayerPointId);
+      // console.log('Fetched prayer:', fetchedPrayer);
+      if (fetchedPrayer) {
+        updateCollection(fetchedPrayer, 'prayerPoint');
       }
     } catch (err) {
       console.error(err);
@@ -50,7 +52,7 @@ const PrayerPointView = () => {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchPrayer();
+    fetchPrayerPoint();
   };
 
   useEffect(() => {
@@ -64,24 +66,24 @@ const PrayerPointView = () => {
     router.push({
       pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: {
-        id: parsedPrayerPoint.id,
-        content: parsedPrayerPoint.content,
-        privacy: parsedPrayerPoint.privacy,
+        id: prayerPoint.id,
+        content: prayerPoint.content,
+        privacy: prayerPoint.privacy,
         mode: 'edit',
       },
     });
   };
 
   const formattedDate = (() => {
-    if (!parsedPrayerPoint?.createdAt) return 'Unknown Date'; // Handle missing date
+    if (!prayerPoint?.createdAt) return 'Unknown Date'; // Handle missing date
 
     const date =
-      parsedPrayerPoint.createdAt instanceof Date
-        ? parsedPrayerPoint.createdAt
-        : typeof parsedPrayerPoint.createdAt === 'object' &&
-          'seconds' in parsedPrayerPoint.createdAt
-          ? new Date(parsedPrayerPoint.createdAt.seconds * 1000)
-          : new Date(parsedPrayerPoint.createdAt);
+      prayerPoint.createdAt instanceof Date
+        ? prayerPoint.createdAt
+        : typeof prayerPoint.createdAt === 'object' &&
+          'seconds' in prayerPoint.createdAt
+          ? new Date(prayerPoint.createdAt.seconds * 1000)
+          : new Date(prayerPoint.createdAt);
 
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -102,7 +104,7 @@ const PrayerPointView = () => {
           errorMessage="Sorry, your prayer can't be loaded right now."
         />
       ) : (
-        parsedPrayerPoint && (
+        prayerPoint && (
           <>
             <Stack.Screen
               options={{
@@ -115,15 +117,14 @@ const PrayerPointView = () => {
               }}
             />
             <ThemedText style={[styles.createdAtText, { color: textColor }]}>
-              Created at: {formattedDate}
+              Created on: {formattedDate}
             </ThemedText>
 
             <PrayerContent
-              title={parsedPrayerPoint?.title}
-              content={parsedPrayerPoint.content}
+              prayerId={prayerPointId}
+              prayerOrPrayerPoint={'prayerPoint'}
               backgroundColor={backgroundColor}
             />
-            {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
           </>
         )
       )}
@@ -135,7 +136,9 @@ const styles = StyleSheet.create({
   createdAtText: {
     fontSize: 14,
     fontWeight: '300',
+    lineHeight: 20,
     marginBottom: 0,
+    paddingLeft: 20,
   },
   scrollView: {
     flex: 1,
