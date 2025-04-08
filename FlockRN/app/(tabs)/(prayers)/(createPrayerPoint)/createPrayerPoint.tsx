@@ -1,12 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import {
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  View,
-  StyleSheet,
-} from 'react-native';
+import { useState } from 'react';
+import { TouchableOpacity, Alert, View, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
 import { auth } from '@/firebase/firebaseConfig';
@@ -14,13 +7,12 @@ import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import {
-  CreatePrayerDTO,
   PrayerPoint,
-  PrayerPointDTO,
+  CreatePrayerPointDTO,
   PrayerTag,
   UpdatePrayerDTO,
+  PrayerType,
 } from '@/types/firebase';
-import { allTags } from '@/types/Tag';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
@@ -52,9 +44,8 @@ export default function PrayerPointMetadataScreen() {
   );
   const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [placeholder, setPlaceholder] = useState('Enter your prayer here');
-  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
+  // const [isDeleting, setIsDeleting] = useState(false);
+  const colorScheme = useThemeColor({}, 'backgroundSecondary');
 
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
@@ -62,10 +53,10 @@ export default function PrayerPointMetadataScreen() {
   ): Promise<string[]> => {
     try {
       // Transform prayer points
-      const mappedPrayerPoints: PrayerPointDTO[] = prayerPoints.map(
+      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
         (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
-          type: (prayerPoint.type?.trim() as 'request' | 'praise') || 'request',
+          type: prayerPoint.type?.trim() as PrayerType,
           content: prayerPoint.content?.trim() || '',
           createdAt: new Date(),
           authorId: auth.currentUser?.uid || 'unknown',
@@ -73,7 +64,6 @@ export default function PrayerPointMetadataScreen() {
           status: prayerPoint.status || 'open',
           privacy: prayerPoint.privacy ?? 'private',
           prayerId: prayerId,
-          prayerTypes: prayerPoint.prayerTypes || [], // Default to an empty array
           recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
           prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
           tags: prayerPoint.tags || [], // Default to an empty array
@@ -91,52 +81,44 @@ export default function PrayerPointMetadataScreen() {
     }
   };
 
-  const toggleTag = (tag: PrayerTag) => {
-    setSelectedTags((prevTags) =>
-      prevTags.includes(tag)
-        ? prevTags.filter((t) => t !== tag)
-        : [...prevTags, tag],
-    );
-  };
+  // const handleDelete = async () => {
+  //   // Confirm deletion
+  //   Alert.alert(
+  //     'Delete Prayer',
+  //     'Are you sure you want to delete this prayer? This action cannot be undone.',
+  //     [
+  //       {
+  //         text: 'Cancel',
+  //         style: 'cancel',
+  //       },
+  //       {
+  //         text: 'Delete',
+  //         style: 'destructive',
+  //         onPress: async () => {
+  //           if (!prayerId || !auth.currentUser?.uid) {
+  //             Alert.alert('Error', 'Cannot delete prayer');
+  //             return;
+  //           }
 
-  const handleDelete = async () => {
-    // Confirm deletion
-    Alert.alert(
-      'Delete Prayer',
-      'Are you sure you want to delete this prayer? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            if (!prayerId || !auth.currentUser?.uid) {
-              Alert.alert('Error', 'Cannot delete prayer');
-              return;
-            }
-
-            setIsDeleting(true);
-            try {
-              await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
-              Alert.alert('Success', 'Prayer deleted successfully');
-              router.push('/(tabs)/(prayers)');
-            } catch (error) {
-              console.error('Error deleting prayer:', error);
-              Alert.alert(
-                'Error',
-                'Failed to delete prayer. Please try again.',
-              );
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ],
-    );
-  };
+  //           setIsDeleting(true);
+  //           try {
+  //             await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
+  //             Alert.alert('Success', 'Prayer deleted successfully');
+  //             router.push('/(tabs)/(prayers)');
+  //           } catch (error) {
+  //             console.error('Error deleting prayer:', error);
+  //             Alert.alert(
+  //               'Error',
+  //               'Failed to delete prayer. Please try again.',
+  //             );
+  //           } finally {
+  //             setIsDeleting(false);
+  //           }
+  //         },
+  //       },
+  //     ],
+  //   );
+  // };
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -152,20 +134,19 @@ export default function PrayerPointMetadataScreen() {
     setIsLoading(true);
     try {
       if (isEditMode && prayerId) {
-        // Update existing prayer
-        const updateData: UpdatePrayerDTO = {
-          title: title.trim(),
-          content: content,
-          privacy: privacy,
-          tags: selectedTags,
-        };
-
-        await prayerService.updatePrayer(prayerId, updateData);
-        Alert.alert('Success', 'Prayer updated successfully');
-        router.push('/(tabs)/(prayers)');
+        // // Update existing prayer
+        // const updateData: UpdatePrayerDTO = {
+        //   title: title.trim(),
+        //   content: content,
+        //   privacy: privacy,
+        //   tags: selectedTags,
+        // };
+        // await prayerService.updatePrayer(prayerId, updateData);
+        // Alert.alert('Success', 'Prayer updated successfully');
+        // router.push('/(tabs)/(prayers)');
       } else {
-        // Create new prayer
-        const prayerData: CreatePrayerDTO = {
+        // Create new prayer point
+        const prayerData: CreatePrayerPointDTO = {
           title: title.trim(),
           content: content,
           privacy: privacy,
@@ -174,6 +155,15 @@ export default function PrayerPointMetadataScreen() {
           authorName: auth.currentUser.displayName,
           status: 'open',
           isPinned: false,
+
+          // Optional fields
+          prayerId: prayerId, // Supports string or string[]
+          type: type, // Single prayer type (legacy)
+          recipientName: recipientName ?? '',
+          recipientId: recipientId ?? '',
+          prayerUpdates: prayerUpdates ?? [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
 
         const prayerId = await prayerService.createPrayer(prayerData);
@@ -206,51 +196,13 @@ export default function PrayerPointMetadataScreen() {
     }
   };
 
-  const colorScheme = useThemeColor({}, 'backgroundSecondary');
-
   return (
     <ThemedScrollView contentContainerStyle={styles.scrollContent}>
       <PrayerContent
-        title={title}
-        content={content}
-        isEditMode={!isEditMode}
-        titlePlaceholder={'Title'}
-        contentPlaceholder={'Enter your prayer here'}
+        editMode={'create'}
+        prayerOrPrayerPoint={'prayerPoint'}
         backgroundColor={colorScheme}
       ></PrayerContent>
-
-      <View style={styles.section}>
-        <ThemedText style={styles.label}>Tags:</ThemedText>
-        <View style={styles.tagButtons}>
-          {allTags.map((tag) => (
-            <TouchableOpacity
-              key={tag}
-              style={[
-                styles.tagButton,
-                {
-                  backgroundColor: selectedTags.includes(tag)
-                    ? Colors.tagColors.selectedColors[tag] || Colors.primary
-                    : Colors.tagColors.defaultTag,
-                },
-              ]}
-              onPress={() => toggleTag(tag)}
-            >
-              <ThemedText
-                style={[
-                  styles.tagButtonText,
-                  {
-                    color: selectedTags.includes(tag)
-                      ? Colors.white
-                      : Colors.light.textPrimary,
-                  },
-                ]}
-              >
-                {tag}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
 
       <View style={styles.section}>
         <View style={styles.privacySelector}>
@@ -266,7 +218,7 @@ export default function PrayerPointMetadataScreen() {
         </View>
       </View>
 
-      {isEditMode && (
+      {/* {isEditMode && (
         <TouchableOpacity
           style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
           onPress={handleDelete}
@@ -276,7 +228,7 @@ export default function PrayerPointMetadataScreen() {
             {isDeleting ? 'Deleting...' : 'Delete Prayer'}
           </ThemedText>
         </TouchableOpacity>
-      )}
+      )} */}
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -360,18 +312,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondary,
     borderRadius: 12,
     padding: 16,
-  },
-  tagButton: {
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  tagButtonText: {
-    fontSize: 14,
-  },
-  tagButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
   },
 });

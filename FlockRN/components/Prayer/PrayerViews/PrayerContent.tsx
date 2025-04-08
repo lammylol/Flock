@@ -5,15 +5,15 @@ import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
 export function PrayerContent({
-  isEditMode,
+  editMode,
   backgroundColor,
   prayerOrPrayerPoint,
   prayerId,
 }: {
-  isEditMode?: boolean;
+  editMode: 'create' | 'edit' | 'view';
   backgroundColor?: string;
   prayerOrPrayerPoint: 'prayer' | 'prayerPoint';
-  prayerId: string;
+  prayerId?: string; // only required for edit and view modes
 }): JSX.Element {
   const { userPrayers, userPrayerPoints, updateCollection } =
     usePrayerCollection();
@@ -23,13 +23,12 @@ export function PrayerContent({
       ? userPrayers.find((prayer) => prayer.id === prayerId)
       : userPrayerPoints.find((prayerPoint) => prayerPoint.id === prayerId);
 
-  const title = selectedPrayer?.title || 'Untitled Prayer';
-  const content = selectedPrayer?.content || 'Untitled Prayer';
+  const title = selectedPrayer?.title;
+  const content = selectedPrayer?.content;
   const tags = selectedPrayer?.tags || [];
 
   const [editableTitle, setEditableTitle] = useState(title);
   const [editableContent, setEditableContent] = useState(content);
-  console.log('PrayerContent', { title, content, tags });
 
   const handleTitleChange = (text: string) => {
     setEditableTitle(text);
@@ -61,25 +60,28 @@ export function PrayerContent({
 
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
-      {isEditMode && prayerOrPrayerPoint === 'prayerPoint' ? (
+      {(editMode === 'edit' || editMode === 'create') &&
+        prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}
           onChangeText={handleTitleChange}
           multiline
           maxLength={100}
+          placeholder="Enter a title"
         />
       ) : prayerOrPrayerPoint === 'prayerPoint' ? (
         <ThemedText style={styles.titleText}>{title}</ThemedText>
       ) : (
         <ThemedText style={styles.titleText}>{formattedDate}</ThemedText>
       )}
-      {isEditMode ? (
+      {editMode === 'edit' || editMode === 'create' ? (
         <TextInput
           style={[styles.contentText, styles.input]}
           value={editableContent}
           onChangeText={handleContentChange}
           multiline
+          placeholder="Enter your prayer point here"
         />
       ) : (
         <ThemedText style={styles.contentText}>{content}</ThemedText>

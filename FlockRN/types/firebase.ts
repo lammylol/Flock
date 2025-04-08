@@ -60,19 +60,18 @@ export interface Prayer {
 }
 
 export interface PrayerPoint {
-  id?: string;
-  title?: string;
-  content?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  authorName?: string;
-  authorId?: string;
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  authorName: string;
+  authorId: string;
   prayerId?: string | string[];
   // Support for both single type (legacy) and multiple types (new)
-  type?: PrayerType;
-  types?: PrayerType[];
-  status?: Status;
-  privacy?: Privacy;
+  type: PrayerType;
+  status: Status;
+  privacy: Privacy;
   recipientName?: string;
   recipientId?: string;
   prayerUpdates?: PrayerPointUpdate[];
@@ -109,9 +108,14 @@ export type UpdatePrayerDTO = Partial<
   Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>
 >;
 
-export interface PrayerPointDTO extends Omit<PrayerPoint, 'id' | 'prayerId'> {
-  prayerId: string;
-}
+export type CreatePrayerPointDTO = Omit<
+  PrayerPoint,
+  'id' | 'prayerId' | 'updatedAt'
+>;
+
+export type UpdatePrayerPointDTO = Partial<
+  Omit<PrayerPoint, 'id' | 'createdAt' | 'updatedAt'>
+>;
 
 export interface ServiceResponse {
   success: boolean;

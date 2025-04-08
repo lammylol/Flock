@@ -17,7 +17,7 @@ import uuid from 'react-native-uuid';
 import {
   CreatePrayerDTO,
   PrayerPoint,
-  PrayerPointDTO,
+  CreatePrayerPointDTO,
   UpdatePrayerDTO,
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
@@ -68,7 +68,7 @@ export default function PrayerMetadataScreen() {
   ): Promise<string[]> => {
     try {
       // Transform prayer points
-      const mappedPrayerPoints: PrayerPointDTO[] = prayerPoints.map(
+      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
         (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
@@ -349,23 +349,23 @@ const styles = StyleSheet.create({
   activityIndicator: {
     alignSelf: 'center',
   },
-  headerText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 12,
-  },
   button: {
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 12,
     flexDirection: 'row',
-    justifyContent: 'center',
     height: 60, // Fixed height for the button
-    padding: 16,
+    justifyContent: 'center',
     marginTop: 10,
+    padding: 16,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 12,
   },
   buttonText: {
     color: Colors.white,
@@ -389,9 +389,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 12,
-    padding: 16,
     height: 60, // Fixed height to match the submit button
     marginTop: 10,
+    padding: 16,
   },
   deleteButtonText: {
     color: Colors.white,

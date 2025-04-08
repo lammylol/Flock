@@ -25,7 +25,7 @@ import {
   PrayerPoint,
   CreatePrayerDTO,
   UpdatePrayerDTO,
-  PrayerPointDTO,
+  CreatePrayerPointDTO,
 } from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
@@ -181,7 +181,9 @@ class PrayerService {
   }
 
   // Add a list of prayer points, then return the list of prayer IDs.
-  async addPrayerPoints(prayerPoints: PrayerPointDTO[]): Promise<string[]> {
+  async addPrayerPoints(
+    prayerPoints: CreatePrayerPointDTO[],
+  ): Promise<string[]> {
     const now = Timestamp.now();
 
     try {
