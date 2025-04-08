@@ -23,7 +23,7 @@ export default function TabTwoScreen() {
     searchPrayers,
   } = usePrayerCollection();
 
-  const [selectedTab, setSelectedTab] = useState<TabType>('userPrayers');
+  const [selectedTab, setSelectedTab] = useState<TabType>('prayerPoints');
 
   useFocusEffect(loadAll);
 
