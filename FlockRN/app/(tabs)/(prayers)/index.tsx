@@ -12,69 +12,77 @@ import { Tabs } from '@/components/Tab';
 import SearchBar from '@/components/ui/SearchBar';
 import { User } from 'firebase/auth';
 import { FloatingAddPrayerButton } from '@/components/Prayer/PrayerViews/FloatingAddPrayerButton';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
 type TabType = 'prayerPoints' | 'userPrayers';
 
 export default function TabTwoScreen() {
   const { user } = useAuth();
-  const [userPrayers, setUserPrayers] = useState<Prayer[]>([]);
-  const [userPrayerPoints, setUserPrayerPoints] = useState<PrayerPoint[]>([]);
-
-  const [filteredUserPrayers, setFilteredUserPrayers] = useState<Prayer[]>([]);
-  const [filteredUserPrayerPoints, setFilteredUserPrayerPoints] = useState<
-    PrayerPoint[]
-  >([]);
+  const {
+    userPrayers,
+    userPrayerPoints,
+    filteredUserPrayers,
+    filteredUserPrayerPoints,
+    loadAll,
+    searchPrayers,
+  } = usePrayerCollection();
+  // const [userPrayers, setUserPrayers] = useState<Prayer[]>([]);
+  // const [userPrayerPoints, setUserPrayerPoints] = useState<PrayerPoint[]>([]);
+  // const [filteredUserPrayers, setFilteredUserPrayers] = useState<Prayer[]>([]);
+  // const [filteredUserPrayerPoints, setFilteredUserPrayerPoints] = useState<
+  //   PrayerPoint[]
+  // >([]);
   const [selectedTab, setSelectedTab] = useState<TabType>('userPrayers');
 
-  const loadPrayers = useCallback(async () => {
-    const prayers = await fetchPrayers(user);
-    setUserPrayers(prayers);
-    setFilteredUserPrayers(prayers);
-  }, [user]);
+  // const loadPrayers = useCallback(async () => {
+  //   const prayers = await fetchPrayers(user);
+  //   setUserPrayers(prayers);
+  //   setFilteredUserPrayers(prayers);
+  // }, [user]);
 
-  const loadPrayerPoints = useCallback(async () => {
-    const prayerPoints = await fetchPrayersPoints(user);
-    setUserPrayerPoints(prayerPoints);
-    setFilteredUserPrayerPoints(prayerPoints);
-  }, [user]);
+  // const loadPrayerPoints = useCallback(async () => {
+  //   const prayerPoints = await fetchPrayersPoints(user);
+  //   setUserPrayerPoints(prayerPoints);
+  //   setFilteredUserPrayerPoints(prayerPoints);
+  // }, [user]);
 
-  const loadAll = useCallback(() => {
-    loadPrayers();
-    loadPrayerPoints();
-  }, [loadPrayers, loadPrayerPoints]);
+  // const loadAll = useCallback(() => {
+  //   loadPrayers();
+  //   loadPrayerPoints();
+  // }, [loadPrayers, loadPrayerPoints]);
 
   useFocusEffect(loadAll);
 
-  const filterPrayers = useCallback(
-    (text: string) => {
-      if (userPrayers.length === 0) return;
-      const filteredValues = userPrayers.filter((prayer) =>
-        prayer.title?.toLowerCase().includes(text),
-      );
-      setFilteredUserPrayers(filteredValues);
-    },
-    [userPrayers],
-  );
+  // const filterPrayers = useCallback(
+  //   (text: string) => {
+  //     if (userPrayers.length === 0) return;
+  //     const filteredValues = userPrayers.filter((prayer) =>
+  //       prayer.title?.toLowerCase().includes(text),
+  //     );
+  //     setFilteredUserPrayers(filteredValues);
+  //   },
+  //   [userPrayers],
+  // );
 
-  const filterPrayerPoints = useCallback(
-    (text: string) => {
-      if (userPrayerPoints.length === 0) return;
-      const filteredValues = userPrayerPoints.filter((prayerPoint) =>
-        prayerPoint.title?.toLowerCase().includes(text),
-      );
-      setFilteredUserPrayerPoints(filteredValues);
-    },
-    [userPrayerPoints],
-  );
+  // const filterPrayerPoints = useCallback(
+  //   (text: string) => {
+  //     if (userPrayerPoints.length === 0) return;
+  //     const filteredValues = userPrayerPoints.filter((prayerPoint) =>
+  //       prayerPoint.title?.toLowerCase().includes(text),
+  //     );
+  //     setFilteredUserPrayerPoints(filteredValues);
+  //   },
+  //   [userPrayerPoints],
+  // );
 
-  const searchPrayers = useCallback(
-    (text: string) => {
-      const searchText = text.trim().toLowerCase();
-      filterPrayers(searchText);
-      filterPrayerPoints(searchText);
-    },
-    [filterPrayerPoints, filterPrayers],
-  );
+  // const searchPrayers = useCallback(
+  //   (text: string) => {
+  //     const searchText = text.trim().toLowerCase();
+  //     filterPrayers(searchText);
+  //     filterPrayerPoints(searchText);
+  //   },
+  //   [filterPrayerPoints, filterPrayers],
+  // );
 
   return (
     <ThemedView style={styles.container}>

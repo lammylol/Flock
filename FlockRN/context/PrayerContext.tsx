@@ -1,13 +1,16 @@
 // PrayerContext.tsx
+import { PrayerPoint } from '@/types/firebase';
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface PrayerContextType {
   title: string;
   content: string;
-  tags: string[];
+  prayerPoints: PrayerPoint[];
+  tags?: string[];
   setTitle: (newTitle: string) => void;
   setContent: (newContent: string) => void;
-  setTags: (newTags: string[]) => void;
+  setPrayerPoints: (newPrayerPoints: PrayerPoint[]) => void;
+  setTags?: (newTags: string[]) => void;
 }
 
 const PrayerContext = createContext<PrayerContextType | undefined>(undefined);
@@ -16,10 +19,22 @@ export const PrayerProvider = ({ children }: { children: ReactNode }) => {
   const [title, setTitle] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
+  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
 
   return (
     <PrayerContext.Provider
-      value={{ title, content, tags, setTitle, setContent, setTags }}
+      value={
+        {
+          title,
+          content,
+          tags,
+          prayerPoints,
+          setTitle,
+          setContent,
+          setTags,
+          setPrayerPoints,
+        } as PrayerContextType
+      }
     >
       {children}
     </PrayerContext.Provider>

@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { Prayer, PrayerPoint } from '@/types/firebase';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
@@ -11,11 +10,22 @@ import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailab
 import { useThemeColor } from '@/hooks/useThemeColor';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import { HeaderButton } from '@/components/ui/HeaderButton';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { PrayerPoint } from '@/types/firebase';
+import { forEach } from 'lodash';
 
 const PrayerView = () => {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [prayer, setPrayer] = useState<Prayer | null>(null);
-  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[] | null>(null);
+  const { id } = useLocalSearchParams<{
+    id: string;
+  }>();
+
+  const { userPrayers, updateCollection } = usePrayerCollection();
+
+  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
+  // this sits separate since prayer points in prayer are loaded in prayer view only.
+
+  const prayer = userPrayers.find((prayer) => prayer.id === id);
+
   const user = useAuthContext().user;
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -26,13 +36,8 @@ const PrayerView = () => {
   const fetchPrayer = useCallback(async () => {
     try {
       const fetchedPrayer = await prayerService.getPrayer(id);
-      setPrayer(fetchedPrayer);
-      if (user && fetchedPrayer?.prayerPoints) {
-        const fetchedPrayerPoints = await prayerService.getPrayerPoints(
-          id,
-          user,
-        );
-        setPrayerPoints(fetchedPrayerPoints);
+      if (fetchedPrayer) {
+        updateCollection(fetchedPrayer, 'prayer');
       }
     } catch (err) {
       console.error(err);
@@ -42,13 +47,35 @@ const PrayerView = () => {
     }
   }, [id, user]);
 
+  const fetchPrayerPoints = useCallback(async () => {
+    try {
+      if (user && (prayer?.prayerPoints ?? []).length > 0) {
+        const fetchedPrayerPoints = await prayerService.getPrayerPoints(
+          id,
+          user,
+        );
+        setPrayerPoints(fetchedPrayerPoints ?? []);
+        forEach(fetchedPrayerPoints, (prayerPoint) =>
+          updateCollection(prayerPoint, 'prayerPoint'),
+        );
+      }
+      console.log('Fetched prayer points:', prayerPoints);
+    } catch (err) {
+      console.error(err);
+      setError('Prayer points could not be fetched. Please try again.');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [id, user]);
+
   useEffect(() => {
-    fetchPrayer();
-  }, [fetchPrayer, id]);
+    fetchPrayerPoints(); // Fetch only prayer points. Prayer is fetched in the prayer view.
+  }, [id]);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchPrayer();
+    fetchPrayerPoints();
   };
 
   useEffect(() => {
@@ -69,23 +96,6 @@ const PrayerView = () => {
       },
     });
   };
-
-  const formattedDate = (() => {
-    if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
-
-    const date =
-      prayer.createdAt instanceof Date
-        ? prayer.createdAt
-        : typeof prayer.createdAt === 'object' && 'seconds' in prayer.createdAt
-          ? new Date(prayer.createdAt.seconds * 1000)
-          : new Date(prayer.createdAt);
-
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  })();
 
   return (
     <ThemedScrollView
@@ -112,8 +122,8 @@ const PrayerView = () => {
               }}
             />
             <PrayerContent
-              title={formattedDate}
-              content={prayer.content}
+              prayerId={id}
+              prayerOrPrayerPoint={'prayer'}
               backgroundColor={colorScheme}
             />
             {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
