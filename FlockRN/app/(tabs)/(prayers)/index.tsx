@@ -51,14 +51,14 @@ export default function TabTwoScreen() {
           {selectedTab === 'prayerPoints' && (
             <ThemedScrollView>
               {filteredUserPrayerPoints.map((prayerPoint: PrayerPoint) => (
-                <PrayerCard prayer={prayerPoint} />
+                <PrayerCard key={prayerPoint.id} prayer={prayerPoint} />
               ))}
             </ThemedScrollView>
           )}
           {selectedTab === 'userPrayers' && (
             <ThemedScrollView>
               {filteredUserPrayers.map((prayer: Prayer) => (
-                <PrayerCard prayer={prayer} />
+                <PrayerCard key={prayer.id} prayer={prayer} />
               ))}
             </ThemedScrollView>
           )}
