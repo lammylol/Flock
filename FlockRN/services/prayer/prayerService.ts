@@ -209,6 +209,41 @@ class PrayerService {
     }
   }
 
+  async createPrayerPoint(data: CreatePrayerPointDTO): Promise<string> {
+    try {
+      const now = Timestamp.now();
+
+      const docRef = await addDoc(this.prayerPointsCollection, {
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // After the document is created, update it with the generated ID
+      await updateDoc(docRef, { id: docRef.id });
+
+      // If prayer is public, add to author's feed
+      if (data.privacy === 'public') {
+        const feedPrayerRef = doc(
+          db,
+          FirestoreCollections.FEED,
+          data.authorId,
+          FirestoreCollections.PRAYERPOINTS,
+          docRef.id,
+        );
+        await setDoc(feedPrayerRef, {
+          id: docRef.id,
+          addedAt: now,
+        });
+      }
+
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating prayer:', error);
+      throw error;
+    }
+  }
+
   async getPrayerPoints(
     prayerId: string,
     user: User,

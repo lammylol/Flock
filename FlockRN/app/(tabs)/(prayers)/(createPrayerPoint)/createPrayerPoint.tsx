@@ -6,11 +6,7 @@ import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import {
-  CreatePrayerPointDTO,
-  PrayerType,
-  UpdatePrayerDTO,
-} from '@/types/firebase';
+import { CreatePrayerPointDTO, Prayer, PrayerPoint } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
@@ -26,73 +22,35 @@ export default function PrayerPointMetadataScreen() {
 
   // Determine if we're in edit mode
   const isEditMode = params.mode === 'edit';
-  const prayerId = params.id;
 
-  // Parse tags if they exist in params
-  const initialTags: PrayerType[] = params.tags
-    ? JSON.parse(params.tags as string)
-    : [];
-
-  const [content, setContent] = useState(params?.content || '');
-  const [title, setTitle] = useState(params?.title || '');
   // TODO implement privacy setting
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [privacy, _setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
-  const [selectedTags, setSelectedTags] = useState<PrayerType[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
-  // const [isDeleting, setIsDeleting] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
+  const [updatedPrayer, setUpdatedPrayer] = useState<PrayerPoint>({
+    id: '',
+    title: '',
+    content: '',
+    tags: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    authorName: '',
+    authorId: '',
+  });
 
-  const toggleTag = (tag: PrayerType) => {
-    setSelectedTags((prevTags) =>
-      prevTags.includes(tag)
-        ? prevTags.filter((t) => t !== tag)
-        : [...prevTags, tag],
-    );
-  };
-
-  const handleDelete = async () => {
-    // Confirm deletion
-    // Alert.alert(
-    //   'Delete Prayer',
-    //   'Are you sure you want to delete this prayer? This action cannot be undone.',
-    //   [
-    //     {
-    //       text: 'Cancel',
-    //       style: 'cancel',
-    //     },
-    //     {
-    //       text: 'Delete',
-    //       style: 'destructive',
-    //       onPress: async () => {
-    //         if (!prayerId || !auth.currentUser?.uid) {
-    //           Alert.alert('Error', 'Cannot delete prayer');
-    //           return;
-    //         }
-    //         setIsDeleting(true);
-    //         try {
-    //           await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
-    //           Alert.alert('Success', 'Prayer deleted successfully');
-    //           router.push('/(tabs)/(prayers)');
-    //         } catch (error) {
-    //           console.error('Error deleting prayer:', error);
-    //           Alert.alert(
-    //             'Error',
-    //             'Failed to delete prayer. Please try again.',
-    //           );
-    //         } finally {
-    //           setIsDeleting(false);
-    //         }
-    //       },
-    //     },
-    //   ],
-    // );
+  const handlePrayerUpdate = (updatedPrayerData: Prayer | PrayerPoint) => {
+    setUpdatedPrayer((prevPrayer) => ({
+      ...prevPrayer,
+      ...updatedPrayerData,
+      status: updatedPrayerData.status as PrayerPoint['status'], // Ensure status matches the expected type
+    }));
   };
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
+    if (!updatedPrayer.title.trim()) {
       Alert.alert('Error', 'Please add a title');
       return;
     }
@@ -104,55 +62,25 @@ export default function PrayerPointMetadataScreen() {
 
     setIsLoading(true);
     try {
-      if (isEditMode && prayerId) {
-        // // Update existing prayer
-        // const updateData: UpdatePrayerDTO = {
-        //   title: title.trim(),
-        //   content: content,
-        //   privacy: privacy,
-        //   tags: selectedTags,
-        // };
-        // await prayerService.updatePrayer(prayerId, updateData);
-        // Alert.alert('Success', 'Prayer updated successfully');
-        // router.push('/(tabs)/(prayers)');
-      } else {
-        // Create new prayer point
-        const prayerData: CreatePrayerPointDTO = {
-          title: title.trim(),
-          content: content,
-          privacy: privacy,
-          tags: selectedTags,
-          authorId: auth.currentUser.uid,
-          authorName: auth.currentUser.displayName,
-          status: 'open',
-          isPinned: false,
+      // Create new prayer point
+      const prayerData: CreatePrayerPointDTO = {
+        title: updatedPrayer.title.trim(),
+        content: updatedPrayer.content,
+        privacy: updatedPrayer.privacy ?? 'private',
+        tags: updatedPrayer.tags,
+        authorId: auth.currentUser.uid || 'unknown',
+        authorName: auth.currentUser.displayName || 'unknown',
+        status: 'open',
+        recipientName: 'unknown',
+        recipientId: 'unknown',
+        createdAt: new Date(),
+      };
 
-          // Optional fields
-          prayerId: prayerId, // Supports string or string[]
-          type: type, // Single prayer type (legacy)
-          recipientName: recipientName ?? '',
-          recipientId: recipientId ?? '',
-          prayerUpdates: prayerUpdates ?? [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+      await prayerService.createPrayerPoint(prayerData);
 
-        const prayerId = await prayerService.createPrayer(prayerData);
-
-        // get list of prayer point ids
-        const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
-
-        const updatePrayerPoints = {
-          prayerPoints: prayerPointIds,
-        } as UpdatePrayerDTO;
-
-        // update the original prayer with the list of ids
-        await prayerService.updatePrayer(prayerId, updatePrayerPoints);
-
-        Alert.alert('Success', 'Prayer created successfully');
-        router.dismissAll(); // resets 'createPrayer' stack.
-        router.replace('/(tabs)/(prayers)');
-      }
+      Alert.alert('Success', 'Prayer Point created successfully');
+      router.replace('/(tabs)/(prayers)');
+      router.dismissAll(); // resets 'createPrayer' stack.
     } catch (error) {
       console.error(
         `Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
@@ -173,6 +101,7 @@ export default function PrayerPointMetadataScreen() {
         editMode={'create'}
         prayerOrPrayerPoint={'prayerPoint'}
         backgroundColor={colorScheme}
+        onChange={(updatedPrayerData) => handlePrayerUpdate(updatedPrayerData)}
       ></PrayerContent>
 
       <View style={styles.section}>
@@ -188,18 +117,6 @@ export default function PrayerPointMetadataScreen() {
           </View>
         </View>
       </View>
-
-      {/* {isEditMode && (
-        <TouchableOpacity
-          style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
-          onPress={handleDelete}
-          disabled={isDeleting}
-        >
-          <ThemedText style={styles.deleteButtonText}>
-            {isDeleting ? 'Deleting...' : 'Delete Prayer'}
-          </ThemedText>
-        </TouchableOpacity>
-      )} */}
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -240,17 +157,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-  },
-  deleteButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.purple,
-    borderRadius: 12,
-    padding: 16,
-  },
-  deleteButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '600',
   },
   label: {
     fontSize: 16,

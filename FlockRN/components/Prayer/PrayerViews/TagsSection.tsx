@@ -38,7 +38,7 @@ const TagsList = ({ tags, onChange }: TagsListProps) => {
 
   const sortedTags = useMemo(() => {
     return [...selectedTags].sort((a, b) => tags.indexOf(a) - tags.indexOf(b));
-  }, [selectedTags]);
+  }, [selectedTags, tags]);
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

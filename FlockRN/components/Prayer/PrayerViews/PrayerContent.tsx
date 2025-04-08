@@ -1,23 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
-import { PrayerType } from '@/types/firebase';
+import { Prayer, PrayerPoint, PrayerType } from '@/types/firebase';
 
 export function PrayerContent({
   editMode,
   backgroundColor,
   prayerOrPrayerPoint,
   prayerId,
+  onChange, // New prop to receive the callback
 }: {
   editMode: 'create' | 'edit' | 'view';
   backgroundColor?: string;
   prayerOrPrayerPoint: 'prayer' | 'prayerPoint';
   prayerId?: string; // only required for edit and view modes
+  onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
 }): JSX.Element {
-  const { userPrayers, userPrayerPoints, updateCollection } =
-    usePrayerCollection();
+  const { userPrayers, userPrayerPoints } = usePrayerCollection();
 
   const selectedPrayer =
     prayerOrPrayerPoint === 'prayer'
@@ -34,33 +35,30 @@ export function PrayerContent({
 
   const handleTitleChange = (text: string) => {
     setEditableTitle(text);
-    if (selectedPrayer) {
-      const updatedPrayer = { ...selectedPrayer, title: editableTitle || '' };
-      updateCollection(updatedPrayer, prayerOrPrayerPoint);
-    }
   };
 
   const handleContentChange = (text: string) => {
     setEditableContent(text);
-    if (selectedPrayer) {
-      const updatedPrayer = {
-        ...selectedPrayer,
-        content: editableContent || '',
-      };
-      updateCollection(updatedPrayer, prayerOrPrayerPoint);
-    }
   };
 
   const handleTagsChange = (tags: PrayerType[]) => {
     setUpdatedTags(tags);
-    if (selectedPrayer) {
-      const updatedPrayer = {
-        ...selectedPrayer,
-        tags: updatedTags || [],
-      };
-      updateCollection(updatedPrayer, prayerOrPrayerPoint);
-    }
   };
+
+  useEffect(() => {
+    const updatedPrayer = {
+      ...selectedPrayer,
+      title: editableTitle || '',
+      content: editableContent || '',
+      tags: updatedTags || [],
+    };
+
+    if (prayerOrPrayerPoint === 'prayer') {
+      onChange?.(updatedPrayer as Prayer);
+    } else {
+      onChange?.(updatedPrayer as PrayerPoint);
+    }
+  }, [editableTitle, editableContent, updatedTags]);
 
   const formattedDate = (() => {
     if (!selectedPrayer?.createdAt) return 'Unknown Date'; // Handle missing date
@@ -69,7 +67,7 @@ export function PrayerContent({
       selectedPrayer.createdAt instanceof Date
         ? selectedPrayer.createdAt
         : typeof selectedPrayer.createdAt === 'object' &&
-          'seconds' in selectedPrayer.createdAt
+            'seconds' in selectedPrayer.createdAt
           ? new Date(selectedPrayer.createdAt.seconds * 1000)
           : new Date(selectedPrayer.createdAt);
 
@@ -83,7 +81,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === 'edit' || editMode === 'create') &&
-        prayerOrPrayerPoint === 'prayerPoint' ? (
+      prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}
@@ -108,7 +106,7 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{content}</ThemedText>
       )}
-      <TagsSection tags={tags} onChange={handleTagsChange} />
+      <TagsSection tags={updatedTags} onChange={handleTagsChange} />
     </View>
   );
 }

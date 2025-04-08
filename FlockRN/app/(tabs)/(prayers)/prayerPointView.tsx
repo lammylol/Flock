@@ -48,7 +48,7 @@ const PrayerPointView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [user]);
+  }, [prayerPointId, updateCollection]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -81,7 +81,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-          'seconds' in prayerPoint.createdAt
+            'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
