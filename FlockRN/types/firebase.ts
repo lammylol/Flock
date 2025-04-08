@@ -1,7 +1,7 @@
 // ramon jiang
 // 1/29/25
 // set all types for Firebase
-import { allTags, prayerTypes } from '@/types/Tag';
+import { allTags } from '@/types/Tag';
 
 export interface UserProfile {
   email: string;
@@ -53,8 +53,7 @@ export interface Prayer {
   updatedAt: Date;
   privacy: Privacy;
   prayerPoints: string[];
-  prayerTypes: PrayerType[];
-  tags?: PrayerTag[];
+  tags?: PrayerType[];
   status?: 'open' | 'answered' | 'closed';
   isPinned?: boolean;
 }
@@ -69,13 +68,12 @@ export interface PrayerPoint {
   authorId: string;
   prayerId?: string | string[];
   // Support for both single type (legacy) and multiple types (new)
-  type: PrayerType;
-  status: Status;
-  privacy: Privacy;
+  tag?: PrayerType;
+  status?: Status;
+  privacy?: Privacy;
   recipientName?: string;
   recipientId?: string;
   prayerUpdates?: PrayerPointUpdate[];
-  tags?: PrayerTag[];
 }
 
 export interface PrayerPointUpdate {

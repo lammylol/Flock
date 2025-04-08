@@ -7,23 +7,39 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { PrayerType } from '@/types/firebase';
+import { tagDisplayNames, allTags } from '@/types/Tag';
+import { CreatePrayerDTO, PrayerTag, PrayerType } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
+import { prayerService } from '@/services/prayer/prayerService';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface TagsListProps {
+  prayerId: string;
   tags: PrayerType[];
-  onChange?: (tags: PrayerType[]) => void;
 }
 
 const getTagColor = (tag: string) =>
-  Colors.tagColors.typeColors[
-  tag as keyof typeof Colors.tagColors.typeColors
+  Colors.tagColors.selectedColors[
+  tag as keyof typeof Colors.tagColors.selectedColors
   ] || Colors.tagColors.defaultTag;
 
-const TagsList = ({ tags, onChange }: TagsListProps) => {
-  const [selectedTags, setSelectedTags] = useState<PrayerType[]>(tags);
+const getTagName = (tag: string) => tagDisplayNames[tag] || tag;
+
+// Provide opposite tags to be deselected to ensure mutual exclusivity.
+// Current vs. Answered. Praise vs. Prayer Request.
+const oppositeTags = (tag: PrayerTag): PrayerTag => {
+  const tagMap: Partial<Record<PrayerTag, PrayerTag>> = {
+    answered: 'current',
+    current: 'answered',
+    prayerRequest: 'praise',
+    praise: 'prayerRequest',
+  };
+  return tagMap[tag] || tag;
+};
+
+const TagsList = ({ prayerId, tags }: TagsListProps) => {
+  const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(tags);
   const [expanded, setExpanded] = useState(false);
   const backgroundColor = useThemeColor(
     { light: Colors.brown1, dark: Colors.black },
@@ -36,7 +52,9 @@ const TagsList = ({ tags, onChange }: TagsListProps) => {
   }, [tags]);
 
   const sortedTags = useMemo(() => {
-    return [...selectedTags].sort((a, b) => tags.indexOf(a) - tags.indexOf(b));
+    return [...selectedTags].sort(
+      (a, b) => allTags.indexOf(a) - allTags.indexOf(b),
+    );
   }, [selectedTags]);
 
   const toggleExpand = () => {
@@ -44,23 +62,33 @@ const TagsList = ({ tags, onChange }: TagsListProps) => {
     setExpanded((prev) => !prev);
   };
 
-  const toggleTag = (tag: PrayerType) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
+  const toggleTag = (tag: PrayerTag) => {
+    setSelectedTags((prev) => {
+      if (prev.includes(tag)) {
+        return prev.filter((t) => t !== tag);
+      } else if (
+        ['current', 'answered', 'prayerRequest', 'praise'].includes(tag)
+      ) {
+        return [...prev.filter((t) => t !== oppositeTags(tag)), tag];
+      } else {
+        return [...prev, tag];
+      }
+    });
   };
 
   const saveTags = async () => {
     toggleExpand();
     try {
-      onChange?.(selectedTags);
+      await prayerService.updatePrayer(prayerId, {
+        tags: selectedTags,
+      } as CreatePrayerDTO);
     } catch {
       console.error('Error updating tags');
     }
   };
 
   const renderTag = useCallback(
-    (tag: PrayerType, isSelectable = false) => (
+    (tag: PrayerTag, isSelectable = false) => (
       <TouchableOpacity
         key={tag}
         style={[
@@ -79,7 +107,7 @@ const TagsList = ({ tags, onChange }: TagsListProps) => {
             selectedTags.includes(tag) && styles.selectedTagText,
           ]}
         >
-          {tag.charAt(0).toUpperCase() + tag.slice(1)}
+          {getTagName(tag)}
         </Text>
       </TouchableOpacity>
     ),
@@ -87,7 +115,7 @@ const TagsList = ({ tags, onChange }: TagsListProps) => {
   );
 
   const allTagsRendered = useMemo(
-    () => tags.map((tag) => renderTag(tag, true)),
+    () => allTags.map((tag) => renderTag(tag, true)),
     [renderTag],
   );
 

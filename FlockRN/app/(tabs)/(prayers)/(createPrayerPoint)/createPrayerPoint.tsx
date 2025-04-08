@@ -10,6 +10,7 @@ import {
   PrayerPoint,
   CreatePrayerPointDTO,
   PrayerTag,
+  PrayerType,
   UpdatePrayerDTO,
   PrayerType,
 } from '@/types/firebase';
@@ -31,7 +32,7 @@ export default function PrayerPointMetadataScreen() {
   const prayerId = params.id;
 
   // Parse tags if they exist in params
-  const initialTags: PrayerTag[] = params.tags
+  const initialTags: PrayerType[] = params.tags
     ? JSON.parse(params.tags as string)
     : [];
 
@@ -42,63 +43,37 @@ export default function PrayerPointMetadataScreen() {
   const [privacy, _setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
-  const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
+  const [selectedTags, setSelectedTags] = useState<PrayerType[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
   // const [isDeleting, setIsDeleting] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
 
-  const handlePrayerPoints = async (
-    prayerPoints: PrayerPoint[],
-    prayerId: string,
-  ): Promise<string[]> => {
-    try {
-      // Transform prayer points
-      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
-        (prayerPoint) => ({
-          title: prayerPoint.title?.trim() || 'Untitled',
-          type: prayerPoint.type?.trim() as PrayerType,
-          content: prayerPoint.content?.trim() || '',
-          createdAt: new Date(),
-          authorId: auth.currentUser?.uid || 'unknown',
-          authorName: auth.currentUser?.displayName || 'Unknown',
-          status: prayerPoint.status || 'open',
-          privacy: prayerPoint.privacy ?? 'private',
-          prayerId: prayerId,
-          recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
-          prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
-          tags: prayerPoint.tags || [], // Default to an empty array
-        }),
-      );
-
-      // Save to Firestore
-      const prayerPointIds =
-        await prayerService.addPrayerPoints(mappedPrayerPoints);
-
-      return prayerPointIds;
-    } catch (err) {
-      console.error('Error parsing prayer points:', err);
-      return [];
-    }
+  const toggleTag = (tag: PrayerType) => {
+    setSelectedTags((prevTags) =>
+      prevTags.includes(tag)
+        ? prevTags.filter((t) => t !== tag)
+        : [...prevTags, tag],
+    );
   };
 
-  // const handleDelete = async () => {
-  //   // Confirm deletion
-  //   Alert.alert(
-  //     'Delete Prayer',
-  //     'Are you sure you want to delete this prayer? This action cannot be undone.',
-  //     [
-  //       {
-  //         text: 'Cancel',
-  //         style: 'cancel',
-  //       },
-  //       {
-  //         text: 'Delete',
-  //         style: 'destructive',
-  //         onPress: async () => {
-  //           if (!prayerId || !auth.currentUser?.uid) {
-  //             Alert.alert('Error', 'Cannot delete prayer');
-  //             return;
-  //           }
+  const handleDelete = async () => {
+    // Confirm deletion
+    Alert.alert(
+      'Delete Prayer',
+      'Are you sure you want to delete this prayer? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (!prayerId || !auth.currentUser?.uid) {
+              Alert.alert('Error', 'Cannot delete prayer');
+              return;
+            }
 
   //           setIsDeleting(true);
   //           try {

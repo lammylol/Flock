@@ -27,6 +27,7 @@ export function PrayerContent({
   const content = selectedPrayer?.content;
   const tags = selectedPrayer?.tags || [];
 
+  const [updatedTags, setUpdatedTags] = useState<string[]>(tags);
   const [editableTitle, setEditableTitle] = useState(title);
   const [editableContent, setEditableContent] = useState(content);
 
@@ -38,6 +39,10 @@ export function PrayerContent({
   const handleContentChange = (text: string) => {
     setEditableContent(text);
     updateCollection({ ...selectedPrayer }, prayerOrPrayerPoint);
+  };
+
+  const handleTagsChange = (newTags: string[]) => {
+    setUpdatedTags(newTags);
   };
 
   const formattedDate = (() => {
@@ -86,7 +91,7 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{content}</ThemedText>
       )}
-      <TagsSection tags={tags} prayerId={selectedPrayer?.id || ''} />
+      <TagsSection tags={tags} onChange={handleTagsChange} />
     </View>
   );
 }
