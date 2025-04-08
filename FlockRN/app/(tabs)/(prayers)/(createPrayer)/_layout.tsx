@@ -9,10 +9,10 @@ export default function CreatePrayerFlowLayout() {
           headerShown: true,
           headerShadowVisible: false,
         }}
-        initialRouteName="index"
+        initialRouteName="createPrayer"
       >
         <Stack.Screen
-          name="index"
+          name="createPrayer"
           options={{
             title: 'Add Prayer',
           }}

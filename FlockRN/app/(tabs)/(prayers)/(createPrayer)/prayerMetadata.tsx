@@ -42,7 +42,7 @@ export default function PrayerMetadataScreen() {
 
   const [content, setContent] = useState(params?.content || '');
   const [title, setTitle] = useState(params?.title || '');
-  const [privacy, _setPrivacy] = useState<'public' | 'private'>(
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -240,8 +240,8 @@ export default function PrayerMetadataScreen() {
         await prayerService.updatePrayer(prayerId, updatePrayerPoints);
 
         Alert.alert('Success', 'Prayer created successfully');
-        router.dismissAll(); // resets 'createPrayer' stack.
         router.replace('/(tabs)/(prayers)');
+        // router.dismissAll(); // resets 'createPrayer' stack.
       }
     } catch (error) {
       console.error(
@@ -362,11 +362,6 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: Colors.disabled,
   },
-  headerText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 12,
-  },
   buttonText: {
     color: Colors.white,
     fontSize: 16,
@@ -374,6 +369,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
+
   contentContainer: {
     position: 'relative',
   },
@@ -397,6 +393,11 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 12,
   },
   label: {
     fontSize: 16,
