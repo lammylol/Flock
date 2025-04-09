@@ -30,7 +30,7 @@ export default function PrayerPointMetadataScreen() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
-  const [updatedPrayer, setUpdatedPrayer] = useState<PrayerPoint>({
+  const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
     id: '',
     title: '',
     content: '',
@@ -42,7 +42,7 @@ export default function PrayerPointMetadataScreen() {
   });
 
   const handlePrayerUpdate = (updatedPrayerData: Prayer | PrayerPoint) => {
-    setUpdatedPrayer((prevPrayer) => ({
+    setUpdatedPrayerPoint((prevPrayer) => ({
       ...prevPrayer,
       ...updatedPrayerData,
       status: updatedPrayerData.status as PrayerPoint['status'], // Ensure status matches the expected type
@@ -50,7 +50,7 @@ export default function PrayerPointMetadataScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!updatedPrayer.title.trim()) {
+    if (!updatedPrayerPoint.title.trim()) {
       Alert.alert('Error', 'Please add a title');
       return;
     }
@@ -64,10 +64,10 @@ export default function PrayerPointMetadataScreen() {
     try {
       // Create new prayer point
       const prayerData: CreatePrayerPointDTO = {
-        title: updatedPrayer.title.trim(),
-        content: updatedPrayer.content,
-        privacy: updatedPrayer.privacy ?? 'private',
-        tags: updatedPrayer.tags,
+        title: updatedPrayerPoint.title.trim(),
+        content: updatedPrayerPoint.content,
+        privacy: updatedPrayerPoint.privacy ?? 'private',
+        tags: updatedPrayerPoint.tags,
         authorId: auth.currentUser.uid || 'unknown',
         authorName: auth.currentUser.displayName || 'unknown',
         status: 'open',
