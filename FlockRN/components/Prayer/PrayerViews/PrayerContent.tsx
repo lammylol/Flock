@@ -67,7 +67,7 @@ export function PrayerContent({
       selectedPrayer.createdAt instanceof Date
         ? selectedPrayer.createdAt
         : typeof selectedPrayer.createdAt === 'object' &&
-            'seconds' in selectedPrayer.createdAt
+          'seconds' in selectedPrayer.createdAt
           ? new Date(selectedPrayer.createdAt.seconds * 1000)
           : new Date(selectedPrayer.createdAt);
 
@@ -81,7 +81,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === 'edit' || editMode === 'create') &&
-      prayerOrPrayerPoint === 'prayerPoint' ? (
+        prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}
@@ -106,7 +106,11 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{content}</ThemedText>
       )}
-      <TagsSection tags={updatedTags} onChange={handleTagsChange} />
+      <TagsSection
+        tags={updatedTags}
+        onChange={handleTagsChange}
+        editMode={editMode}
+      />
     </View>
   );
 }

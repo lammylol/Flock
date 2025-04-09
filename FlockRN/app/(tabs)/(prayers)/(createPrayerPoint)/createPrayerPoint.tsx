@@ -135,9 +135,9 @@ export default function PrayerPointMetadataScreen() {
               <ThemedText style={styles.privacyValue}>
                 {privacy === 'private' ? 'Private' : 'Public'}
               </ThemedText>
-              {privacy === 'private' && (
+              {/* {privacy === 'private' && (
                 <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-              )}
+              )} */}
             </View>
           </View>
         </View>
@@ -188,8 +188,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 20,
+    fontWeight: '600',
   },
   lockIcon: {
     fontSize: 16,
@@ -204,7 +204,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   privacyValue: {
-    fontSize: 16,
+    color: Colors.link,
+    fontSize: 18,
+    fontWeight: '400',
     marginRight: 4,
   },
   privacyValueContainer: {
@@ -218,7 +220,7 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   section: {
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.grey1,
     borderRadius: 12,
     padding: 16,
   },
