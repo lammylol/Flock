@@ -13,8 +13,9 @@
       "bundleIdentifier": "com.lammylol.FlockRN",
       "googleServicesFile": "./firebase/GoogleService-Info.plist",
       "infoPlist": {
-        "NSSpeechRecognitionUsageDescription": "We need access to speech recognition to enable voice commands and transcription.",
-        "NSMicrophoneUsageDescription": "We need access to the microphone for capturing your voice input."
+        "NSSpeechRecognitionUsageDescription": "Allow $(PRODUCT_NAME) to use speech recognition.",
+        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to use the microphone.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -23,7 +24,11 @@
         "backgroundColor": "#ffffff"
       },
       "googleServicesFile": "./firebase/google-services.json",
-      "package": "com.lammylol.FlockRN"
+      "package": "com.lammylol.FlockRN",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",

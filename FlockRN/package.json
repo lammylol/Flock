@@ -19,7 +19,9 @@
     "clean:ios": "rm -rf ios",
     "clean:android": "rm -rf android",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "eas-build-pre-install": "node plugins/writeGoogleServiceInfo.js",
+    "build": "expo build"
   },
   "jest": {
     "preset": "jest-expo"
@@ -37,7 +39,7 @@
     "expo-audio": "~0.3.4",
     "expo-blur": "~14.0.3",
     "expo-constants": "~17.0.7",
-    "expo-dev-client": "~5.0.12",
+    "expo-dev-client": "~5.0.19",
     "expo-font": "~13.0.3",
     "expo-haptics": "~14.0.1",
     "expo-linear-gradient": "~14.0.2",
@@ -56,7 +58,7 @@
     "or": "^0.2.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-native": "0.76.8",
+    "react-native": "0.76.9",
     "react-native-calendars": "^1.1308.1",
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-gesture-handler": "~2.20.2",
