@@ -206,8 +206,6 @@ class PrayerService {
       throw error;
     }
   }
-  // Add a list of prayer points, then return the list of prayer IDs.
-  async addPrayerPoint(prayerPoints: PrayerPointDTO): Promise<string[]> { }
 
   async getPrayerPoints(
     prayerId: string,
@@ -230,6 +228,20 @@ class PrayerService {
       return querySnapshot.docs.map(
         (doc) => this.convertDocToPrayerPoint(doc) as PrayerPoint,
       );
+    } catch (error) {
+      console.error('Error getting prayer points:', error);
+      throw error;
+    }
+  }
+
+  async getPrayerPoint(prayerPointId: string): Promise<PrayerPoint | null> {
+    try {
+      const docRef = doc(this.prayerPointsCollection, prayerPointId);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) return null;
+
+      return this.convertDocToPrayerPoint(docSnap);
     } catch (error) {
       console.error('Error getting prayer points:', error);
       throw error;

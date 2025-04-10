@@ -21,8 +21,7 @@ import {
   UpdatePrayerDTO,
 } from '@/types/firebase';
 import { allTags } from '@/types/Tag';
-import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
-import PrayerContent from '@/components/Prayer/PrayerView/PrayerContent';
+import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function PrayerPointMetadataScreen() {

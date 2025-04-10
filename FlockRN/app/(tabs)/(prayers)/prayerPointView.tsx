@@ -6,38 +6,41 @@ import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
+import { ThemedText } from '@/components/ThemedText';
 import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
-import { PrayerPoint } from '@/types/firebase';
-import { forEach } from 'lodash';
 
-const PrayerView = () => {
-  const { id } = useLocalSearchParams<{
+const PrayerPointView = () => {
+  const { id: prayerPointId } = useLocalSearchParams() as {
     id: string;
-  }>();
+  };
 
-  const { userPrayers, updateCollection } = usePrayerCollection();
+  const { userPrayerPoints, updateCollection } = usePrayerCollection();
 
-  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
-  // this sits separate since prayer points in prayer are loaded in prayer view only.
-
-  const prayer = userPrayers.find((prayer) => prayer.id === id);
+  // Use the collection to get the latest data
+  const prayerPoint =
+    userPrayerPoints.find((p) => p.id === prayerPointId) || null;
 
   const user = useAuthContext().user;
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const colorScheme = useThemeColor({}, 'backgroundSecondary');
-  const isOwner = prayer && user && prayer.authorId === user.uid;
+  const backgroundColor = useThemeColor({}, 'backgroundSecondary');
+  const textColor = useThemeColor({}, 'textPrimary');
+  const isOwner = prayerPoint && user && prayerPoint.authorId === user.uid;
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const fetchPrayer = useCallback(async () => {
+  useEffect(() => {
+    console.log('PrayerPointId:', prayerPointId);
+  }, [prayerPointId]);
+
+  const fetchPrayerPoint = useCallback(async () => {
     try {
-      const fetchedPrayer = await prayerService.getPrayer(id);
+      const fetchedPrayer = await prayerService.getPrayerPoint(prayerPointId);
+      // console.log('Fetched prayer:', fetchedPrayer);
       if (fetchedPrayer) {
-        updateCollection(fetchedPrayer, 'prayer');
+        updateCollection(fetchedPrayer, 'prayerPoint');
       }
     } catch (err) {
       console.error(err);
@@ -45,37 +48,11 @@ const PrayerView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [id, user]);
-
-  const fetchPrayerPoints = useCallback(async () => {
-    try {
-      if (user && (prayer?.prayerPoints ?? []).length > 0) {
-        const fetchedPrayerPoints = await prayerService.getPrayerPoints(
-          id,
-          user,
-        );
-        setPrayerPoints(fetchedPrayerPoints ?? []);
-        forEach(fetchedPrayerPoints, (prayerPoint) =>
-          updateCollection(prayerPoint, 'prayerPoint'),
-        );
-      }
-      console.log('Fetched prayer points:', prayerPoints);
-    } catch (err) {
-      console.error(err);
-      setError('Prayer points could not be fetched. Please try again.');
-    } finally {
-      setRefreshing(false);
-    }
-  }, [id, user]);
-
-  useEffect(() => {
-    fetchPrayerPoints(); // Fetch only prayer points. Prayer is fetched in the prayer view.
-  }, [id]);
+  }, [user]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchPrayer();
-    fetchPrayerPoints();
+    fetchPrayerPoint();
   };
 
   useEffect(() => {
@@ -83,19 +60,37 @@ const PrayerView = () => {
   }, []); // Scroll to bottom whenever messages change
 
   const handleEdit = () => {
-    if (!prayer) return;
+    if (!prayerPoint) return;
 
     // Navigate to metadata screen with all the prayer data
     router.push({
       pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: {
-        id: prayer.id,
-        content: prayer.content,
-        privacy: prayer.privacy,
+        id: prayerPoint.id,
+        content: prayerPoint.content,
+        privacy: prayerPoint.privacy,
         mode: 'edit',
       },
     });
   };
+
+  const formattedDate = (() => {
+    if (!prayerPoint?.createdAt) return 'Unknown Date'; // Handle missing date
+
+    const date =
+      prayerPoint.createdAt instanceof Date
+        ? prayerPoint.createdAt
+        : typeof prayerPoint.createdAt === 'object' &&
+          'seconds' in prayerPoint.createdAt
+          ? new Date(prayerPoint.createdAt.seconds * 1000)
+          : new Date(prayerPoint.createdAt);
+
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  })();
 
   return (
     <ThemedScrollView
@@ -109,7 +104,7 @@ const PrayerView = () => {
           errorMessage="Sorry, your prayer can't be loaded right now."
         />
       ) : (
-        prayer && (
+        prayerPoint && (
           <>
             <Stack.Screen
               options={{
@@ -121,12 +116,15 @@ const PrayerView = () => {
                 // title: 'Prayer',
               }}
             />
+            <ThemedText style={[styles.createdAtText, { color: textColor }]}>
+              Created on: {formattedDate}
+            </ThemedText>
+
             <PrayerContent
-              prayerId={id}
-              prayerOrPrayerPoint={'prayer'}
-              backgroundColor={colorScheme}
+              prayerId={prayerPointId}
+              prayerOrPrayerPoint={'prayerPoint'}
+              backgroundColor={backgroundColor}
             />
-            {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
           </>
         )
       )}
@@ -135,11 +133,19 @@ const PrayerView = () => {
 };
 
 const styles = StyleSheet.create({
+  createdAtText: {
+    fontSize: 14,
+    fontWeight: '300',
+    lineHeight: 20,
+    marginBottom: 0,
+    paddingLeft: 20,
+  },
   scrollView: {
     flex: 1,
+    gap: 10,
     paddingBottom: 16,
     paddingHorizontal: 20,
   },
 });
 
-export default PrayerView;
+export default PrayerPointView;

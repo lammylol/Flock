@@ -21,7 +21,7 @@ import {
   UpdatePrayerDTO,
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
-import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
+import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
 
@@ -72,8 +72,8 @@ export default function PrayerMetadataScreen() {
         (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
-          type: (prayerPoint.types && prayerPoint.types.length > 0 
-            ? prayerPoint.types[0] 
+          type: (prayerPoint.types && prayerPoint.types.length > 0
+            ? prayerPoint.types[0]
             : 'request') as 'request' | 'praise' | 'repentance',
           // Store the full types array for the new functionality
           types: prayerPoint.types || ['request'],
@@ -113,13 +113,13 @@ export default function PrayerMetadataScreen() {
         );
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
-        
+
         // Assign a UUID if the prayer point doesn't already have an ID
         const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
           ...point,
           id: uuid.v4(), // Ensure each has a unique ID
           // Initialize with default type as array for new UI
-          types: point.type ? [point.type] : ['request']
+          types: point.type ? [point.type] : ['request'],
         }));
 
         setPrayerPoints(updatedPrayerPoints);
@@ -132,7 +132,13 @@ export default function PrayerMetadataScreen() {
     };
     // Perform AI fill when content is available after navigation, but after 4 seconds.
     // This ensures that the full transcription is returned before before processing with AI.
-    if (content && !title && !isTranscribing && userOptInFlags.optInAI && !isEditMode) {
+    if (
+      content &&
+      !title &&
+      !isTranscribing &&
+      userOptInFlags.optInAI &&
+      !isEditMode
+    ) {
       analyzeContent();
     }
   }, [
@@ -283,7 +289,9 @@ export default function PrayerMetadataScreen() {
 
       {/* 3. Prayer Content Section with Title */}
       <View style={styles.section}>
-        <ThemedText type="default" style={styles.headerText}>Prayer</ThemedText>
+        <ThemedText type="default" style={styles.headerText}>
+          Prayer
+        </ThemedText>
         <View style={styles.contentContainer}>
           <TextInput
             style={styles.contentInput}
