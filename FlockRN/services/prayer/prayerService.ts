@@ -25,7 +25,7 @@ import {
   PrayerPoint,
   CreatePrayerDTO,
   UpdatePrayerDTO,
-  PrayerPointDTO,
+  CreatePrayerPointDTO,
 } from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
@@ -181,7 +181,9 @@ class PrayerService {
   }
 
   // Add a list of prayer points, then return the list of prayer IDs.
-  async addPrayerPoints(prayerPoints: PrayerPointDTO[]): Promise<string[]> {
+  async addPrayerPoints(
+    prayerPoints: CreatePrayerPointDTO[],
+  ): Promise<string[]> {
     const now = Timestamp.now();
 
     try {
@@ -203,6 +205,41 @@ class PrayerService {
       return await Promise.all(writePromises);
     } catch (error) {
       console.error('Error adding prayer points:', error);
+      throw error;
+    }
+  }
+
+  async createPrayerPoint(data: CreatePrayerPointDTO): Promise<string> {
+    try {
+      const now = Timestamp.now();
+
+      const docRef = await addDoc(this.prayerPointsCollection, {
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // After the document is created, update it with the generated ID
+      await updateDoc(docRef, { id: docRef.id });
+
+      // If prayer is public, add to author's feed
+      if (data.privacy === 'public') {
+        const feedPrayerRef = doc(
+          db,
+          FirestoreCollections.FEED,
+          data.authorId,
+          FirestoreCollections.PRAYERPOINTS,
+          docRef.id,
+        );
+        await setDoc(feedPrayerRef, {
+          id: docRef.id,
+          addedAt: now,
+        });
+      }
+
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating prayer:', error);
       throw error;
     }
   }

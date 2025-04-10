@@ -1,46 +1,65 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { Prayer, PrayerPoint, PrayerType } from '@/types/firebase';
 
 export function PrayerContent({
-  isEditMode,
+  editMode,
   backgroundColor,
   prayerOrPrayerPoint,
   prayerId,
+  onChange, // New prop to receive the callback
 }: {
-  isEditMode?: boolean;
+  editMode: 'create' | 'edit' | 'view';
   backgroundColor?: string;
   prayerOrPrayerPoint: PrayerOrPrayerPointType;
-  prayerId: string;
+  prayerId?: string; // only required for edit and view modes
+  onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
 }): JSX.Element {
-  const { userPrayers, userPrayerPoints, updateCollection } =
-    usePrayerCollection();
+  const { userPrayers, userPrayerPoints } = usePrayerCollection();
 
   const selectedPrayer =
     prayerOrPrayerPoint === 'prayer'
       ? userPrayers.find((prayer) => prayer.id === prayerId)
       : userPrayerPoints.find((prayerPoint) => prayerPoint.id === prayerId);
 
-  const title = selectedPrayer?.title || 'Untitled Prayer';
-  const content = selectedPrayer?.content || 'Untitled Prayer';
+  const title = selectedPrayer?.title;
+  const content = selectedPrayer?.content;
   const tags = selectedPrayer?.tags || [];
 
+  const [updatedTags, setUpdatedTags] = useState<PrayerType[]>(tags);
   const [editableTitle, setEditableTitle] = useState(title);
   const [editableContent, setEditableContent] = useState(content);
-  console.log('PrayerContent', { title, content, tags });
 
   const handleTitleChange = (text: string) => {
     setEditableTitle(text);
-    updateCollection({ ...selectedPrayer }, prayerOrPrayerPoint);
   };
 
   const handleContentChange = (text: string) => {
     setEditableContent(text);
-    updateCollection({ ...selectedPrayer }, prayerOrPrayerPoint);
   };
+
+  const handleTagsChange = (tags: PrayerType[]) => {
+    setUpdatedTags(tags);
+  };
+
+  useEffect(() => {
+    const updatedPrayer = {
+      ...selectedPrayer,
+      title: editableTitle || '',
+      content: editableContent || '',
+      tags: updatedTags || [],
+    };
+
+    if (prayerOrPrayerPoint === 'prayer') {
+      onChange?.(updatedPrayer as Prayer);
+    } else {
+      onChange?.(updatedPrayer as PrayerPoint);
+    }
+  }, [editableTitle, editableContent, updatedTags]);
 
   const formattedDate = (() => {
     if (!selectedPrayer?.createdAt) return 'Unknown Date'; // Handle missing date
@@ -62,30 +81,33 @@ export function PrayerContent({
 
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
-      {isEditMode && prayerOrPrayerPoint === 'prayerPoint' ? (
+      {(editMode === 'edit' || editMode === 'create') &&
+        prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}
           onChangeText={handleTitleChange}
           multiline
           maxLength={100}
+          placeholder="Enter a title"
         />
       ) : prayerOrPrayerPoint === 'prayerPoint' ? (
         <ThemedText style={styles.titleText}>{title}</ThemedText>
       ) : (
         <ThemedText style={styles.titleText}>{formattedDate}</ThemedText>
       )}
-      {isEditMode ? (
+      {editMode === 'edit' || editMode === 'create' ? (
         <TextInput
           style={[styles.contentText, styles.input]}
           value={editableContent}
           onChangeText={handleContentChange}
           multiline
+          placeholder="Enter your prayer point here"
         />
       ) : (
         <ThemedText style={styles.contentText}>{content}</ThemedText>
       )}
-      <TagsSection tags={tags} prayerId={selectedPrayer?.id || ''} />
+      <TagsSection tags={updatedTags} onChange={handleTagsChange} />
     </View>
   );
 }

@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
-    "Firestore"
+    "Firestore",
+    "PRAYERPOINTS"
   ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit",

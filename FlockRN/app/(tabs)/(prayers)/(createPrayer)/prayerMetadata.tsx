@@ -17,7 +17,7 @@ import uuid from 'react-native-uuid';
 import {
   CreatePrayerDTO,
   PrayerPoint,
-  PrayerPointDTO,
+  CreatePrayerPointDTO,
   UpdatePrayerDTO,
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
@@ -42,7 +42,7 @@ export default function PrayerMetadataScreen() {
 
   const [content, setContent] = useState(params?.content || '');
   const [title, setTitle] = useState(params?.title || '');
-  const [privacy, _setPrivacy] = useState<'public' | 'private'>(
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +68,7 @@ export default function PrayerMetadataScreen() {
   ): Promise<string[]> => {
     try {
       // Transform prayer points
-      const mappedPrayerPoints: PrayerPointDTO[] = prayerPoints.map(
+      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
         (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
@@ -240,8 +240,8 @@ export default function PrayerMetadataScreen() {
         await prayerService.updatePrayer(prayerId, updatePrayerPoints);
 
         Alert.alert('Success', 'Prayer created successfully');
-        router.dismissAll(); // resets 'createPrayer' stack.
         router.replace('/(tabs)/(prayers)');
+        // router.dismissAll(); // resets 'createPrayer' stack.
       }
     } catch (error) {
       console.error(
@@ -349,20 +349,15 @@ const styles = StyleSheet.create({
   activityIndicator: {
     alignSelf: 'center',
   },
-  headerText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 12,
-  },
   button: {
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 12,
     flexDirection: 'row',
-    justifyContent: 'center',
     height: 60, // Fixed height for the button
-    padding: 16,
+    justifyContent: 'center',
     marginTop: 10,
+    padding: 16,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,
@@ -374,6 +369,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
   },
+
   contentContainer: {
     position: 'relative',
   },
@@ -389,14 +385,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 12,
-    padding: 16,
     height: 60, // Fixed height to match the submit button
     marginTop: 10,
+    padding: 16,
   },
   deleteButtonText: {
     color: Colors.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 12,
   },
   label: {
     fontSize: 16,

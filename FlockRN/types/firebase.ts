@@ -1,7 +1,7 @@
 // ramon jiang
 // 1/29/25
 // set all types for Firebase
-import { PrayerTag, PrayerType, Privacy } from './PrayerSubtypes';
+import { PrayerTag, PrayerTag, Privacy } from './PrayerSubtypes';
 
 export interface UserProfile {
   email: string;
@@ -38,6 +38,11 @@ export interface Group {
   createdAt: Date;
 }
 
+export type PrayerTag = (typeof allTags)[number];
+export type PrayerType = 'request' | 'praise' | 'repentance';
+export type Privacy = 'public' | 'private';
+export type Status = 'open' | 'closed' | null;
+
 export interface Prayer {
   id: string;
   content: string;
@@ -48,28 +53,24 @@ export interface Prayer {
   updatedAt: Date;
   privacy: Privacy;
   prayerPoints: string[];
-  prayerTypes: PrayerType[];
-  tags?: PrayerTag[];
+  tags?: PrayerType[];
 }
 
 export interface PrayerPoint {
-  id?: string;
-  title?: string;
-  content?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-  authorName?: string;
-  authorId?: string;
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+  authorName: string;
+  authorId: string;
   prayerId?: string | string[];
-  // Support for both single type (legacy) and multiple types (new)
-  type?: PrayerType;
-  types?: PrayerType[];
+  tags?: PrayerType[];
   status?: Status;
   privacy?: Privacy;
   recipientName?: string;
   recipientId?: string;
   prayerUpdates?: PrayerPointUpdate[];
-  tags?: PrayerTag[];
 }
 
 export interface PrayerPointUpdate {
@@ -102,9 +103,14 @@ export type UpdatePrayerDTO = Partial<
   Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>
 >;
 
-export interface PrayerPointDTO extends Omit<PrayerPoint, 'id' | 'prayerId'> {
-  prayerId: string;
-}
+export type CreatePrayerPointDTO = Omit<
+  PrayerPoint,
+  'id' | 'prayerId' | 'updatedAt'
+>;
+
+export type UpdatePrayerPointDTO = Partial<
+  Omit<PrayerPoint, 'id' | 'createdAt' | 'updatedAt'>
+>;
 
 export interface ServiceResponse {
   success: boolean;

@@ -17,3 +17,5 @@ export const tagDisplayNames: { [key: string]: string } = {
   health: 'Health',
   personal: 'Personal',
 };
+
+export const prayerTags = ['request', 'praise', 'repentance'];

@@ -48,7 +48,7 @@ const PrayerPointView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [user]);
+  }, [prayerPointId, updateCollection]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -81,7 +81,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-          'seconds' in prayerPoint.createdAt
+            'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
@@ -110,10 +110,6 @@ const PrayerPointView = () => {
               options={{
                 headerRight: () =>
                   isOwner && <HeaderButton onPress={handleEdit} label="Edit" />,
-                // headerLeft: () => (
-                //   <HeaderButton onPress={router.back} label="Back" />
-                // ),
-                // title: 'Prayer',
               }}
             />
             <ThemedText style={[styles.createdAtText, { color: textColor }]}>
@@ -121,6 +117,7 @@ const PrayerPointView = () => {
             </ThemedText>
 
             <PrayerContent
+              editMode="view"
               prayerId={prayerPointId}
               prayerOrPrayerPoint={'prayerPoint'}
               backgroundColor={backgroundColor}
