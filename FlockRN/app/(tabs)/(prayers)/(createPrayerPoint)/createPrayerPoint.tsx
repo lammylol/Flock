@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -12,11 +12,13 @@ import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { CreatePrayerPointDTO, Prayer, PrayerPoint } from '@/types/firebase';
+import { CreatePrayerPointDTO, Prayer, PrayerPoint, PrayerType, UpdatePrayerPointDTO } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -28,26 +30,88 @@ export default function PrayerPointMetadataScreen() {
     mode?: string;
   }>();
 
-  // Determine if we're in edit mode
-  const isEditMode = params.mode === 'edit';
+  // State for edit mode
+  const [isEditMode, setIsEditMode] = useState(false);
+  const { updateCollection } = usePrayerCollection();
 
-  // TODO implement privacy setting
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [privacy, _setPrivacy] = useState<'public' | 'private'>(
+  // Parse tags if they exist in params
+  const initialTags = params.tags ? JSON.parse(params.tags) as PrayerType[] : [];
+
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
   const [updatedPrayer, setUpdatedPrayer] = useState<PrayerPoint>({
-    id: '',
-    title: '',
-    content: '',
-    tags: [],
+    id: params.id || '',
+    title: params.title || '',
+    content: params.content || '',
+    tags: initialTags,
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: '',
     authorId: '',
+    privacy: (params?.privacy as 'public' | 'private') || 'private',
   });
+
+  // Load prayer point data from AsyncStorage if in edit mode
+  useEffect(() => {
+    const loadEditData = async () => {
+      try {
+        // Try to get edit data from AsyncStorage
+        const storedData = await AsyncStorage.getItem('editPrayerPoint');
+        
+        if (storedData) {
+          const editData = JSON.parse(storedData);
+          
+          // Set edit mode based on stored data
+          const isEdit = editData.mode === 'edit';
+          setIsEditMode(isEdit);
+          
+          if (isEdit && editData.id) {
+            try {
+              // Initialize form with stored data first
+              setUpdatedPrayer({
+                id: editData.id,
+                title: editData.title || '',
+                content: editData.content || '',
+                tags: editData.tags || [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                authorName: '',
+                authorId: '',
+                privacy: editData.privacy || 'private',
+              });
+              setPrivacy(editData.privacy || 'private');
+              
+              // Also fetch the complete data from the API
+              const prayerPoint = await prayerService.getPrayerPoint(editData.id);
+              
+              if (prayerPoint) {
+                setUpdatedPrayer(prevPrayer => ({
+                  ...prayerPoint,
+                  // Preserve any user edits that may have happened
+                  title: prevPrayer.title || prayerPoint.title,
+                  content: prevPrayer.content || prayerPoint.content,
+                  tags: prevPrayer.tags.length > 0 ? prevPrayer.tags : (prayerPoint.tags || []),
+                }));
+              }
+              
+              // Clear the stored data after loading
+              await AsyncStorage.removeItem('editPrayerPoint');
+            } catch (error) {
+              console.error('Error loading prayer point for editing:', error);
+              Alert.alert('Error', 'Failed to load prayer point data.');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error retrieving stored prayer point data:', error);
+      }
+    };
+
+    loadEditData();
+  }, []);
 
   const handlePrayerUpdate = (updatedPrayerData: Prayer | PrayerPoint) => {
     setUpdatedPrayer((prevPrayer) => ({
@@ -70,23 +134,45 @@ export default function PrayerPointMetadataScreen() {
 
     setIsLoading(true);
     try {
-      // Create new prayer point
-      const prayerData: CreatePrayerPointDTO = {
-        title: updatedPrayer.title.trim(),
-        content: updatedPrayer.content,
-        privacy: updatedPrayer.privacy ?? 'private',
-        tags: updatedPrayer.tags,
-        authorId: auth.currentUser.uid || 'unknown',
-        authorName: auth.currentUser.displayName || 'unknown',
-        status: 'open',
-        recipientName: 'unknown',
-        recipientId: 'unknown',
-        createdAt: new Date(),
-      };
+      if (isEditMode && updatedPrayer.id) {
+        // Update existing prayer point
+        const updateData: UpdatePrayerPointDTO = {
+          title: updatedPrayer.title.trim(),
+          content: updatedPrayer.content,
+          privacy: privacy,
+          tags: updatedPrayer.tags,
+        };
 
-      await prayerService.createPrayerPoint(prayerData);
+        await prayerService.editPrayerPoint(updatedPrayer.id, updateData);
+        
+        // Update the prayer point in the collection context
+        const updatedPrayerPoint = {
+          ...updatedPrayer,
+          ...updateData,
+          updatedAt: new Date(),
+        };
+        updateCollection(updatedPrayerPoint as PrayerPoint, 'prayerPoint');
 
-      Alert.alert('Success', 'Prayer Point created successfully');
+        Alert.alert('Success', 'Prayer Point updated successfully');
+      } else {
+        // Create new prayer point
+        const prayerData: CreatePrayerPointDTO = {
+          title: updatedPrayer.title.trim(),
+          content: updatedPrayer.content,
+          privacy: updatedPrayer.privacy ?? 'private',
+          tags: updatedPrayer.tags,
+          authorId: auth.currentUser.uid || 'unknown',
+          authorName: auth.currentUser.displayName || 'unknown',
+          status: 'open',
+          recipientName: 'unknown',
+          recipientId: 'unknown',
+          createdAt: new Date(),
+        };
+
+        await prayerService.createPrayerPoint(prayerData);
+        Alert.alert('Success', 'Prayer Point created successfully');
+      }
+
       router.replace('/(tabs)/(prayers)');
       router.dismissAll(); // resets 'createPrayer' stack.
     } catch (error) {
@@ -114,14 +200,15 @@ export default function PrayerPointMetadataScreen() {
           headerLeft: () => (
             <HeaderButton onPress={router.back} label="Cancel" />
           ),
-          title: 'Add Prayer Point',
+          title: isEditMode ? 'Edit Prayer Point' : 'Add Prayer Point',
           headerTitleStyle: styles.headerTitleStyle,
         }}
       />
       <ThemedScrollView contentContainerStyle={styles.scrollContent}>
         <PrayerContent
-          editMode={'create'}
+          editMode={isEditMode ? 'edit' : 'create'}
           prayerOrPrayerPoint={'prayerPoint'}
+          prayerId={isEditMode ? updatedPrayer.id : undefined}
           backgroundColor={colorScheme}
           onChange={(updatedPrayerData) =>
             handlePrayerUpdate(updatedPrayerData)
@@ -153,8 +240,8 @@ export default function PrayerPointMetadataScreen() {
                 ? 'Updating...'
                 : 'Creating...'
               : isEditMode
-                ? 'Update Prayer'
-                : 'Create Prayer'}
+                ? 'Update Prayer Point'
+                : 'Create Prayer Point'}
           </ThemedText>
         </TouchableOpacity>
       </ThemedScrollView>

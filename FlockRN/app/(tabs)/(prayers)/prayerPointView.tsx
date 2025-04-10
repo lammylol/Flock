@@ -13,6 +13,7 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { Colors } from '@/constants/Colors';
 import { auth } from '@/firebase/firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PrayerPointView = () => {
   const { id: prayerPointId } = useLocalSearchParams() as {
@@ -41,7 +42,6 @@ const PrayerPointView = () => {
   const fetchPrayerPoint = useCallback(async () => {
     try {
       const fetchedPrayer = await prayerService.getPrayerPoint(prayerPointId);
-      // console.log('Fetched prayer:', fetchedPrayer);
       if (fetchedPrayer) {
         updateCollection(fetchedPrayer, 'prayerPoint');
       }
@@ -62,19 +62,26 @@ const PrayerPointView = () => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, []); // Scroll to bottom whenever messages change
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!prayerPoint) return;
-
-    // Navigate to metadata screen with all the prayer data
-    router.push({
-      pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
-      params: {
+    
+    try {
+      // Store the prayer point data in AsyncStorage
+      await AsyncStorage.setItem('editPrayerPoint', JSON.stringify({
         id: prayerPoint.id,
+        title: prayerPoint.title,
         content: prayerPoint.content,
-        privacy: prayerPoint.privacy,
-        mode: 'edit',
-      },
-    });
+        privacy: prayerPoint.privacy || 'private',
+        tags: prayerPoint.tags || [],
+        mode: 'edit'
+      }));
+      
+      // Navigate to createPrayerPoint screen
+      router.push('/(tabs)/(prayers)/(createPrayerPoint)');
+    } catch (error) {
+      console.error('Error storing prayer point data for editing:', error);
+      Alert.alert('Error', 'Failed to prepare prayer point for editing');
+    }
   };
   
   const handleDelete = () => {
