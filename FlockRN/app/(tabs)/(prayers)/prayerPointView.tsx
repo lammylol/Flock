@@ -1,6 +1,6 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
@@ -11,13 +11,15 @@ import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailab
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { Colors } from '@/constants/Colors';
+import { auth } from '@/firebase/firebaseConfig';
 
 const PrayerPointView = () => {
   const { id: prayerPointId } = useLocalSearchParams() as {
     id: string;
   };
 
-  const { userPrayerPoints, updateCollection } = usePrayerCollection();
+  const { userPrayerPoints, updateCollection, removeFromCollection } = usePrayerCollection();
 
   // Use the collection to get the latest data
   const prayerPoint =
@@ -26,6 +28,7 @@ const PrayerPointView = () => {
   const user = useAuthContext().user;
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const backgroundColor = useThemeColor({}, 'backgroundSecondary');
   const textColor = useThemeColor({}, 'textPrimary');
   const isOwner = prayerPoint && user && prayerPoint.authorId === user.uid;
@@ -73,6 +76,48 @@ const PrayerPointView = () => {
       },
     });
   };
+  
+  const handleDelete = () => {
+    if (!prayerPoint || !auth.currentUser?.uid) return;
+    
+    // Confirm deletion
+    Alert.alert(
+      'Delete Prayer Point',
+      'Are you sure you want to delete this prayer point? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await prayerService.deletePrayerPoint(prayerPointId, auth.currentUser.uid);
+              
+              // Remove from local collection if you have a function for this
+              if (removeFromCollection) {
+                removeFromCollection(prayerPointId, 'prayerPoint');
+              }
+              
+              Alert.alert('Success', 'Prayer point deleted successfully');
+              router.back();
+            } catch (error) {
+              console.error('Error deleting prayer point:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete prayer point. Please try again.',
+              );
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const formattedDate = (() => {
     if (!prayerPoint?.createdAt) return 'Unknown Date'; // Handle missing date
@@ -91,6 +136,16 @@ const PrayerPointView = () => {
       day: 'numeric',
     });
   })();
+
+  // Show loading indicator if deleting
+  if (isDeleting) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <ThemedText style={styles.loadingText}>Deleting prayer point...</ThemedText>
+      </View>
+    );
+  }
 
   return (
     <ThemedScrollView
@@ -122,6 +177,18 @@ const PrayerPointView = () => {
               prayerOrPrayerPoint={'prayerPoint'}
               backgroundColor={backgroundColor}
             />
+            
+            {/* Delete button - only show for owners */}
+            {isOwner && (
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={handleDelete}
+              >
+                <ThemedText style={styles.deleteButtonText}>
+                  Delete Prayer Point
+                </ThemedText>
+              </TouchableOpacity>
+            )}
           </>
         )
       )}
@@ -136,6 +203,28 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 0,
     paddingLeft: 20,
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.purple,
+    borderRadius: 12,
+    marginHorizontal: 20,
+    marginTop: 20,
+    paddingVertical: 16,
+  },
+  deleteButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 12,
   },
   scrollView: {
     flex: 1,
