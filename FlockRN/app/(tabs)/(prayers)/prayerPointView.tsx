@@ -148,55 +148,63 @@ const PrayerPointView = () => {
   }
 
   return (
-    <ThemedScrollView
-      style={styles.scrollView}
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-    >
-      {error ? (
-        <ContentUnavailable
-          errorTitle="Content Unavailable"
-          errorMessage="Sorry, your prayer can't be loaded right now."
-        />
-      ) : (
-        prayerPoint && (
-          <>
-            <Stack.Screen
-              options={{
-                headerRight: () =>
-                  isOwner && <HeaderButton onPress={handleEdit} label="Edit" />,
-              }}
-            />
-            <ThemedText style={[styles.createdAtText, { color: textColor }]}>
-              Created on: {formattedDate}
-            </ThemedText>
+    <View style={[styles.container, { backgroundColor: useThemeColor({}, 'background') }]}>
+      <ThemedScrollView
+        style={styles.scrollView}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      >
+        {error ? (
+          <ContentUnavailable
+            errorTitle="Content Unavailable"
+            errorMessage="Sorry, your prayer can't be loaded right now."
+          />
+        ) : (
+          prayerPoint && (
+            <>
+              <Stack.Screen
+                options={{
+                  headerRight: () =>
+                    isOwner && <HeaderButton onPress={handleEdit} label="Edit" />,
+                }}
+              />
+              <ThemedText style={[styles.createdAtText, { color: textColor }]}>
+                Created on: {formattedDate}
+              </ThemedText>
 
-            <PrayerContent
-              editMode="view"
-              prayerId={prayerPointId}
-              prayerOrPrayerPoint={'prayerPoint'}
-              backgroundColor={backgroundColor}
-            />
-            
-            {/* Delete button - only show for owners */}
-            {isOwner && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handleDelete}
-              >
-                <ThemedText style={styles.deleteButtonText}>
-                  Delete Prayer Point
-                </ThemedText>
-              </TouchableOpacity>
-            )}
-          </>
-        )
+              <PrayerContent
+                editMode="view"
+                prayerId={prayerPointId}
+                prayerOrPrayerPoint={'prayerPoint'}
+                backgroundColor={backgroundColor}
+              />
+              
+              {/* Spacer to push content up and button to bottom */}
+              <View style={styles.spacer} />
+            </>
+          )
+        )}
+      </ThemedScrollView>
+      
+      {/* Delete button - only show for owners, positioned at bottom */}
+      {!error && prayerPoint && isOwner && (
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete}
+        >
+          <ThemedText style={styles.deleteButtonText}>
+            Delete Prayer Point
+          </ThemedText>
+        </TouchableOpacity>
       )}
-    </ThemedScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   createdAtText: {
     fontSize: 14,
     fontWeight: '300',
@@ -209,7 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.purple,
     borderRadius: 12,
     marginHorizontal: 20,
-    marginTop: 20,
+    marginBottom: 20, // Add space between button and bottom of screen
     paddingVertical: 16,
   },
   deleteButtonText: {
@@ -231,6 +239,11 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingBottom: 16,
     paddingHorizontal: 20,
+  },
+  // Add a spacer that will push content up and delete button to the bottom
+  spacer: {
+    flex: 1,
+    minHeight: 20, // Minimum height to ensure some spacing even when content is long
   },
 });
 
