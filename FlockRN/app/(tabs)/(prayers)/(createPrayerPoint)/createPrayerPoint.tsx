@@ -191,9 +191,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
-  lockIcon: {
-    fontSize: 16,
-  },
   mainContainer: {
     flex: 1,
     paddingHorizontal: 20,
