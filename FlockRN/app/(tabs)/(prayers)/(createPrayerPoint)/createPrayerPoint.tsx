@@ -32,7 +32,7 @@ export default function PrayerPointMetadataScreen() {
 
   // State for edit mode
   const [isEditMode, setIsEditMode] = useState(false);
-  const { updateCollection } = usePrayerCollection();
+  const { userPrayerPoints, updateCollection } = usePrayerCollection();
 
   // Parse tags if they exist in params
   const initialTags = params.tags ? JSON.parse(params.tags) as PrayerType[] : [];
@@ -53,15 +53,17 @@ export default function PrayerPointMetadataScreen() {
     authorId: '',
     privacy: (params?.privacy as 'public' | 'private') || 'private',
   });
-
+  
   // Load prayer point data from AsyncStorage if in edit mode
   useEffect(() => {
     const loadEditData = async () => {
       try {
         // Try to get edit data from AsyncStorage
         const storedData = await AsyncStorage.getItem('editPrayerPoint');
+        console.log('AsyncStorage check - data found:', storedData ? 'Yes' : 'No');
         
         if (storedData) {
+          console.log('Retrieved stored data:', storedData);
           const editData = JSON.parse(storedData);
           
           // Set edit mode based on stored data
@@ -69,40 +71,102 @@ export default function PrayerPointMetadataScreen() {
           setIsEditMode(isEdit);
           
           if (isEdit && editData.id) {
+            console.log('Setting up edit mode for prayer point ID:', editData.id);
+            
+            // Always initialize state with the stored data
+            setUpdatedPrayer({
+              id: editData.id,
+              title: editData.title || '',
+              content: editData.content || '',
+              tags: editData.tags || [],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              authorName: '',
+              authorId: '',
+              privacy: editData.privacy || 'private',
+            });
+            setPrivacy(editData.privacy || 'private');
+            
             try {
-              // Initialize form with stored data first
-              setUpdatedPrayer({
-                id: editData.id,
-                title: editData.title || '',
-                content: editData.content || '',
-                tags: editData.tags || [],
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                authorName: '',
-                authorId: '',
-                privacy: editData.privacy || 'private',
-              });
-              setPrivacy(editData.privacy || 'private');
-              
-              // Also fetch the complete data from the API
+              // Fetch the complete data from the service
+              console.log('Fetching additional prayer point data from API...');
               const prayerPoint = await prayerService.getPrayerPoint(editData.id);
               
               if (prayerPoint) {
+                console.log('API data received:', JSON.stringify({
+                  id: prayerPoint.id,
+                  title: prayerPoint.title,
+                  content: prayerPoint.content?.substring(0, 20) + '...'
+                }));
+                
+                // Update the prayer data while preserving edited fields from storage
                 setUpdatedPrayer(prevPrayer => ({
                   ...prayerPoint,
-                  // Preserve any user edits that may have happened
-                  title: prevPrayer.title || prayerPoint.title,
-                  content: prevPrayer.content || prayerPoint.content,
-                  tags: prevPrayer.tags.length > 0 ? prevPrayer.tags : (prayerPoint.tags || []),
+                  // Preserve the data from async storage as it's the most recent
+                  title: editData.title || prayerPoint.title,
+                  content: editData.content || prayerPoint.content,
+                  tags: editData.tags && editData.tags.length > 0 ? 
+                    editData.tags : (prayerPoint.tags || []),
+                  privacy: editData.privacy || prayerPoint.privacy || 'private',
                 }));
+                
+                // Make sure privacy is updated too
+                setPrivacy(editData.privacy || prayerPoint.privacy || 'private');
               }
-              
-              // Clear the stored data after loading
-              await AsyncStorage.removeItem('editPrayerPoint');
             } catch (error) {
-              console.error('Error loading prayer point for editing:', error);
-              Alert.alert('Error', 'Failed to load prayer point data.');
+              console.error('Error fetching prayer point:', error);
+              // Keep using the data from AsyncStorage even if API fetch fails
             }
+            
+            // Clear the stored data after loading
+            console.log('Clearing stored edit data');
+            await AsyncStorage.removeItem('editPrayerPoint');
+          }
+        } else {
+          console.log('No stored prayer point data found');
+          console.log('Checking URL parameters...');
+          console.log('Mode parameter:', params.mode);
+          console.log('ID parameter:', params.id);
+          
+          // Check if edit mode is in URL params instead
+          if (params.mode === 'edit' && params.id) {
+            console.log('Edit mode detected from URL params');
+            setIsEditMode(true);
+            
+            // Try to find the prayer point in context
+            const contextPrayerPoint = userPrayerPoints.find(p => p.id === params.id);
+            
+            if (contextPrayerPoint) {
+              console.log('Found prayer point in context:', JSON.stringify({
+                id: contextPrayerPoint.id,
+                title: contextPrayerPoint.title,
+                content: contextPrayerPoint.content?.substring(0, 20) + '...'
+              }));
+              
+              setUpdatedPrayer({
+                ...contextPrayerPoint,
+                tags: contextPrayerPoint.tags || []
+              });
+              setPrivacy(contextPrayerPoint.privacy || 'private');
+            } else {
+              console.log('Prayer point not found in context. Fetching from API...');
+              
+              try {
+                const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
+                if (fetchedPrayer) {
+                  console.log('Fetched prayer from API');
+                  setUpdatedPrayer({
+                    ...fetchedPrayer,
+                    tags: fetchedPrayer.tags || []
+                  });
+                  setPrivacy(fetchedPrayer.privacy || 'private');
+                }
+              } catch (error) {
+                console.error('Error fetching prayer point:', error);
+              }
+            }
+          } else {
+            console.log('Create mode detected');
           }
         }
       } catch (error) {
@@ -114,6 +178,12 @@ export default function PrayerPointMetadataScreen() {
   }, []);
 
   const handlePrayerUpdate = (updatedPrayerData: Prayer | PrayerPoint) => {
+    console.log('Prayer update received:', JSON.stringify({
+      title: updatedPrayerData.title,
+      content: updatedPrayerData.content?.substring(0, 20) + '...',
+      tags: updatedPrayerData.tags
+    }));
+    
     setUpdatedPrayer((prevPrayer) => ({
       ...prevPrayer,
       ...updatedPrayerData,
@@ -210,10 +280,11 @@ export default function PrayerPointMetadataScreen() {
           prayerOrPrayerPoint={'prayerPoint'}
           prayerId={isEditMode ? updatedPrayer.id : undefined}
           backgroundColor={colorScheme}
-          onChange={(updatedPrayerData) =>
-            handlePrayerUpdate(updatedPrayerData)
-          }
-        ></PrayerContent>
+          onChange={(updatedPrayerData) => handlePrayerUpdate(updatedPrayerData)}
+          initialTitle={updatedPrayer.title}
+          initialContent={updatedPrayer.content}
+          initialTags={updatedPrayer.tags}
+        />
 
         <View style={styles.section}>
           <View style={styles.privacySelector}>
@@ -222,9 +293,6 @@ export default function PrayerPointMetadataScreen() {
               <ThemedText style={styles.privacyValue}>
                 {privacy === 'private' ? 'Private' : 'Public'}
               </ThemedText>
-              {/* {privacy === 'private' && (
-                <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-              )} */}
             </View>
           </View>
         </View>

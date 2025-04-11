@@ -65,8 +65,10 @@ const PrayerPointView = () => {
   const handleEdit = async () => {
     if (!prayerPoint) return;
     
+    console.log('Preparing to edit prayer point:', prayerPoint.id);
+    
     try {
-      // Store the prayer point data in AsyncStorage
+      // Store the prayer point data in AsyncStorage for reliable transfer
       await AsyncStorage.setItem('editPrayerPoint', JSON.stringify({
         id: prayerPoint.id,
         title: prayerPoint.title,
@@ -76,10 +78,12 @@ const PrayerPointView = () => {
         mode: 'edit'
       }));
       
+      console.log('Prayer point data stored for editing. Navigating to edit screen.');
+      
       // Navigate to createPrayerPoint screen
       router.push('/(tabs)/(prayers)/(createPrayerPoint)');
     } catch (error) {
-      console.error('Error storing prayer point data for editing:', error);
+      console.error('Error preparing prayer point for editing:', error);
       Alert.alert('Error', 'Failed to prepare prayer point for editing');
     }
   };
