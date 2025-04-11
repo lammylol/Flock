@@ -1,18 +1,21 @@
-import { db } from '@/firebase/firebaseConfig';
+import firestore from '@react-native-firebase/firestore'; // Importing Firestore from react-native-firebase
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { UserProfileResponse } from '@/types/firebase';
-import { collection, doc, getDoc } from 'firebase/firestore';
 
 class UserService {
-  private userCollection = collection(db, FirestoreCollections.USERS);
+  private userCollection = firestore().collection(FirestoreCollections.USERS); // Using react-native-firebase firestore
 
   async getUser(userId: string): Promise<UserProfileResponse | null> {
     try {
-      const userDoc = doc(this.userCollection, userId);
-      const userSnap = await getDoc(userDoc);
+      // Reference to the user document
+      const userDoc = this.userCollection.doc(userId);
 
-      if (!userSnap.exists()) return null;
+      // Fetch the document snapshot
+      const userSnap = await userDoc.get();
 
+      if (!userSnap.exists) return null;
+
+      // Return user data with the ID
       return {
         id: userSnap.id,
         ...userSnap.data(),

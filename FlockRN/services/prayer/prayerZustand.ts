@@ -1,6 +1,5 @@
 import create from 'zustand';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { db } from '../firebaseConfig'; // Ensure you import your Firebase config
+import firestore from '@react-native-firebase/firestore'; // Import firestore from react-native-firebase
 
 const usePrayerStore = create((set) => ({
   prayers: {}, // Cached prayers { [id]: { ...prayerData } }
@@ -10,7 +9,7 @@ const usePrayerStore = create((set) => ({
   fetchAllPrayers: async () => {
     set({ loading: true });
     try {
-      const querySnapshot = await getDocs(collection(db, 'prayers'));
+      const querySnapshot = await firestore().collection('prayers').get(); // Use react-native-firebase Firestore API
       const prayers = {};
       querySnapshot.forEach((doc) => {
         prayers[doc.id] = { id: doc.id, ...doc.data() };
@@ -31,10 +30,10 @@ const usePrayerStore = create((set) => ({
       const existingPrayer = usePrayerStore.getState().prayers[id];
       if (existingPrayer) return; // Don't refetch if already in store
 
-      const docRef = doc(db, 'prayers', id);
-      const docSnap = await getDoc(docRef);
+      const docRef = firestore().collection('prayers').doc(id); // Use react-native-firebase Firestore API
+      const docSnap = await docRef.get(); // Get the document snapshot
 
-      if (docSnap.exists()) {
+      if (docSnap.exists) {
         set((state) => ({
           prayers: { ...state.prayers, [id]: { id, ...docSnap.data() } },
           loading: false,

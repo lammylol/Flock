@@ -2,24 +2,10 @@
 // 1/29/25
 // service for handling prayer CRUD operations with Firebase
 
-import {
-  collection,
-  addDoc,
-  doc,
-  getDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  Timestamp,
-  writeBatch,
-  setDoc,
-  QueryDocumentSnapshot,
-  DocumentData,
-} from 'firebase/firestore';
-import { db } from '../../firebase/firebaseConfig';
+import firestore, {
+  FirebaseFirestoreTypes,
+} from '@react-native-firebase/firestore';
+import { FirestoreCollections } from '@/schema/firebaseCollections';
 import {
   Prayer,
   PrayerPoint,
@@ -27,40 +13,37 @@ import {
   UpdatePrayerDTO,
   PrayerPointDTO,
 } from '@/types/firebase';
-import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
 
 class PrayerService {
-  private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
-  private prayerPointsCollection = collection(
-    db,
+  private prayersCollection = firestore().collection(
+    FirestoreCollections.PRAYERS,
+  );
+  private prayerPointsCollection = firestore().collection(
     FirestoreCollections.PRAYERPOINTS,
   );
-  private feedsCollection = collection(db, FirestoreCollections.FEED);
+  private feedsCollection = firestore().collection(FirestoreCollections.FEED);
 
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
-      const now = Timestamp.now();
-
-      const docRef = await addDoc(this.prayersCollection, {
+      const now = firestore.FieldValue.serverTimestamp();
+      const docRef = await this.prayersCollection.add({
         ...data,
         createdAt: now,
         updatedAt: now,
       });
 
       // After the document is created, update it with the generated ID
-      await updateDoc(docRef, { id: docRef.id });
+      await docRef.update({ id: docRef.id });
 
       // If prayer is public, add to author's feed
       if (data.privacy === 'public') {
-        const feedPrayerRef = doc(
-          db,
-          FirestoreCollections.FEED,
-          data.authorId,
-          FirestoreCollections.PRAYERS,
-          docRef.id,
-        );
-        await setDoc(feedPrayerRef, {
+        const feedPrayerRef = firestore()
+          .collection(FirestoreCollections.FEED)
+          .doc(data.authorId)
+          .collection(FirestoreCollections.PRAYERS)
+          .doc(docRef.id);
+        await feedPrayerRef.set({
           prayerId: docRef.id,
           addedAt: now,
         });
@@ -75,11 +58,10 @@ class PrayerService {
 
   async getPrayer(prayerId: string): Promise<Prayer | null> {
     try {
-      const docRef = doc(this.prayersCollection, prayerId);
-      const docSnap = await getDoc(docRef);
+      const docRef = this.prayersCollection.doc(prayerId);
+      const docSnap = await docRef.get();
 
-      if (!docSnap.exists()) return null;
-
+      if (!docSnap.exists) return null;
       return this.convertDocToPrayer(docSnap);
     } catch (error) {
       console.error('Error getting prayer:', error);
@@ -89,12 +71,10 @@ class PrayerService {
 
   async getUserPrayers(userId: string): Promise<Prayer[]> {
     try {
-      const q = query(
-        this.prayersCollection,
-        where('authorId', '==', userId),
-        orderBy('createdAt', 'desc'),
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await this.prayersCollection
+        .where('authorId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .get();
 
       return querySnapshot.docs.map(
         (doc) => this.convertDocToPrayer(doc) as Prayer,
@@ -107,10 +87,10 @@ class PrayerService {
 
   async updatePrayer(prayerId: string, data: UpdatePrayerDTO): Promise<void> {
     try {
-      const now = Timestamp.now();
-      const prayerRef = doc(this.prayersCollection, prayerId);
+      const now = firestore.FieldValue.serverTimestamp();
+      const prayerRef = this.prayersCollection.doc(prayerId);
 
-      await updateDoc(prayerRef, {
+      await prayerRef.update({
         ...data,
         updatedAt: now,
       });
@@ -119,23 +99,19 @@ class PrayerService {
       if (data.privacy !== undefined) {
         const prayer = await this.getPrayer(prayerId);
         if (prayer) {
-          const feedRef = doc(
-            db,
-            FirestoreCollections.FEED,
-            prayer.authorId,
-            FirestoreCollections.PRAYERS,
-            prayerId,
-          );
+          const feedRef = firestore()
+            .collection(FirestoreCollections.FEED)
+            .doc(prayer.authorId)
+            .collection(FirestoreCollections.PRAYERS)
+            .doc(prayerId);
 
           if (data.privacy === 'public') {
-            // Add to feed if making public
-            await setDoc(feedRef, {
+            await feedRef.set({
               prayerId: prayerId,
               addedAt: now,
             });
           } else {
-            // Remove from feed if making private
-            await deleteDoc(feedRef);
+            await feedRef.delete();
           }
         }
       }
@@ -148,28 +124,23 @@ class PrayerService {
   async deletePrayer(prayerId: string, authorId: string): Promise<void> {
     try {
       // Delete the prayer document
-      await deleteDoc(doc(this.prayersCollection, prayerId));
+      await this.prayersCollection.doc(prayerId).delete();
 
       // Remove from author's feed if it exists
-      await deleteDoc(
-        doc(
-          db,
-          FirestoreCollections.FEED,
-          authorId,
-          FirestoreCollections.PRAYERS,
-          prayerId,
-        ),
-      );
+      await firestore()
+        .collection(FirestoreCollections.FEED)
+        .doc(authorId)
+        .collection(FirestoreCollections.PRAYERS)
+        .doc(prayerId)
+        .delete();
 
       // Delete all updates subcollection
-      const updatesRef = collection(
-        this.prayersCollection,
-        prayerId,
-        'updates',
-      );
-      const updatesSnapshot = await getDocs(updatesRef);
+      const updatesRef = this.prayersCollection
+        .doc(prayerId)
+        .collection('updates');
+      const updatesSnapshot = await updatesRef.get();
 
-      const batch = writeBatch(db);
+      const batch = firestore().batch();
       updatesSnapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
@@ -180,26 +151,21 @@ class PrayerService {
     }
   }
 
-  // Add a list of prayer points, then return the list of prayer IDs.
   async addPrayerPoints(prayerPoints: PrayerPointDTO[]): Promise<string[]> {
-    const now = Timestamp.now();
+    const now = firestore.FieldValue.serverTimestamp();
 
     try {
-      // Map prayerPoints to Firestore write promises
       const writePromises = prayerPoints.map(async (point) => {
-        const docRef = await addDoc(this.prayerPointsCollection, {
-          ...point, // Use the actual prayer point data
+        const docRef = await this.prayerPointsCollection.add({
+          ...point,
           createdAt: now,
           updatedAt: now,
         });
 
-        // After the document is created, update it with the generated ID
-        await updateDoc(docRef, { id: docRef.id });
-
+        await docRef.update({ id: docRef.id });
         return docRef.id;
       });
 
-      // Wait for all Firestore writes to complete
       return await Promise.all(writePromises);
     } catch (error) {
       console.error('Error adding prayer points:', error);
@@ -212,16 +178,11 @@ class PrayerService {
     user: User,
   ): Promise<PrayerPoint[] | null> {
     try {
-      // Query for public OR user's own prayer points
-      const q = query(
-        this.prayerPointsCollection,
-        where('prayerId', '==', prayerId),
-        // where('privacy', '==', 'public'), // Fetch only public prayer points
-        where('authorId', '==', user.uid), // OR fetch the user's own prayer points
-        orderBy('createdAt', 'desc'),
-      );
-
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await this.prayerPointsCollection
+        .where('prayerId', '==', prayerId)
+        .where('authorId', '==', user.uid)
+        .orderBy('createdAt', 'desc')
+        .get();
 
       if (querySnapshot.empty) return null;
 
@@ -236,15 +197,10 @@ class PrayerService {
 
   async getUserPrayerPoints(userId: string): Promise<PrayerPoint[]> {
     try {
-      // Query for public OR user's own prayer points
-      const q = query(
-        this.prayerPointsCollection,
-        // where('privacy', '==', 'public'), // Fetch only public prayer points
-        where('authorId', '==', userId), // OR fetch the user's own prayer points
-        orderBy('createdAt', 'desc'),
-      );
-
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await this.prayerPointsCollection
+        .where('authorId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .get();
 
       if (querySnapshot.empty) return [];
 
@@ -258,133 +214,44 @@ class PrayerService {
   }
 
   private convertDocToPrayer(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    docSnap: FirebaseFirestoreTypes.DocumentSnapshot,
   ): Prayer {
     const data = docSnap.data();
     return {
       id: docSnap.id,
-      authorId: data.authorId,
-      authorName: data.authorName,
-      content: data.content,
-      privacy: data.privacy,
-      createdAt: data.createdAt as Date,
-      updatedAt: data.updatedAt as Date,
-      prayerTypes: data.prayerTypes,
-      prayerPoints: data.prayerPoints,
+      authorId: data?.authorId,
+      authorName: data?.authorName,
+      content: data?.content,
+      privacy: data?.privacy,
+      createdAt: data?.createdAt.toDate(),
+      updatedAt: data?.updatedAt.toDate(),
+      prayerTypes: data?.prayerTypes,
+      prayerPoints: data?.prayerPoints,
     };
   }
 
   private convertDocToPrayerPoint(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    docSnap: FirebaseFirestoreTypes.DocumentSnapshot,
   ): PrayerPoint {
     const data = docSnap.data();
     return {
       id: docSnap.id,
-      authorId: data.authorId,
-      authorName: data.authorName,
-      title: data.title,
-      content: data.content,
-      status: data.status,
-      privacy: data.privacy,
-      createdAt: data.createdAt as Date,
-      updatedAt: data.updatedAt as Date,
-      prayerId: data.prayerId,
-      tags: data.tags,
-      prayerTypes: data.prayerTypes,
-      recipientId: data.recipientId,
-      recipientName: data.recipientName,
-      prayerUpdates: data.prayerUpdates,
+      authorId: data?.authorId,
+      authorName: data?.authorName,
+      title: data?.title,
+      content: data?.content,
+      status: data?.status,
+      privacy: data?.privacy,
+      createdAt: data?.createdAt.toDate(),
+      updatedAt: data?.updatedAt.toDate(),
+      prayerId: data?.prayerId,
+      tags: data?.tags,
+      prayerTypes: data?.prayerTypes,
+      recipientId: data?.recipientId,
+      recipientName: data?.recipientName,
+      prayerUpdates: data?.prayerUpdates,
     };
   }
-
-  // async addUpdate(
-  //   prayerId: string,
-  //   update: Omit<PrayerUpdate, 'id'>,
-  // ): Promise<string> {
-  //   try {
-  //     const updatesRef = collection(
-  //       this.prayersCollection,
-  //       prayerId,
-  //       'updates',
-  //     );
-  //     const updateDoc = await addDoc(updatesRef, {
-  //       ...update,
-  //     });
-
-  //     // Update the prayer's updatedAt timestamp
-  //     await updateDoc(doc(this.prayersCollection, prayerId), {
-  //       updatedAt: Timestamp.now(),
-  //     });
-
-  //     return updateDoc.id;
-  //   } catch (error) {
-  //     console.error('Error adding prayer update:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // async getPrayerUpdates(prayerId: string): Promise<PrayerUpdate[]> {
-  //   try {
-  //     const updatesRef = collection(
-  //       this.prayersCollection,
-  //       prayerId,
-  //       'updates',
-  //     );
-  //     const q = query(updatesRef, orderBy('createdAt', 'desc'));
-  //     const snapshot = await getDocs(q);
-
-  //     return snapshot.docs.map((doc) => ({
-  //       id: doc.id,
-  //       ...doc.data(),
-  //     })) as PrayerUpdate[];
-  //   } catch (error) {
-  //     console.error('Error getting prayer updates:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // // Real-time listeners
-  // listenToPrayer(prayerId: string, callback: (prayer: Prayer | null) => void) {
-  //   const docRef = doc(this.prayersCollection, prayerId);
-  //   return onSnapshot(
-  //     docRef,
-  //     (doc) => {
-  //       if (!doc.exists()) {
-  //         callback(null);
-  //         return;
-  //       }
-  //       callback({
-  //         id: doc.id,
-  //         ...doc.data(),
-  //       } as Prayer);
-  //     },
-  //     (error) => {
-  //       console.error('Error listening to prayer:', error);
-  //     },
-  //   );
-  // }
-
-  // listenToUserPrayers(userId: string, callback: (prayers: Prayer[]) => void) {
-  //   const q = query(
-  //     this.prayersCollection,
-  //     where('authorId', '==', userId),
-  //     orderBy('createdAt', 'desc'),
-  //   );
-
-  //   return onSnapshot(
-  //     q,
-  //     (snapshot) => {
-  //       const prayers = snapshot.docs.map((doc) => ({
-  //         id: doc.id,
-  //         ...doc.data(),
-  //       })) as Prayer[];
-  //       callback(prayers);
-  //     },
-  //     (error) => {
-  //       console.error('Error listening to user prayers:', error);
-  //     },
-  //   );
-  // }
 }
 
 export const prayerService = new PrayerService();

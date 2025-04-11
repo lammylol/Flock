@@ -3,6 +3,7 @@
 // set all types for Firebase
 
 import { allTags } from '@/types/Tag';
+import { Timestamp } from '@react-native-firebase/firestore';
 
 export interface UserProfile {
   email: string;
@@ -10,7 +11,7 @@ export interface UserProfile {
   firstName: string;
   lastName: string;
   displayName: string;
-  createdAt: Date;
+  createdAt: Timestamp;
   friends: string[];
   groups: string[];
   // used for searching
@@ -28,7 +29,7 @@ export interface FriendRequest {
   username: string;
   displayName: string;
   status: 'pending' | 'accepted' | 'rejected';
-  timestamp: Date;
+  timestamp: Timestamp;
 }
 
 export interface Group {
@@ -36,7 +37,7 @@ export interface Group {
   description: string;
   admins: string[];
   members: string[];
-  createdAt: Date;
+  createdAt: Timestamp;
 }
 
 export type PrayerTag = (typeof allTags)[number];
@@ -49,8 +50,8 @@ export interface Prayer {
   content: string;
   authorId: string;
   authorName: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
   privacy: Privacy;
   prayerPoints: string[];
   prayerTypes: PrayerType[];
@@ -60,8 +61,8 @@ export interface PrayerPoint {
   id: string;
   title: string;
   content: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
   authorName: string;
   authorId: string;
   prayerId: string[];
@@ -79,19 +80,19 @@ export interface PrayerPointUpdate {
   authorId: string;
   authorName: string;
   content: string;
-  createdAt: Date;
+  createdAt: Timestamp;
 }
 
 export interface Category {
   id: string;
   name: string;
   description?: string;
-  createdAt: Date;
+  createdAt: Timestamp;
 }
 
 export interface FeedPrayer {
   prayerId: string;
-  addedAt: Date;
+  addedAt: Timestamp;
 }
 
 // DTOs for creating/updating

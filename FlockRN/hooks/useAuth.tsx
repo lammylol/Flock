@@ -1,15 +1,11 @@
-// Created At: 2021-09-12 11:00:00
-// This is the useAuth hook that will be used to authenticate users.
-
 import { useEffect, useState } from 'react';
-import { auth } from '@/firebase/firebaseConfig';
-import { User, onAuthStateChanged, signOut } from 'firebase/auth';
+import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth'; // Using react-native-firebase auth
 import { userService } from '@/services/userService';
 import { UserProfileResponse } from '@/types/firebase';
 
 export default function useAuth() {
   // State for storing the user
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileResponse | null>(
     null,
   );
@@ -18,20 +14,34 @@ export default function useAuth() {
   const [userIsAuthenticated, setUserIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userProfile = await userService.getUser(user.uid);
+    // Listener for auth state changes
+    const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch the user profile if authenticated
+        const userProfile = await userService.getUser(firebaseUser.uid);
         setUserProfile(userProfile);
-        setUser(user);
+        setUser(firebaseUser);
         setUserIsAuthenticated(true);
       } else {
+        // Reset user state if not authenticated
         setUser(null);
+        setUserProfile(null);
         setUserIsAuthenticated(false);
       }
     });
 
+    // Clean up the listener on component unmount
     return () => unsubscribe();
   }, []);
+
+  // Sign out function
+  const signOut = async () => {
+    try {
+      await auth().signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return { user, userProfile, userIsAuthenticated, signOut };
 }
