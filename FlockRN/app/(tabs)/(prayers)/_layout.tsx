@@ -52,7 +52,7 @@ export default function prayers() {
             headerBackButtonDisplayMode: 'default',
             headerBackTitle: 'Back',
             headerShadowVisible: false,
-            headerShown: true,
+            headerShown: false,
             animation: 'slide_from_bottom',
             animationDuration: 30,
           }}

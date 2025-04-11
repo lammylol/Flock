@@ -4,7 +4,7 @@ export default function CreatePrayerPointsFlowLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         headerShadowVisible: false,
       }}
       initialRouteName="createPrayerPoint"

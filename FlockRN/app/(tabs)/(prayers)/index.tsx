@@ -23,7 +23,7 @@ export default function TabTwoScreen() {
     searchPrayers,
   } = usePrayerCollection();
 
-  const [selectedTab, setSelectedTab] = useState<TabType>('userPrayers');
+  const [selectedTab, setSelectedTab] = useState<TabType>('prayerPoints');
 
   useFocusEffect(loadAll);
 
@@ -40,7 +40,7 @@ export default function TabTwoScreen() {
           />
           <Tabs
             tabs={[
-              `Prayer Requests (${userPrayerPoints.length})`,
+              `Prayer Points (${userPrayerPoints.length})`,
               `Prayers (${userPrayers.length})`,
             ]}
             selectedIndex={selectedTab === 'prayerPoints' ? 0 : 1}

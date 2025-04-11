@@ -15,17 +15,20 @@ import { prayerTags } from '@/types/Tag';
 
 interface TagsListProps {
   tags: PrayerType[];
+  editMode: 'create' | 'edit' | 'view';
   onChange?: (tags: PrayerType[]) => void;
 }
 
 const getTagColor = (tag: string) =>
   Colors.tagColors.typeColors[
-  tag as keyof typeof Colors.tagColors.typeColors
+    tag as keyof typeof Colors.tagColors.typeColors
   ] || Colors.tagColors.defaultTag;
 
-const TagsList = ({ tags, onChange }: TagsListProps) => {
+const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
   const [selectedTags, setSelectedTags] = useState<PrayerType[]>(tags);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(
+    editMode === 'create' ? true : false,
+  );
   const backgroundColor = useThemeColor(
     { light: Colors.brown1, dark: Colors.black },
     'background',

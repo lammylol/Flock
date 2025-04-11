@@ -21,7 +21,7 @@ export const Colors = {
   border: '#C6C6C8',
   link: '#007aff',
   disabled: '#ccc',
-  grey1: '#e6e6e6',
+  grey1: '#F5F5F5',
 
   // Theme-specific colors
   light: {

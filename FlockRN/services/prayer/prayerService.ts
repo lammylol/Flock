@@ -309,16 +309,19 @@ class PrayerService {
   }
 
   //added for PrayerPoint CRUD
-  async updatePrayerPoint(prayerPointId: string, data: Partial<PrayerPointDTO>): Promise<void> {
+  async updatePrayerPoint(
+    prayerPointId: string,
+    data: Partial<PrayerPointDTO>,
+  ): Promise<void> {
     try {
       const now = Timestamp.now();
       const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
-      
+
       await updateDoc(prayerPointRef, {
         ...data,
         updatedAt: now,
       });
-      
+
       // If the prayer point's privacy status changes, we might need to handle feed visibility
       // Similar to how you handle it in updatePrayer()
       if (data.privacy !== undefined) {
@@ -342,17 +345,17 @@ class PrayerService {
       // Get the prayer point to access its prayerId before deletion
       const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
       const prayerPointSnap = await getDoc(prayerPointRef);
-      
+
       if (!prayerPointSnap.exists()) {
         throw new Error('Prayer point not found');
       }
-      
+
       const prayerPointData = prayerPointSnap.data();
       const prayerId = prayerPointData.prayerId;
-      
+
       // Delete the prayer point document
       await deleteDoc(prayerPointRef);
-      
+
       // Update the parent prayer's updatedAt timestamp
       if (prayerId) {
         await updateDoc(doc(this.prayersCollection, prayerId), {
@@ -370,9 +373,9 @@ class PrayerService {
     try {
       const docRef = doc(this.prayerPointsCollection, prayerPointId);
       const docSnap = await getDoc(docRef);
-      
+
       if (!docSnap.exists()) return null;
-      
+
       return this.convertDocToPrayerPoint(docSnap);
     } catch (error) {
       console.error('Error getting prayer point:', error);

@@ -18,6 +18,23 @@ export interface PrayerCardProps {
 export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
   const colorScheme = useColorScheme() ?? 'light';
 
+  const formattedDate = (() => {
+    if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
+
+    const date =
+      prayer.createdAt instanceof Date
+        ? prayer.createdAt
+        : typeof prayer.createdAt === 'object' && 'seconds' in prayer.createdAt
+          ? new Date(prayer.createdAt.seconds * 1000)
+          : new Date(prayer.createdAt);
+
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  })();
+
   return (
     <TouchableOpacity
       style={[
@@ -40,35 +57,39 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         }
       }}
     >
-      <ThemedText style={styles.title}>{prayer.title}</ThemedText>
+      <ThemedText style={styles.title}>
+        {'prayerId' in prayer ? prayer.title : formattedDate}
+      </ThemedText>
       <ThemedText numberOfLines={1} ellipsizeMode="tail" style={styles.preview}>
         {prayer.content}
       </ThemedText>
-      <View style={styles.actionBar}>
-        <Button
-          label={'Share'}
-          onPress={() => {}}
-          size="s"
-          flex={1}
-          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-          startIcon={
-            <IconSymbol
-              name="square.and.arrow.up"
-              color={Colors[colorScheme].textPrimary}
-              size={16}
-            />
-          }
-          backgroundColor={Colors.grey1}
-        />
-        <Button
-          label={'🙏 Pray!'}
-          onPress={() => {}}
-          size="s"
-          flex={1}
-          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-          backgroundColor={Colors.brown3}
-        />
-      </View>
+      {'prayerId' in prayer && (
+        <View style={styles.actionBar}>
+          <Button
+            label={'Share'}
+            onPress={() => {}}
+            size="s"
+            flex={1}
+            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+            startIcon={
+              <IconSymbol
+                name="square.and.arrow.up"
+                color={Colors[colorScheme].textPrimary}
+                size={16}
+              />
+            }
+            backgroundColor={Colors.grey1}
+          />
+          <Button
+            label={'🙏 Pray!'}
+            onPress={() => {}}
+            size="s"
+            flex={1}
+            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+            backgroundColor={Colors.brown3}
+          />
+        </View>
+      )}
     </TouchableOpacity>
   );
 }

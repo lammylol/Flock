@@ -1,6 +1,12 @@
 import { useState } from 'react';
-import { TouchableOpacity, Alert, View, StyleSheet } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import {
+  TouchableOpacity,
+  Alert,
+  View,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
 import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
@@ -9,6 +15,8 @@ import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { CreatePrayerPointDTO, Prayer, PrayerPoint } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
+import { HeaderButton } from '@/components/ui/HeaderButton';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -96,44 +104,61 @@ export default function PrayerPointMetadataScreen() {
   };
 
   return (
-    <ThemedScrollView contentContainerStyle={styles.scrollContent}>
-      <PrayerContent
-        editMode={'create'}
-        prayerOrPrayerPoint={'prayerPoint'}
-        backgroundColor={colorScheme}
-        onChange={(updatedPrayerData) => handlePrayerUpdate(updatedPrayerData)}
-      ></PrayerContent>
+    <ThemedKeyboardAvoidingView
+      style={styles.mainContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // Adjust if needed
+    >
+      <Stack.Screen
+        options={{
+          headerLeft: () => (
+            <HeaderButton onPress={router.back} label="Cancel" />
+          ),
+          title: 'Add Prayer Point',
+          headerTitleStyle: styles.headerTitleStyle,
+        }}
+      />
+      <ThemedScrollView contentContainerStyle={styles.scrollContent}>
+        <PrayerContent
+          editMode={'create'}
+          prayerOrPrayerPoint={'prayerPoint'}
+          backgroundColor={colorScheme}
+          onChange={(updatedPrayerData) =>
+            handlePrayerUpdate(updatedPrayerData)
+          }
+        ></PrayerContent>
 
-      <View style={styles.section}>
-        <View style={styles.privacySelector}>
-          <ThemedText style={styles.label}>Privacy</ThemedText>
-          <View style={styles.privacyValueContainer}>
-            <ThemedText style={styles.privacyValue}>
-              {privacy === 'private' ? 'Private' : 'Public'}
-            </ThemedText>
-            {privacy === 'private' && (
-              <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-            )}
+        <View style={styles.section}>
+          <View style={styles.privacySelector}>
+            <ThemedText style={styles.label}>Privacy</ThemedText>
+            <View style={styles.privacyValueContainer}>
+              <ThemedText style={styles.privacyValue}>
+                {privacy === 'private' ? 'Private' : 'Public'}
+              </ThemedText>
+              {/* {privacy === 'private' && (
+                <ThemedText style={styles.lockIcon}>🔒</ThemedText>
+              )} */}
+            </View>
           </View>
         </View>
-      </View>
 
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleSubmit}
-        disabled={isLoading}
-      >
-        <ThemedText style={styles.buttonText}>
-          {isLoading
-            ? isEditMode
-              ? 'Updating...'
-              : 'Creating...'
-            : isEditMode
-              ? 'Update Prayer'
-              : 'Create Prayer'}
-        </ThemedText>
-      </TouchableOpacity>
-    </ThemedScrollView>
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={isLoading}
+        >
+          <ThemedText style={styles.buttonText}>
+            {isLoading
+              ? isEditMode
+                ? 'Updating...'
+                : 'Creating...'
+              : isEditMode
+                ? 'Update Prayer'
+                : 'Create Prayer'}
+          </ThemedText>
+        </TouchableOpacity>
+      </ThemedScrollView>
+    </ThemedKeyboardAvoidingView>
   );
 }
 
@@ -144,10 +169,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     bottom: 20,
     justifyContent: 'center',
-    left: 20,
+    left: 0,
     paddingVertical: 16,
     position: 'absolute',
-    right: 20,
+    right: 0,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,
@@ -158,12 +183,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  label: {
+  headerTitleStyle: {
     fontSize: 16,
     fontWeight: '500',
   },
-  lockIcon: {
-    fontSize: 16,
+  label: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  mainContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
   privacySelector: {
     alignItems: 'center',
@@ -171,7 +201,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   privacyValue: {
-    fontSize: 16,
+    color: Colors.link,
+    fontSize: 18,
+    fontWeight: '400',
     marginRight: 4,
   },
   privacyValueContainer: {
@@ -182,11 +214,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background,
     flexGrow: 1,
     gap: 10,
-    padding: 16,
     paddingBottom: 24,
   },
   section: {
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.grey1,
     borderRadius: 12,
     padding: 16,
   },
