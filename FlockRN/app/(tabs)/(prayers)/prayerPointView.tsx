@@ -62,29 +62,27 @@ const PrayerPointView = () => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, []); // Scroll to bottom whenever messages change
 
-  const handleEdit = async () => {
+  const handleEdit = () => {
     if (!prayerPoint) return;
     
     console.log('Preparing to edit prayer point:', prayerPoint.id);
     
     try {
-      // Store the prayer point data in AsyncStorage for reliable transfer
-      await AsyncStorage.setItem('editPrayerPoint', JSON.stringify({
-        id: prayerPoint.id,
-        title: prayerPoint.title,
-        content: prayerPoint.content,
-        privacy: prayerPoint.privacy || 'private',
-        tags: prayerPoint.tags || [],
-        mode: 'edit'
-      }));
-      
-      console.log('Prayer point data stored for editing. Navigating to edit screen.');
-      
-      // Navigate to createPrayerPoint screen
-      router.push('/(tabs)/(prayers)/(createPrayerPoint)');
+      // Instead of using AsyncStorage, we'll pass the data via URL params
+      router.push({
+        pathname: '/(tabs)/(prayers)/(createPrayerPoint)',
+        params: {
+          id: prayerPoint.id,
+          title: prayerPoint.title || '',
+          content: prayerPoint.content || '',
+          privacy: prayerPoint.privacy || 'private',
+          tags: JSON.stringify(prayerPoint.tags || []),
+          mode: 'edit'
+        }
+      });
     } catch (error) {
-      console.error('Error preparing prayer point for editing:', error);
-      Alert.alert('Error', 'Failed to prepare prayer point for editing');
+      console.error('Error navigating to edit screen:', error);
+      Alert.alert('Error', 'Failed to navigate to edit screen');
     }
   };
   

@@ -18,7 +18,6 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -54,128 +53,74 @@ export default function PrayerPointMetadataScreen() {
     privacy: (params?.privacy as 'public' | 'private') || 'private',
   });
   
-  // Load prayer point data from AsyncStorage if in edit mode
   useEffect(() => {
-    const loadEditData = async () => {
-      try {
-        // Try to get edit data from AsyncStorage
-        const storedData = await AsyncStorage.getItem('editPrayerPoint');
-        console.log('AsyncStorage check - data found:', storedData ? 'Yes' : 'No');
+    const setupEditMode = async () => {
+      // Check if we're in edit mode from URL params
+      if (params.mode === 'edit' && params.id) {
+        console.log('Edit mode detected from URL params');
+        setIsEditMode(true);
         
-        if (storedData) {
-          console.log('Retrieved stored data:', storedData);
-          const editData = JSON.parse(storedData);
+        // First, try to find the prayer point in context
+        const contextPrayerPoint = userPrayerPoints.find(p => p.id === params.id);
+        
+        if (contextPrayerPoint) {
+          console.log('Found prayer point in context:', JSON.stringify({
+            id: contextPrayerPoint.id,
+            title: contextPrayerPoint.title,
+            content: contextPrayerPoint.content?.substring(0, 20) + '...'
+          }));
           
-          // Set edit mode based on stored data
-          const isEdit = editData.mode === 'edit';
-          setIsEditMode(isEdit);
-          
-          if (isEdit && editData.id) {
-            console.log('Setting up edit mode for prayer point ID:', editData.id);
-            
-            // Always initialize state with the stored data
-            setUpdatedPrayer({
-              id: editData.id,
-              title: editData.title || '',
-              content: editData.content || '',
-              tags: editData.tags || [],
-              createdAt: new Date(),
-              updatedAt: new Date(),
-              authorName: '',
-              authorId: '',
-              privacy: editData.privacy || 'private',
-            });
-            setPrivacy(editData.privacy || 'private');
-            
-            try {
-              // Fetch the complete data from the service
-              console.log('Fetching additional prayer point data from API...');
-              const prayerPoint = await prayerService.getPrayerPoint(editData.id);
-              
-              if (prayerPoint) {
-                console.log('API data received:', JSON.stringify({
-                  id: prayerPoint.id,
-                  title: prayerPoint.title,
-                  content: prayerPoint.content?.substring(0, 20) + '...'
-                }));
-                
-                // Update the prayer data while preserving edited fields from storage
-                setUpdatedPrayer(prevPrayer => ({
-                  ...prayerPoint,
-                  // Preserve the data from async storage as it's the most recent
-                  title: editData.title || prayerPoint.title,
-                  content: editData.content || prayerPoint.content,
-                  tags: editData.tags && editData.tags.length > 0 ? 
-                    editData.tags : (prayerPoint.tags || []),
-                  privacy: editData.privacy || prayerPoint.privacy || 'private',
-                }));
-                
-                // Make sure privacy is updated too
-                setPrivacy(editData.privacy || prayerPoint.privacy || 'private');
-              }
-            } catch (error) {
-              console.error('Error fetching prayer point:', error);
-              // Keep using the data from AsyncStorage even if API fetch fails
-            }
-            
-            // Clear the stored data after loading
-            console.log('Clearing stored edit data');
-            await AsyncStorage.removeItem('editPrayerPoint');
-          }
+          // Set initial data from context
+          setUpdatedPrayer({
+            ...contextPrayerPoint,
+            // Override with any params passed in URL if they exist
+            title: params.title || contextPrayerPoint.title,
+            content: params.content || contextPrayerPoint.content,
+            tags: initialTags.length > 0 ? initialTags : (contextPrayerPoint.tags || []),
+            privacy: (params.privacy as 'public' | 'private') || contextPrayerPoint.privacy || 'private',
+          });
+          setPrivacy((params.privacy as 'public' | 'private') || contextPrayerPoint.privacy || 'private');
         } else {
-          console.log('No stored prayer point data found');
-          console.log('Checking URL parameters...');
-          console.log('Mode parameter:', params.mode);
-          console.log('ID parameter:', params.id);
+          console.log('Prayer point not found in context. Fetching from API...');
           
-          // Check if edit mode is in URL params instead
-          if (params.mode === 'edit' && params.id) {
-            console.log('Edit mode detected from URL params');
-            setIsEditMode(true);
-            
-            // Try to find the prayer point in context
-            const contextPrayerPoint = userPrayerPoints.find(p => p.id === params.id);
-            
-            if (contextPrayerPoint) {
-              console.log('Found prayer point in context:', JSON.stringify({
-                id: contextPrayerPoint.id,
-                title: contextPrayerPoint.title,
-                content: contextPrayerPoint.content?.substring(0, 20) + '...'
-              }));
-              
+          try {
+            const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
+            if (fetchedPrayer) {
+              console.log('Fetched prayer from API');
               setUpdatedPrayer({
-                ...contextPrayerPoint,
-                tags: contextPrayerPoint.tags || []
+                ...fetchedPrayer,
+                // Override with any params passed in URL if they exist
+                title: params.title || fetchedPrayer.title,
+                content: params.content || fetchedPrayer.content,
+                tags: initialTags.length > 0 ? initialTags : (fetchedPrayer.tags || []),
+                privacy: (params.privacy as 'public' | 'private') || fetchedPrayer.privacy || 'private',
               });
-              setPrivacy(contextPrayerPoint.privacy || 'private');
-            } else {
-              console.log('Prayer point not found in context. Fetching from API...');
-              
-              try {
-                const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
-                if (fetchedPrayer) {
-                  console.log('Fetched prayer from API');
-                  setUpdatedPrayer({
-                    ...fetchedPrayer,
-                    tags: fetchedPrayer.tags || []
-                  });
-                  setPrivacy(fetchedPrayer.privacy || 'private');
-                }
-              } catch (error) {
-                console.error('Error fetching prayer point:', error);
-              }
+              setPrivacy((params.privacy as 'public' | 'private') || fetchedPrayer.privacy || 'private');
             }
-          } else {
-            console.log('Create mode detected');
+          } catch (error) {
+            console.error('Error fetching prayer point:', error);
           }
         }
-      } catch (error) {
-        console.error('Error retrieving stored prayer point data:', error);
+      } else {
+        console.log('Create mode detected');
+        // Initialize with URL params if they exist
+        if (params.title || params.content || initialTags.length > 0 || params.privacy) {
+          setUpdatedPrayer(prev => ({
+            ...prev,
+            title: params.title || prev.title,
+            content: params.content || prev.content,
+            tags: initialTags.length > 0 ? initialTags : prev.tags,
+            privacy: (params.privacy as 'public' | 'private') || prev.privacy,
+          }));
+          if (params.privacy) {
+            setPrivacy(params.privacy as 'public' | 'private');
+          }
+        }
       }
     };
 
-    loadEditData();
-  }, []);
+    setupEditMode();
+  }, [params, userPrayerPoints]);
 
   const handlePrayerUpdate = (updatedPrayerData: Prayer | PrayerPoint) => {
     console.log('Prayer update received:', JSON.stringify({
