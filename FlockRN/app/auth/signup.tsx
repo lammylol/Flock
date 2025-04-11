@@ -54,7 +54,7 @@ export default function SignUpScreen() {
         email: user.email,
         friends: [],
         groups: [],
-        createdAt: new Date(),
+        createdAt: firestore.Timestamp.now(),
         // used for searching
         normalizedUsername: userName.toLowerCase(),
         normalizedFirstName: firstName.toLowerCase(),
