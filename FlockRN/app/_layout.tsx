@@ -11,7 +11,8 @@ import SpaceMonoFont from '../assets/fonts/SpaceMono-Regular.ttf';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { UserProvider } from '@/context/UserContext';
 import useUserContext from '@/hooks/useUserContext';
-
+import { useSessionTracking } from '@/hooks/analytics/useSessionTracking';
+import analytics from '@react-native-firebase/analytics';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -22,6 +23,11 @@ export function AppContent() {
   const backgroundColor = useThemeColor({}, 'background');
   const [loaded] = useFonts({
     SpaceMono: SpaceMonoFont,
+  });
+  // analytics
+  useSessionTracking();
+  analytics().logEvent('debug_test_event', {
+    value: 'hello!',
   });
 
   const directUserToFirstScreen = useCallback(() => {

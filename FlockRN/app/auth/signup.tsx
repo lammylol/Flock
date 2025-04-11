@@ -1,10 +1,9 @@
 import { TextInput, StyleSheet, Alert, useColorScheme } from 'react-native';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { auth, db } from '@/firebase/firebaseConfig';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore';
-import React, { useState } from 'react';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { useState } from 'react';
 import { router } from 'expo-router';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { FirebaseError } from 'firebase/app';
@@ -34,16 +33,19 @@ export default function SignUpScreen() {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const userCredential = await auth().createUserWithEmailAndPassword(
         email,
         password,
       );
       const user = userCredential.user;
-      await updateProfile(user, {
+      await user.updateProfile({
         displayName: `${firstName || ''} ${lastName || ''}`.trim(),
       });
-      await setDoc(doc(db, FirestoreCollections.USERS, user.uid), {
+
+      const userRef = firestore()
+        .collection(FirestoreCollections.USERS)
+        .doc(user.uid);
+      await userRef.set({
         id: user.uid,
         username: userName,
         displayName: user.displayName,

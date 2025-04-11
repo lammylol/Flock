@@ -6,16 +6,15 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
-import { auth, db } from '@/firebase/firebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
-import { FirebaseError } from 'firebase/app';
 import { Colors } from '@/constants/Colors';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import useUserContext from '@/hooks/useUserContext';
 import { UserIntroFlow } from '@/types/UserFlags';
+import { FirebaseFirestoreError } from '@/types/firebaseErrors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -27,12 +26,14 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const user = await logIn(email, password);
-      const userRef = doc(db, FirestoreCollections.USERS, user.uid);
-      const userDoc = await getDoc(userRef);
+      const userRef = firestore()
+        .collection(FirestoreCollections.USERS)
+        .doc(user.uid);
+      const userDoc = await userRef.get();
 
-      if (userDoc.exists()) {
+      if (userDoc.exists) {
         const userData = userDoc.data();
-        await updateDoc(userRef, {
+        await userRef.update({
           friends: userData?.friends || [],
           groups: userData?.groups || [],
           normalizedUsername: userData?.username?.toLowerCase() || '',
@@ -46,11 +47,8 @@ export default function LoginScreen() {
       updateUserIntroFlowFlagState(UserIntroFlow.hasIntroDisclosures, true);
       router.replace('/(tabs)/(prayers)');
     } catch (error) {
-      if (error instanceof FirebaseError) {
-        console.error('Login error:', error.message);
-      } else {
-        console.error('Unknown login error:', error);
-      }
+      const firebaseError = error as FirebaseFirestoreError;
+      console.error('Login error:', firebaseError.message);
     }
   };
 
@@ -228,16 +226,12 @@ const styles = StyleSheet.create({
 
 async function logIn(email: string, password: string) {
   try {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
+    const userCredential = await auth().signInWithEmailAndPassword(
       email,
       password,
     );
     return userCredential.user;
-  } catch (error) {
-    if (error instanceof FirebaseError) {
-      throw error;
-    }
+  } catch {
     throw new Error('Failed to log in. Please try again.');
   }
 }
