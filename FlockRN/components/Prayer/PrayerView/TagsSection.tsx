@@ -46,10 +46,6 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
     'background',
   );
   const textColor = useThemeColor({ light: Colors.brown2 }, 'textPrimary');
-  const tagLabelText = useThemeColor(
-    { light: Colors.light.textSecondary },
-    'textPrimary',
-  );
 
   useEffect(() => {
     setSelectedTags(tags);
@@ -125,9 +121,7 @@ const TagsList = ({ prayerId, tags }: TagsListProps) => {
 
   return (
     <View style={styles.container}>
-      <ThemedText style={{ ...styles.tagsTitle, color: tagLabelText }}>
-        Tags:
-      </ThemedText>
+      <ThemedText style={{ ...styles.tagsTitle }}>Tags:</ThemedText>
       {!expanded ? (
         <TouchableOpacity style={styles.tagsContainer} onPress={toggleExpand}>
           {sortedTags.map((tag) => renderTag(tag))}

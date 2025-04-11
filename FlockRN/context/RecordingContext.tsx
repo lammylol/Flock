@@ -62,6 +62,7 @@ export const RecordingProvider = ({ children }: { children: ReactNode }) => {
   // Can be removed here if permissions are only requested when user clicks 'record'.
   useEffect(() => {
     requestPermissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRecordPrayer = async () => {

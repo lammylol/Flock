@@ -30,14 +30,24 @@ module.exports = [
 
       quotes: ['error', 'single'],
       'prettier/prettier': ['error', { singleQuote: true }],
-      'react-hooks/exhaustive-deps': 'warn',
-      // Added this rule configuration
+      'react-hooks/exhaustive-deps': 'error',
+      'react-native/sort-styles': 'off',
       'react-native/no-raw-text': [
         'error',
         {
           skip: ['ThemedText'],
         },
       ],
+    },
+  },
+  // Test-specific overrides
+  {
+    files: ['**/__tests__/**/*.[jt]s?(x)', '**/*.test.[jt]s?(x)'],
+    rules: {
+      'react-native/no-inline-styles': 'off',
+      'react-native/no-color-literals': 'off',
+      'no-console': 'off',
+      'no-undef': 'off',
     },
   },
 ];

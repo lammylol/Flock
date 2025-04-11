@@ -40,6 +40,9 @@ export interface Group {
 }
 
 export type PrayerTag = (typeof allTags)[number];
+export type PrayerType = 'request' | 'praise' | 'repentance';
+export type Privacy = 'public' | 'private';
+export type Status = 'open' | 'closed' | null;
 
 export interface Prayer {
   id: string;
@@ -48,12 +51,9 @@ export interface Prayer {
   authorName: string;
   createdAt: Date;
   updatedAt: Date;
-  status: 'open' | 'closed'; // can be deprecated later
-  privacy: 'public' | 'private'; // can be deprecated later
-  isPinned: boolean;
-  title: string;
-  tags: PrayerTag[];
+  privacy: Privacy;
   prayerPoints: string[];
+  prayerTypes: PrayerType[];
 }
 
 export interface PrayerPoint {
@@ -64,10 +64,22 @@ export interface PrayerPoint {
   updatedAt: Date;
   authorName: string;
   authorId: string;
-  prayerId: string;
-  type: 'request' | 'praise';
-  status: 'open' | 'closed' | null;
-  privacy: 'public' | 'private';
+  prayerId: string[];
+  prayerTypes: PrayerType;
+  status: Status;
+  privacy: Privacy;
+  recipientName: string;
+  recipientId?: string;
+  prayerUpdates: PrayerPointUpdate[];
+  tags: PrayerTag[];
+}
+
+export interface PrayerPointUpdate {
+  id: string;
+  authorId: string;
+  authorName: string;
+  content: string;
+  createdAt: Date;
 }
 
 export interface Category {

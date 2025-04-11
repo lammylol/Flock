@@ -2,7 +2,6 @@
 // Screen for when voice recording is recording.
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import useRecording from '@/hooks/recording/useRecording';
 import { router } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -11,10 +10,14 @@ import {
   FinishButton,
   RetryButton,
 } from '@/components/RecordingButton';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { Colors } from '@/constants/Colors';
 
 const VoiceRecording = () => {
   const { handleRecordPrayer, recording, resetRecording } = useRecording();
   const [timer, setTimer] = useState(0);
+  const colorScheme = useThemeColor({}, 'backgroundVoiceRecording');
+  const backgroundColor = useThemeColor({}, 'background');
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -24,6 +27,7 @@ const VoiceRecording = () => {
 
   useEffect(() => {
     handleRecordPrayer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // set timer only when recording is active
@@ -56,12 +60,10 @@ set in RecordingContext.tsx" */
   };
 
   return (
-    <View style={styles.container}>
-      {/* Recording Card */}
-      <LinearGradient
-        colors={['#8E44AD', '#DCC6E0']}
-        style={styles.recordingCard}
-      >
+    <View
+      style={[styles.backgroundContainer, { backgroundColor: backgroundColor }]}
+    >
+      <View style={[styles.container, { backgroundColor: colorScheme }]}>
         <View style={styles.upperSection}>
           <View style={styles.recordingIndicator}>
             <FontAwesome5 name="dot-circle" size={28} color="white" />
@@ -88,31 +90,47 @@ set in RecordingContext.tsx" */
             </>
           )}
         </View>
-      </LinearGradient>
+        <View
+          style={[styles.recordingCard, { backgroundColor: Colors.mildPurple }]}
+        ></View>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: 'white',
+  backgroundContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  container: {
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 20,
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 40,
+    width: '100%',
+    position: 'relative',
+    overflow: 'hidden',
   },
   horizontalContainer: {
     flex: 0,
     flexDirection: 'row',
     gap: 24,
     justifyContent: 'space-between',
-    marginBottom: 30,
+    marginBottom: 40,
+    zIndex: 1,
   },
   recordingCard: {
-    alignItems: 'center',
-    borderRadius: 20,
-    flex: 1,
-    justifyContent: 'space-between',
-    marginHorizontal: 16,
-    marginVertical: 8,
-    padding: 24,
+    height: 1000,
+    width: 1000,
+    borderRadius: 500,
+    position: 'absolute', // Float it over the container
+    bottom: -700, // Adjust positioning as needed
+    zIndex: 0,
   },
   recordingIndicator: {
     alignItems: 'center',

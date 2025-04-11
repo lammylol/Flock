@@ -205,7 +205,6 @@ class FriendsService {
           ...doc.data(),
         }),
       ) as FriendRequest[];
-      console.log('pendingRequests:', pendingRequests);
 
       return pendingRequests;
     } catch (error) {
@@ -229,7 +228,6 @@ class FriendsService {
       const sentRequests: FriendRequest[] = querySnapshot.docs.map((doc) => ({
         ...doc.data(),
       })) as FriendRequest[];
-      console.log('sentRequests:', sentRequests);
       return sentRequests;
     } catch (error) {
       console.error('Error fetching sent friend requests:', error);

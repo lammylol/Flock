@@ -265,16 +265,11 @@ class PrayerService {
       id: docSnap.id,
       authorId: data.authorId,
       authorName: data.authorName,
-      title: data.title,
       content: data.content,
-      status: data.status,
-      isPinned: data.isPinned,
       privacy: data.privacy,
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
-      tags: (data.tags || []).map(
-        (tag: string) => tag.charAt(0).toLowerCase() + tag.slice(1),
-      ),
+      prayerTypes: data.prayerTypes,
       prayerPoints: data.prayerPoints,
     };
   }
@@ -294,7 +289,11 @@ class PrayerService {
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
       prayerId: data.prayerId,
-      type: data.prayerType,
+      tags: data.tags,
+      prayerTypes: data.prayerTypes,
+      recipientId: data.recipientId,
+      recipientName: data.recipientName,
+      prayerUpdates: data.prayerUpdates,
     };
   }
 
