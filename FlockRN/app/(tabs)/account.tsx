@@ -1,4 +1,4 @@
-import { StyleSheet, Switch } from 'react-native';
+import { Alert, StyleSheet, Switch } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import useAuth from '@/hooks/useAuth';
@@ -8,6 +8,7 @@ import { auth } from '@/firebase/firebaseConfig';
 import MuiStack from '@/components/MuiStack';
 import useUserContext from '@/hooks/useUserContext';
 import { flagTranslations, UserOptInFlags } from '@/types/UserFlags';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabTwoScreen() {
   const { user, signOut } = useAuth();
@@ -19,6 +20,15 @@ export default function TabTwoScreen() {
     await toggleUserOptInFlagState(flag);
   };
 
+  const handleResetData = async () => {
+    try {
+      await AsyncStorage.clear();
+      Alert.alert('Success', 'All AsyncStorage data has been cleared!');
+    } catch {
+      Alert.alert('Error', 'Failed to clear AsyncStorage data.');
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.titleContainer}>
@@ -28,9 +38,7 @@ export default function TabTwoScreen() {
         <ThemedText>{user?.displayName}</ThemedText>
         {(Object.keys(userOptInFlags) as UserOptInFlags[]).map((optInFlag) => (
           <MuiStack direction="row" key={optInFlag.toString()}>
-            {/* Use the actual flag name for translation */}
             <ThemedText>{flagTranslations.optInFlags[optInFlag]}</ThemedText>
-
             <Switch
               trackColor={{ false: '#767577', true: '#81b0ff' }}
               thumbColor={userOptInFlags[optInFlag] ? '#f5dd4b' : '#f4f3f4'}
@@ -40,6 +48,7 @@ export default function TabTwoScreen() {
             />
           </MuiStack>
         ))}
+        <Button label="Reset All Async Storage" onPress={handleResetData} />
         <Button
           label="Sign out"
           onPress={async () => {
