@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { tagDisplayNames, allTags } from '@/types/Tag';
-import { CreatePrayerDTO, PrayerTag } from '@/types/firebase';
+import { CreatePrayerDTO, PrayerTag, PrayerType } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { prayerService } from '@/services/prayer/prayerService';
 import { ThemedText } from '@/components/ThemedText';
@@ -16,7 +16,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface TagsListProps {
   prayerId: string;
-  tags: PrayerTag[];
+  tags: PrayerType[];
 }
 
 const getTagColor = (tag: string) =>

@@ -1,8 +1,7 @@
 // ramon jiang
 // 1/29/25
 // set all types for Firebase
-
-import { allTags } from '@/types/Tag';
+import { PrayerTag, PrayerTag, Privacy } from './PrayerSubtypes';
 
 export interface UserProfile {
   email: string;
@@ -47,13 +46,14 @@ export type Status = 'open' | 'closed' | null;
 export interface Prayer {
   id: string;
   content: string;
+  title?: string;
   authorId: string;
   authorName: string;
   createdAt: Date;
   updatedAt: Date;
   privacy: Privacy;
   prayerPoints: string[];
-  prayerTypes: PrayerType[];
+  tags?: PrayerType[];
 }
 
 export interface PrayerPoint {
@@ -64,14 +64,13 @@ export interface PrayerPoint {
   updatedAt: Date;
   authorName: string;
   authorId: string;
-  prayerId: string[];
-  prayerTypes: PrayerType;
-  status: Status;
-  privacy: Privacy;
-  recipientName: string;
+  prayerId?: string | string[];
+  tags?: PrayerType[];
+  status?: Status;
+  privacy?: Privacy;
+  recipientName?: string;
   recipientId?: string;
-  prayerUpdates: PrayerPointUpdate[];
-  tags: PrayerTag[];
+  prayerUpdates?: PrayerPointUpdate[];
 }
 
 export interface PrayerPointUpdate {
@@ -97,14 +96,20 @@ export interface FeedPrayer {
 // DTOs for creating/updating
 export type CreatePrayerDTO = Omit<
   Prayer,
-  'id' | 'createdAt' | 'updatedAt' | 'prayerPointIds'
+  'id' | 'createdAt' | 'updatedAt' | 'prayerPoints'
 >;
+
 export type UpdatePrayerDTO = Partial<
-  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt' | 'prayerPointIds'>
+  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>
 >;
-export type PrayerPointDTO = Omit<
+
+export type CreatePrayerPointDTO = Omit<
   PrayerPoint,
-  'id' | 'createdAt' | 'updatedAt' | 'prayerId'
+  'id' | 'prayerId' | 'updatedAt'
+>;
+
+export type UpdatePrayerPointDTO = Partial<
+  Omit<PrayerPoint, 'id' | 'createdAt' | 'updatedAt'>
 >;
 
 export interface ServiceResponse {
@@ -112,4 +117,12 @@ export interface ServiceResponse {
   message?: string;
   errorCode?: string;
   errorMessage?: string;
+}
+
+// AI Analysis Result Type
+export interface PrayerAnalysisResult {
+  title: string;
+  cleanedTranscription?: string;
+  tags: PrayerTag[];
+  prayerPoints: PrayerPoint[];
 }

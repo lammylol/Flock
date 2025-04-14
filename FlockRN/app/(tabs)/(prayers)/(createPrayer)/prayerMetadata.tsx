@@ -17,13 +17,11 @@ import uuid from 'react-native-uuid';
 import {
   CreatePrayerDTO,
   PrayerPoint,
-  PrayerPointDTO,
-  PrayerTag,
+  CreatePrayerPointDTO,
   UpdatePrayerDTO,
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
-import { allTags } from '@/types/Tag';
-import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
+import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
 
@@ -35,7 +33,6 @@ export default function PrayerMetadataScreen() {
     id?: string;
     title?: string;
     privacy?: string;
-    tags?: string;
     mode?: string;
   }>();
 
@@ -43,19 +40,11 @@ export default function PrayerMetadataScreen() {
   const isEditMode = params.mode === 'edit';
   const prayerId = params.id;
 
-  // Parse tags if they exist in params
-  const initialTags: PrayerTag[] = params.tags
-    ? JSON.parse(params.tags as string)
-    : [];
-
   const [content, setContent] = useState(params?.content || '');
   const [title, setTitle] = useState(params?.title || '');
-  // TODO implement privacy setting
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [privacy, _setPrivacy] = useState<'public' | 'private'>(
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
-  const [selectedTags, setSelectedTags] = useState<PrayerTag[]>(initialTags);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -79,10 +68,15 @@ export default function PrayerMetadataScreen() {
   ): Promise<string[]> => {
     try {
       // Transform prayer points
-      const mappedPrayerPoints: PrayerPointDTO[] = prayerPoints.map(
+      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
         (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
-          type: (prayerPoint.type?.trim() as 'request' | 'praise') || 'request',
+          // Convert types array to a single type if needed for backward compatibility
+          type: (prayerPoint.types && prayerPoint.types.length > 0
+            ? prayerPoint.types[0]
+            : 'request') as 'request' | 'praise' | 'repentance',
+          // Store the full types array for the new functionality
+          types: prayerPoint.types || ['request'],
           content: prayerPoint.content?.trim() || '',
           createdAt: new Date(),
           authorId: auth.currentUser?.uid || 'unknown',
@@ -90,6 +84,10 @@ export default function PrayerMetadataScreen() {
           status: prayerPoint.status || 'open',
           privacy: prayerPoint.privacy ?? 'private',
           prayerId: prayerId,
+          prayerTypes: prayerPoint.prayerTypes || [], // Default to an empty array
+          recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
+          prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
+          tags: prayerPoint.tags || [], // Default to an empty array
         }),
       );
 
@@ -115,12 +113,13 @@ export default function PrayerMetadataScreen() {
         );
         setTitle(analysis.title);
         setContent(analysis.cleanedTranscription || content);
-        setSelectedTags(analysis.tags);
 
         // Assign a UUID if the prayer point doesn't already have an ID
         const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
           ...point,
           id: uuid.v4(), // Ensure each has a unique ID
+          // Initialize with default type as array for new UI
+          types: point.type ? [point.type] : ['request'],
         }));
 
         setPrayerPoints(updatedPrayerPoints);
@@ -133,7 +132,13 @@ export default function PrayerMetadataScreen() {
     };
     // Perform AI fill when content is available after navigation, but after 4 seconds.
     // This ensures that the full transcription is returned before before processing with AI.
-    if (content && !title && !isTranscribing && userOptInFlags.optInAI) {
+    if (
+      content &&
+      !title &&
+      !isTranscribing &&
+      userOptInFlags.optInAI &&
+      !isEditMode
+    ) {
       analyzeContent();
     }
   }, [
@@ -144,14 +149,6 @@ export default function PrayerMetadataScreen() {
     transcription,
     userOptInFlags.optInAI,
   ]);
-
-  const toggleTag = (tag: PrayerTag) => {
-    setSelectedTags((prevTags) =>
-      prevTags.includes(tag)
-        ? prevTags.filter((t) => t !== tag)
-        : [...prevTags, tag],
-    );
-  };
 
   const handleDelete = async () => {
     // Confirm deletion
@@ -194,8 +191,8 @@ export default function PrayerMetadataScreen() {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please add a title');
-      return;
+      // Generate a title from the first few words of content if title is empty
+      setTitle(content.split(' ').slice(0, 3).join(' ') || 'Untitled Prayer');
     }
 
     if (!auth.currentUser?.uid) {
@@ -211,7 +208,7 @@ export default function PrayerMetadataScreen() {
           title: title.trim(),
           content: content,
           privacy: privacy,
-          tags: selectedTags,
+          // We've removed tags completely
         };
 
         await prayerService.updatePrayer(prayerId, updateData);
@@ -223,7 +220,7 @@ export default function PrayerMetadataScreen() {
           title: title.trim(),
           content: content,
           privacy: privacy,
-          tags: selectedTags,
+          tags: [], // Empty tags array since we've removed the feature
           authorId: auth.currentUser.uid,
           authorName: auth.currentUser.displayName ?? 'Unknown',
           status: 'open',
@@ -243,8 +240,8 @@ export default function PrayerMetadataScreen() {
         await prayerService.updatePrayer(prayerId, updatePrayerPoints);
 
         Alert.alert('Success', 'Prayer created successfully');
-        router.dismissAll(); // resets 'createPrayer' stack.
         router.replace('/(tabs)/(prayers)');
+        // router.dismissAll(); // resets 'createPrayer' stack.
       }
     } catch (error) {
       console.error(
@@ -262,69 +259,20 @@ export default function PrayerMetadataScreen() {
 
   return (
     <ThemedScrollView contentContainerStyle={styles.scrollContent}>
+      {/* 1. Prayer Points Section with Summary Header */}
       <View style={styles.section}>
-        <TextInput
-          style={styles.titleInput}
-          placeholder="Prayer title"
-          value={title}
-          onChangeText={setTitle}
-          maxLength={100}
+        <ThemedText type="default" style={styles.headerText}>
+          Here's a summary of what you prayed:
+        </ThemedText>
+        <PrayerPointSection
+          prayerPoints={prayerPoints}
+          onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+            setPrayerPoints(updatedPrayerPoints)
+          }
         />
-        {isAnalyzing && (
-          <ActivityIndicator
-            color={Colors.primary}
-            size="small"
-            style={styles.activityIndicator}
-          />
-        )}
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.titleContainer}>
-          <TextInput
-            style={styles.contentInput}
-            placeholder={placeholder}
-            value={content}
-            onChangeText={setContent}
-            multiline
-          />
-          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <ThemedText style={styles.label}>Tags:</ThemedText>
-        <View style={styles.tagButtons}>
-          {allTags.map((tag) => (
-            <TouchableOpacity
-              key={tag}
-              style={[
-                styles.tagButton,
-                {
-                  backgroundColor: selectedTags.includes(tag)
-                    ? Colors.tagColors.selectedColors[tag] || Colors.primary
-                    : Colors.tagColors.defaultTag,
-                },
-              ]}
-              onPress={() => toggleTag(tag)}
-            >
-              <ThemedText
-                style={[
-                  styles.tagButtonText,
-                  {
-                    color: selectedTags.includes(tag)
-                      ? Colors.white
-                      : Colors.light.textPrimary,
-                  },
-                ]}
-              >
-                {tag}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
+      {/* 2. Privacy Section */}
       <View style={styles.section}>
         <View style={styles.privacySelector}>
           <ThemedText style={styles.label}>Privacy</ThemedText>
@@ -339,13 +287,32 @@ export default function PrayerMetadataScreen() {
         </View>
       </View>
 
-      <PrayerPointSection
-        prayerPoints={prayerPoints}
-        editable={true}
-        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
-          setPrayerPoints(updatedPrayerPoints)
-        }
-      />
+      {/* 3. Prayer Content Section with Title */}
+      <View style={styles.section}>
+        <ThemedText type="default" style={styles.headerText}>
+          Prayer
+        </ThemedText>
+        <View style={styles.contentContainer}>
+          <TextInput
+            style={styles.contentInput}
+            placeholder={placeholder}
+            value={content}
+            onChangeText={setContent}
+            multiline
+          />
+          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
+          {isAnalyzing && (
+            <ActivityIndicator
+              color={Colors.primary}
+              size="small"
+              style={styles.activityIndicator}
+            />
+          )}
+        </View>
+      </View>
+
+      {/* Spacer view to push content up and button to bottom */}
+      <View style={styles.spacer} />
 
       {isEditMode && (
         <TouchableOpacity
@@ -384,11 +351,12 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.purple,
     borderRadius: 12,
     flexDirection: 'row',
-    flex: 1,
-    gap: 8,
+    height: 60, // Fixed height for the button
+    justifyContent: 'center',
+    marginTop: 10,
     padding: 16,
   },
   buttonDisabled: {
@@ -399,23 +367,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+    width: '100%',
+  },
+
+  contentContainer: {
+    position: 'relative',
   },
   contentInput: {
     backgroundColor: Colors.secondary,
     borderRadius: 8,
     fontSize: 16,
+    minHeight: 120,
+    padding: 12,
     textAlignVertical: 'top',
   },
   deleteButton: {
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 12,
+    height: 60, // Fixed height to match the submit button
+    marginTop: 10,
     padding: 16,
   },
   deleteButtonText: {
     color: Colors.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 12,
   },
   label: {
     fontSize: 16,
@@ -449,23 +431,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
   },
-  tagButton: {
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  tagButtonText: {
-    fontSize: 14,
-  },
-  tagButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  titleContainer: {},
-  titleInput: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 8,
-    fontSize: 16,
+  // Add a spacer that will push content up and buttons to the bottom
+  spacer: {
+    flex: 1,
+    minHeight: 20, // Minimum height to ensure some spacing even when content is long
   },
 });

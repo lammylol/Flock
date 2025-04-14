@@ -17,4 +17,10 @@ export const tagColors = {
     prayerRequest: '#925EFF',
     friends: '#FFB6C1',
   },
+
+  typeColors: {
+    request: '#FF33A1',
+    praise: '#94C9A9',
+    repentance: '#FFAA33',
+  },
 };
