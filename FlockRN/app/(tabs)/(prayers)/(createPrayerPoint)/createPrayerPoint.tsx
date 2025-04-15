@@ -12,11 +12,12 @@ import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { CreatePrayerPointDTO, Prayer, PrayerPoint } from '@/types/firebase';
+import { CreatePrayerPointDTO, PrayerPoint } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
+import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -42,18 +43,20 @@ export default function PrayerPointMetadataScreen() {
     id: '',
     title: '',
     content: '',
+    type: 'request',
     tags: [],
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: '',
     authorId: '',
+    status: 'open',
   });
 
-  const handlePrayerUpdate = (updatedPrayerData: Prayer | PrayerPoint) => {
-    setUpdatedPrayerPoint((prevPrayer) => ({
-      ...prevPrayer,
-      ...updatedPrayerData,
-      status: updatedPrayerData.status as PrayerPoint['status'], // Ensure status matches the expected type
+  const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
+    setUpdatedPrayerPoint((prevPrayerPoint) => ({
+      ...prevPrayerPoint,
+      ...updatedPrayerPointData,
+      status: updatedPrayerPointData.status as PrayerPoint['status'], // Ensure status matches the expected type
     }));
   };
 
@@ -71,10 +74,11 @@ export default function PrayerPointMetadataScreen() {
     setIsLoading(true);
     try {
       // Create new prayer point
-      const prayerData: CreatePrayerPointDTO = {
+      const prayerPointData: CreatePrayerPointDTO = {
         title: updatedPrayerPoint.title.trim(),
         content: updatedPrayerPoint.content,
         privacy: updatedPrayerPoint.privacy ?? 'private',
+        type: updatedPrayerPoint.type,
         tags: updatedPrayerPoint.tags,
         authorId: auth.currentUser.uid || 'unknown',
         authorName: auth.currentUser.displayName || 'unknown',
@@ -84,7 +88,7 @@ export default function PrayerPointMetadataScreen() {
         createdAt: new Date(),
       };
 
-      await prayerService.createPrayerPoint(prayerData);
+      await prayerService.createPrayerPoint(prayerPointData);
 
       Alert.alert('Success', 'Prayer Point created successfully');
       router.replace('/(tabs)/(prayers)');
@@ -121,12 +125,14 @@ export default function PrayerPointMetadataScreen() {
       <ThemedScrollView contentContainerStyle={styles.scrollContent}>
         <PrayerContent
           editMode={'create'}
-          prayerOrPrayerPoint={'prayerPoint'}
+          prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
           backgroundColor={colorScheme}
-          onChange={(updatedPrayerData) =>
-            handlePrayerUpdate(updatedPrayerData)
-          }
-        ></PrayerContent>
+          onChange={(updatedPrayerData) => {
+            if ('type' in updatedPrayerData) {
+              handlePrayerUpdate(updatedPrayerData);
+            }
+          }}
+        />
 
         <View style={styles.section}>
           <View style={styles.privacySelector}>

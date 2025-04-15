@@ -11,6 +11,7 @@ import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailab
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 
 const PrayerPointView = () => {
   const { id: prayerPointId } = useLocalSearchParams() as {
@@ -81,7 +82,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-            'seconds' in prayerPoint.createdAt
+          'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
@@ -119,7 +120,7 @@ const PrayerPointView = () => {
             <PrayerContent
               editMode="view"
               prayerId={prayerPointId}
-              prayerOrPrayerPoint={'prayerPoint'}
+              prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
               backgroundColor={backgroundColor}
             />
           </>
