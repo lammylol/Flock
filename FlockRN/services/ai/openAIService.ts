@@ -19,7 +19,7 @@ export default class OpenAiService {
   private static instance: OpenAiService; // Static instance to hold the singleton
 
   // Private constructor ensures that this class cannot be instantiated directly
-  private constructor() {}
+  private constructor() { }
 
   // Method to get the singleton instance
   public static getInstance(): OpenAiService {
@@ -28,6 +28,7 @@ export default class OpenAiService {
     }
     return OpenAiService.instance;
   }
+
   async analyzePrayerContent(
     content: string,
     hasTranscription: boolean,
@@ -136,30 +137,78 @@ export default class OpenAiService {
             prayerPoint: Omit<PrayerPoint, 'id' | 'createdAt' | 'authorId'>,
           ) => ({
             title: prayerPoint.title.trim(),
-            type: prayerPoint.type.trim(),
+            type: prayerPoint.type,
             content: prayerPoint.content.trim(),
           }),
         ),
       };
     } catch (error) {
-      if (error instanceof OpenAI.APIError) {
-        switch (error.status) {
-          case 429:
-            throw new Error(
-              'AI service is temporarily unavailable. Please try again later or fill in the details manually.',
-            );
-          case 401:
-            throw new Error(
-              'Authentication error with AI service. Please try again later.',
-            );
-          default:
-            throw new Error(
-              'AI service error. Please try again or fill in the details manually.',
-            );
-        }
-      }
-      console.error('Error analyzing prayer:', error);
-      throw error;
+      this.handleOpenAiError(error, 'AI');
     }
+  }
+
+  async getVectorEmbeddings(input: string): Promise<number[]> {
+    if (!input?.trim()) {
+      throw new Error('No input provided');
+    }
+
+    try {
+      const completion = await openai.embeddings.create({
+        model: 'text-embedding-3-small',
+        input: input,
+        encoding_format: 'float',
+      });
+
+      const embedding = completion.data?.[0]?.embedding;
+      if (!embedding)
+        throw new Error('Invalid vector embedding response format');
+
+      return embedding;
+    } catch (error) {
+      this.handleOpenAiError(error, 'vector');
+    }
+  }
+
+  private handleOpenAiError(error: unknown, context: 'AI' | 'vector'): never {
+    if (error instanceof OpenAI.APIError) {
+      switch (error.status) {
+        case 429:
+          throw new Error(
+            `${context} service is temporarily unavailable. Please try again later.`,
+          );
+        case 401:
+          throw new Error(
+            `Authentication error with ${context} service. Please try again later.`,
+          );
+        default:
+          throw new Error(`${context} service error. Please try again later.`);
+      }
+    }
+    console.error(`Error in ${context} analysis:`, error);
+    throw error;
+  }
+
+  // this is mainly for use with ai generation flow.
+  async analyzePrayerWithEmbeddings(
+    content: string,
+    hasTranscription: boolean,
+    isAiEnabled: boolean,
+  ): Promise<AIAnalysis & { embedding: number[] }> {
+    // Initial OpenAI analysis
+    const analysis = await this.analyzePrayerContent(
+      content,
+      hasTranscription,
+      isAiEnabled,
+    );
+
+    // Use cleaned content for embedding and get embedding.
+    const inputForEmbedding = analysis.cleanedTranscription || content.trim();
+
+    const embedding = await this.getVectorEmbeddings(inputForEmbedding);
+
+    return {
+      ...analysis,
+      embedding,
+    };
   }
 }
