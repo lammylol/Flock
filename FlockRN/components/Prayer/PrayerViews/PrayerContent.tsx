@@ -52,6 +52,7 @@ export function PrayerContent({
       title: editableTitle || '',
       content: editableContent || '',
       tags: updatedTags || [],
+      type: updatedTags[0] || 'request', // temporary add to ensure type has only one prayerType. Only applicable for PrayerPoint
     };
 
     if (prayerOrPrayerPoint === 'prayer') {
@@ -68,7 +69,7 @@ export function PrayerContent({
       selectedPrayer.createdAt instanceof Date
         ? selectedPrayer.createdAt
         : typeof selectedPrayer.createdAt === 'object' &&
-            'seconds' in selectedPrayer.createdAt
+          'seconds' in selectedPrayer.createdAt
           ? new Date(selectedPrayer.createdAt.seconds * 1000)
           : new Date(selectedPrayer.createdAt);
 
@@ -82,7 +83,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === 'edit' || editMode === 'create') &&
-      prayerOrPrayerPoint === 'prayerPoint' ? (
+        prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}
