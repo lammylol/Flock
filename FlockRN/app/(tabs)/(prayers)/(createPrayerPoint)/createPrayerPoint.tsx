@@ -24,6 +24,7 @@ import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingV
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import OpenAiService from '@/services/ai/openAIService';
 
 export default function PrayerPointMetadataScreen() {
   // Define the ref at the component level
@@ -119,7 +120,7 @@ export default function PrayerPointMetadataScreen() {
     }
   }, [params.mode, params.id, userPrayerPoints]);
 
-  const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
+  const handlePrayerPointUpdate = (updatedPrayerPointData: PrayerPoint) => {
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
       ...prevPrayerPoint,
       ...updatedPrayerPointData,
@@ -128,18 +129,21 @@ export default function PrayerPointMetadataScreen() {
   };
 
   const handleSubmit = async () => {
+    const user = auth.currentUser;
+
     if (!updatedPrayerPoint.title.trim()) {
-      Alert.alert('Error', 'Please add a title');
+      Alert.alert('Missing Title', 'Please add a title for your prayer.');
       return;
     }
 
-    if (!auth.currentUser?.uid) {
-      Alert.alert('Error', 'You must be logged in to create a prayer');
+    if (!user?.uid) {
+      Alert.alert('Not Logged In', 'You must be logged in to create a prayer.');
       return;
     }
 
     setPrivacy('private');
     setIsLoading(true);
+
     try {
       if (isEditMode && updatedPrayerPoint.id) {
         console.log('⭐ Submitting in EDIT mode');
@@ -164,34 +168,41 @@ export default function PrayerPointMetadataScreen() {
         Alert.alert('Success', 'Prayer Point updated successfully');
       } else {
         console.log('⭐ Submitting in CREATE mode');
-        // Create new prayer point
+        // 1. Generate vector embedding for semantic linkage
+        const input =
+          `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
+        const embedding = await openAiService.getVectorEmbeddings(input);
+
+        // 2. Construct prayer point data
         const prayerPointData: CreatePrayerPointDTO = {
           title: updatedPrayerPoint.title.trim(),
-          content: updatedPrayerPoint.content,
+          content: updatedPrayerPoint.content.trim(),
           privacy: updatedPrayerPoint.privacy ?? 'private',
           type: updatedPrayerPoint.type,
           tags: updatedPrayerPoint.tags,
-          authorId: auth.currentUser.uid || 'unknown',
-          authorName: auth.currentUser.displayName || 'unknown',
+          authorId: user.uid,
+          authorName: user.displayName || 'unknown',
           status: 'open',
           recipientName: 'unknown',
           recipientId: 'unknown',
           createdAt: new Date(),
+          embedding,
         };
 
+        // 3. Save prayer point to backend
         await prayerService.createPrayerPoint(prayerPointData);
-        Alert.alert('Success', 'Prayer Point created successfully');
+        Alert.alert('Success', 'Prayer Point created successfully.');
       }
 
       router.replace('/(tabs)/(prayers)');
-      router.dismissAll(); // resets 'createPrayer' stack.
+      router.dismissAll(); // Resets navigation stack
     } catch (error) {
       console.error(
         `⭐ Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
         error,
       );
       Alert.alert(
-        'Error',
+        'Something went wrong',
         `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`,
       );
     } finally {
@@ -226,7 +237,7 @@ export default function PrayerPointMetadataScreen() {
           backgroundColor={colorScheme}
           onChange={(updatedPrayerPointData) => {
             if ('type' in updatedPrayerPointData) {
-              handlePrayerUpdate(updatedPrayerPointData);
+              handlePrayerPointUpdate(updatedPrayerPointData);
             }
           }}
           prayer={updatedPrayerPoint}
