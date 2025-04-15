@@ -119,6 +119,12 @@ export default function PrayerPointMetadataScreen() {
         setUpdatedPrayerPoint({
           ...contextPrayerPoint,
         });
+
+        setPrivacy(
+          (params.privacy as 'public' | 'private') ||
+            contextPrayerPoint.privacy ||
+            'private',
+        );
       } else {
         console.log(
           '⭐ Prayer point not found in context. Fetching from API...',
@@ -204,6 +210,8 @@ export default function PrayerPointMetadataScreen() {
   ]);
 
   const handleSubmit = async () => {
+    const user = auth.currentUser;
+
     if (!updatedPrayerPoint.title.trim()) {
       Alert.alert('Missing Title', 'Please add a title for your prayer.');
       return;
