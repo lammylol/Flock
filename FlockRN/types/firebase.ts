@@ -65,6 +65,7 @@ export interface PrayerPoint {
   authorName: string;
   authorId: string;
   prayerId?: string | string[];
+  type: PrayerType;
   tags?: PrayerType[];
   status?: Status;
   privacy?: Privacy;

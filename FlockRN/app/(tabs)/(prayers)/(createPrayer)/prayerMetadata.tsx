@@ -72,11 +72,11 @@ export default function PrayerMetadataScreen() {
         (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
-          type: (prayerPoint.types && prayerPoint.types.length > 0
-            ? prayerPoint.types[0]
+          type: (prayerPoint.type && prayerPoint.type.length > 0
+            ? prayerPoint.type[0]
             : 'request') as 'request' | 'praise' | 'repentance',
           // Store the full types array for the new functionality
-          types: prayerPoint.types || ['request'],
+          types: prayerPoint.type || ['request'],
           content: prayerPoint.content?.trim() || '',
           createdAt: new Date(),
           authorId: auth.currentUser?.uid || 'unknown',
@@ -84,7 +84,6 @@ export default function PrayerMetadataScreen() {
           status: prayerPoint.status || 'open',
           privacy: prayerPoint.privacy ?? 'private',
           prayerId: prayerId,
-          prayerTypes: prayerPoint.prayerTypes || [], // Default to an empty array
           recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
           prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
           tags: prayerPoint.tags || [], // Default to an empty array
@@ -223,8 +222,6 @@ export default function PrayerMetadataScreen() {
           tags: [], // Empty tags array since we've removed the feature
           authorId: auth.currentUser.uid,
           authorName: auth.currentUser.displayName ?? 'Unknown',
-          status: 'open',
-          isPinned: false,
         };
 
         const prayerId = await prayerService.createPrayer(prayerData);

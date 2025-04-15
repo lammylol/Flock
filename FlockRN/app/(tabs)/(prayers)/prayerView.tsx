@@ -13,6 +13,7 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { PrayerPoint } from '@/types/firebase';
 import { forEach } from 'lodash';
+import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{
@@ -124,7 +125,7 @@ const PrayerView = () => {
             <PrayerContent
               editMode="view"
               prayerId={id}
-              prayerOrPrayerPoint={'prayer'}
+              prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
               backgroundColor={colorScheme}
             />
             {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
