@@ -1,8 +1,6 @@
 import { TextInput, StyleSheet, Alert, useColorScheme } from 'react-native';
-
+import { Timestamp } from '@react-native-firebase/firestore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
@@ -12,8 +10,10 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import Button from '@/components/Button';
 import { UserProfile } from '@/types/firebase';
+import { useFirestore } from '@/firebase/useFirestore';
 
 export default function SignUpScreen() {
+  const { flockDb, auth } = useFirestore();
   const theme = useColorScheme() ?? 'light';
   const [userName, setUserName] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -33,7 +33,7 @@ export default function SignUpScreen() {
     }
 
     try {
-      const userCredential = await auth().createUserWithEmailAndPassword(
+      const userCredential = await auth.createUserWithEmailAndPassword(
         email,
         password,
       );
@@ -42,7 +42,7 @@ export default function SignUpScreen() {
         displayName: `${firstName || ''} ${lastName || ''}`.trim(),
       });
 
-      const userRef = firestore()
+      const userRef = flockDb
         .collection(FirestoreCollections.USERS)
         .doc(user.uid);
       await userRef.set({
@@ -54,14 +54,14 @@ export default function SignUpScreen() {
         email: user.email,
         friends: [],
         groups: [],
-        createdAt: firestore.Timestamp.now(),
+        createdAt: Timestamp.now(),
         // used for searching
         normalizedUsername: userName.toLowerCase(),
         normalizedFirstName: firstName.toLowerCase(),
         normalizedLastName: lastName.toLowerCase(),
       } as UserProfile);
       Alert.alert('Success', 'Account created successfully!');
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/(prayers)');
     } catch (error: unknown) {
       if (error instanceof FirebaseError) {
         console.error('Error creating account:', error.message);

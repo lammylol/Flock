@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
-import auth from '@react-native-firebase/auth';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
@@ -26,8 +25,10 @@ import { allTags } from '@/types/Tag';
 import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
+import { useFirestore } from '@/firebase/useFirestore';
 
 export default function PrayerMetadataScreen() {
+  const { auth } = useFirestore();
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
   const params = useLocalSearchParams<{

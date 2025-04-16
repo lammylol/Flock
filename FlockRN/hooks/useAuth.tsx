@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth'; // Using react-native-firebase auth
+import { getAuth, FirebaseAuthTypes } from '@react-native-firebase/auth'; // Using react-native-firebase auth
 import { userService } from '@/services/userService';
 import { UserProfileResponse } from '@/types/firebase';
 
 export default function useAuth() {
+  const auth = getAuth();
   // State for storing the user
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileResponse | null>(
@@ -15,7 +16,7 @@ export default function useAuth() {
 
   useEffect(() => {
     // Listener for auth state changes
-    const unsubscribe = auth().onAuthStateChanged(async (firebaseUser) => {
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
         // Fetch the user profile if authenticated
         const userProfile = await userService.getUser(firebaseUser.uid);
@@ -32,12 +33,12 @@ export default function useAuth() {
 
     // Clean up the listener on component unmount
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   // Sign out function
   const signOut = async () => {
     try {
-      await auth().signOut();
+      await auth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
     }

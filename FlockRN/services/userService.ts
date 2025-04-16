@@ -1,9 +1,11 @@
-import firestore from '@react-native-firebase/firestore'; // Importing Firestore from react-native-firebase
+import { getFirestore } from '@react-native-firebase/firestore'; // Importing Firestore from react-native-firebase
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { UserProfileResponse } from '@/types/firebase';
 
 class UserService {
-  private userCollection = firestore().collection(FirestoreCollections.USERS); // Using react-native-firebase firestore
+  private userCollection = getFirestore().collection(
+    FirestoreCollections.USERS,
+  ); // Using react-native-firebase firestore
 
   async getUser(userId: string): Promise<UserProfileResponse | null> {
     try {

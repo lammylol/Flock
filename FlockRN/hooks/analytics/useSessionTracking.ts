@@ -1,25 +1,26 @@
-import { useEffect, useRef } from 'react';
+import { useFirestore } from '@/firebase/useFirestore';
+import { useCallback, useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import analytics from '@react-native-firebase/analytics';
 
 let sessionStart = 0;
 
 export function useSessionTracking() {
+  const { analytics } = useFirestore();
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
   const startSession = () => {
     sessionStart = Date.now();
   };
 
-  const endSession = async () => {
+  const endSession = useCallback(async () => {
     if (sessionStart) {
       const duration = Math.floor((Date.now() - sessionStart) / 1000); // seconds
-      await analytics().logEvent('session_end', {
+      await analytics.logEvent('session_end', {
         duration_seconds: duration,
       });
     }
     sessionStart = 0;
-  };
+  }, [analytics]);
 
   useEffect(() => {
     const onChange = (nextAppState: AppStateStatus) => {
@@ -48,5 +49,5 @@ export function useSessionTracking() {
       sub.remove();
       endSession(); // app closed
     };
-  }, []);
+  }, [endSession]);
 }

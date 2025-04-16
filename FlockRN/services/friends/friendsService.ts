@@ -1,4 +1,8 @@
-import firestore from '@react-native-firebase/firestore'; // Using react-native-firebase firestore
+import {
+  getFirestore,
+  arrayUnion,
+  serverTimestamp,
+} from '@react-native-firebase/firestore'; // Using react-native-firebase firestore
 import {
   FirestoreCollections,
   FriendRequestFields,
@@ -10,7 +14,9 @@ import {
 } from '@/types/firebase';
 
 class FriendsService {
-  private userCollection = firestore().collection(FirestoreCollections.USERS); // Using react-native-firebase firestore
+  private userCollection = getFirestore().collection(
+    FirestoreCollections.USERS,
+  ); // Using react-native-firebase firestore
 
   async searchUsers(searchTerm: string): Promise<UserProfileResponse[]> {
     try {
@@ -22,7 +28,7 @@ class FriendsService {
         'normalizedFirstName',
         'normalizedLastName',
       ].map((field) =>
-        firestore()
+        getFirestore()
           .collection(FirestoreCollections.USERS)
           .where(field, '>=', lowerSearchTerm)
           .where(field, '<=', lowerSearchTerm + '\uf8ff'),
@@ -65,7 +71,7 @@ class FriendsService {
         .collection(FriendRequestFields.RECEIVED)
         .doc(sendingUserId);
 
-      const batch = firestore().batch();
+      const batch = getFirestore().batch();
       batch.set(
         senderSentRef,
         {
@@ -73,7 +79,7 @@ class FriendsService {
           username: receivingUser.username,
           displayName: receivingUser.displayName,
           status: 'pending',
-          timestamp: firestore.FieldValue.serverTimestamp(),
+          timestamp: serverTimestamp(),
         } as FriendRequest,
         { merge: true },
       );
@@ -84,7 +90,7 @@ class FriendsService {
           username: sendingUser.username,
           displayName: sendingUser.displayName,
           status: 'pending',
-          timestamp: firestore.FieldValue.serverTimestamp(),
+          timestamp: serverTimestamp(),
         } as FriendRequest,
         { merge: true },
       );
@@ -131,18 +137,18 @@ class FriendsService {
         userId: senderId,
         displayName: senderData?.displayName || '',
         userName: senderData?.username || '',
-        createdAt: firestore.FieldValue.serverTimestamp(),
+        createdAt: serverTimestamp(),
       };
 
       const receiverFriend = {
         userId: receiverId,
         displayName: receiverData?.displayName || '',
         userName: receiverData?.username || '',
-        createdAt: firestore.FieldValue.serverTimestamp(),
+        createdAt: serverTimestamp(),
       };
 
       // Create a batch write to perform all operations atomically
-      const batch = firestore().batch();
+      const batch = getFirestore().batch();
 
       // Delete the friend request documents
       batch.delete(senderFriendRequestRef);
@@ -150,10 +156,10 @@ class FriendsService {
 
       // Add both users to each other's friends array
       batch.update(senderUserRef, {
-        friends: firestore.FieldValue.arrayUnion(receiverFriend),
+        friends: arrayUnion(receiverFriend),
       });
       batch.update(receiverUserRef, {
-        friends: firestore.FieldValue.arrayUnion(senderFriend),
+        friends: arrayUnion(senderFriend),
       });
 
       // Commit the batch

@@ -4,7 +4,6 @@ import { ThemedView } from '@/components/ThemedView';
 import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
-import auth from '@react-native-firebase/auth';
 import MuiStack from '@/components/MuiStack';
 import useUserContext from '@/hooks/useUserContext';
 import { flagTranslations, UserOptInFlags } from '@/types/UserFlags';
@@ -52,7 +51,7 @@ export default function TabTwoScreen() {
         <Button
           label="Sign out"
           onPress={async () => {
-            await signOut(auth); // Pass the auth instance
+            await signOut(); // Pass the auth instance
             router.replace('/auth/login');
           }}
         />

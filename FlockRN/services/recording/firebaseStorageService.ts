@@ -1,5 +1,5 @@
 import { FirebaseStorageError } from '@/types/firebaseErrors';
-import storage from '@react-native-firebase/storage';
+import { getStorage, TaskState } from '@react-native-firebase/storage';
 
 // this file handles the uploading and downloading of files to firebase storage
 // it is mainly used in the recording service to upload and download the audio files.
@@ -8,7 +8,8 @@ export const uploadFile = async (
   file: Blob | Uint8Array | ArrayBuffer,
   fileName: string,
 ): Promise<void> => {
-  const reference = storage().ref(fileName);
+  const storage = getStorage();
+  const reference = storage.ref(fileName);
 
   // Upload file and metadata
   const task = reference.put(file, {
@@ -21,10 +22,10 @@ export const uploadFile = async (
       (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 100;
     console.log(`Upload is ${progress}% done`);
     switch (taskSnapshot.state) {
-      case storage.TaskState.PAUSED:
+      case TaskState.PAUSED:
         console.log('Upload is paused');
         break;
-      case storage.TaskState.RUNNING:
+      case TaskState.RUNNING:
         console.log('Upload is running');
         break;
     }
@@ -52,7 +53,8 @@ export const uploadFile = async (
 };
 
 export const downloadFile = async (fileName: string): Promise<string> => {
-  const reference = storage().ref(fileName);
+  const storage = getStorage();
+  const reference = storage.ref(fileName);
   return await reference.getDownloadURL();
 };
 

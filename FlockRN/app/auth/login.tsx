@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { Colors } from '@/constants/Colors';
@@ -15,9 +13,11 @@ import { FirestoreCollections } from '@/schema/firebaseCollections';
 import useUserContext from '@/hooks/useUserContext';
 import { UserIntroFlow } from '@/types/UserFlags';
 import { FirebaseFirestoreError } from '@/types/firebaseErrors';
+import { useFirestore } from '@/firebase/useFirestore';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { flockDb } = useFirestore();
   const { updateUserIntroFlowFlagState } = useUserContext();
 
   const [email, setEmail] = useState('');
@@ -26,7 +26,7 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const user = await logIn(email, password);
-      const userRef = firestore()
+      const userRef = flockDb
         .collection(FirestoreCollections.USERS)
         .doc(user.uid);
       const userDoc = await userRef.get();
@@ -225,8 +225,9 @@ const styles = StyleSheet.create({
 });
 
 async function logIn(email: string, password: string) {
+  const { auth } = useFirestore();
   try {
-    const userCredential = await auth().signInWithEmailAndPassword(
+    const userCredential = await auth.signInWithEmailAndPassword(
       email,
       password,
     );

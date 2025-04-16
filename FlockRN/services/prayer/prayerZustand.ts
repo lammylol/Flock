@@ -1,5 +1,5 @@
 import create from 'zustand';
-import firestore from '@react-native-firebase/firestore'; // Import firestore from react-native-firebase
+import { useFirestore } from '@/firebase/useFirestore';
 
 const usePrayerStore = create((set) => ({
   prayers: {}, // Cached prayers { [id]: { ...prayerData } }
@@ -9,7 +9,8 @@ const usePrayerStore = create((set) => ({
   fetchAllPrayers: async () => {
     set({ loading: true });
     try {
-      const querySnapshot = await firestore().collection('prayers').get(); // Use react-native-firebase Firestore API
+      const { flockDb } = useFirestore();
+      const querySnapshot = await flockDb.collection('prayers').get(); // Use react-native-firebase Firestore API
       const prayers = {};
       querySnapshot.forEach((doc) => {
         prayers[doc.id] = { id: doc.id, ...doc.data() };
@@ -27,10 +28,11 @@ const usePrayerStore = create((set) => ({
     set((state) => ({ ...state, loading: true }));
 
     try {
+      const { flockDb } = useFirestore();
       const existingPrayer = usePrayerStore.getState().prayers[id];
       if (existingPrayer) return; // Don't refetch if already in store
 
-      const docRef = firestore().collection('prayers').doc(id); // Use react-native-firebase Firestore API
+      const docRef = flockDb.collection('prayers').doc(id); // Use react-native-firebase Firestore API
       const docSnap = await docRef.get(); // Get the document snapshot
 
       if (docSnap.exists) {

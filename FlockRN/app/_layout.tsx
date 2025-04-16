@@ -12,11 +12,12 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { UserProvider } from '@/context/UserContext';
 import useUserContext from '@/hooks/useUserContext';
 import { useSessionTracking } from '@/hooks/analytics/useSessionTracking';
-import analytics from '@react-native-firebase/analytics';
+import { useFirestore } from '@/firebase/useFirestore';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export function AppContent() {
+  const { analytics } = useFirestore();
   const { userIsAuthenticated, isAuthLoading } = useAuthContext();
   const { userIntroFlowFlags } = useUserContext();
   const router = useRouter();
@@ -26,7 +27,7 @@ export function AppContent() {
   });
   // analytics
   useSessionTracking();
-  analytics().logEvent('debug_test_event', {
+  analytics.logEvent('debug_test_event', {
     value: 'hello!',
   });
 

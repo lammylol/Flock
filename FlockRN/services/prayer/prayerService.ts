@@ -2,7 +2,9 @@
 // 1/29/25
 // service for handling prayer CRUD operations with Firebase
 
-import firestore, {
+import {
+  getFirestore,
+  serverTimestamp,
   FirebaseFirestoreTypes,
 } from '@react-native-firebase/firestore';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
@@ -16,17 +18,19 @@ import {
 import { User } from 'firebase/auth';
 
 class PrayerService {
-  private prayersCollection = firestore().collection(
+  private prayersCollection = getFirestore().collection(
     FirestoreCollections.PRAYERS,
   );
-  private prayerPointsCollection = firestore().collection(
+  private prayerPointsCollection = getFirestore().collection(
     FirestoreCollections.PRAYERPOINTS,
   );
-  private feedsCollection = firestore().collection(FirestoreCollections.FEED);
+  private feedsCollection = getFirestore().collection(
+    FirestoreCollections.FEED,
+  );
 
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
-      const now = firestore.FieldValue.serverTimestamp();
+      const now = serverTimestamp();
       const docRef = await this.prayersCollection.add({
         ...data,
         createdAt: now,
@@ -38,7 +42,7 @@ class PrayerService {
 
       // If prayer is public, add to author's feed
       if (data.privacy === 'public') {
-        const feedPrayerRef = firestore()
+        const feedPrayerRef = getFirestore()
           .collection(FirestoreCollections.FEED)
           .doc(data.authorId)
           .collection(FirestoreCollections.PRAYERS)
@@ -87,7 +91,7 @@ class PrayerService {
 
   async updatePrayer(prayerId: string, data: UpdatePrayerDTO): Promise<void> {
     try {
-      const now = firestore.FieldValue.serverTimestamp();
+      const now = serverTimestamp();
       const prayerRef = this.prayersCollection.doc(prayerId);
 
       await prayerRef.update({
@@ -99,7 +103,7 @@ class PrayerService {
       if (data.privacy !== undefined) {
         const prayer = await this.getPrayer(prayerId);
         if (prayer) {
-          const feedRef = firestore()
+          const feedRef = getFirestore()
             .collection(FirestoreCollections.FEED)
             .doc(prayer.authorId)
             .collection(FirestoreCollections.PRAYERS)
@@ -127,7 +131,7 @@ class PrayerService {
       await this.prayersCollection.doc(prayerId).delete();
 
       // Remove from author's feed if it exists
-      await firestore()
+      await getFirestore()
         .collection(FirestoreCollections.FEED)
         .doc(authorId)
         .collection(FirestoreCollections.PRAYERS)
@@ -140,7 +144,7 @@ class PrayerService {
         .collection('updates');
       const updatesSnapshot = await updatesRef.get();
 
-      const batch = firestore().batch();
+      const batch = getFirestore().batch();
       updatesSnapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
@@ -152,7 +156,7 @@ class PrayerService {
   }
 
   async addPrayerPoints(prayerPoints: PrayerPointDTO[]): Promise<string[]> {
-    const now = firestore.FieldValue.serverTimestamp();
+    const now = serverTimestamp();
 
     try {
       const writePromises = prayerPoints.map(async (point) => {
