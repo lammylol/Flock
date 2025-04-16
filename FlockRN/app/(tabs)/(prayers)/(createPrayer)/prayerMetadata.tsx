@@ -27,7 +27,7 @@ import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
 import { useFirestore } from '@/firebase/useFirestore';
 
-export default function PrayerMetadataScreen() {
+const PrayerMetadataScreen = () => {
   const { auth } = useFirestore();
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
@@ -377,7 +377,9 @@ export default function PrayerMetadataScreen() {
       </TouchableOpacity>
     </ThemedScrollView>
   );
-}
+};
+
+export default PrayerMetadataScreen;
 
 const styles = StyleSheet.create({
   activityIndicator: {
