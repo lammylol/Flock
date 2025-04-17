@@ -14,9 +14,12 @@ import { FirebaseError } from 'firebase/app';
 import { Colors } from '@/constants/Colors';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
+import useUserContext from '@/hooks/useUserContext';
+import { UserIntroFlow } from '@/types/UserFlags';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { updateUserIntroFlowFlagState } = useUserContext();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,6 +43,7 @@ export default function LoginScreen() {
         console.warn('User document does not exist.');
       }
       // Navigate to another screen after successful login
+      updateUserIntroFlowFlagState(UserIntroFlow.hasIntroDisclosures, true);
       router.replace('/(tabs)/(prayers)');
     } catch (error) {
       if (error instanceof FirebaseError) {

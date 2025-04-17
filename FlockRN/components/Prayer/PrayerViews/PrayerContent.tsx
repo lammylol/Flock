@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { Prayer, PrayerPoint, PrayerType } from '@/types/firebase';
 
 export function PrayerContent({
@@ -17,7 +18,7 @@ export function PrayerContent({
 }: {
   editMode: 'create' | 'edit' | 'view';
   backgroundColor?: string;
-  prayerOrPrayerPoint: 'prayer' | 'prayerPoint';
+  prayerOrPrayerPoint: PrayerOrPrayerPointType;
   prayerId?: string; // only required for edit and view modes
   onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
   initialTitle?: string;

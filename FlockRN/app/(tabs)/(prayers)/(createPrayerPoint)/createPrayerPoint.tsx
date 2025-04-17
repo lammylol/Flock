@@ -30,7 +30,7 @@ export default function PrayerPointMetadataScreen() {
   }>();
 
   console.log("⭐ RECEIVED PARAMS:", JSON.stringify(params));
-  
+
   // State for edit mode
   const [isEditMode, setIsEditMode] = useState(false);
   const { userPrayerPoints, updateCollection } = usePrayerCollection();
@@ -46,7 +46,7 @@ export default function PrayerPointMetadataScreen() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
-  const [updatedPrayer, setUpdatedPrayer] = useState<PrayerPoint>({
+  const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
     id: params.id || '',
     title: params.title || '',
     content: params.content || '',
@@ -57,28 +57,28 @@ export default function PrayerPointMetadataScreen() {
     authorId: '',
     privacy: (params?.privacy as 'public' | 'private') || 'private',
   });
-  
+
   useEffect(() => {
     const setupEditMode = async () => {
       console.log("⭐ Setting up edit mode check");
       console.log("⭐ Mode:", params.mode);
       console.log("⭐ ID:", params.id);
-      
+
       // Check if we're in edit mode from URL params
       if (params.mode === 'edit' && params.id) {
         console.log('⭐ Edit mode detected from URL params');
         setIsEditMode(true);
-        
+
         // First, try to find the prayer point in context
         const contextPrayerPoint = userPrayerPoints.find(p => p.id === params.id);
-        
+
         if (contextPrayerPoint) {
           console.log('⭐ Found prayer point in context:', JSON.stringify({
             id: contextPrayerPoint.id,
             title: contextPrayerPoint.title,
             content: contextPrayerPoint.content?.substring(0, 20) + '...'
           }));
-          
+
           // Set initial data from context
           setUpdatedPrayer({
             ...contextPrayerPoint,
@@ -91,7 +91,7 @@ export default function PrayerPointMetadataScreen() {
           setPrivacy((params.privacy as 'public' | 'private') || contextPrayerPoint.privacy || 'private');
         } else {
           console.log('⭐ Prayer point not found in context. Fetching from API...');
-          
+
           try {
             const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
             if (fetchedPrayer) {
@@ -142,8 +142,8 @@ export default function PrayerPointMetadataScreen() {
       content: updatedPrayerData.content?.substring(0, 20) + '...',
       tags: updatedPrayerData.tags
     }));
-    
-    setUpdatedPrayer((prevPrayer) => ({
+
+    setUpdatedPrayerPoint((prevPrayer) => ({
       ...prevPrayer,
       ...updatedPrayerData,
       status: updatedPrayerData.status as PrayerPoint['status'], // Ensure status matches the expected type
@@ -151,7 +151,7 @@ export default function PrayerPointMetadataScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!updatedPrayer.title.trim()) {
+    if (!updatedPrayerPoint.title.trim()) {
       Alert.alert('Error', 'Please add a title');
       return;
     }
@@ -174,7 +174,7 @@ export default function PrayerPointMetadataScreen() {
         };
 
         await prayerService.editPrayerPoint(updatedPrayer.id, updateData);
-        
+
         // Update the prayer point in the collection context
         const updatedPrayerPoint = {
           ...updatedPrayer,
@@ -188,10 +188,10 @@ export default function PrayerPointMetadataScreen() {
         console.log("⭐ Submitting in CREATE mode");
         // Create new prayer point
         const prayerData: CreatePrayerPointDTO = {
-          title: updatedPrayer.title.trim(),
-          content: updatedPrayer.content,
-          privacy: updatedPrayer.privacy ?? 'private',
-          tags: updatedPrayer.tags,
+          title: updatedPrayerPoint.title.trim(),
+          content: updatedPrayerPoint.content,
+          privacy: updatedPrayerPoint.privacy ?? 'private',
+          tags: updatedPrayerPoint.tags,
           authorId: auth.currentUser.uid || 'unknown',
           authorName: auth.currentUser.displayName || 'unknown',
           status: 'open',
