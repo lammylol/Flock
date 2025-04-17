@@ -83,7 +83,7 @@ export default function PrayerPointMetadataScreen() {
           }));
 
           // Set initial data from context
-          setUpdatedPrayer({
+          setUpdatedPrayerPoint({
             ...contextPrayerPoint,
             // Override with any params passed in URL if they exist
             title: params.title || contextPrayerPoint.title,
@@ -99,7 +99,7 @@ export default function PrayerPointMetadataScreen() {
             const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
             if (fetchedPrayer) {
               console.log('⭐ Fetched prayer from API');
-              setUpdatedPrayer({
+              setUpdatedPrayerPoint({
                 ...fetchedPrayer,
                 // Override with any params passed in URL if they exist
                 title: params.title || fetchedPrayer.title,
@@ -117,7 +117,7 @@ export default function PrayerPointMetadataScreen() {
         console.log('⭐ Create mode detected');
         // Initialize with URL params if they exist
         if (params.title || params.content || initialTags.length > 0 || params.privacy) {
-          setUpdatedPrayer(prev => ({
+          setUpdatedPrayerPoint(prev => ({
             ...prev,
             title: params.title || prev.title,
             content: params.content || prev.content,
@@ -141,9 +141,9 @@ export default function PrayerPointMetadataScreen() {
 
   const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
     console.log('⭐ Prayer update received:', JSON.stringify({
-      title: updatedPrayerData.title,
-      content: updatedPrayerData.content?.substring(0, 20) + '...',
-      tags: updatedPrayerData.tags
+      title: updatedPrayerPointData.title,
+      content: updatedPrayerPointData.content?.substring(0, 20) + '...',
+      tags: updatedPrayerPointData.tags
     }));
 
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
@@ -166,25 +166,25 @@ export default function PrayerPointMetadataScreen() {
 
     setIsLoading(true);
     try {
-      if (isEditMode && updatedPrayer.id) {
+      if (isEditMode && updatedPrayerPoint.id) {
         console.log("⭐ Submitting in EDIT mode");
         // Update existing prayer point
         const updateData: UpdatePrayerPointDTO = {
-          title: updatedPrayer.title.trim(),
-          content: updatedPrayer.content,
+          title: updatedPrayerPoint.title.trim(),
+          content: updatedPrayerPoint.content,
           privacy: privacy,
-          tags: updatedPrayer.tags,
+          tags: updatedPrayerPoint.tags,
         };
 
-        await prayerService.editPrayerPoint(updatedPrayer.id, updateData);
+        await prayerService.editPrayerPoint(updatedPrayerPoint.id, updateData);
 
         // Update the prayer point in the collection context
-        const updatedPrayerPoint = {
-          ...updatedPrayer,
+        const updatedPrayerPointFinal = {
+          ...updatedPrayerPoint,
           ...updateData,
           updatedAt: new Date(),
         };
-        updateCollection(updatedPrayerPoint as PrayerPoint, 'prayerPoint');
+        updateCollection(updatedPrayerPointFinal as PrayerPoint, 'prayerPoint');
 
         Alert.alert('Success', 'Prayer Point updated successfully');
       } else {
@@ -243,12 +243,12 @@ export default function PrayerPointMetadataScreen() {
         <PrayerContent
           editMode={isEditMode ? 'edit' : 'create'}
           prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
-          prayerId={isEditMode ? updatedPrayer.id : undefined}
+          prayerId={isEditMode ? updatedPrayerPoint.id : undefined}
           backgroundColor={colorScheme}
-          onChange={(updatedPrayerData) => handlePrayerUpdate(updatedPrayerData)}
-          initialTitle={updatedPrayer.title}
-          initialContent={updatedPrayer.content}
-          initialTags={updatedPrayer.tags}
+          onChange={(updatedPrayerPointData) => handlePrayerUpdate(updatedPrayerPointData)}
+          initialTitle={updatedPrayerPoint.title}
+          initialContent={updatedPrayerPoint.content}
+          initialTags={updatedPrayerPoint.tags}
         />
 
         <View style={styles.section}>
