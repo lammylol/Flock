@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -34,7 +34,6 @@ export default function PrayerPointMetadataScreen() {
   // Determine if we're in edit mode
   const isEditMode = params.mode === 'edit';
 
-  // TODO implement privacy setting
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [privacy, _setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
@@ -68,7 +67,7 @@ export default function PrayerPointMetadataScreen() {
     }));
   };
 
-  const handleFindSimilarPrayers = async () => {
+  const handleFindSimilarPrayers = useCallback(async () => {
     const input =
       `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
     const embedding = await openAiService.getVectorEmbeddings(input);
@@ -88,7 +87,12 @@ export default function PrayerPointMetadataScreen() {
     } catch (error) {
       console.error('Error finding similar prayers:', error);
     }
-  };
+  }, [
+    openAiService,
+    updatedPrayerPoint.title,
+    updatedPrayerPoint.content,
+    user?.uid,
+  ]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -98,10 +102,14 @@ export default function PrayerPointMetadataScreen() {
       ) {
         handleFindSimilarPrayers();
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [updatedPrayerPoint.title, updatedPrayerPoint.content]);
+  }, [
+    updatedPrayerPoint.title,
+    updatedPrayerPoint.content,
+    handleFindSimilarPrayers,
+  ]);
 
   const handleSubmit = async () => {
     if (!updatedPrayerPoint.title.trim()) {
