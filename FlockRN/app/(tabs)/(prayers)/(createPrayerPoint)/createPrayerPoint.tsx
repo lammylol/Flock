@@ -62,6 +62,7 @@ export default function PrayerPointMetadataScreen() {
     authorName: '',
     authorId: '',
     status: 'open',
+    privacy: (params?.privacy as 'public' | 'private') || 'private',
     isOrigin: true,
     privacy: 'private',
     recipientName: 'unknown',
@@ -119,12 +120,6 @@ export default function PrayerPointMetadataScreen() {
         setUpdatedPrayerPoint({
           ...contextPrayerPoint,
         });
-
-        setPrivacy(
-          (params.privacy as 'public' | 'private') ||
-            contextPrayerPoint.privacy ||
-            'private',
-        );
       } else {
         console.log(
           '⭐ Prayer point not found in context. Fetching from API...',
