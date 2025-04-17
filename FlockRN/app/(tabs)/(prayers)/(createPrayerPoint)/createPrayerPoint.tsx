@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -21,6 +21,12 @@ import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
 export default function PrayerPointMetadataScreen() {
+  // Define the ref at the component level
+  const processedParamsRef = useRef({
+    id: '',
+    mode: '',
+  });
+
   const params = useLocalSearchParams<{
     content?: string;
     id?: string;
@@ -63,9 +69,21 @@ export default function PrayerPointMetadataScreen() {
 
   useEffect(() => {
     const setupEditMode = async () => {
+      // Skip if we've already processed these exact params
+      if (processedParamsRef.current.id === params.id &&
+        processedParamsRef.current.mode === params.mode) {
+        return;
+      }
+
       console.log("⭐ Setting up edit mode check");
       console.log("⭐ Mode:", params.mode);
       console.log("⭐ ID:", params.id);
+
+      // Update our tracking ref
+      processedParamsRef.current = {
+        id: params.id || '',
+        mode: params.mode || '',
+      };
 
       // Check if we're in edit mode from URL params
       if (params.mode === 'edit' && params.id) {
@@ -115,6 +133,7 @@ export default function PrayerPointMetadataScreen() {
         }
       } else {
         console.log('⭐ Create mode detected');
+        setIsEditMode(false);
         // Initialize with URL params if they exist
         if (params.title || params.content || initialTags.length > 0 || params.privacy) {
           setUpdatedPrayerPoint(prev => ({
