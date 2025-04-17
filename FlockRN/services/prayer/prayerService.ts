@@ -31,6 +31,8 @@ import {
 } from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getApp } from 'firebase/app';
 
 class PrayerService {
   private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
@@ -495,6 +497,48 @@ class PrayerService {
     } catch (error) {
       console.error('Error getting prayer point:', error);
       throw error;
+    }
+  }
+
+  // Searchable suggested prayer points
+  async findRelatedPrayerPoints(
+    embedding: number[],
+    userId: string,
+  ): Promise<PrayerPoint[] | []> {
+    try {
+      const functions = getFunctions(getApp());
+      // Ensure the function is deployed and callable
+      const findSimilarPrayerPoints = httpsCallable(
+        functions,
+        'findSimilarPrayers',
+      );
+      const result = await findSimilarPrayerPoints({
+        queryEmbedding: embedding,
+        topK: 5,
+        userId: userId,
+      });
+      const data = (
+        result.data as {
+          result: {
+            id: string;
+            similarity: string;
+            title: string;
+            type: string;
+          }[];
+        }
+      )?.result;
+
+      return data.map(
+        (prayerPoint: { id: string; title: string; type: string }) =>
+          ({
+            id: prayerPoint.id,
+            title: prayerPoint.title,
+            type: prayerPoint.type,
+          }) as PrayerPoint,
+      );
+    } catch (error) {
+      console.error('Error getting prayer point:', error);
+      return []; // Return an empty array in case of an error
     }
   }
 
