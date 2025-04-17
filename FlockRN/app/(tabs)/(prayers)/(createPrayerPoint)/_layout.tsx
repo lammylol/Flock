@@ -7,7 +7,8 @@ export default function CreatePrayerPointsFlowLayout() {
         headerShown: true,
         headerShadowVisible: false,
       }}
-      initialRouteName="createPrayerPoint"
-    ></Stack>
+    >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+    </Stack>
   );
 }

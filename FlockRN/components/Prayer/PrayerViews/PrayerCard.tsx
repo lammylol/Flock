@@ -67,7 +67,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         <View style={styles.actionBar}>
           <Button
             label={'Share'}
-            onPress={() => { }}
+            onPress={() => {}}
             size="s"
             flex={1}
             textProps={{ fontSize: 14, fontWeight: 'semibold' }}
@@ -82,7 +82,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
           />
           <Button
             label={'🙏 Pray!'}
-            onPress={() => { }}
+            onPress={() => {}}
             size="s"
             flex={1}
             textProps={{ fontSize: 14, fontWeight: 'semibold' }}

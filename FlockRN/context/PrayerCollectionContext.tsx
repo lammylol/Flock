@@ -84,18 +84,18 @@ export const PrayerCollectionProvider = ({
 
   const removeFromCollection = useCallback((id: string, type: string) => {
     if (type === 'prayerPoint') {
-      setUserPrayerPoints((prevPoints) => 
-        prevPoints.filter((point) => point.id !== id)
+      setUserPrayerPoints((prevPoints) =>
+        prevPoints.filter((point) => point.id !== id),
       );
-      setFilteredUserPrayerPoints((prevPoints) => 
-        prevPoints.filter((point) => point.id !== id)
+      setFilteredUserPrayerPoints((prevPoints) =>
+        prevPoints.filter((point) => point.id !== id),
       );
     } else {
-      setUserPrayers((prevPrayers) => 
-        prevPrayers.filter((prayer) => prayer.id !== id)
+      setUserPrayers((prevPrayers) =>
+        prevPrayers.filter((prayer) => prayer.id !== id),
       );
-      setFilteredUserPrayers((prevPrayers) => 
-        prevPrayers.filter((prayer) => prayer.id !== id)
+      setFilteredUserPrayers((prevPrayers) =>
+        prevPrayers.filter((prayer) => prayer.id !== id),
       );
     }
   }, []);

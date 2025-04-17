@@ -245,11 +245,14 @@ class PrayerService {
     }
   }
 
-  async editPrayerPoint(prayerPointId: string, data: UpdatePrayerPointDTO): Promise<void> {
+  async editPrayerPoint(
+    prayerPointId: string,
+    data: UpdatePrayerPointDTO,
+  ): Promise<void> {
     try {
       const now = Timestamp.now();
       const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
-      
+
       // Get the current prayer point to check for privacy changes
       const currentPrayerPoint = await this.getPrayerPoint(prayerPointId);
       if (!currentPrayerPoint) {
@@ -263,13 +266,16 @@ class PrayerService {
       });
 
       // Handle privacy changes if applicable (from public to private or vice versa)
-      if (data.privacy !== undefined && data.privacy !== currentPrayerPoint.privacy) {
+      if (
+        data.privacy !== undefined &&
+        data.privacy !== currentPrayerPoint.privacy
+      ) {
         const feedRef = doc(
           db,
           FirestoreCollections.FEED,
           currentPrayerPoint.authorId,
           FirestoreCollections.PRAYERPOINTS,
-          prayerPointId
+          prayerPointId,
         );
 
         if (data.privacy === 'public') {
@@ -289,14 +295,17 @@ class PrayerService {
     }
   }
 
-  async deletePrayerPoint(prayerPointId: string, authorId: string): Promise<void> {
+  async deletePrayerPoint(
+    prayerPointId: string,
+    authorId: string,
+  ): Promise<void> {
     try {
       // First get the prayer point to check if it exists
       const prayerPoint = await this.getPrayerPoint(prayerPointId);
       if (!prayerPoint) {
         throw new Error('Prayer point not found');
       }
-      
+
       // Check if the user is the author (this is also enforced by Firebase rules)
       if (prayerPoint.authorId !== authorId) {
         throw new Error('Unauthorized to delete this prayer point');
@@ -313,26 +322,32 @@ class PrayerService {
             FirestoreCollections.FEED,
             authorId,
             FirestoreCollections.PRAYERPOINTS,
-            prayerPointId
-          )
+            prayerPointId,
+          ),
         );
       }
 
       // If this prayer point is associated with a prayer, update that prayer
       if (prayerPoint.prayerId) {
         // Handle the case where prayerId could be a string or an array of strings
-        const prayerIds = Array.isArray(prayerPoint.prayerId) 
-          ? prayerPoint.prayerId 
+        const prayerIds = Array.isArray(prayerPoint.prayerId)
+          ? prayerPoint.prayerId
           : [prayerPoint.prayerId];
-        
+
         // Update each associated prayer
         for (const id of prayerIds) {
           const prayer = await this.getPrayer(id);
-          if (prayer && prayer.prayerPoints && prayer.prayerPoints.includes(prayerPointId)) {
+          if (
+            prayer &&
+            prayer.prayerPoints &&
+            prayer.prayerPoints.includes(prayerPointId)
+          ) {
             // Remove this prayer point ID from the prayer's prayerPoints array
-            const updatedPrayerPoints = prayer.prayerPoints.filter(pid => pid !== prayerPointId);
+            const updatedPrayerPoints = prayer.prayerPoints.filter(
+              (pid) => pid !== prayerPointId,
+            );
             await this.updatePrayer(id, {
-              prayerPoints: updatedPrayerPoints
+              prayerPoints: updatedPrayerPoints,
             });
           }
         }

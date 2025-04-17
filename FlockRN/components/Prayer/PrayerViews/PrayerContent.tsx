@@ -31,7 +31,9 @@ export function PrayerContent({
     console.log('PrayerContent received props:', {
       editMode,
       prayerId,
-      initialTitle: initialTitle?.substring(0, 20) + (initialTitle && initialTitle.length > 20 ? '...' : ''),
+      initialTitle:
+        initialTitle?.substring(0, 20) +
+        (initialTitle && initialTitle.length > 20 ? '...' : ''),
       hasInitialContent: !!initialContent,
       hasInitialTags: !!initialTags && initialTags.length > 0,
     });
@@ -57,8 +59,10 @@ export function PrayerContent({
   }, [prayerId, selectedPrayer]);
 
   // Use direct props if provided, otherwise fall back to selected prayer data
-  const title = initialTitle !== undefined ? initialTitle : selectedPrayer?.title;
-  const content = initialContent !== undefined ? initialContent : selectedPrayer?.content;
+  const title =
+    initialTitle !== undefined ? initialTitle : selectedPrayer?.title;
+  const content =
+    initialContent !== undefined ? initialContent : selectedPrayer?.content;
   const tags = initialTags || selectedPrayer?.tags || [];
 
   // Initialize state with provided values or from the selected prayer
@@ -92,17 +96,17 @@ export function PrayerContent({
   useEffect(() => {
     if (selectedPrayer) {
       console.log('Prayer data updated from context');
-      
+
       if (!initialTitle && selectedPrayer.title) {
         console.log('Setting title from context:', selectedPrayer.title);
         setEditableTitle(selectedPrayer.title);
       }
-      
+
       if (!initialContent && selectedPrayer.content) {
         console.log('Setting content from context');
         setEditableContent(selectedPrayer.content);
       }
-      
+
       if (!initialTags && selectedPrayer.tags) {
         console.log('Setting tags from context:', selectedPrayer.tags);
         setUpdatedTags(selectedPrayer.tags);
@@ -136,7 +140,7 @@ export function PrayerContent({
       console.log('Sending prayer update to parent:', {
         title: updatedPrayer.title,
         contentLength: updatedPrayer.content?.length || 0,
-        tags: updatedPrayer.tags
+        tags: updatedPrayer.tags,
       });
 
       if (prayerOrPrayerPoint === 'prayer') {
@@ -154,7 +158,7 @@ export function PrayerContent({
       selectedPrayer.createdAt instanceof Date
         ? selectedPrayer.createdAt
         : typeof selectedPrayer.createdAt === 'object' &&
-          'seconds' in selectedPrayer.createdAt
+            'seconds' in selectedPrayer.createdAt
           ? new Date(selectedPrayer.createdAt.seconds * 1000)
           : new Date(selectedPrayer.createdAt);
 
@@ -168,7 +172,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === 'edit' || editMode === 'create') &&
-        prayerOrPrayerPoint === 'prayerPoint' ? (
+      prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}

@@ -1,6 +1,13 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, View } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  View,
+} from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
@@ -13,14 +20,14 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { Colors } from '@/constants/Colors';
 import { auth } from '@/firebase/firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PrayerPointView = () => {
   const { id: prayerPointId } = useLocalSearchParams() as {
     id: string;
   };
 
-  const { userPrayerPoints, updateCollection, removeFromCollection } = usePrayerCollection();
+  const { userPrayerPoints, updateCollection, removeFromCollection } =
+    usePrayerCollection();
 
   // Use the collection to get the latest data
   const prayerPoint =
@@ -68,7 +75,7 @@ const PrayerPointView = () => {
     console.log('Preparing to edit prayer point:', prayerPoint.id);
     
     try {
-      // Instead of using AsyncStorage, we'll pass the data via URL params
+      // Store parameters in the router state instead
       router.push({
         pathname: '/(tabs)/(prayers)/(createPrayerPoint)',
         params: {
@@ -85,10 +92,10 @@ const PrayerPointView = () => {
       Alert.alert('Error', 'Failed to navigate to edit screen');
     }
   };
-  
+
   const handleDelete = () => {
     if (!prayerPoint || !auth.currentUser?.uid) return;
-    
+
     // Confirm deletion
     Alert.alert(
       'Delete Prayer Point',
@@ -104,13 +111,16 @@ const PrayerPointView = () => {
           onPress: async () => {
             setIsDeleting(true);
             try {
-              await prayerService.deletePrayerPoint(prayerPointId, auth.currentUser.uid);
-              
-              // Remove from local collection if you have a function for this
+              await prayerService.deletePrayerPoint(
+                prayerPointId,
+                auth.currentUser.uid,
+              );
+
+              // Remove from local collection
               if (removeFromCollection) {
                 removeFromCollection(prayerPointId, 'prayerPoint');
               }
-              
+
               Alert.alert('Success', 'Prayer point deleted successfully');
               router.back();
             } catch (error) {
@@ -151,13 +161,20 @@ const PrayerPointView = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.primary} />
-        <ThemedText style={styles.loadingText}>Deleting prayer point...</ThemedText>
+        <ThemedText style={styles.loadingText}>
+          Deleting prayer point...
+        </ThemedText>
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: useThemeColor({}, 'background') }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: useThemeColor({}, 'background') },
+      ]}
+    >
       <ThemedScrollView
         style={styles.scrollView}
         refreshing={refreshing}
@@ -174,7 +191,9 @@ const PrayerPointView = () => {
               <Stack.Screen
                 options={{
                   headerRight: () =>
-                    isOwner && <HeaderButton onPress={handleEdit} label="Edit" />,
+                    isOwner && (
+                      <HeaderButton onPress={handleEdit} label="Edit" />
+                    ),
                 }}
               />
               <ThemedText style={[styles.createdAtText, { color: textColor }]}>
@@ -187,20 +206,17 @@ const PrayerPointView = () => {
                 prayerOrPrayerPoint={'prayerPoint'}
                 backgroundColor={backgroundColor}
               />
-              
+
               {/* Spacer to push content up and button to bottom */}
               <View style={styles.spacer} />
             </>
           )
         )}
       </ThemedScrollView>
-      
+
       {/* Delete button - only show for owners, positioned at bottom */}
       {!error && prayerPoint && isOwner && (
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={handleDelete}
-        >
+        <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
           <ThemedText style={styles.deleteButtonText}>
             Delete Prayer Point
           </ThemedText>
@@ -225,8 +241,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.purple,
     borderRadius: 12,
+    marginBottom: 20,
     marginHorizontal: 20,
-    marginBottom: 20, // Add space between button and bottom of screen
     paddingVertical: 16,
   },
   deleteButtonText: {

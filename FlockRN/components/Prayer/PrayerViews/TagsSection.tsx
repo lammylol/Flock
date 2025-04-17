@@ -21,7 +21,7 @@ interface TagsListProps {
 
 const getTagColor = (tag: string) =>
   Colors.tagColors.typeColors[
-  tag as keyof typeof Colors.tagColors.typeColors
+    tag as keyof typeof Colors.tagColors.typeColors
   ] || Colors.tagColors.defaultTag;
 
 const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
