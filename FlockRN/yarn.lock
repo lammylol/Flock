@@ -8071,6 +8071,11 @@ rc@~1.2.7:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+react-apple-emojis@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/react-apple-emojis/-/react-apple-emojis-2.4.1.tgz#551ba2dc0c7fa827de10ca07c7f1660b655bf9a1"
+  integrity sha512-pnAwJ+6o1/8dEAswbFrXvv6JBDVgFHy1hPjNNJknrp0piBKsc5V3f7QlXza/KPvfSjW0GPTJVgp8eNdE4ezpUw==
+
 react-devtools-core@^5.3.1:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/react-devtools-core/-/react-devtools-core-5.3.2.tgz#d5df92f8ef2a587986d094ef2c47d84cf4ae46ec"

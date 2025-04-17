@@ -24,3 +24,14 @@ export const tagColors = {
     repentance: '#FFAA33',
   },
 };
+
+export const iconBackgroundColors = {
+  // Default tag color
+  defaultTag: '#FFFFFF',
+
+  typeColors: {
+    request: '#F5E9DC',
+    praise: '#C1D4CD',
+    repentance: '#FFB6C1',
+  },
+};

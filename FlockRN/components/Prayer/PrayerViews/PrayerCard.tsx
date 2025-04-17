@@ -10,6 +10,7 @@ import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { router } from 'expo-router';
+import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
 
 export interface PrayerCardProps {
   prayer: Prayer | PrayerPoint;
@@ -57,9 +58,19 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         }
       }}
     >
-      <ThemedText style={styles.title}>
-        {'prayerId' in prayer ? prayer.title : formattedDate}
-      </ThemedText>
+      <View style={styles.headerContainer}>
+        {'prayerId' in prayer && <EmojiIconBackground type={prayer.type} />}
+        <View style={styles.titleContainer}>
+          <ThemedText style={styles.title}>
+            {'prayerId' in prayer ? prayer.title : formattedDate}
+          </ThemedText>
+          {'type' in prayer && typeof prayer.type === 'string' && (
+            <ThemedText style={styles.subtitle}>
+              {prayer.type.charAt(0).toUpperCase() + prayer.type.slice(1)}
+            </ThemedText>
+          )}
+        </View>
+      </View>
       <ThemedText numberOfLines={1} ellipsizeMode="tail" style={styles.preview}>
         {prayer.content}
       </ThemedText>
@@ -67,7 +78,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         <View style={styles.actionBar}>
           <Button
             label={'Share'}
-            onPress={() => {}}
+            onPress={() => { }}
             size="s"
             flex={1}
             textProps={{ fontSize: 14, fontWeight: 'semibold' }}
@@ -82,7 +93,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
           />
           <Button
             label={'🙏 Pray!'}
-            onPress={() => {}}
+            onPress={() => { }}
             size="s"
             flex={1}
             textProps={{ fontSize: 14, fontWeight: 'semibold' }}
@@ -102,20 +113,34 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 15,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+  titleContainer: {
+    flexDirection: 'column',
+    gap: 2,
+    flex: 1,
+  },
   // eslint-disable-next-line react-native/no-color-literals
   prayerContainer: {
     backgroundColor: 'transparent',
     borderRadius: 10,
     padding: 7,
     width: '100%',
+    gap: 10,
   },
   preview: {
-    fontSize: 14,
-    marginBottom: 13,
+    fontSize: 16,
+    marginBottom: 5,
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 3, // Space between title and content
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: 'medium',
   },
 });

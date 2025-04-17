@@ -27,6 +27,7 @@ import {
   UpdatePrayerDTO,
   CreatePrayerPointDTO,
   UpdatePrayerPointDTO,
+  PrayerType,
 } from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
@@ -530,7 +531,7 @@ class PrayerService {
       updatedAt: data.updatedAt as Date,
       prayerId: data.prayerId,
       tags: data.tags,
-      prayerTypes: data.prayerTypes,
+      type: data.type as PrayerType,
       recipientId: data.recipientId,
       recipientName: data.recipientName,
       prayerUpdates: data.prayerUpdates,

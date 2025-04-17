@@ -11,7 +11,7 @@ import { router, Stack, useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import useRecording from '@/hooks/recording/useRecording';
-import WaveForm from '@/components/ui/RecordingSymbol';
+import WaveForm from '@/components/Prayer/PrayerViews/Recording/RecordingSymbol';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';

@@ -9,7 +9,7 @@ import {
   RecordButton,
   FinishButton,
   RetryButton,
-} from '@/components/RecordingButton';
+} from '@/components/Prayer/PrayerViews/Recording/RecordingButton';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { Colors } from '@/constants/Colors';
 
