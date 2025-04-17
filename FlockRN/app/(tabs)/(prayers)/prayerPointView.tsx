@@ -76,9 +76,9 @@ const PrayerPointView = () => {
     console.log('Preparing to edit prayer point:', prayerPoint.id);
 
     try {
-      // Store parameters in the router state instead
+      // Be explicit with the complete path to the specific file
       router.push({
-        pathname: '/(tabs)/(prayers)/(createPrayerPoint)',
+        pathname: "/(tabs)/(prayers)/(createPrayerPoint)/createPrayerPoint",
         params: {
           id: prayerPoint.id,
           title: prayerPoint.title || '',
