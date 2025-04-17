@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -12,11 +12,12 @@ import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { CreatePrayerPointDTO, Prayer, PrayerPoint } from '@/types/firebase';
+import { CreatePrayerPointDTO, Prayer, PrayerPoint, PrayerType, UpdatePrayerPointDTO } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -28,28 +29,120 @@ export default function PrayerPointMetadataScreen() {
     mode?: string;
   }>();
 
-  // Determine if we're in edit mode
-  const isEditMode = params.mode === 'edit';
+  console.log("⭐ RECEIVED PARAMS:", JSON.stringify(params));
 
-  // TODO implement privacy setting
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [privacy, _setPrivacy] = useState<'public' | 'private'>(
+  // State for edit mode
+  const [isEditMode, setIsEditMode] = useState(false);
+  const { userPrayerPoints, updateCollection } = usePrayerCollection();
+
+  // Parse tags if they exist in params - using useMemo to prevent recreation on every render
+  const initialTags = useMemo(() => {
+    console.log("⭐ Processing tags param:", params.tags);
+    return params.tags ? JSON.parse(params.tags) as PrayerType[] : [];
+  }, [params.tags]);
+
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
     (params?.privacy as 'public' | 'private') || 'private',
   );
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
   const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
-    id: '',
-    title: '',
-    content: '',
-    tags: [],
+    id: params.id || '',
+    title: params.title || '',
+    content: params.content || '',
+    tags: initialTags,
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: '',
     authorId: '',
+    privacy: (params?.privacy as 'public' | 'private') || 'private',
   });
 
+  useEffect(() => {
+    const setupEditMode = async () => {
+      console.log("⭐ Setting up edit mode check");
+      console.log("⭐ Mode:", params.mode);
+      console.log("⭐ ID:", params.id);
+
+      // Check if we're in edit mode from URL params
+      if (params.mode === 'edit' && params.id) {
+        console.log('⭐ Edit mode detected from URL params');
+        setIsEditMode(true);
+
+        // First, try to find the prayer point in context
+        const contextPrayerPoint = userPrayerPoints.find(p => p.id === params.id);
+
+        if (contextPrayerPoint) {
+          console.log('⭐ Found prayer point in context:', JSON.stringify({
+            id: contextPrayerPoint.id,
+            title: contextPrayerPoint.title,
+            content: contextPrayerPoint.content?.substring(0, 20) + '...'
+          }));
+
+          // Set initial data from context
+          setUpdatedPrayer({
+            ...contextPrayerPoint,
+            // Override with any params passed in URL if they exist
+            title: params.title || contextPrayerPoint.title,
+            content: params.content || contextPrayerPoint.content,
+            tags: initialTags.length > 0 ? initialTags : (contextPrayerPoint.tags || []),
+            privacy: (params.privacy as 'public' | 'private') || contextPrayerPoint.privacy || 'private',
+          });
+          setPrivacy((params.privacy as 'public' | 'private') || contextPrayerPoint.privacy || 'private');
+        } else {
+          console.log('⭐ Prayer point not found in context. Fetching from API...');
+
+          try {
+            const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
+            if (fetchedPrayer) {
+              console.log('⭐ Fetched prayer from API');
+              setUpdatedPrayer({
+                ...fetchedPrayer,
+                // Override with any params passed in URL if they exist
+                title: params.title || fetchedPrayer.title,
+                content: params.content || fetchedPrayer.content,
+                tags: initialTags.length > 0 ? initialTags : (fetchedPrayer.tags || []),
+                privacy: (params.privacy as 'public' | 'private') || fetchedPrayer.privacy || 'private',
+              });
+              setPrivacy((params.privacy as 'public' | 'private') || fetchedPrayer.privacy || 'private');
+            }
+          } catch (error) {
+            console.error('⭐ Error fetching prayer point:', error);
+          }
+        }
+      } else {
+        console.log('⭐ Create mode detected');
+        // Initialize with URL params if they exist
+        if (params.title || params.content || initialTags.length > 0 || params.privacy) {
+          setUpdatedPrayer(prev => ({
+            ...prev,
+            title: params.title || prev.title,
+            content: params.content || prev.content,
+            tags: initialTags.length > 0 ? initialTags : prev.tags,
+            privacy: (params.privacy as 'public' | 'private') || prev.privacy,
+          }));
+          if (params.privacy) {
+            setPrivacy(params.privacy as 'public' | 'private');
+          }
+        }
+      }
+    };
+
+    setupEditMode();
+  }, [params, userPrayerPoints, initialTags]);
+
+  useEffect(() => {
+    // This effect runs after isEditMode changes
+    console.log("⭐ isEditMode updated:", isEditMode);
+  }, [isEditMode]);
+
   const handlePrayerUpdate = (updatedPrayerData: Prayer | PrayerPoint) => {
+    console.log('⭐ Prayer update received:', JSON.stringify({
+      title: updatedPrayerData.title,
+      content: updatedPrayerData.content?.substring(0, 20) + '...',
+      tags: updatedPrayerData.tags
+    }));
+
     setUpdatedPrayerPoint((prevPrayer) => ({
       ...prevPrayer,
       ...updatedPrayerData,
@@ -70,28 +163,52 @@ export default function PrayerPointMetadataScreen() {
 
     setIsLoading(true);
     try {
-      // Create new prayer point
-      const prayerData: CreatePrayerPointDTO = {
-        title: updatedPrayerPoint.title.trim(),
-        content: updatedPrayerPoint.content,
-        privacy: updatedPrayerPoint.privacy ?? 'private',
-        tags: updatedPrayerPoint.tags,
-        authorId: auth.currentUser.uid || 'unknown',
-        authorName: auth.currentUser.displayName || 'unknown',
-        status: 'open',
-        recipientName: 'unknown',
-        recipientId: 'unknown',
-        createdAt: new Date(),
-      };
+      if (isEditMode && updatedPrayer.id) {
+        console.log("⭐ Submitting in EDIT mode");
+        // Update existing prayer point
+        const updateData: UpdatePrayerPointDTO = {
+          title: updatedPrayer.title.trim(),
+          content: updatedPrayer.content,
+          privacy: privacy,
+          tags: updatedPrayer.tags,
+        };
 
-      await prayerService.createPrayerPoint(prayerData);
+        await prayerService.editPrayerPoint(updatedPrayer.id, updateData);
 
-      Alert.alert('Success', 'Prayer Point created successfully');
+        // Update the prayer point in the collection context
+        const updatedPrayerPoint = {
+          ...updatedPrayer,
+          ...updateData,
+          updatedAt: new Date(),
+        };
+        updateCollection(updatedPrayerPoint as PrayerPoint, 'prayerPoint');
+
+        Alert.alert('Success', 'Prayer Point updated successfully');
+      } else {
+        console.log("⭐ Submitting in CREATE mode");
+        // Create new prayer point
+        const prayerData: CreatePrayerPointDTO = {
+          title: updatedPrayerPoint.title.trim(),
+          content: updatedPrayerPoint.content,
+          privacy: updatedPrayerPoint.privacy ?? 'private',
+          tags: updatedPrayerPoint.tags,
+          authorId: auth.currentUser.uid || 'unknown',
+          authorName: auth.currentUser.displayName || 'unknown',
+          status: 'open',
+          recipientName: 'unknown',
+          recipientId: 'unknown',
+          createdAt: new Date(),
+        };
+
+        await prayerService.createPrayerPoint(prayerData);
+        Alert.alert('Success', 'Prayer Point created successfully');
+      }
+
       router.replace('/(tabs)/(prayers)');
       router.dismissAll(); // resets 'createPrayer' stack.
     } catch (error) {
       console.error(
-        `Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
+        `⭐ Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
         error,
       );
       Alert.alert(
@@ -114,19 +231,21 @@ export default function PrayerPointMetadataScreen() {
           headerLeft: () => (
             <HeaderButton onPress={router.back} label="Cancel" />
           ),
-          title: 'Add Prayer Point',
+          title: isEditMode ? 'Edit Prayer Point' : 'Add Prayer Point',
           headerTitleStyle: styles.headerTitleStyle,
         }}
       />
       <ThemedScrollView contentContainerStyle={styles.scrollContent}>
         <PrayerContent
-          editMode={'create'}
+          editMode={isEditMode ? 'edit' : 'create'}
           prayerOrPrayerPoint={'prayerPoint'}
+          prayerId={isEditMode ? updatedPrayer.id : undefined}
           backgroundColor={colorScheme}
-          onChange={(updatedPrayerData) =>
-            handlePrayerUpdate(updatedPrayerData)
-          }
-        ></PrayerContent>
+          onChange={(updatedPrayerData) => handlePrayerUpdate(updatedPrayerData)}
+          initialTitle={updatedPrayer.title}
+          initialContent={updatedPrayer.content}
+          initialTags={updatedPrayer.tags}
+        />
 
         <View style={styles.section}>
           <View style={styles.privacySelector}>
@@ -135,9 +254,6 @@ export default function PrayerPointMetadataScreen() {
               <ThemedText style={styles.privacyValue}>
                 {privacy === 'private' ? 'Private' : 'Public'}
               </ThemedText>
-              {/* {privacy === 'private' && (
-                <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-              )} */}
             </View>
           </View>
         </View>
@@ -153,8 +269,8 @@ export default function PrayerPointMetadataScreen() {
                 ? 'Updating...'
                 : 'Creating...'
               : isEditMode
-                ? 'Update Prayer'
-                : 'Create Prayer'}
+                ? 'Update Prayer Point'
+                : 'Create Prayer Point'}
           </ThemedText>
         </TouchableOpacity>
       </ThemedScrollView>
