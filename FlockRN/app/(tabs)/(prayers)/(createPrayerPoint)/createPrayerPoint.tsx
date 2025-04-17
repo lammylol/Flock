@@ -24,6 +24,7 @@ import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingV
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
 import OpenAiService from '@/services/ai/openAIService';
 
 export default function PrayerPointMetadataScreen() {
@@ -41,6 +42,11 @@ export default function PrayerPointMetadataScreen() {
   // State for edit mode
   const [isEditMode, setIsEditMode] = useState(false);
   const { userPrayerPoints, updateCollection } = usePrayerCollection();
+  const user = auth.currentUser;
+  const openAiService = OpenAiService.getInstance();
+  const [similarPrayerPoints, setSimilarPrayerPoints] = useState<PrayerPoint[]>(
+    [],
+  );
 
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +62,7 @@ export default function PrayerPointMetadataScreen() {
     authorName: '',
     authorId: '',
     status: 'open',
+    isOrigin: true,
     privacy: 'private',
   });
 
@@ -121,6 +128,15 @@ export default function PrayerPointMetadataScreen() {
   }, [params.mode, params.id, userPrayerPoints]);
 
   const handlePrayerPointUpdate = (updatedPrayerPointData: PrayerPoint) => {
+    console.log(
+      '⭐ Prayer update received:',
+      JSON.stringify({
+        title: updatedPrayerPointData.title,
+        content: updatedPrayerPointData.content?.substring(0, 20) + '...',
+        tags: updatedPrayerPointData.tags,
+      }),
+    );
+
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
       ...prevPrayerPoint,
       ...updatedPrayerPointData,
@@ -128,9 +144,46 @@ export default function PrayerPointMetadataScreen() {
     }));
   };
 
-  const handleSubmit = async () => {
-    const user = auth.currentUser;
+  const handleFindSimilarPrayers = async () => {
+    const input =
+      `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
+    const embedding = await openAiService.getVectorEmbeddings(input);
 
+    if (!user?.uid) {
+      Alert.alert('Not Logged In', 'You must be logged in to create a prayer.');
+      return;
+    }
+
+    try {
+      const similarPrayers = await prayerService.findRelatedPrayerPoints(
+        embedding,
+        user.uid,
+      );
+      console.log('Similar prayers:', similarPrayers);
+      setSimilarPrayerPoints(similarPrayers);
+    } catch (error) {
+      console.error('Error finding similar prayers:', error);
+    }
+  };
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (
+        updatedPrayerPoint.title.trim() ||
+        updatedPrayerPoint.content.trim()
+      ) {
+        handleFindSimilarPrayers();
+      }
+    }, 2000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [
+    updatedPrayerPoint.title,
+    updatedPrayerPoint.content,
+    handleFindSimilarPrayers,
+  ]);
+
+  const handleSubmit = async () => {
     if (!updatedPrayerPoint.title.trim()) {
       Alert.alert('Missing Title', 'Please add a title for your prayer.');
       return;
@@ -187,6 +240,7 @@ export default function PrayerPointMetadataScreen() {
           recipientId: 'unknown',
           createdAt: new Date(),
           embedding,
+          isOrigin: true,
         };
 
         // 3. Save prayer point to backend
@@ -240,8 +294,14 @@ export default function PrayerPointMetadataScreen() {
               handlePrayerPointUpdate(updatedPrayerPointData);
             }
           }}
-          prayer={updatedPrayerPoint}
         />
+
+        {similarPrayerPoints.length > 0 && (
+          <PrayerPointLinking
+            editMode={'create'}
+            similarPrayers={similarPrayerPoints}
+          />
+        )}
 
         <View style={styles.section}>
           <View style={styles.privacySelector}>
@@ -324,7 +384,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     backgroundColor: Colors.light.background,
-    flexGrow: 1,
+    flex: 1,
     gap: 10,
     paddingBottom: 24,
   },
