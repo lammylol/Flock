@@ -118,6 +118,7 @@ export const findSimilarPrayers = functions.https.onCall(
         .map((prayer) => ({
           id: prayer.id,
           title: prayer.title,
+          type: prayer.type,
           similarity: cosineSimilarity(queryEmbedding, prayer.embedding),
         }))
         .sort((a, b) => b.similarity - a.similarity)
