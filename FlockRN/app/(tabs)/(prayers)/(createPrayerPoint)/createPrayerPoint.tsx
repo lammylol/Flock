@@ -62,7 +62,6 @@ export default function PrayerPointMetadataScreen() {
     authorName: '',
     authorId: '',
     status: 'open',
-    privacy: (params?.privacy as 'public' | 'private') || 'private',
     isOrigin: true,
     privacy: 'private',
     recipientName: 'unknown',
@@ -205,8 +204,6 @@ export default function PrayerPointMetadataScreen() {
   ]);
 
   const handleSubmit = async () => {
-    const user = auth.currentUser;
-
     if (!updatedPrayerPoint.title.trim()) {
       Alert.alert('Missing Title', 'Please add a title for your prayer.');
       return;
