@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import {
-  TouchableOpacity,
   Alert,
-  View,
-  StyleSheet,
   Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
@@ -144,7 +144,7 @@ export default function PrayerPointMetadataScreen() {
     }));
   };
 
-  const handleFindSimilarPrayers = async () => {
+  const handleFindSimilarPrayers = useCallback(async () => {
     const input =
       `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
     const embedding = await openAiService.getVectorEmbeddings(input);
@@ -164,7 +164,12 @@ export default function PrayerPointMetadataScreen() {
     } catch (error) {
       console.error('Error finding similar prayers:', error);
     }
-  };
+  }, [
+    openAiService,
+    updatedPrayerPoint.title,
+    updatedPrayerPoint.content,
+    user?.uid,
+  ]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -174,7 +179,7 @@ export default function PrayerPointMetadataScreen() {
       ) {
         handleFindSimilarPrayers();
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearTimeout(delayDebounceFn);
   }, [
