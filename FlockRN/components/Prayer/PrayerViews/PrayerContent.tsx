@@ -52,6 +52,7 @@ export function PrayerContent({
       title: editableTitle || '',
       content: editableContent || '',
       tags: updatedTags || [],
+      type: updatedTags[0] || 'request', // temporary add to ensure type has only one prayerType. Only applicable for PrayerPoint
     };
 
     if (prayerOrPrayerPoint === 'prayer') {

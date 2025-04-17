@@ -19,7 +19,7 @@ export default class OpenAiService {
   private static instance: OpenAiService; // Static instance to hold the singleton
 
   // Private constructor ensures that this class cannot be instantiated directly
-  private constructor() { }
+  private constructor() {}
 
   // Method to get the singleton instance
   public static getInstance(): OpenAiService {
@@ -157,6 +157,7 @@ export default class OpenAiService {
         model: 'text-embedding-3-small',
         input: input,
         encoding_format: 'float',
+        dimensions: 250, // adjust as needed
       });
 
       const embedding = completion.data?.[0]?.embedding;
