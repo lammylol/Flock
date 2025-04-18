@@ -124,7 +124,7 @@ const PrayerView = () => {
             />
             <PrayerContent
               editMode="view"
-              prayerId={id}
+              prayer={prayer}
               prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
               backgroundColor={colorScheme}
             />
