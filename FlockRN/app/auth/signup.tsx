@@ -1,5 +1,5 @@
 import { TextInput, StyleSheet, Alert, useColorScheme } from 'react-native';
-import { Timestamp } from '@react-native-firebase/firestore';
+import { getFirestore, Timestamp } from '@react-native-firebase/firestore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { router } from 'expo-router';
@@ -10,10 +10,11 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import Button from '@/components/Button';
 import { UserProfile } from '@/types/firebase';
-import { useFirestore } from '@/firebase/useFirestore';
+import { getAuth } from '@react-native-firebase/auth';
 
 export default function SignUpScreen() {
-  const { flockDb, auth } = useFirestore();
+  const flockDb = getFirestore();
+  const auth = getAuth();
   const theme = useColorScheme() ?? 'light';
   const [userName, setUserName] = useState('');
   const [firstName, setFirstName] = useState('');

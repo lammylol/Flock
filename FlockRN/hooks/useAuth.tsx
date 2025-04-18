@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { getAuth, FirebaseAuthTypes } from '@react-native-firebase/auth'; // Using react-native-firebase auth
+import {
+  onAuthStateChanged,
+  FirebaseAuthTypes,
+  signOut,
+  getAuth,
+} from '@react-native-firebase/auth'; // Using react-native-firebase auth
 import { userService } from '@/services/userService';
 import { UserProfileResponse } from '@/types/firebase';
 
 export default function useAuth() {
-  const auth = getAuth();
   // State for storing the user
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileResponse | null>(
@@ -16,33 +20,36 @@ export default function useAuth() {
 
   useEffect(() => {
     // Listener for auth state changes
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        // Fetch the user profile if authenticated
-        const userProfile = await userService.getUser(firebaseUser.uid);
-        setUserProfile(userProfile);
-        setUser(firebaseUser);
-        setUserIsAuthenticated(true);
-      } else {
-        // Reset user state if not authenticated
-        setUser(null);
-        setUserProfile(null);
-        setUserIsAuthenticated(false);
-      }
-    });
+    const unsubscribe = onAuthStateChanged(
+      getAuth(),
+      async (firebaseUser: FirebaseAuthTypes.User | null) => {
+        if (firebaseUser) {
+          // Fetch the user profile if authenticated
+          const userProfile = await userService.getUser(firebaseUser.uid);
+          setUserProfile(userProfile);
+          setUser(firebaseUser);
+          setUserIsAuthenticated(true);
+        } else {
+          // Reset user state if not authenticated
+          setUser(null);
+          setUserProfile(null);
+          setUserIsAuthenticated(false);
+        }
+      },
+    );
 
     // Clean up the listener on component unmount
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
   // Sign out function
-  const signOut = async () => {
+  const handleSignOut = async () => {
     try {
-      await auth.signOut();
+      await signOut(getAuth());
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
 
-  return { user, userProfile, userIsAuthenticated, signOut };
+  return { user, userProfile, userIsAuthenticated, signOut: handleSignOut };
 }

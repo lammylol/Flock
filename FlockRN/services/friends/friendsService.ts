@@ -1,6 +1,6 @@
 import {
-  getFirestore,
   arrayUnion,
+  getFirestore,
   serverTimestamp,
 } from '@react-native-firebase/firestore'; // Using react-native-firebase firestore
 import {
@@ -14,12 +14,10 @@ import {
 } from '@/types/firebase';
 
 class FriendsService {
-  private userCollection = getFirestore().collection(
-    FirestoreCollections.USERS,
-  ); // Using react-native-firebase firestore
-
   async searchUsers(searchTerm: string): Promise<UserProfileResponse[]> {
     try {
+      const flockDb = getFirestore();
+      const usersCollection = flockDb.collection(FirestoreCollections.USERS);
       const lowerSearchTerm = searchTerm.toLowerCase();
 
       // Create three queries, one for each field
@@ -28,8 +26,7 @@ class FriendsService {
         'normalizedFirstName',
         'normalizedLastName',
       ].map((field) =>
-        getFirestore()
-          .collection(FirestoreCollections.USERS)
+        usersCollection
           .where(field, '>=', lowerSearchTerm)
           .where(field, '<=', lowerSearchTerm + '\uf8ff'),
       );
@@ -59,19 +56,21 @@ class FriendsService {
     receivingUser: UserProfileResponse,
   ): Promise<ServiceResponse> {
     try {
+      const flockDb = getFirestore();
+      const usersCollection = flockDb.collection(FirestoreCollections.USERS);
       const sendingUserId = sendingUser.id;
       const receivingUserId = receivingUser.id;
 
-      const senderSentRef = this.userCollection
+      const senderSentRef = usersCollection
         .doc(sendingUserId)
         .collection(FriendRequestFields.SENT)
         .doc(receivingUserId);
-      const receiverReceivedRef = this.userCollection
+      const receiverReceivedRef = usersCollection
         .doc(receivingUserId)
         .collection(FriendRequestFields.RECEIVED)
         .doc(sendingUserId);
 
-      const batch = getFirestore().batch();
+      const batch = flockDb.batch();
       batch.set(
         senderSentRef,
         {
@@ -113,18 +112,20 @@ class FriendsService {
     receiverId: string,
   ): Promise<ServiceResponse> {
     try {
-      const senderFriendRequestRef = this.userCollection
+      const flockDb = getFirestore();
+      const usersCollection = flockDb.collection(FirestoreCollections.USERS);
+      const senderFriendRequestRef = usersCollection
         .doc(receiverId)
         .collection(FriendRequestFields.SENT)
         .doc(senderId);
-      const receiverFriendRequestRef = this.userCollection
+      const receiverFriendRequestRef = usersCollection
         .doc(senderId)
         .collection(FriendRequestFields.RECEIVED)
         .doc(receiverId);
 
       // References to the user documents
-      const senderUserRef = this.userCollection.doc(senderId);
-      const receiverUserRef = this.userCollection.doc(receiverId);
+      const senderUserRef = usersCollection.doc(senderId);
+      const receiverUserRef = usersCollection.doc(receiverId);
 
       // Get the user details for sender and receiver
       const senderDoc = await senderUserRef.get();
@@ -148,7 +149,7 @@ class FriendsService {
       };
 
       // Create a batch write to perform all operations atomically
-      const batch = getFirestore().batch();
+      const batch = flockDb.batch();
 
       // Delete the friend request documents
       batch.delete(senderFriendRequestRef);
@@ -179,8 +180,10 @@ class FriendsService {
 
   async getPendingFriendRequests(userId: string): Promise<FriendRequest[]> {
     try {
+      const flockDb = getFirestore();
+      const usersCollection = flockDb.collection(FirestoreCollections.USERS);
       // Reference to the user's friendRequestsReceived subcollection
-      const requestsRef = this.userCollection
+      const requestsRef = usersCollection
         .doc(userId)
         .collection(FriendRequestFields.RECEIVED);
 
@@ -203,8 +206,10 @@ class FriendsService {
 
   async getSentFriendRequests(userId: string): Promise<FriendRequest[]> {
     try {
+      const flockDb = getFirestore();
+      const usersCollection = flockDb.collection(FirestoreCollections.USERS);
       // Reference to the user's friendRequestsSent subcollection
-      const requestsRef = this.userCollection
+      const requestsRef = usersCollection
         .doc(userId)
         .collection(FriendRequestFields.SENT);
 

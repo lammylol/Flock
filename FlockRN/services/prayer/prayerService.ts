@@ -3,9 +3,9 @@
 // service for handling prayer CRUD operations with Firebase
 
 import {
-  getFirestore,
   serverTimestamp,
   FirebaseFirestoreTypes,
+  getFirestore,
 } from '@react-native-firebase/firestore';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import {
@@ -16,22 +16,18 @@ import {
   PrayerPointDTO,
 } from '@/types/firebase';
 import { User } from 'firebase/auth';
+import { getAnalytics, logEvent } from '@react-native-firebase/analytics';
 
 class PrayerService {
-  private prayersCollection = getFirestore().collection(
-    FirestoreCollections.PRAYERS,
-  );
-  private prayerPointsCollection = getFirestore().collection(
-    FirestoreCollections.PRAYERPOINTS,
-  );
-  private feedsCollection = getFirestore().collection(
-    FirestoreCollections.FEED,
-  );
-
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
+      const flockDb = getFirestore();
+      const prayersCollection = flockDb.collection(
+        FirestoreCollections.PRAYERS,
+      );
+
       const now = serverTimestamp();
-      const docRef = await this.prayersCollection.add({
+      const docRef = await prayersCollection.add({
         ...data,
         createdAt: now,
         updatedAt: now,
@@ -42,7 +38,7 @@ class PrayerService {
 
       // If prayer is public, add to author's feed
       if (data.privacy === 'public') {
-        const feedPrayerRef = getFirestore()
+        const feedPrayerRef = flockDb
           .collection(FirestoreCollections.FEED)
           .doc(data.authorId)
           .collection(FirestoreCollections.PRAYERS)
@@ -62,8 +58,13 @@ class PrayerService {
 
   async getPrayer(prayerId: string): Promise<Prayer | null> {
     try {
-      const docRef = this.prayersCollection.doc(prayerId);
+      const flockDb = getFirestore();
+      const prayersCollection = flockDb.collection(
+        FirestoreCollections.PRAYERS,
+      );
+      const docRef = prayersCollection.doc(prayerId);
       const docSnap = await docRef.get();
+      await logEvent(getAnalytics(), 'test - getPrayer');
 
       if (!docSnap.exists) return null;
       return this.convertDocToPrayer(docSnap);
@@ -75,7 +76,11 @@ class PrayerService {
 
   async getUserPrayers(userId: string): Promise<Prayer[]> {
     try {
-      const querySnapshot = await this.prayersCollection
+      const flockDb = getFirestore();
+      const prayersCollection = flockDb.collection(
+        FirestoreCollections.PRAYERS,
+      );
+      const querySnapshot = await prayersCollection
         .where('authorId', '==', userId)
         .orderBy('createdAt', 'desc')
         .get();
@@ -91,8 +96,12 @@ class PrayerService {
 
   async updatePrayer(prayerId: string, data: UpdatePrayerDTO): Promise<void> {
     try {
+      const flockDb = getFirestore();
+      const prayersCollection = flockDb.collection(
+        FirestoreCollections.PRAYERS,
+      );
       const now = serverTimestamp();
-      const prayerRef = this.prayersCollection.doc(prayerId);
+      const prayerRef = prayersCollection.doc(prayerId);
 
       await prayerRef.update({
         ...data,
@@ -103,7 +112,7 @@ class PrayerService {
       if (data.privacy !== undefined) {
         const prayer = await this.getPrayer(prayerId);
         if (prayer) {
-          const feedRef = getFirestore()
+          const feedRef = flockDb
             .collection(FirestoreCollections.FEED)
             .doc(prayer.authorId)
             .collection(FirestoreCollections.PRAYERS)
@@ -127,11 +136,15 @@ class PrayerService {
 
   async deletePrayer(prayerId: string, authorId: string): Promise<void> {
     try {
+      const flockDb = getFirestore();
+      const prayersCollection = flockDb.collection(
+        FirestoreCollections.PRAYERS,
+      );
       // Delete the prayer document
-      await this.prayersCollection.doc(prayerId).delete();
+      await prayersCollection.doc(prayerId).delete();
 
       // Remove from author's feed if it exists
-      await getFirestore()
+      await flockDb
         .collection(FirestoreCollections.FEED)
         .doc(authorId)
         .collection(FirestoreCollections.PRAYERS)
@@ -139,12 +152,10 @@ class PrayerService {
         .delete();
 
       // Delete all updates subcollection
-      const updatesRef = this.prayersCollection
-        .doc(prayerId)
-        .collection('updates');
+      const updatesRef = prayersCollection.doc(prayerId).collection('updates');
       const updatesSnapshot = await updatesRef.get();
 
-      const batch = getFirestore().batch();
+      const batch = flockDb.batch();
       updatesSnapshot.docs.forEach((doc) => {
         batch.delete(doc.ref);
       });
@@ -159,8 +170,12 @@ class PrayerService {
     const now = serverTimestamp();
 
     try {
+      const flockDb = getFirestore();
+      const prayerPointsCollection = flockDb.collection(
+        FirestoreCollections.PRAYERPOINTS,
+      );
       const writePromises = prayerPoints.map(async (point) => {
-        const docRef = await this.prayerPointsCollection.add({
+        const docRef = await prayerPointsCollection.add({
           ...point,
           createdAt: now,
           updatedAt: now,
@@ -182,7 +197,11 @@ class PrayerService {
     user: User,
   ): Promise<PrayerPoint[] | null> {
     try {
-      const querySnapshot = await this.prayerPointsCollection
+      const flockDb = getFirestore();
+      const prayerPointsCollection = flockDb.collection(
+        FirestoreCollections.PRAYERPOINTS,
+      );
+      const querySnapshot = await prayerPointsCollection
         .where('prayerId', '==', prayerId)
         .where('authorId', '==', user.uid)
         .orderBy('createdAt', 'desc')
@@ -201,7 +220,11 @@ class PrayerService {
 
   async getUserPrayerPoints(userId: string): Promise<PrayerPoint[]> {
     try {
-      const querySnapshot = await this.prayerPointsCollection
+      const flockDb = getFirestore();
+      const prayerPointsCollection = flockDb.collection(
+        FirestoreCollections.PRAYERPOINTS,
+      );
+      const querySnapshot = await prayerPointsCollection
         .where('authorId', '==', userId)
         .orderBy('createdAt', 'desc')
         .get();

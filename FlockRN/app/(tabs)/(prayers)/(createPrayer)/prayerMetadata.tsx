@@ -25,10 +25,10 @@ import { allTags } from '@/types/Tag';
 import PrayerPointSection from '@/components/Prayer/PrayerPoints/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
-import { useFirestore } from '@/firebase/useFirestore';
+import { getAuth } from '@react-native-firebase/auth';
 
 const PrayerMetadataScreen = () => {
-  const { auth } = useFirestore();
+  const auth = getAuth();
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
   const params = useLocalSearchParams<{

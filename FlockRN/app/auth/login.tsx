@@ -13,11 +13,15 @@ import { FirestoreCollections } from '@/schema/firebaseCollections';
 import useUserContext from '@/hooks/useUserContext';
 import { UserIntroFlow } from '@/types/UserFlags';
 import { FirebaseFirestoreError } from '@/types/firebaseErrors';
-import { useFirestore } from '@/firebase/useFirestore';
+import { getFirestore } from '@react-native-firebase/firestore';
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+} from '@react-native-firebase/auth';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { flockDb } = useFirestore();
+  const flockDb = getFirestore();
   const { updateUserIntroFlowFlagState } = useUserContext();
 
   const [email, setEmail] = useState('');
@@ -225,9 +229,9 @@ const styles = StyleSheet.create({
 });
 
 async function logIn(email: string, password: string) {
-  const { auth } = useFirestore();
   try {
-    const userCredential = await auth.signInWithEmailAndPassword(
+    const userCredential = await signInWithEmailAndPassword(
+      getAuth(),
       email,
       password,
     );
