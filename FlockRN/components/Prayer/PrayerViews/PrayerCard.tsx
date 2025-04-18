@@ -11,6 +11,7 @@ import Button from '@/components/Button';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { router } from 'expo-router';
 import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
+import { prayerTagDisplayNames } from '@/types/Tag';
 
 export interface PrayerCardProps {
   prayer: Prayer | PrayerPoint;
@@ -66,7 +67,8 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
           </ThemedText>
           {'type' in prayer && typeof prayer.type === 'string' && (
             <ThemedText style={styles.subtitle}>
-              {prayer.type.charAt(0).toUpperCase() + prayer.type.slice(1)}
+              {(prayerTagDisplayNames[prayer.type]?.charAt(0).toUpperCase() ??
+                '') + (prayerTagDisplayNames[prayer.type]?.slice(1) ?? '')}
             </ThemedText>
           )}
         </View>
