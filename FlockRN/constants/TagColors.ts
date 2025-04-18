@@ -30,8 +30,8 @@ export const iconBackgroundColors = {
   defaultTag: '#FFFFFF',
 
   typeColors: {
-    request: '#F5E9DC',
-    praise: '#C1D4CD',
+    request: '#F5E9DC80',
+    praise: '#C1D4CD80',
     repentance: '#FFB6C1',
   },
 };

@@ -31,9 +31,9 @@ const styles = StyleSheet.create({
   background: {
     alignItems: 'center',
     borderRadius: 6,
-    height: 42,
+    height: 45,
     justifyContent: 'center',
-    width: 42,
+    width: 45,
   },
   // eslint-disable-next-line react-native/no-color-literals
   text: {

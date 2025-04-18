@@ -66,7 +66,12 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
             {'prayerId' in prayer ? prayer.title : formattedDate}
           </ThemedText>
           {'type' in prayer && typeof prayer.type === 'string' && (
-            <ThemedText style={styles.subtitle}>
+            <ThemedText
+              style={[
+                styles.subtitle,
+                { color: Colors[colorScheme].textSecondary },
+              ]}
+            >
               {(prayerTagDisplayNames[prayer.type]?.charAt(0).toUpperCase() ??
                 '') + (prayerTagDisplayNames[prayer.type]?.slice(1) ?? '')}
             </ThemedText>
@@ -99,7 +104,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
             size="s"
             flex={1}
             textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-            backgroundColor={Colors.brown3}
+            backgroundColor={Colors.brown1}
           />
         </View>
       )}
@@ -139,10 +144,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   subtitle: {
-    fontSize: 14,
-    fontWeight: 'medium',
+    fontSize: 16,
+    fontWeight: '400',
   },
 });
