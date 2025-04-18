@@ -19,3 +19,9 @@ export const tagDisplayNames: { [key: string]: string } = {
 };
 
 export const prayerTags = ['request', 'praise', 'repentance'];
+
+export const prayerTagDisplayNames: { [key: string]: string } = {
+  request: 'Prayer Request',
+  praise: 'Praise',
+  repentance: 'Repentance',
+};

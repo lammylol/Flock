@@ -3,7 +3,7 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
-import { tagColors } from './TagColors';
+import { iconBackgroundColors, tagColors } from './TagColors';
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
@@ -11,14 +11,13 @@ const tintColorDark = '#fff';
 export const Colors = {
   // Common colors used across both themes
   primary: '#9d9fe1', // Purple button color
-  secondary: '#f1eee0', // Beige background
+  secondary: '#F5E9DC80', // Beige background
   purple: '#9747FF',
   mildPurple: '#E8DEF8',
   white: '#ffffff',
   black: '#000000',
-  brown1: '#EDE8DA',
+  brown1: '#F5E9DC80',
   brown2: '#9C8B77',
-  brown3: '#F5E9DC',
   border: '#C6C6C8',
   link: '#007aff',
   disabled: '#ccc',
@@ -29,7 +28,7 @@ export const Colors = {
     textPrimary: '#11181C',
     textSecondary: '#49454F',
     background: '#ffffff',
-    backgroundSecondary: '#f1eee0',
+    backgroundSecondary: '#F5E9DC80',
     backgroundVoiceRecording: '#9747FF',
     tint: tintColorLight,
     icon: '#687076',
@@ -50,4 +49,7 @@ export const Colors = {
 
   // Tag Colors
   tagColors: tagColors,
+
+  // Icon Background Colors
+  iconBackgroundColors: iconBackgroundColors,
 };
