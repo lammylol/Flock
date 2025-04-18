@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ const getTagColor = (tag: string) =>
     tag as keyof typeof Colors.tagColors.typeColors
   ] || Colors.tagColors.defaultTag;
 
-const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
+const TagsSection = ({ tags, onChange, editMode }: TagsListProps) => {
   const [selectedTags, setSelectedTags] = useState<PrayerType[]>(tags);
   const [expanded, setExpanded] = useState(
     editMode === 'create' ? true : false,
@@ -34,10 +34,6 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
     'background',
   );
   const textColor = useThemeColor({ light: Colors.brown2 }, 'textPrimary');
-
-  useEffect(() => {
-    setSelectedTags(tags);
-  }, [tags]);
 
   const sortedTags = useMemo(() => {
     return [...selectedTags].sort((a, b) => tags.indexOf(a) - tags.indexOf(b));
@@ -54,14 +50,18 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
     );
   };
 
-  const saveTags = async () => {
-    toggleExpand();
+  const saveTags = useCallback(() => {
     try {
       onChange?.(selectedTags);
     } catch {
       console.error('Error updating tags');
     }
-  };
+  }, [onChange, selectedTags]);
+
+  const saveTagsAndClose = useCallback(() => {
+    toggleExpand();
+    saveTags();
+  }, [saveTags]);
 
   const renderTag = useCallback(
     (tag: PrayerType, isSelectable = false) => (
@@ -114,7 +114,7 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
               <Text style={{ ...styles.modalTitle, color: textColor }}>
                 Editing Tags
               </Text>
-              <TouchableOpacity onPress={saveTags}>
+              <TouchableOpacity onPress={saveTagsAndClose}>
                 <Text style={{ ...styles.modalTitle, color: textColor }}>
                   Done
                 </Text>
@@ -167,4 +167,4 @@ const styles = StyleSheet.create({
   tagsTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
 });
 
-export default TagsList;
+export default TagsSection;
