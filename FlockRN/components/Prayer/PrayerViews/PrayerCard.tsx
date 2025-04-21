@@ -7,8 +7,6 @@ import {
   View,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import Button from '@/components/Button';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import { router } from 'expo-router';
 import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
 import { prayerTagDisplayNames } from '@/types/Tag';
@@ -44,7 +42,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         { backgroundColor: Colors[colorScheme].background },
       ]}
       onPress={() => {
-        if ('prayerId' in prayer) {
+        if ('type' in prayer) {
           // If it's a PrayerPoint, navigate to PrayerPointView
           router.push({
             pathname: '/(tabs)/(prayers)/prayerPointView',
@@ -60,10 +58,10 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
       }}
     >
       <View style={styles.headerContainer}>
-        {'prayerId' in prayer && <EmojiIconBackground type={prayer.type} />}
+        {'type' in prayer && <EmojiIconBackground type={prayer.type} />}
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>
-            {'prayerId' in prayer ? prayer.title : formattedDate}
+            {'type' in prayer ? prayer.title : formattedDate}
           </ThemedText>
           {'type' in prayer && typeof prayer.type === 'string' && (
             <ThemedText
@@ -78,14 +76,21 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
           )}
         </View>
       </View>
-      <ThemedText numberOfLines={1} ellipsizeMode="tail" style={styles.preview}>
-        {prayer.content}
-      </ThemedText>
-      {'prayerId' in prayer && (
+      {prayer.content && (
+        <ThemedText
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={styles.preview}
+        >
+          {prayer.content}
+        </ThemedText>
+      )}
+      {/* Saving to add Later! */}
+      {/* {'type' in prayer && (
         <View style={styles.actionBar}>
           <Button
             label={'Share'}
-            onPress={() => {}}
+            onPress={() => { }}
             size="s"
             flex={1}
             textProps={{ fontSize: 14, fontWeight: 'semibold' }}
@@ -100,26 +105,25 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
           />
           <Button
             label={'🙏 Pray!'}
-            onPress={() => {}}
+            onPress={() => { }}
             size="s"
             flex={1}
             textProps={{ fontSize: 14, fontWeight: 'semibold' }}
             backgroundColor={Colors.brown1}
           />
         </View>
-      )}
+      )} */}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  // eslint-disable-next-line react-native/no-color-literals
-  actionBar: {
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    flex: 1,
-    gap: 15,
-  },
+  // actionBar: {
+  //   backgroundColor: 'transparent',
+  //   flexDirection: 'row',
+  //   flex: 1,
+  //   gap: 15,
+  // },
   headerContainer: {
     flexDirection: 'row',
     gap: 10,
@@ -134,13 +138,12 @@ const styles = StyleSheet.create({
   prayerContainer: {
     backgroundColor: 'transparent',
     borderRadius: 10,
-    padding: 7,
     width: '100%',
-    gap: 10,
+    gap: 7,
+    paddingVertical: 7,
   },
   preview: {
     fontSize: 16,
-    marginBottom: 5,
   },
   title: {
     fontSize: 18,

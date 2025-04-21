@@ -44,6 +44,7 @@ export function ThemedScrollView({
         }
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={'on-drag'}
+        showsVerticalScrollIndicator={false}
         {...props} // Spread all other props
       >
         {children}

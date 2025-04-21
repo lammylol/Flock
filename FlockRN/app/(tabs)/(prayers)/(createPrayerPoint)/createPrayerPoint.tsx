@@ -307,32 +307,35 @@ export default function PrayerPointMetadataScreen() {
         }}
       />
       <ThemedScrollView contentContainerStyle={styles.scrollContent}>
-        <PrayerContent
-          editMode={isEditMode ? 'edit' : 'create'}
-          prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
-          // prayerId={isEditMode ? updatedPrayerPoint.id : undefined}
-          backgroundColor={colorScheme}
-          onChange={(updatedPrayerPointData) => {
-            if ('type' in updatedPrayerPointData) {
-              handlePrayerPointUpdate(updatedPrayerPointData);
-            }
-          }}
-        />
-
-        {similarPrayerPoints.length > 0 && (
-          <PrayerPointLinking
-            editMode={'create'}
-            similarPrayers={similarPrayerPoints}
+        <View style={styles.upperContainer}>
+          <PrayerContent
+            editMode={isEditMode ? 'edit' : 'create'}
+            prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
+            // prayerId={isEditMode ? updatedPrayerPoint.id : undefined}
+            backgroundColor={colorScheme}
+            onChange={(updatedPrayerPointData) => {
+              if ('type' in updatedPrayerPointData) {
+                handlePrayerPointUpdate(updatedPrayerPointData);
+              }
+            }}
+            prayer={updatedPrayerPoint}
           />
-        )}
 
-        <View style={styles.section}>
-          <View style={styles.privacySelector}>
-            <ThemedText style={styles.label}>Privacy</ThemedText>
-            <View style={styles.privacyValueContainer}>
-              <ThemedText style={styles.privacyValue}>
-                {privacy === 'private' ? 'Private' : 'Public'}
-              </ThemedText>
+          {similarPrayerPoints.length > 0 && (
+            <PrayerPointLinking
+              editMode={'create'}
+              similarPrayers={similarPrayerPoints}
+            />
+          )}
+
+          <View style={styles.section}>
+            <View style={styles.privacySelector}>
+              <ThemedText style={styles.label}>Privacy</ThemedText>
+              <View style={styles.privacyValueContainer}>
+                <ThemedText style={styles.privacyValue}>
+                  {privacy === 'private' ? 'Private' : 'Public'}
+                </ThemedText>
+              </View>
             </View>
           </View>
         </View>
@@ -362,12 +365,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    bottom: 20,
-    justifyContent: 'center',
     left: 0,
     paddingVertical: 16,
-    position: 'absolute',
     right: 0,
+    marginBottom: 20,
   },
   buttonDisabled: {
     backgroundColor: Colors.disabled,
@@ -407,13 +408,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     backgroundColor: Colors.light.background,
-    flex: 1,
+    flexGrow: 1,
     gap: 10,
-    paddingBottom: 24,
   },
   section: {
     backgroundColor: Colors.grey1,
     borderRadius: 12,
     padding: 16,
+  },
+  upperContainer: {
+    flexGrow: 1,
+    gap: 10,
   },
 });
