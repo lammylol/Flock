@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -70,102 +70,91 @@ export default function PrayerPointMetadataScreen() {
     privacy: (params?.privacy as 'public' | 'private') || 'private',
   });
 
-  useEffect(() => {
-    const setupEditMode = async () => {
-      // Skip if we've already processed these exact params
-      if (
-        processedParamsRef.current.id === params.id &&
-        processedParamsRef.current.mode === params.mode
-      ) {
-        return;
-      }
+  const setupEditMode = useCallback(async () => {
+    console.log('⭐ Setting up edit mode check');
+    console.log('⭐ Mode:', params.mode);
+    console.log('⭐ ID:', params.id);
 
-      console.log('⭐ Setting up edit mode check');
-      console.log('⭐ Mode:', params.mode);
-      console.log('⭐ ID:', params.id);
+    // Update our tracking ref
+    processedParamsRef.current = {
+      id: params.id || '',
+      mode: params.mode || '',
+    };
 
-      // Update our tracking ref
-      processedParamsRef.current = {
-        id: params.id || '',
-        mode: params.mode || '',
-      };
+    // Check if we're in edit mode from URL params
+    if (params.mode === 'edit' && params.id) {
+      console.log('⭐ Edit mode detected from URL params');
+      setIsEditMode(true);
 
-      // Check if we're in edit mode from URL params
-      if (params.mode === 'edit' && params.id) {
-        console.log('⭐ Edit mode detected from URL params');
-        setIsEditMode(true);
+      // First, try to find the prayer point in context
+      const contextPrayerPoint = userPrayerPoints.find(
+        (p) => p.id === params.id,
+      );
 
-        // First, try to find the prayer point in context
-        const contextPrayerPoint = userPrayerPoints.find(
-          (p) => p.id === params.id,
+      if (contextPrayerPoint) {
+        console.log(
+          '⭐ Found prayer point in context:',
+          JSON.stringify({
+            id: contextPrayerPoint.id,
+            title: contextPrayerPoint.title,
+            content: contextPrayerPoint.content?.substring(0, 20) + '...',
+          }),
         );
 
-        if (contextPrayerPoint) {
-          console.log(
-            '⭐ Found prayer point in context:',
-            JSON.stringify({
-              id: contextPrayerPoint.id,
-              title: contextPrayerPoint.title,
-              content: contextPrayerPoint.content?.substring(0, 20) + '...',
-            }),
-          );
+        // Set initial data from context
+        setUpdatedPrayerPoint({
+          ...contextPrayerPoint,
+        });
 
-          // Set initial data from context
-          setUpdatedPrayerPoint({
-            ...contextPrayerPoint,
-          });
-
-          setPrivacy(
-            (params.privacy as 'public' | 'private') ||
+        setPrivacy(
+          (params.privacy as 'public' | 'private') ||
             contextPrayerPoint.privacy ||
             'private',
-          );
-        } else {
-          console.log(
-            '⭐ Prayer point not found in context. Fetching from API...',
-          );
+        );
+      } else {
+        console.log(
+          '⭐ Prayer point not found in context. Fetching from API...',
+        );
 
-          try {
-            const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
-            if (fetchedPrayer) {
-              console.log('⭐ Fetched prayer from API');
-              setUpdatedPrayerPoint({
-                ...fetchedPrayer,
-                // Override with any params passed in URL if they exist
-                title: params.title || fetchedPrayer.title,
-                content: params.content || fetchedPrayer.content,
-                tags:
-                  initialTags.length > 0
-                    ? initialTags
-                    : fetchedPrayer.tags || [],
-                privacy:
-                  (params.privacy as 'public' | 'private') ||
-                  fetchedPrayer.privacy ||
-                  'private',
-              });
-              setPrivacy(
+        try {
+          const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
+          if (fetchedPrayer) {
+            console.log('⭐ Fetched prayer from API');
+            setUpdatedPrayerPoint({
+              ...fetchedPrayer,
+              // Override with any params passed in URL if they exist
+              title: params.title || fetchedPrayer.title,
+              content: params.content || fetchedPrayer.content,
+              tags:
+                initialTags.length > 0 ? initialTags : fetchedPrayer.tags || [],
+              privacy:
                 (params.privacy as 'public' | 'private') ||
                 fetchedPrayer.privacy ||
                 'private',
-              );
-            }
-          } catch (error) {
-            console.error('⭐ Error fetching prayer point:', error);
+            });
+            setPrivacy(
+              (params.privacy as 'public' | 'private') ||
+                fetchedPrayer.privacy ||
+                'private',
+            );
           }
+        } catch (error) {
+          console.error('⭐ Error fetching prayer point:', error);
         }
-      } else {
-        console.log('⭐ Create mode detected');
-        setIsEditMode(false);
       }
-    };
-
-    setupEditMode();
-  }, [userPrayerPoints, initialTags]);
-
-  useEffect(() => {
-    // This effect runs after isEditMode changes
-    console.log('⭐ isEditMode updated:', isEditMode);
-  }, [isEditMode]);
+    } else {
+      console.log('⭐ Create mode detected');
+      setIsEditMode(false);
+    }
+  }, [
+    params.mode,
+    params.id,
+    params.privacy,
+    params.title,
+    params.content,
+    userPrayerPoints,
+    initialTags,
+  ]);
 
   const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
@@ -245,6 +234,10 @@ export default function PrayerPointMetadataScreen() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    setupEditMode();
+  }, [setupEditMode]);
 
   return (
     <ThemedKeyboardAvoidingView

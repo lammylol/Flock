@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   TextInput,
   TouchableOpacity,
@@ -42,9 +42,9 @@ export default function PrayerMetadataScreen() {
 
   const [content, setContent] = useState(params?.content || '');
   const [title, setTitle] = useState(params?.title || '');
-  const [privacy, setPrivacy] = useState<'public' | 'private'>(
-    (params?.privacy as 'public' | 'private') || 'private',
-  );
+  // const [privacy, setPrivacy] = useState<'public' | 'private'>(
+  //   (params?.privacy as 'public' | 'private') || 'private',
+  // );
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -101,53 +101,37 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  useEffect(() => {
-    const analyzeContent = async () => {
-      setIsAnalyzing(true);
-      try {
-        const analysis = await openAiService.analyzePrayerContent(
-          content,
-          !!transcription,
-          userOptInFlags.optInAI,
-        );
-        setTitle(analysis.title);
-        setContent(analysis.cleanedTranscription || content);
+  const analyzeContent = useCallback(async () => {
+    setIsAnalyzing(true);
+    try {
+      const analysis = await openAiService.analyzePrayerContent(
+        content,
+        !!transcription,
+        userOptInFlags.optInAI,
+      );
+      setTitle(analysis.title);
+      setContent(analysis.cleanedTranscription || content);
 
-        // Assign a UUID if the prayer point doesn't already have an ID
-        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
-          ...point,
-          id: uuid.v4(), // Ensure each has a unique ID
-          // Initialize with default type as array for new UI
-          types: point.type ? [point.type] : ['request'],
-        }));
+      // Assign a UUID if the prayer point doesn't already have an ID
+      const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
+        ...point,
+        id: uuid.v4(), // Ensure each has a unique ID
+        // Initialize with default type as array for new UI
+        types: point.type ? [point.type] : ['request'],
+      }));
 
-        setPrayerPoints(updatedPrayerPoints);
-      } catch (error) {
-        console.error('Error using AI fill:', error);
-        // Silent fail - don't show error to user for automatic fill
-      } finally {
-        setIsAnalyzing(false);
-      }
-    };
-    // Perform AI fill when content is available after navigation, but after 4 seconds.
-    // This ensures that the full transcription is returned before before processing with AI.
-    if (
-      content &&
-      !title &&
-      !isTranscribing &&
-      userOptInFlags.optInAI &&
-      !isEditMode
-    ) {
-      analyzeContent();
+      setPrayerPoints(updatedPrayerPoints);
+    } catch (error) {
+      console.error('Error using AI fill:', error);
+      // Silent fail - don't show error to user for automatic fill
+    } finally {
+      setIsAnalyzing(false);
     }
-  }, [
-    content,
-    isTranscribing,
-    openAiService,
-    title,
-    transcription,
-    userOptInFlags.optInAI,
-  ]);
+  }, [content, openAiService, transcription, userOptInFlags.optInAI]);
+
+  useEffect(() => {
+    analyzeContent();
+  }, [analyzeContent]);
 
   const handleDelete = async () => {
     // Confirm deletion
@@ -269,21 +253,6 @@ export default function PrayerMetadataScreen() {
         />
       </View>
 
-      {/* 2. Privacy Section */}
-      <View style={styles.section}>
-        <View style={styles.privacySelector}>
-          <ThemedText style={styles.label}>Privacy</ThemedText>
-          <View style={styles.privacyValueContainer}>
-            <ThemedText style={styles.privacyValue}>
-              {privacy === 'private' ? 'Private' : 'Public'}
-            </ThemedText>
-            {privacy === 'private' && (
-              <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-            )}
-          </View>
-        </View>
-      </View>
-
       {/* 3. Prayer Content Section with Title */}
       <View style={styles.section}>
         <ThemedText type="default" style={styles.headerText}>
@@ -395,26 +364,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 12,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  lockIcon: {
-    fontSize: 16,
-  },
-  privacySelector: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  privacyValue: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  privacyValueContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
   },
   scrollContent: {
     backgroundColor: Colors.light.background,

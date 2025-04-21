@@ -46,7 +46,7 @@ const PrayerView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [id, user]);
+  }, [id, updateCollection]);
 
   const fetchPrayerPoints = useCallback(async () => {
     try {
@@ -60,18 +60,17 @@ const PrayerView = () => {
           updateCollection(prayerPoint, 'prayerPoint'),
         );
       }
-      console.log('Fetched prayer points:', prayerPoints);
     } catch (err) {
       console.error(err);
       setError('Prayer points could not be fetched. Please try again.');
     } finally {
       setRefreshing(false);
     }
-  }, [id, user]);
+  }, [id, prayer?.prayerPoints, setPrayerPoints, updateCollection, user]);
 
   useEffect(() => {
     fetchPrayerPoints(); // Fetch only prayer points. Prayer is fetched in the prayer view.
-  }, [id]);
+  }, [fetchPrayerPoints, id]);
 
   const onRefresh = () => {
     setRefreshing(true);

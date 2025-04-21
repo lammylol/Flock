@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
@@ -27,25 +27,28 @@ export function PrayerContent({
 
   const handleTitleChange = (text: string) => {
     setEditableTitle(text);
+    triggerChange({ title: text });
   };
 
   const handleContentChange = (text: string) => {
     setEditableContent(text);
+    triggerChange({ content: text });
   };
 
   const handleTagsChange = (tags: PrayerType[]) => {
     setUpdatedTags(tags);
+    triggerChange({ tags });
   };
 
-  useEffect(() => {
+  const triggerChange = (partial: Partial<Prayer | PrayerPoint>) => {
     if (!onChange) return;
 
     const updatedPrayer = {
       ...(prayer || {}),
-      title: editableTitle || '',
-      content: editableContent || '',
-      tags: updatedTags || [],
-      type: updatedTags[0] || 'request',
+      title: partial.title ?? editableTitle,
+      content: partial.content ?? editableContent,
+      tags: partial.tags ?? updatedTags,
+      type: (partial.tags ?? updatedTags)[0] || 'request',
     };
 
     onChange(
@@ -53,7 +56,7 @@ export function PrayerContent({
         ? (updatedPrayer as Prayer)
         : (updatedPrayer as PrayerPoint),
     );
-  }, [editableTitle, editableContent, updatedTags]);
+  };
 
   const formattedDate = (() => {
     if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
@@ -75,7 +78,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === 'edit' || editMode === 'create') &&
-        prayerOrPrayerPoint === 'prayerPoint' ? (
+      prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}

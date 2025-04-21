@@ -43,10 +43,6 @@ const PrayerPointView = () => {
   const isOwner = prayerPoint && user && prayerPoint.authorId === user.uid;
   const scrollViewRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    console.log('PrayerPointId:', prayerPointId);
-  }, [prayerPointId]);
-
   const fetchPrayerPoint = useCallback(async () => {
     try {
       const fetchedPrayer = await prayerService.getPrayerPoint(prayerPointId);
@@ -146,7 +142,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-          'seconds' in prayerPoint.createdAt
+            'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
