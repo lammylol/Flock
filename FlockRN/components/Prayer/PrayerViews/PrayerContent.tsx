@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
