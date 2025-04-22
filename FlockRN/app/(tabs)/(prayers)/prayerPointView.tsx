@@ -142,7 +142,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-            'seconds' in prayerPoint.createdAt
+          'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
@@ -152,18 +152,6 @@ const PrayerPointView = () => {
       day: 'numeric',
     });
   })();
-
-  // Show loading indicator if deleting
-  if (isDeleting) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <ThemedText style={styles.loadingText}>
-          Deleting prayer point...
-        </ThemedText>
-      </View>
-    );
-  }
 
   return (
     <View
@@ -182,32 +170,43 @@ const PrayerPointView = () => {
             errorTitle="Content Unavailable"
             errorMessage="Sorry, your prayer can't be loaded right now."
           />
+        ) : isDeleting ? (
+          <>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <ContentUnavailable
+              errorTitle="Deleting Prayer Point"
+              errorMessage="Your prayer point is being deleted right now."
+            />
+          </>
+        ) : prayerPoint ? (
+          <>
+            <Stack.Screen
+              options={{
+                headerRight: () =>
+                  isOwner && <HeaderButton onPress={handleEdit} label="Edit" />,
+              }}
+            />
+            <ThemedText style={[styles.createdAtText, { color: textColor }]}>
+              Created on: {formattedDate}
+            </ThemedText>
+
+            <PrayerContent
+              editMode="view"
+              prayer={prayerPoint}
+              prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
+              backgroundColor={backgroundColor}
+            />
+
+            {/* Spacer to push content up and button to bottom */}
+            <View style={styles.spacer} />
+          </>
         ) : (
-          prayerPoint && (
-            <>
-              <Stack.Screen
-                options={{
-                  headerRight: () =>
-                    isOwner && (
-                      <HeaderButton onPress={handleEdit} label="Edit" />
-                    ),
-                }}
-              />
-              <ThemedText style={[styles.createdAtText, { color: textColor }]}>
-                Created on: {formattedDate}
-              </ThemedText>
-
-              <PrayerContent
-                editMode="view"
-                prayer={prayerPoint}
-                prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
-                backgroundColor={backgroundColor}
-              />
-
-              {/* Spacer to push content up and button to bottom */}
-              <View style={styles.spacer} />
-            </>
-          )
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <ThemedText style={styles.loadingText}>
+              Loading prayer point...
+            </ThemedText>
+          </View>
         )}
       </ThemedScrollView>
 
