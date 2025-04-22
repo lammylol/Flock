@@ -49,7 +49,7 @@ export default function PrayerPointMetadataScreen() {
     title: '',
     content: '',
     type: 'request',
-    tags: [] as PrayerType[],
+    tags: params.tags ? (JSON.parse(params.tags) as PrayerType[]) : [],
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: '',
