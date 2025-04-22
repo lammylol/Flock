@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   TextInput,
   TouchableOpacity,
@@ -119,7 +119,7 @@ export default function PrayerMetadataScreen() {
     }
   }, [transcription, params.content, openAiService, userOptInFlags.optInAI]);
 
-  useEffect(() => {
+  useMemo(() => {
     if (isTranscribing) {
       setPlaceholder('Transcribing...');
     } else if (transcription || params.content) {
