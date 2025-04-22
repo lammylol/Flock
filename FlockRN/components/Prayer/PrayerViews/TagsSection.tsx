@@ -12,6 +12,7 @@ import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { prayerTags } from '@/types/Tag';
+import { on } from 'events';
 
 interface TagsListProps {
   tags: PrayerType[];
@@ -21,7 +22,7 @@ interface TagsListProps {
 
 const getTagColor = (tag: string) =>
   Colors.tagColors.typeColors[
-    tag as keyof typeof Colors.tagColors.typeColors
+  tag as keyof typeof Colors.tagColors.typeColors
   ] || Colors.tagColors.defaultTag;
 
 const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
@@ -35,10 +36,6 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
   );
   const textColor = useThemeColor({ light: Colors.brown2 }, 'textPrimary');
 
-  useEffect(() => {
-    setSelectedTags(tags);
-  }, [tags]);
-
   const sortedTags = useMemo(() => {
     return [...selectedTags].sort((a, b) => tags.indexOf(a) - tags.indexOf(b));
   }, [selectedTags, tags]);
@@ -49,9 +46,14 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
   };
 
   const toggleTag = (tag: PrayerType) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
+    setSelectedTags((prev) => {
+      const next = prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
+        : [...prev, tag];
+
+      onChange?.(next);
+      return next;
+    });
   };
 
   const saveTags = async () => {

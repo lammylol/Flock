@@ -51,6 +51,8 @@ export function PrayerContent({
       type: (partial.tags ?? updatedTags)[0] || 'request',
     };
 
+    console.log('type', updatedPrayer.type);
+
     onChange(
       prayerOrPrayerPoint === 'prayer'
         ? (updatedPrayer as Prayer)
@@ -78,7 +80,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === 'edit' || editMode === 'create') &&
-      prayerOrPrayerPoint === 'prayerPoint' ? (
+        prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={editableTitle}

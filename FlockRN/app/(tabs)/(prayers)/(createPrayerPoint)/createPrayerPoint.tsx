@@ -86,8 +86,13 @@ export default function PrayerPointMetadataScreen() {
             id: contextPrayerPoint.id,
             title: contextPrayerPoint.title,
             content: contextPrayerPoint.content?.substring(0, 20) + '...',
-            tags: contextPrayerPoint.tags,
             privacy: contextPrayerPoint.privacy,
+            type: contextPrayerPoint.type,
+            tags: contextPrayerPoint.tags,
+            createdAt: contextPrayerPoint.createdAt,
+            updatedAt: contextPrayerPoint.updatedAt,
+            authorName: contextPrayerPoint.authorName,
+            authorId: contextPrayerPoint.authorId,
             status: contextPrayerPoint.status,
           }),
         );
@@ -117,6 +122,7 @@ export default function PrayerPointMetadataScreen() {
       console.log('⭐ Create mode detected');
       setIsEditMode(false);
     }
+  }, [params.mode, params.id, userPrayerPoints]);
   }, [params.mode, params.id, userPrayerPoints]);
 
   const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
@@ -149,6 +155,9 @@ export default function PrayerPointMetadataScreen() {
           content: updatedPrayerPoint.content,
           privacy: privacy,
           tags: updatedPrayerPoint.tags,
+          type: updatedPrayerPoint.type,
+          updatedAt: new Date(),
+          status: updatedPrayerPoint.status,
         };
 
         await prayerService.editPrayerPoint(updatedPrayerPoint.id, updateData);
