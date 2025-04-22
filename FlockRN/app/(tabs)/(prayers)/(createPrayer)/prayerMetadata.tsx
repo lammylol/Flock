@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   TextInput,
   TouchableOpacity,
@@ -52,16 +52,6 @@ export default function PrayerMetadataScreen() {
   const [placeholder, setPlaceholder] = useState('Enter your prayer here');
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
 
-  useEffect(() => {
-    if (isTranscribing) {
-      setPlaceholder('Transcribing...');
-    } else if (transcription) {
-      setContent(transcription);
-    } else if (content === '') {
-      setPlaceholder('Transcription unavailable');
-    }
-  }, [content, isTranscribing, transcription]);
-
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
     prayerId: string,
@@ -99,10 +89,85 @@ export default function PrayerMetadataScreen() {
       console.error('Error parsing prayer points:', err);
       return [];
     }
+
+    return (
+      <ThemedScrollView contentContainerStyle={styles.scrollContent}>
+        {/* 1. Prayer Points Section with Summary Header */}
+        <View style={styles.section}>
+          <ThemedText type="default" style={styles.headerText}>
+            Here's a summary of what you prayed:
+          </ThemedText>
+          <PrayerPointSection
+            prayerPoints={prayerPoints}
+            onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+              setPrayerPoints(updatedPrayerPoints)
+            }
+          />
+        </View>
+
+        {/* 3. Prayer Content Section with Title */}
+        <View style={styles.section}>
+          <ThemedText type="default" style={styles.headerText}>
+            Prayer
+          </ThemedText>
+          <View style={styles.contentContainer}>
+            <TextInput
+              style={styles.contentInput}
+              placeholder={placeholder}
+              value={content}
+              onChangeText={setContent}
+              multiline
+            />
+            {isTranscribing && (
+              <ActivityIndicator color="#9747FF" size="small" />
+            )}
+            {isAnalyzing && (
+              <ActivityIndicator
+                color={Colors.primary}
+                size="small"
+                style={styles.activityIndicator}
+              />
+            )}
+          </View>
+        </View>
+
+        {/* Spacer view to push content up and button to bottom */}
+        <View style={styles.spacer} />
+
+        {isEditMode && (
+          <TouchableOpacity
+            style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
+            onPress={handleDelete}
+            disabled={isDeleting}
+          >
+            <ThemedText style={styles.deleteButtonText}>
+              {isDeleting ? 'Deleting...' : 'Delete Prayer'}
+            </ThemedText>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={isLoading}
+        >
+          <ThemedText style={styles.buttonText}>
+            {isLoading
+              ? isEditMode
+                ? 'Updating...'
+                : 'Creating...'
+              : isEditMode
+                ? 'Update Prayer'
+                : 'Create Prayer'}
+          </ThemedText>
+        </TouchableOpacity>
+      </ThemedScrollView>
+    );
   };
 
   const analyzeContent = useCallback(async () => {
     setIsAnalyzing(true);
+    const content = transcription || params.content || '';
     try {
       const analysis = await openAiService.analyzePrayerContent(
         content,
@@ -112,7 +177,6 @@ export default function PrayerMetadataScreen() {
       setTitle(analysis.title);
       setContent(analysis.cleanedTranscription || content);
 
-      // Assign a UUID if the prayer point doesn't already have an ID
       const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
         ...point,
         id: uuid.v4(), // Ensure each has a unique ID
@@ -127,11 +191,20 @@ export default function PrayerMetadataScreen() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [content, openAiService, transcription, userOptInFlags.optInAI]);
+  }, [transcription, params.content, openAiService, userOptInFlags.optInAI]);
 
   useEffect(() => {
-    analyzeContent();
-  }, [analyzeContent]);
+    if (isTranscribing) {
+      setPlaceholder('Transcribing...');
+    } else if (transcription || params.content) {
+      if (transcription) {
+        setContent(transcription);
+      }
+      analyzeContent();
+    } else if (transcription === '') {
+      setPlaceholder('Transcription unavailable');
+    }
+  }, [analyzeContent, isTranscribing, params.content, transcription]);
 
   const handleDelete = async () => {
     // Confirm deletion
