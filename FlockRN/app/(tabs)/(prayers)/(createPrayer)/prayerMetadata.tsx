@@ -24,6 +24,7 @@ import useRecording from '@/hooks/recording/useRecording';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
+import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -252,6 +253,12 @@ export default function PrayerMetadataScreen() {
       </View>
 
       {/* 3. Prayer Content Section with Title */}
+      <PrayerContent 
+          editMode={isEditMode},
+          prayerOrPrayerPoint={'prayer'},
+          prayer={prayer},
+          onChange, // Callback for changes
+      />
       <View style={styles.section}>
         <ThemedText type="default" style={styles.headerText}>
           Prayer
