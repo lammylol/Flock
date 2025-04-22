@@ -51,8 +51,6 @@ export function PrayerContent({
       type: (partial.tags ?? updatedTags)[0] || 'request',
     };
 
-    console.log('type', updatedPrayer.type);
-
     onChange(
       prayerOrPrayerPoint === 'prayer'
         ? (updatedPrayer as Prayer)
