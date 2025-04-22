@@ -90,8 +90,6 @@ const PrayerView = () => {
       pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: {
         id: prayer.id,
-        content: prayer.content,
-        privacy: prayer.privacy,
         mode: 'edit',
       },
     });

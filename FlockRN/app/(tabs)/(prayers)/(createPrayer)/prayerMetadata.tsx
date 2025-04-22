@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  TextInput,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
@@ -19,39 +18,181 @@ import {
   PrayerPoint,
   CreatePrayerPointDTO,
   UpdatePrayerDTO,
+  Prayer,
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
+  const processedParamsRef = useRef({
+    content: '',
+    id: '',
+    mode: '',
+  });
+
   const params = useLocalSearchParams<{
     content?: string;
     id?: string;
-    title?: string;
-    privacy?: string;
     mode?: string;
   }>();
 
   // Determine if we're in edit mode
-  const isEditMode = params.mode === 'edit';
-  const prayerId = params.id;
-
-  const [content, setContent] = useState(params?.content || '');
-  const [title, setTitle] = useState(params?.title || '');
-  const [privacy, setPrivacy] = useState<'public' | 'private'>(
-    (params?.privacy as 'public' | 'private') || 'private',
-  );
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
-  const [placeholder, setPlaceholder] = useState('Enter your prayer here');
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
+  const { userPrayers, updateCollection } = usePrayerCollection();
+  const [prayer, setUpdatedPrayer] = useState<Prayer>({
+    id: params.id || '',
+    title: '',
+    content: params.content || '',
+    tags: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    authorName: '',
+    authorId: '',
+    privacy: 'private',
+    prayerPoints: [],
+  });
+  const colorScheme = useThemeColor({}, 'backgroundSecondary');
+
+  const analyzeContent = useCallback(async () => {
+    setIsAnalyzing(true);
+    const content = transcription || params.content || '';
+    try {
+      const analysis = await openAiService.analyzePrayerContent(
+        content,
+        !!transcription,
+        userOptInFlags.optInAI,
+      );
+
+      setUpdatedPrayer((prevPrayer) => ({
+        ...prevPrayer,
+        content: analysis.cleanedTranscription || content,
+      }));
+
+      const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
+        ...point,
+        id: uuid.v4(), // Ensure each has a unique ID
+        // Initialize with default type as array for new UI
+        types: point.type ? [point.type] : ['request'],
+      }));
+
+      setPrayerPoints(updatedPrayerPoints);
+    } catch (error) {
+      console.error('Error using AI fill:', error);
+      // Silent fail - don't show error to user for automatic fill
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [transcription, params.content, openAiService, userOptInFlags.optInAI]);
+
+  const setupEditMode = useCallback(async () => {
+    console.log('⭐ Setting up edit mode check');
+    console.log('⭐ Mode:', params.mode);
+    console.log('⭐ ID:', params.id);
+
+    // Update our tracking ref
+    processedParamsRef.current = {
+      content: params.content || '',
+      id: params.id || '',
+      mode: params.mode || '',
+    };
+
+    // Check if we're in edit mode from URL params
+    if (params.mode === 'edit' && params.id) {
+      console.log('⭐ Edit mode detected from URL params');
+      setIsEditMode(true);
+
+      // First, try to find the prayer point in context
+      const contextPrayerPoint = userPrayers.find((p) => p.id === params.id);
+
+      if (contextPrayerPoint) {
+        console.log(
+          '⭐ Found prayer point in context:',
+          JSON.stringify({
+            id: contextPrayerPoint.id,
+            title: contextPrayerPoint.title,
+            content: contextPrayerPoint.content?.substring(0, 20) + '...',
+            tags: contextPrayerPoint.tags,
+            privacy: contextPrayerPoint.privacy,
+            prayerPoints: contextPrayerPoint.prayerPoints,
+            createdAt: contextPrayerPoint.createdAt,
+            updatedAt: contextPrayerPoint.updatedAt,
+            authorName: contextPrayerPoint.authorName,
+            authorId: contextPrayerPoint.authorId,
+          }),
+        );
+
+        // Set initial data from context
+        setUpdatedPrayer({
+          ...contextPrayerPoint,
+        });
+      } else {
+        console.log(
+          '⭐ Prayer point not found in context. Fetching from API...',
+        );
+
+        try {
+          const fetchedPrayer = await prayerService.getPrayer(params.id);
+          if (fetchedPrayer) {
+            console.log('⭐ Fetched prayer from API');
+            setUpdatedPrayer({
+              ...fetchedPrayer,
+            });
+          }
+        } catch (error) {
+          console.error('⭐ Error fetching prayer point:', error);
+        }
+      }
+    } else {
+      console.log('⭐ Create mode detected');
+      setIsEditMode(false);
+      setUpdatedPrayer((prevPrayer) => ({
+        ...prevPrayer,
+        content: params.content || '',
+      }));
+
+      if (isTranscribing) {
+        setUpdatedPrayer((prevPrayer) => ({
+          ...prevPrayer,
+          content: 'transcribing...',
+        }));
+      } else if (transcription || params.content) {
+        if (transcription) {
+          setUpdatedPrayer((prevPrayer) => ({
+            ...prevPrayer,
+            content: transcription,
+          }));
+        }
+        analyzeContent();
+      } else if (transcription === '') {
+        setUpdatedPrayer((prevPrayer) => ({
+          ...prevPrayer,
+          content: 'Transcription Unavailable',
+        }));
+      }
+    }
+  }, [
+    params.mode,
+    params.id,
+    params.content,
+    userPrayers,
+    isTranscribing,
+    transcription,
+    analyzeContent,
+  ]);
 
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
@@ -90,46 +231,16 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  const analyzeContent = useCallback(async () => {
-    setIsAnalyzing(true);
-    const content = transcription || params.content || '';
-    try {
-      const analysis = await openAiService.analyzePrayerContent(
-        content,
-        !!transcription,
-        userOptInFlags.optInAI,
-      );
-      setTitle(analysis.title);
-      setContent(analysis.cleanedTranscription || content);
-
-      const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
-        ...point,
-        id: uuid.v4(), // Ensure each has a unique ID
-        // Initialize with default type as array for new UI
-        types: point.type ? [point.type] : ['request'],
-      }));
-
-      setPrayerPoints(updatedPrayerPoints);
-    } catch (error) {
-      console.error('Error using AI fill:', error);
-      // Silent fail - don't show error to user for automatic fill
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [transcription, params.content, openAiService, userOptInFlags.optInAI]);
-
   useMemo(() => {
-    if (isTranscribing) {
-      setPlaceholder('Transcribing...');
-    } else if (transcription || params.content) {
-      if (transcription) {
-        setContent(transcription);
-      }
-      analyzeContent();
-    } else if (transcription === '') {
-      setPlaceholder('Transcription unavailable');
-    }
-  }, [analyzeContent, isTranscribing, params.content, transcription]);
+    setupEditMode();
+  }, [setupEditMode]);
+
+  const handlePrayerUpdate = (updatedPrayerData: Prayer) => {
+    setUpdatedPrayer((prevPrayer) => ({
+      ...prevPrayer,
+      ...updatedPrayerData,
+    }));
+  };
 
   const handleDelete = async () => {
     // Confirm deletion
@@ -145,14 +256,14 @@ export default function PrayerMetadataScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            if (!prayerId || !auth.currentUser?.uid) {
+            if (!prayer.id || !auth.currentUser?.uid) {
               Alert.alert('Error', 'Cannot delete prayer');
               return;
             }
 
             setIsDeleting(true);
             try {
-              await prayerService.deletePrayer(prayerId, auth.currentUser.uid);
+              await prayerService.deletePrayer(prayer.id, auth.currentUser.uid);
               Alert.alert('Success', 'Prayer deleted successfully');
               router.push('/(tabs)/(prayers)');
             } catch (error) {
@@ -171,11 +282,6 @@ export default function PrayerMetadataScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      // Generate a title from the first few words of content if title is empty
-      setTitle(content.split(' ').slice(0, 3).join(' ') || 'Untitled Prayer');
-    }
-
     if (!auth.currentUser?.uid) {
       Alert.alert('Error', 'You must be logged in to create a prayer');
       return;
@@ -184,24 +290,22 @@ export default function PrayerMetadataScreen() {
     setPrivacy('private'); // temporary set function to bypass lint for now.
     setIsLoading(true);
     try {
-      if (isEditMode && prayerId) {
+      if (isEditMode && prayer) {
         // Update existing prayer
         const updateData: UpdatePrayerDTO = {
-          title: title.trim(),
-          content: content,
+          content: prayer.content,
           privacy: privacy,
-          // We've removed tags completely
         };
 
-        await prayerService.updatePrayer(prayerId, updateData);
+        await prayerService.updatePrayer(prayer.id, updateData);
+        updateCollection(prayer as Prayer, 'prayer');
         Alert.alert('Success', 'Prayer updated successfully');
         router.push('/(tabs)/(prayers)');
       } else {
         // Create new prayer
         const prayerData: CreatePrayerDTO = {
-          title: title.trim(),
-          content: content,
-          privacy: privacy,
+          content: prayer.content,
+          privacy: prayer.privacy,
           tags: [], // Empty tags array since we've removed the feature
           authorId: auth.currentUser.uid,
           authorName: auth.currentUser.displayName ?? 'Unknown',
@@ -253,34 +357,23 @@ export default function PrayerMetadataScreen() {
       </View>
 
       {/* 3. Prayer Content Section with Title */}
-      <PrayerContent 
-          editMode={isEditMode},
-          prayerOrPrayerPoint={'prayer'},
-          prayer={prayer},
-          onChange, // Callback for changes
+      <PrayerContent
+        editMode={isEditMode ? 'edit' : 'create'}
+        backgroundColor={colorScheme}
+        prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
+        prayer={prayer}
+        onChange={(updatedPrayer) => {
+          handlePrayerUpdate(updatedPrayer as Prayer);
+        }}
       />
-      <View style={styles.section}>
-        <ThemedText type="default" style={styles.headerText}>
-          Prayer
-        </ThemedText>
-        <View style={styles.contentContainer}>
-          <TextInput
-            style={styles.contentInput}
-            placeholder={placeholder}
-            value={content}
-            onChangeText={setContent}
-            multiline
-          />
-          {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
-          {isAnalyzing && (
-            <ActivityIndicator
-              color={Colors.primary}
-              size="small"
-              style={styles.activityIndicator}
-            />
-          )}
-        </View>
-      </View>
+      {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
+      {isAnalyzing && (
+        <ActivityIndicator
+          color={Colors.primary}
+          size="small"
+          style={styles.activityIndicator}
+        />
+      )}
 
       {/* Spacer view to push content up and button to bottom */}
       <View style={styles.spacer} />
@@ -339,18 +432,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     width: '100%',
-  },
-
-  contentContainer: {
-    position: 'relative',
-  },
-  contentInput: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 8,
-    fontSize: 16,
-    minHeight: 120,
-    padding: 12,
-    textAlignVertical: 'top',
   },
   deleteButton: {
     alignItems: 'center',
