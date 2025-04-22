@@ -33,11 +33,7 @@ export default function PrayerPointMetadataScreen() {
   });
 
   const params = useLocalSearchParams<{
-    content?: string;
     id?: string;
-    title?: string;
-    privacy?: string;
-    tags?: string;
     mode?: string;
   }>();
 
@@ -45,29 +41,21 @@ export default function PrayerPointMetadataScreen() {
   const [isEditMode, setIsEditMode] = useState(false);
   const { userPrayerPoints, updateCollection } = usePrayerCollection();
 
-  // Parse tags if they exist in params - using useMemo to prevent recreation on every render
-  const initialTags = useMemo(() => {
-    console.log('⭐ Processing tags param:', params.tags);
-    return params.tags ? (JSON.parse(params.tags) as PrayerType[]) : [];
-  }, [params.tags]);
-
-  const [privacy, setPrivacy] = useState<'public' | 'private'>(
-    (params?.privacy as 'public' | 'private') || 'private',
-  );
+  const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
   const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
     id: params.id || '',
-    title: params.title || '',
-    content: params.content || '',
+    title: '',
+    content: '',
     type: 'request',
-    tags: initialTags,
+    tags: [] as PrayerType[],
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: '',
     authorId: '',
     status: 'open',
-    privacy: (params?.privacy as 'public' | 'private') || 'private',
+    privacy: 'private',
   });
 
   const setupEditMode = useCallback(async () => {
@@ -98,6 +86,9 @@ export default function PrayerPointMetadataScreen() {
             id: contextPrayerPoint.id,
             title: contextPrayerPoint.title,
             content: contextPrayerPoint.content?.substring(0, 20) + '...',
+            tags: contextPrayerPoint.tags,
+            privacy: contextPrayerPoint.privacy,
+            status: contextPrayerPoint.status,
           }),
         );
 
@@ -105,12 +96,6 @@ export default function PrayerPointMetadataScreen() {
         setUpdatedPrayerPoint({
           ...contextPrayerPoint,
         });
-
-        setPrivacy(
-          (params.privacy as 'public' | 'private') ||
-            contextPrayerPoint.privacy ||
-            'private',
-        );
       } else {
         console.log(
           '⭐ Prayer point not found in context. Fetching from API...',
@@ -122,21 +107,7 @@ export default function PrayerPointMetadataScreen() {
             console.log('⭐ Fetched prayer from API');
             setUpdatedPrayerPoint({
               ...fetchedPrayer,
-              // Override with any params passed in URL if they exist
-              title: params.title || fetchedPrayer.title,
-              content: params.content || fetchedPrayer.content,
-              tags:
-                initialTags.length > 0 ? initialTags : fetchedPrayer.tags || [],
-              privacy:
-                (params.privacy as 'public' | 'private') ||
-                fetchedPrayer.privacy ||
-                'private',
             });
-            setPrivacy(
-              (params.privacy as 'public' | 'private') ||
-                fetchedPrayer.privacy ||
-                'private',
-            );
           }
         } catch (error) {
           console.error('⭐ Error fetching prayer point:', error);
@@ -146,15 +117,7 @@ export default function PrayerPointMetadataScreen() {
       console.log('⭐ Create mode detected');
       setIsEditMode(false);
     }
-  }, [
-    params.mode,
-    params.id,
-    params.privacy,
-    params.title,
-    params.content,
-    userPrayerPoints,
-    initialTags,
-  ]);
+  }, [params.mode, params.id, userPrayerPoints]);
 
   const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
@@ -175,6 +138,7 @@ export default function PrayerPointMetadataScreen() {
       return;
     }
 
+    setPrivacy('private');
     setIsLoading(true);
     try {
       if (isEditMode && updatedPrayerPoint.id) {
