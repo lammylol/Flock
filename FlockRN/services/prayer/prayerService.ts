@@ -579,6 +579,8 @@ class PrayerService {
       recipientId: data.recipientId,
       recipientName: data.recipientName,
       prayerUpdates: data.prayerUpdates,
+      isOrigin: data.isOrigin,
+      embedding: data.embedding,
     };
   }
 }

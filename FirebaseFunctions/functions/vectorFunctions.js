@@ -82,7 +82,7 @@ export const findSimilarPrayers = functions.https.onCall(
 
     // Check if the function is called by an authenticated user
     if (!request.auth) {
-      console.error('Unauthenticated request:', context);
+      console.error('Unauthenticated request:', request);
       throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
     }
 
