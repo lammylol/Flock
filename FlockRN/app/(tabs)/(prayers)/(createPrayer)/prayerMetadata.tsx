@@ -77,8 +77,7 @@ export default function PrayerMetadataScreen() {
           recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
           prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
           tags: prayerPoint.tags || [], // Default to an empty array
-          isOrigin: prayerPoint.isOrigin || true,
-        }),
+          isOrigin: prayerPoint.isOrigin !== undefined ? prayerPoint.isOrigin : true,
       );
 
       // Save to Firestore
