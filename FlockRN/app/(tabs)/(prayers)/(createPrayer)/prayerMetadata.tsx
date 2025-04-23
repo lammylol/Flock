@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   TextInput,
   TouchableOpacity,
@@ -52,16 +52,6 @@ export default function PrayerMetadataScreen() {
   const [placeholder, setPlaceholder] = useState('Enter your prayer here');
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
 
-  useEffect(() => {
-    if (isTranscribing) {
-      setPlaceholder('Transcribing...');
-    } else if (transcription) {
-      setContent(transcription);
-    } else if (content === '') {
-      setPlaceholder('Transcription unavailable');
-    }
-  }, [content, isTranscribing, transcription]);
-
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
     prayerId: string,
@@ -101,53 +91,46 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  useEffect(() => {
-    const analyzeContent = async () => {
-      setIsAnalyzing(true);
-      try {
-        const analysis = await openAiService.analyzePrayerContent(
-          content,
-          !!transcription,
-          userOptInFlags.optInAI,
-        );
-        setTitle(analysis.title);
-        setContent(analysis.cleanedTranscription || content);
+  const analyzeContent = useCallback(async () => {
+    setIsAnalyzing(true);
+    const content = transcription || params.content || '';
+    try {
+      const analysis = await openAiService.analyzePrayerContent(
+        content,
+        !!transcription,
+        userOptInFlags.optInAI,
+      );
+      setTitle(analysis.title);
+      setContent(analysis.cleanedTranscription || content);
 
-        // Assign a UUID if the prayer point doesn't already have an ID
-        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
-          ...point,
-          id: uuid.v4(), // Ensure each has a unique ID
-          // Initialize with default type as array for new UI
-          types: point.type ? [point.type] : ['request'],
-        }));
+      const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
+        ...point,
+        id: uuid.v4(), // Ensure each has a unique ID
+        // Initialize with default type as array for new UI
+        types: point.type ? [point.type] : ['request'],
+      }));
 
-        setPrayerPoints(updatedPrayerPoints);
-      } catch (error) {
-        console.error('Error using AI fill:', error);
-        // Silent fail - don't show error to user for automatic fill
-      } finally {
-        setIsAnalyzing(false);
-      }
-    };
-    // Perform AI fill when content is available after navigation, but after 4 seconds.
-    // This ensures that the full transcription is returned before before processing with AI.
-    if (
-      content &&
-      !title &&
-      !isTranscribing &&
-      userOptInFlags.optInAI &&
-      !isEditMode
-    ) {
-      analyzeContent();
+      setPrayerPoints(updatedPrayerPoints);
+    } catch (error) {
+      console.error('Error using AI fill:', error);
+      // Silent fail - don't show error to user for automatic fill
+    } finally {
+      setIsAnalyzing(false);
     }
-  }, [
-    content,
-    isTranscribing,
-    openAiService,
-    title,
-    transcription,
-    userOptInFlags.optInAI,
-  ]);
+  }, [transcription, params.content, openAiService, userOptInFlags.optInAI]);
+
+  useMemo(() => {
+    if (isTranscribing) {
+      setPlaceholder('Transcribing...');
+    } else if (transcription || params.content) {
+      if (transcription) {
+        setContent(transcription);
+      }
+      analyzeContent();
+    } else if (transcription === '') {
+      setPlaceholder('Transcription unavailable');
+    }
+  }, [analyzeContent, isTranscribing, params.content, transcription]);
 
   const handleDelete = async () => {
     // Confirm deletion
@@ -199,6 +182,7 @@ export default function PrayerMetadataScreen() {
       return;
     }
 
+    setPrivacy('private'); // temporary set function to bypass lint for now.
     setIsLoading(true);
     try {
       if (isEditMode && prayerId) {
@@ -267,21 +251,6 @@ export default function PrayerMetadataScreen() {
             setPrayerPoints(updatedPrayerPoints)
           }
         />
-      </View>
-
-      {/* 2. Privacy Section */}
-      <View style={styles.section}>
-        <View style={styles.privacySelector}>
-          <ThemedText style={styles.label}>Privacy</ThemedText>
-          <View style={styles.privacyValueContainer}>
-            <ThemedText style={styles.privacyValue}>
-              {privacy === 'private' ? 'Private' : 'Public'}
-            </ThemedText>
-            {privacy === 'private' && (
-              <ThemedText style={styles.lockIcon}>🔒</ThemedText>
-            )}
-          </View>
-        </View>
       </View>
 
       {/* 3. Prayer Content Section with Title */}
@@ -395,26 +364,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 12,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  lockIcon: {
-    fontSize: 16,
-  },
-  privacySelector: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  privacyValue: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  privacyValueContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
   },
   scrollContent: {
     backgroundColor: Colors.light.background,

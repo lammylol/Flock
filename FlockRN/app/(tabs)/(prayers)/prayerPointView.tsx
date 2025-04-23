@@ -43,10 +43,6 @@ const PrayerPointView = () => {
   const isOwner = prayerPoint && user && prayerPoint.authorId === user.uid;
   const scrollViewRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    console.log('PrayerPointId:', prayerPointId);
-  }, [prayerPointId]);
-
   const fetchPrayerPoint = useCallback(async () => {
     try {
       const fetchedPrayer = await prayerService.getPrayerPoint(prayerPointId);
@@ -78,15 +74,15 @@ const PrayerPointView = () => {
     try {
       // Be explicit with the complete path to the specific file
       router.push({
-        pathname: "/(tabs)/(prayers)/(createPrayerPoint)/createPrayerPoint",
+        pathname: '/(tabs)/(prayers)/(createPrayerPoint)/createPrayerPoint',
         params: {
           id: prayerPoint.id,
           title: prayerPoint.title || '',
           content: prayerPoint.content || '',
           privacy: prayerPoint.privacy || 'private',
           tags: JSON.stringify(prayerPoint.tags || []),
-          mode: 'edit'
-        }
+          mode: 'edit',
+        },
       });
     } catch (error) {
       console.error('Error navigating to edit screen:', error);
@@ -146,7 +142,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-          'seconds' in prayerPoint.createdAt
+            'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
@@ -203,7 +199,7 @@ const PrayerPointView = () => {
 
               <PrayerContent
                 editMode="view"
-                prayerId={prayerPointId}
+                prayer={prayerPoint}
                 prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
                 backgroundColor={backgroundColor}
               />
