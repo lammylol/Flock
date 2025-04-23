@@ -123,7 +123,6 @@ export default function PrayerPointMetadataScreen() {
       setIsEditMode(false);
     }
   }, [params.mode, params.id, userPrayerPoints]);
-  }, [params.mode, params.id, userPrayerPoints]);
 
   const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
