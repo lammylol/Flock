@@ -32,6 +32,6 @@ export const iconBackgroundColors = {
   typeColors: {
     request: '#F5E9DC80',
     praise: '#C1D4CD80',
-    repentance: '#FFB6C1',
+    repentance: '#6A5ACD1A',
   },
 };
