@@ -1,5 +1,5 @@
 // PrayerPointSection.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Colors } from 'constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
@@ -28,7 +28,7 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
   const [data, setData] = useState(prayerPoints);
   const borderColor = useThemeColor({}, 'borderPrimary');
 
-  useEffect(() => {
+  useMemo(() => {
     setData(prayerPoints);
   }, [prayerPoints]);
 
