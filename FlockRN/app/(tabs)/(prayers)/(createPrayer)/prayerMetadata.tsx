@@ -117,28 +117,28 @@ export default function PrayerMetadataScreen() {
       setIsEditMode(true);
 
       // First, try to find the prayer point in context
-      const contextPrayerPoint = userPrayers.find((p) => p.id === params.id);
+      const contextPrayer = userPrayers.find((p) => p.id === params.id);
 
-      if (contextPrayerPoint) {
+      if (contextPrayer) {
         console.log(
           '⭐ Found prayer point in context:',
           JSON.stringify({
-            id: contextPrayerPoint.id,
-            title: contextPrayerPoint.title,
-            content: contextPrayerPoint.content?.substring(0, 20) + '...',
-            tags: contextPrayerPoint.tags,
-            privacy: contextPrayerPoint.privacy,
-            prayerPoints: contextPrayerPoint.prayerPoints,
-            createdAt: contextPrayerPoint.createdAt,
-            updatedAt: contextPrayerPoint.updatedAt,
-            authorName: contextPrayerPoint.authorName,
-            authorId: contextPrayerPoint.authorId,
+            id: contextPrayer.id,
+            title: contextPrayer.title,
+            content: contextPrayer.content?.substring(0, 20) + '...',
+            tags: contextPrayer.tags,
+            privacy: contextPrayer.privacy,
+            prayerPoints: contextPrayer.prayerPoints,
+            createdAt: contextPrayer.createdAt,
+            updatedAt: contextPrayer.updatedAt,
+            authorName: contextPrayer.authorName,
+            authorId: contextPrayer.authorId,
           }),
         );
 
         // Set initial data from context
         setUpdatedPrayer({
-          ...contextPrayerPoint,
+          ...contextPrayer,
         });
       } else {
         console.log(
@@ -358,6 +358,7 @@ export default function PrayerMetadataScreen() {
       </ThemedText>
       <PrayerPointSection
         prayerPoints={prayerPoints}
+        isEditable={true}
         onChange={(updatedPrayerPoints: PrayerPoint[]) =>
           setPrayerPoints(updatedPrayerPoints)
         }

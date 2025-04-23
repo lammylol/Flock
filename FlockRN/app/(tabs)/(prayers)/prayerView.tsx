@@ -125,7 +125,12 @@ const PrayerView = () => {
               prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
               backgroundColor={colorScheme}
             />
-            {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
+            {prayerPoints && (
+              <PrayerPointSection
+                prayerPoints={prayerPoints}
+                isEditable={false}
+              />
+            )}
           </>
         )
       )}

@@ -15,11 +15,13 @@ import EditablePrayerPointCard from './PrayerPointCard';
 
 interface PrayerPointProps {
   prayerPoints: PrayerPoint[];
+  isEditable: boolean;
   onChange?: (prayerPoints: PrayerPoint[]) => void;
 }
 
 const PrayerPointSection: React.FC<PrayerPointProps> = ({
   prayerPoints,
+  isEditable,
   onChange,
 }) => {
   const [isEditMode, setEditMode] = useState(false);
@@ -52,16 +54,18 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
     <ThemedView style={[styles.prayerPointsContainer, { borderColor }]}>
       <View style={styles.titleHeader}>
         <ThemedText style={styles.prayerPointsText}>Prayer Points</ThemedText>
-        <TouchableOpacity onPress={handleEdit} style={styles.editContainer}>
-          {!isEditMode && (
-            <ThemedView style={styles.editButton}>
-              <Entypo name="edit" size={10} color={Colors.white} />
-            </ThemedView>
-          )}
-          <ThemedText style={styles.editText}>
-            {!isEditMode ? 'Edit' : 'Done'}
-          </ThemedText>
-        </TouchableOpacity>
+        {isEditable && (
+          <TouchableOpacity onPress={handleEdit} style={styles.editContainer}>
+            {!isEditMode && (
+              <ThemedView style={styles.editButton}>
+                <Entypo name="edit" size={10} color={Colors.white} />
+              </ThemedView>
+            )}
+            <ThemedText style={styles.editText}>
+              {!isEditMode ? 'Edit' : 'Done'}
+            </ThemedText>
+          </TouchableOpacity>
+        )}
       </View>
       {isEditMode ? (
         <GestureHandlerRootView>
@@ -75,6 +79,13 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
                 isEditMode={isEditMode}
                 drag={drag}
                 onDelete={() => handleDelete(item.id)}
+                onChange={(updatedPrayerPoint) => {
+                  const updatedData = data.map((point) =>
+                    point.id === item.id ? updatedPrayerPoint : point,
+                  );
+                  setData(updatedData);
+                  onChange?.(updatedData);
+                }}
               />
             )}
             keyExtractor={(item) => item.id}
