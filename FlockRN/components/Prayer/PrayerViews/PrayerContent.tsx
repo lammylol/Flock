@@ -74,11 +74,14 @@ export function PrayerContent({
           multiline
           maxLength={100}
           placeholder="Enter a title"
+          scrollEnabled={false}
         />
       ) : prayerOrPrayerPoint === 'prayerPoint' ? (
         <ThemedText style={styles.titleText}>{prayer?.title}</ThemedText>
       ) : (
-        <ThemedText style={styles.titleText}>{formattedDate}</ThemedText>
+        <ThemedText style={styles.titleText}>
+          {editMode === 'create' ? 'Transcript' : formattedDate}
+        </ThemedText>
       )}
       {editMode === 'edit' || editMode === 'create' ? (
         <TextInput
@@ -87,6 +90,7 @@ export function PrayerContent({
           onChangeText={handleContentChange}
           multiline
           placeholder="Enter your prayer point here"
+          scrollEnabled={false}
         />
       ) : (
         <ThemedText style={styles.contentText}>{prayer?.content}</ThemedText>

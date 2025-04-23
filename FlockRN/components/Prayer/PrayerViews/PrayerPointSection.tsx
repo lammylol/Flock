@@ -1,3 +1,4 @@
+// PrayerPointSection.tsx
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Colors } from 'constants/Colors';
@@ -5,10 +6,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { PrayerPoint } from '@/types/firebase';
 import { ThemedView } from '@/components/ThemedView';
 import PrayerPointCard from './PrayerPointCard';
-import { Entypo } from '@expo/vector-icons'; // Ensure this import is correct and matches your project setup
+import { Entypo } from '@expo/vector-icons';
 import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useThemeColor } from '@/hooks/useThemeColor';
+import EditablePrayerPointCard from './PrayerPointCard';
 
 interface PrayerPointProps {
   prayerPoints: PrayerPoint[];
@@ -21,10 +24,11 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
 }) => {
   const [isEditMode, setEditMode] = useState(false);
   const [data, setData] = useState(prayerPoints);
+  const borderColor = useThemeColor({}, 'borderPrimary');
 
   useEffect(() => {
     setData(prayerPoints);
-  }, [prayerPoints]); // Update data when prayerPoints change
+  }, [prayerPoints]);
 
   const handleEdit = () => {
     setEditMode((isEditMode) => !isEditMode);
@@ -32,22 +36,20 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
   };
 
   const handleDelete = (id: string) => {
-    const prayerPointsFiltered = prayerPoints.filter(
-      (prayerPoint) => prayerPoint.id != id,
+    const prayerPointsFiltered = data.filter(
+      (prayerPoint) => prayerPoint.id !== id,
     );
     setData(prayerPointsFiltered);
+    onChange?.(prayerPointsFiltered);
+  };
+
+  const handleDragEnd = ({ data }) => {
+    setData(data);
     onChange?.(data);
   };
 
-  // This function is called when the order of prayer points changes
-  const handleDragEnd = ({ data }) => {
-    setData(data);
-  };
-
   return prayerPoints.length > 0 ? (
-    <ThemedView
-      style={[styles.prayerPointsContainer, { borderColor: Colors.secondary }]}
-    >
+    <ThemedView style={[styles.prayerPointsContainer, { borderColor }]}>
       <View style={styles.titleHeader}>
         <ThemedText style={styles.prayerPointsText}>Prayer Points</ThemedText>
         <TouchableOpacity onPress={handleEdit} style={styles.editContainer}>
@@ -62,17 +64,14 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
         </TouchableOpacity>
       </View>
       {isEditMode ? (
-        // Edit mode: render prayer points as cards
-        // Draggable mode: render prayer points with drag functionality
         <GestureHandlerRootView>
           <DraggableFlatList
             scrollEnabled={false}
             data={data}
             renderItem={({ item, drag }) => (
-              <PrayerPointCard
+              <EditablePrayerPointCard
                 key={item.id}
-                title={item.title}
-                content={item.content}
+                prayerPoint={item}
                 isEditMode={isEditMode}
                 drag={drag}
                 onDelete={() => handleDelete(item.id)}
@@ -86,15 +85,13 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
         data.map((prayerPoint: PrayerPoint) => (
           <PrayerPointCard
             key={prayerPoint.id}
-            title={prayerPoint.title}
-            content={prayerPoint.content}
+            prayerPoint={prayerPoint}
             isEditMode={isEditMode}
           />
         ))
       )}
     </ThemedView>
   ) : (
-    // If no prayer points are available, show a content unavailable message
     <ThemedView
       style={[styles.prayerPointsContainer, { borderColor: Colors.secondary }]}
     >
@@ -115,8 +112,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.light.textPrimary,
     borderRadius: 12,
-    fontWeight: 'bold',
-    gap: 10,
     height: 18,
     justifyContent: 'center',
     width: 18,
@@ -132,10 +127,10 @@ const styles = StyleSheet.create({
   },
   prayerPointsContainer: {
     borderRadius: 15,
-    borderWidth: 1,
+    borderWidth: 1.5,
     gap: 15,
     padding: 25,
-    width: '100%', // Make it responsive to parent width
+    width: '100%',
   },
   prayerPointsText: {
     fontSize: 30,

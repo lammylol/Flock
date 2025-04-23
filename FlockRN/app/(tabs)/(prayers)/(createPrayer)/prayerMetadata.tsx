@@ -6,7 +6,7 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
 import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
@@ -28,6 +28,7 @@ import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { HeaderButton } from '@/components/ui/HeaderButton';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -343,20 +344,25 @@ export default function PrayerMetadataScreen() {
 
   return (
     <ThemedScrollView contentContainerStyle={styles.scrollContent}>
-      {/* 1. Prayer Points Section with Summary Header */}
-      <View style={styles.section}>
-        <ThemedText type="default" style={styles.headerText}>
-          Here's a summary of what you prayed:
-        </ThemedText>
-        <PrayerPointSection
-          prayerPoints={prayerPoints}
-          onChange={(updatedPrayerPoints: PrayerPoint[]) =>
-            setPrayerPoints(updatedPrayerPoints)
-          }
-        />
-      </View>
+      <Stack.Screen
+        options={{
+          headerTitle: isEditMode ? 'Edit Prayer' : 'Create Prayer',
+          headerTitleStyle: styles.headerTitleStyle,
+          headerLeft: () => (
+            <HeaderButton onPress={router.back} label="Cancel" />
+          ),
+        }}
+      />
+      <ThemedText type="default" style={styles.headerText}>
+        Here's a summary of what you prayed:
+      </ThemedText>
+      <PrayerPointSection
+        prayerPoints={prayerPoints}
+        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+          setPrayerPoints(updatedPrayerPoints)
+        }
+      />
 
-      {/* 3. Prayer Content Section with Title */}
       <PrayerContent
         editMode={isEditMode ? 'edit' : 'create'}
         backgroundColor={colorScheme}
@@ -378,18 +384,6 @@ export default function PrayerMetadataScreen() {
       {/* Spacer view to push content up and button to bottom */}
       <View style={styles.spacer} />
 
-      {isEditMode && (
-        <TouchableOpacity
-          style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
-          onPress={handleDelete}
-          disabled={isDeleting}
-        >
-          <ThemedText style={styles.deleteButtonText}>
-            {isDeleting ? 'Deleting...' : 'Delete Prayer'}
-          </ThemedText>
-        </TouchableOpacity>
-      )}
-
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleSubmit}
@@ -405,6 +399,18 @@ export default function PrayerMetadataScreen() {
               : 'Create Prayer'}
         </ThemedText>
       </TouchableOpacity>
+
+      {isEditMode && (
+        <TouchableOpacity
+          style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
+          onPress={handleDelete}
+          disabled={isDeleting}
+        >
+          <ThemedText style={styles.deleteButtonText}>
+            {isDeleting ? 'Deleting...' : 'Delete Prayer'}
+          </ThemedText>
+        </TouchableOpacity>
+      )}
     </ThemedScrollView>
   );
 }
@@ -435,33 +441,33 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     alignItems: 'center',
-    backgroundColor: Colors.purple,
+    // backgroundColor: Colors.red,
+    borderColor: Colors.red,
+    borderWidth: 1,
     borderRadius: 12,
     height: 60, // Fixed height to match the submit button
     marginTop: 10,
     padding: 16,
   },
   deleteButtonText: {
-    color: Colors.white,
+    color: Colors.red,
     fontSize: 16,
     fontWeight: '600',
   },
   headerText: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 12,
+  },
+  headerTitleStyle: {
+    fontSize: 16,
+    fontWeight: '500',
   },
   scrollContent: {
     backgroundColor: Colors.light.background,
     flexGrow: 1,
-    gap: 10,
+    gap: 15,
     padding: 16,
     paddingBottom: 24,
-  },
-  section: {
-    backgroundColor: Colors.secondary,
-    borderRadius: 12,
-    padding: 16,
   },
   // Add a spacer that will push content up and buttons to the bottom
   spacer: {
