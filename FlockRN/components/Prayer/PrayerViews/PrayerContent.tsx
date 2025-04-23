@@ -69,7 +69,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === 'edit' || editMode === 'create') &&
-      prayerOrPrayerPoint === 'prayerPoint' ? (
+        prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={prayer?.title}
@@ -94,11 +94,13 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{prayer?.content}</ThemedText>
       )}
-      <TagsSection
-        tags={prayer?.tags || []}
-        onChange={handleTagsChange}
-        editMode={editMode}
-      />
+      {prayerOrPrayerPoint === 'prayerPoint' && (
+        <TagsSection
+          tags={prayer?.tags || []}
+          onChange={handleTagsChange}
+          editMode={editMode}
+        />
+      )}
     </View>
   );
 }
