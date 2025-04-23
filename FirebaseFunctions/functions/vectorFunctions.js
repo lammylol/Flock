@@ -24,7 +24,6 @@ const initializeOpenAI = async () => {
 export const getVectorEmbeddings = functions.https.onRequest(
   async (req, res) => {
     console.log('Request body:', req.query);
-7
     let input = req.query.input || req.body?.data?.input || "";
     
     // logic to manage formatting for testing vs. prod.
