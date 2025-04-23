@@ -62,11 +62,8 @@ export default function PrayerMetadataScreen() {
         (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
-          type: (prayerPoint.type && prayerPoint.type.length > 0
-            ? prayerPoint.type[0]
-            : 'request') as 'request' | 'praise' | 'repentance',
-          // Store the full types array for the new functionality
-          types: prayerPoint.type || ['request'],
+          type: prayerPoint.type || 'request',
+          tags: prayerPoint.type ? [prayerPoint.type] : ['request'],
           content: prayerPoint.content?.trim() || '',
           createdAt: new Date(),
           authorId: auth.currentUser?.uid || 'unknown',
@@ -76,7 +73,6 @@ export default function PrayerMetadataScreen() {
           prayerId: prayerId,
           recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
           prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
-          tags: prayerPoint.tags || [], // Default to an empty array
         }),
       );
 

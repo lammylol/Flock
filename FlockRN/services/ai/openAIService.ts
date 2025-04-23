@@ -19,7 +19,7 @@ export default class OpenAiService {
   private static instance: OpenAiService; // Static instance to hold the singleton
 
   // Private constructor ensures that this class cannot be instantiated directly
-  private constructor() {}
+  private constructor() { }
 
   // Method to get the singleton instance
   public static getInstance(): OpenAiService {
@@ -58,7 +58,7 @@ export default class OpenAiService {
 
     const tagPrompt = `Tags: A list of up to 4 relevant tags for the prayer, selected from this list: ${allTags}`;
 
-    const prayerPointPrompt = `Prayer Points: Generate at most 3 prayer points. Each must be a type of either a 'prayer request' or 'praise'. 
+    const prayerPointPrompt = `Prayer Points: Generate at most 3 prayer points. Each must be a type of either 'request', 'praise', or 'repentance'. 
     Titles should be concise. Content should be clear and at most 50 words.`;
 
     const jsonFormat = `
