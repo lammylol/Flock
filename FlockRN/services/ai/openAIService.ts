@@ -59,7 +59,7 @@ export default class OpenAiService {
     const tagPrompt = `Tags: A list of up to 4 relevant tags for the prayer, selected from this list: ${allTags}`;
 
     const prayerPointPrompt = `Prayer Points: Generate at most 3 prayer points. Each must be a type of either 'request', 'praise', or 'repentance'. 
-    Titles should be concise. Content should be clear and at most 50 words.`;
+    Titles should include context and object with a max character limit of 10. Content should be clear and at most 50 words.`;
 
     const jsonFormat = `
     {
