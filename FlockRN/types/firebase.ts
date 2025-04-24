@@ -107,7 +107,7 @@ export type CreatePrayerPointDTO = Omit<
 >;
 
 export type UpdatePrayerPointDTO = Partial<
-  Omit<PrayerPoint, 'id' | 'createdAt' | 'updatedAt'>
+  Omit<PrayerPoint, 'id' | 'createdAt'>
 >;
 
 export interface ServiceResponse {

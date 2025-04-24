@@ -428,7 +428,7 @@ class PrayerService {
   //added for PrayerPoint CRUD
   async updatePrayerPoint(
     prayerPointId: string,
-    data: Partial<PrayerPointDTO>,
+    data: Partial<UpdatePrayerPointDTO>,
   ): Promise<void> {
     try {
       const now = Timestamp.now();
