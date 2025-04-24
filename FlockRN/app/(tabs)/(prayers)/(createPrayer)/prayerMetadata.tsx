@@ -73,6 +73,8 @@ export default function PrayerMetadataScreen() {
           prayerId: prayerId,
           recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
           prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
+          isOrigin:
+            prayerPoint.isOrigin !== undefined ? prayerPoint.isOrigin : true,
         }),
       );
 

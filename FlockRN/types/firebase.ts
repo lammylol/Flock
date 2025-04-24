@@ -67,6 +67,8 @@ export interface PrayerPoint {
   recipientName?: string;
   recipientId?: string;
   prayerUpdates?: PrayerPointUpdate[];
+  embedding?: number[];
+  isOrigin: boolean;
 }
 
 export interface PrayerPointUpdate {

@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import {
-  TouchableOpacity,
   Alert,
-  View,
-  StyleSheet,
   Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { prayerService } from '@/services/prayer/prayerService';
@@ -24,6 +24,8 @@ import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingV
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
+import OpenAiService from '@/services/ai/openAIService';
 
 export default function PrayerPointMetadataScreen() {
   // Define the ref at the component level
@@ -40,6 +42,11 @@ export default function PrayerPointMetadataScreen() {
   // State for edit mode
   const [isEditMode, setIsEditMode] = useState(false);
   const { userPrayerPoints, updateCollection } = usePrayerCollection();
+  const user = auth.currentUser;
+  const openAiService = OpenAiService.getInstance();
+  const [similarPrayerPoints, setSimilarPrayerPoints] = useState<PrayerPoint[]>(
+    [],
+  );
 
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +62,12 @@ export default function PrayerPointMetadataScreen() {
     authorName: '',
     authorId: '',
     status: 'open',
+    isOrigin: true,
     privacy: 'private',
+    recipientName: 'unknown',
+    recipientId: 'unknown',
+    prayerId: '',
+    prayerUpdates: [],
   });
 
   const setupEditMode = useCallback(async () => {
@@ -94,6 +106,17 @@ export default function PrayerPointMetadataScreen() {
             authorName: contextPrayerPoint.authorName,
             authorId: contextPrayerPoint.authorId,
             status: contextPrayerPoint.status,
+            type: contextPrayerPoint.type,
+            origin: contextPrayerPoint.isOrigin,
+            createdAt: contextPrayerPoint.createdAt,
+            updatedAt: contextPrayerPoint.updatedAt,
+            authorName: contextPrayerPoint.authorName,
+            authorId: contextPrayerPoint.authorId,
+            recipientName: contextPrayerPoint.recipientName,
+            recipientId: contextPrayerPoint.recipientId,
+            prayerId: contextPrayerPoint.prayerId,
+            prayerUpdates: contextPrayerPoint.prayerUpdates,
+            embedding: contextPrayerPoint.embedding,
           }),
         );
 
@@ -124,7 +147,7 @@ export default function PrayerPointMetadataScreen() {
     }
   }, [params.mode, params.id, userPrayerPoints]);
 
-  const handlePrayerUpdate = (updatedPrayerPointData: PrayerPoint) => {
+  const handlePrayerPointUpdate = (updatedPrayerPointData: PrayerPoint) => {
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
       ...prevPrayerPoint,
       ...updatedPrayerPointData,
@@ -132,19 +155,57 @@ export default function PrayerPointMetadataScreen() {
     }));
   };
 
-  const handleSubmit = async () => {
-    if (!updatedPrayerPoint.title.trim()) {
-      Alert.alert('Error', 'Please add a title');
+  const handleFindSimilarPrayers = useCallback(async () => {
+    const input =
+      `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
+    const embedding = await openAiService.getVectorEmbeddings(input);
+
+    if (!user?.uid) {
       return;
     }
 
-    if (!auth.currentUser?.uid) {
-      Alert.alert('Error', 'You must be logged in to create a prayer');
+    try {
+      const similarPrayers = await prayerService.findRelatedPrayerPoints(
+        embedding,
+        user.uid,
+      );
+      setSimilarPrayerPoints(similarPrayers);
+    } catch (error) {
+      console.error('Error finding similar prayers:', error);
+    }
+  }, [
+    openAiService,
+    updatedPrayerPoint.title,
+    updatedPrayerPoint.content,
+    user?.uid,
+  ]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (
+        updatedPrayerPoint.title.trim() ||
+        updatedPrayerPoint.content.trim()
+      ) {
+        handleFindSimilarPrayers();
+      }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [
+    updatedPrayerPoint.title,
+    updatedPrayerPoint.content,
+    handleFindSimilarPrayers,
+  ]);
+
+  const handleSubmit = async () => {
+    if (!updatedPrayerPoint.title.trim()) {
+      Alert.alert('Missing Title', 'Please add a title for your prayer.');
       return;
     }
 
     setPrivacy('private');
     setIsLoading(true);
+
     try {
       if (isEditMode && updatedPrayerPoint.id) {
         console.log('⭐ Submitting in EDIT mode');
@@ -172,34 +233,49 @@ export default function PrayerPointMetadataScreen() {
         Alert.alert('Success', 'Prayer Point updated successfully');
       } else {
         console.log('⭐ Submitting in CREATE mode');
-        // Create new prayer point
+        let embeddingInput = updatedPrayerPoint.embedding || [];
+        if (embeddingInput.length === 0) {
+          // If no similar prayer points, generate a new embedding
+          const input =
+            `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
+          embeddingInput = await openAiService.getVectorEmbeddings(input);
+        }
+
+        if (!user?.uid) {
+          return;
+        }
+
+        // 2. Construct prayer point data
         const prayerPointData: CreatePrayerPointDTO = {
           title: updatedPrayerPoint.title.trim(),
-          content: updatedPrayerPoint.content,
+          content: updatedPrayerPoint.content.trim(),
           privacy: updatedPrayerPoint.privacy ?? 'private',
           type: updatedPrayerPoint.type,
           tags: updatedPrayerPoint.tags,
-          authorId: auth.currentUser.uid || 'unknown',
-          authorName: auth.currentUser.displayName || 'unknown',
+          authorId: user.uid,
+          authorName: user.displayName || 'unknown',
           status: 'open',
           recipientName: 'unknown',
           recipientId: 'unknown',
           createdAt: new Date(),
+          embedding: embeddingInput,
+          isOrigin: true,
         };
 
+        // 3. Save prayer point to backend
         await prayerService.createPrayerPoint(prayerPointData);
-        Alert.alert('Success', 'Prayer Point created successfully');
+        Alert.alert('Success', 'Prayer Point created successfully.');
       }
 
       router.replace('/(tabs)/(prayers)');
-      router.dismissAll(); // resets 'createPrayer' stack.
+      router.dismissAll(); // Resets navigation stack
     } catch (error) {
       console.error(
         `⭐ Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
         error,
       );
       Alert.alert(
-        'Error',
+        'Something went wrong',
         `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`,
       );
     } finally {
@@ -234,11 +310,17 @@ export default function PrayerPointMetadataScreen() {
           backgroundColor={colorScheme}
           onChange={(updatedPrayerPointData) => {
             if ('type' in updatedPrayerPointData) {
-              handlePrayerUpdate(updatedPrayerPointData);
+              handlePrayerPointUpdate(updatedPrayerPointData);
             }
           }}
-          prayer={updatedPrayerPoint}
         />
+
+        {similarPrayerPoints.length > 0 && (
+          <PrayerPointLinking
+            editMode={'create'}
+            similarPrayers={similarPrayerPoints}
+          />
+        )}
 
         <View style={styles.section}>
           <View style={styles.privacySelector}>
@@ -321,7 +403,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     backgroundColor: Colors.light.background,
-    flexGrow: 1,
+    flex: 1,
     gap: 10,
     paddingBottom: 24,
   },
