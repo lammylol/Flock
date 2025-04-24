@@ -64,6 +64,10 @@ export default function PrayerPointMetadataScreen() {
     status: 'open',
     isOrigin: true,
     privacy: 'private',
+    recipientName: 'unknown',
+    recipientId: 'unknown',
+    prayerId: '',
+    prayerUpdates: [],
   });
 
   const setupEditMode = useCallback(async () => {
@@ -97,6 +101,17 @@ export default function PrayerPointMetadataScreen() {
             tags: contextPrayerPoint.tags,
             privacy: contextPrayerPoint.privacy,
             status: contextPrayerPoint.status,
+            type: contextPrayerPoint.type,
+            origin: contextPrayerPoint.isOrigin,
+            createdAt: contextPrayerPoint.createdAt,
+            updatedAt: contextPrayerPoint.updatedAt,
+            authorName: contextPrayerPoint.authorName,
+            authorId: contextPrayerPoint.authorId,
+            recipientName: contextPrayerPoint.recipientName,
+            recipientId: contextPrayerPoint.recipientId,
+            prayerId: contextPrayerPoint.prayerId,
+            prayerUpdates: contextPrayerPoint.prayerUpdates,
+            embedding: contextPrayerPoint.embedding,
           }),
         );
 
@@ -226,10 +241,13 @@ export default function PrayerPointMetadataScreen() {
         Alert.alert('Success', 'Prayer Point updated successfully');
       } else {
         console.log('⭐ Submitting in CREATE mode');
-        // 1. Generate vector embedding for semantic linkage
-        const input =
-          `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
-        const embedding = await openAiService.getVectorEmbeddings(input);
+        let embeddingInput = updatedPrayerPoint.embedding || [];
+        if (embeddingInput.length === 0) {
+          // If no similar prayer points, generate a new embedding
+          const input =
+            `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
+          embeddingInput = await openAiService.getVectorEmbeddings(input);
+        }
 
         // 2. Construct prayer point data
         const prayerPointData: CreatePrayerPointDTO = {
@@ -244,7 +262,7 @@ export default function PrayerPointMetadataScreen() {
           recipientName: 'unknown',
           recipientId: 'unknown',
           createdAt: new Date(),
-          embedding,
+          embedding: embeddingInput,
           isOrigin: true,
         };
 

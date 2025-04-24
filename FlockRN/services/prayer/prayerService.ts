@@ -457,34 +457,6 @@ class PrayerService {
     }
   }
 
-  async deletePrayerPoint(prayerPointId: string): Promise<void> {
-    try {
-      // Get the prayer point to access its prayerId before deletion
-      const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
-      const prayerPointSnap = await getDoc(prayerPointRef);
-
-      if (!prayerPointSnap.exists()) {
-        throw new Error('Prayer point not found');
-      }
-
-      const prayerPointData = prayerPointSnap.data();
-      const prayerId = prayerPointData.prayerId;
-
-      // Delete the prayer point document
-      await deleteDoc(prayerPointRef);
-
-      // Update the parent prayer's updatedAt timestamp
-      if (prayerId) {
-        await updateDoc(doc(this.prayersCollection, prayerId), {
-          updatedAt: Timestamp.now(),
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting prayer point:', error);
-      throw error;
-    }
-  }
-
   // Helper method to get a single prayer point by ID
   async getPrayerPointById(prayerPointId: string): Promise<PrayerPoint | null> {
     try {
@@ -554,7 +526,6 @@ class PrayerService {
       privacy: data.privacy,
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
-      prayerTypes: data.prayerTypes,
       prayerPoints: data.prayerPoints,
     };
   }
