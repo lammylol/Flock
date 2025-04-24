@@ -33,14 +33,10 @@ export function PrayerContent({
   const triggerChange = (partial: Partial<Prayer | PrayerPoint>) => {
     if (!onChange) return;
 
-    console.log(partial);
-
     const updatedPrayer = {
       ...(prayer || {}),
       ...partial,
     };
-
-    console.log(updatedPrayer);
 
     onChange(
       prayerOrPrayerPoint === 'prayer'
