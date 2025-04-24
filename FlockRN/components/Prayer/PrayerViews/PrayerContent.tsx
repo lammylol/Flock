@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
@@ -19,25 +18,16 @@ export function PrayerContent({
   onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
 }): JSX.Element {
   // Initialize state with provided values or from the selected prayer
-  const [updatedTags, setUpdatedTags] = useState<PrayerType[]>(
-    prayer?.tags || [],
-  );
-  const [editableTitle, setEditableTitle] = useState(prayer?.title || '');
-  const [editableContent, setEditableContent] = useState(prayer?.content || '');
-
   const handleTitleChange = (text: string) => {
-    setEditableTitle(text);
     triggerChange({ title: text });
   };
 
   const handleContentChange = (text: string) => {
-    setEditableContent(text);
     triggerChange({ content: text });
   };
 
   const handleTagsChange = (tags: PrayerType[]) => {
-    setUpdatedTags(tags);
-    triggerChange({ tags });
+    triggerChange({ tags: tags, type: tags[0] || 'request' });
   };
 
   const triggerChange = (partial: Partial<Prayer | PrayerPoint>) => {
@@ -45,10 +35,7 @@ export function PrayerContent({
 
     const updatedPrayer = {
       ...(prayer || {}),
-      title: partial.title ?? editableTitle,
-      content: partial.content ?? editableContent,
-      tags: partial.tags ?? updatedTags,
-      type: (partial.tags ?? updatedTags)[0] || 'request',
+      ...partial,
     };
 
     onChange(
@@ -81,33 +68,35 @@ export function PrayerContent({
       prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
-          value={editableTitle}
+          value={prayer?.title}
           onChangeText={handleTitleChange}
           multiline
           maxLength={100}
           placeholder="Enter a title"
         />
       ) : prayerOrPrayerPoint === 'prayerPoint' ? (
-        <ThemedText style={styles.titleText}>{editableTitle}</ThemedText>
+        <ThemedText style={styles.titleText}>{prayer?.title}</ThemedText>
       ) : (
         <ThemedText style={styles.titleText}>{formattedDate}</ThemedText>
       )}
       {editMode === 'edit' || editMode === 'create' ? (
         <TextInput
           style={[styles.contentText, styles.input]}
-          value={editableContent}
+          value={prayer?.content}
           onChangeText={handleContentChange}
           multiline
           placeholder="Enter your prayer point here"
         />
       ) : (
-        <ThemedText style={styles.contentText}>{editableContent}</ThemedText>
+        <ThemedText style={styles.contentText}>{prayer?.content}</ThemedText>
       )}
-      <TagsSection
-        tags={updatedTags}
-        onChange={handleTagsChange}
-        editMode={editMode}
-      />
+      {prayerOrPrayerPoint === 'prayerPoint' && (
+        <TagsSection
+          tags={prayer?.tags || []}
+          onChange={handleTagsChange}
+          editMode={editMode}
+        />
+      )}
     </View>
   );
 }

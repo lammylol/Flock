@@ -1,7 +1,7 @@
 // ramon jiang
 // 1/29/25
 // set all types for Firebase
-import { PrayerTag, PrayerTag, Privacy } from './PrayerSubtypes';
+import { PrayerTag, PrayerType, Privacy, Status } from './PrayerSubtypes';
 
 export interface UserProfile {
   email: string;
@@ -37,11 +37,6 @@ export interface Group {
   members: string[];
   createdAt: Date;
 }
-
-export type PrayerTag = (typeof allTags)[number];
-export type PrayerType = 'request' | 'praise' | 'repentance';
-export type Privacy = 'public' | 'private';
-export type Status = 'open' | 'closed' | null;
 
 export interface Prayer {
   id: string;
@@ -110,7 +105,7 @@ export type CreatePrayerPointDTO = Omit<
 >;
 
 export type UpdatePrayerPointDTO = Partial<
-  Omit<PrayerPoint, 'id' | 'createdAt' | 'updatedAt'>
+  Omit<PrayerPoint, 'id' | 'createdAt'>
 >;
 
 export interface ServiceResponse {

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -35,10 +35,6 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
   );
   const textColor = useThemeColor({ light: Colors.brown2 }, 'textPrimary');
 
-  useEffect(() => {
-    setSelectedTags(tags);
-  }, [tags]);
-
   const sortedTags = useMemo(() => {
     return [...selectedTags].sort((a, b) => tags.indexOf(a) - tags.indexOf(b));
   }, [selectedTags, tags]);
@@ -48,11 +44,18 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
     setExpanded((prev) => !prev);
   };
 
-  const toggleTag = (tag: PrayerType) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
-  };
+  const handleTagsChange = useCallback(
+    (tag: PrayerType) => {
+      setSelectedTags((prev) => {
+        const next = prev.includes(tag)
+          ? prev.filter((t) => t !== tag)
+          : [...prev, tag];
+        onChange?.(next);
+        return next;
+      });
+    },
+    [onChange],
+  );
 
   const saveTags = async () => {
     toggleExpand();
@@ -75,7 +78,7 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
               : Colors.tagColors.defaultTag,
           },
         ]}
-        onPress={isSelectable ? () => toggleTag(tag) : toggleExpand}
+        onPress={isSelectable ? () => handleTagsChange(tag) : toggleExpand}
       >
         <Text
           style={[
@@ -87,7 +90,7 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
         </Text>
       </TouchableOpacity>
     ),
-    [selectedTags],
+    [handleTagsChange, selectedTags],
   );
 
   const allTagsRendered = useMemo(

@@ -49,7 +49,7 @@ export default function PrayerPointMetadataScreen() {
     title: '',
     content: '',
     type: 'request',
-    tags: [] as PrayerType[],
+    tags: params.tags ? (JSON.parse(params.tags) as PrayerType[]) : [],
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: '',
@@ -86,8 +86,13 @@ export default function PrayerPointMetadataScreen() {
             id: contextPrayerPoint.id,
             title: contextPrayerPoint.title,
             content: contextPrayerPoint.content?.substring(0, 20) + '...',
-            tags: contextPrayerPoint.tags,
             privacy: contextPrayerPoint.privacy,
+            type: contextPrayerPoint.type,
+            tags: contextPrayerPoint.tags,
+            createdAt: contextPrayerPoint.createdAt,
+            updatedAt: contextPrayerPoint.updatedAt,
+            authorName: contextPrayerPoint.authorName,
+            authorId: contextPrayerPoint.authorId,
             status: contextPrayerPoint.status,
           }),
         );
@@ -149,6 +154,9 @@ export default function PrayerPointMetadataScreen() {
           content: updatedPrayerPoint.content,
           privacy: privacy,
           tags: updatedPrayerPoint.tags,
+          type: updatedPrayerPoint.type,
+          updatedAt: new Date(),
+          status: updatedPrayerPoint.status,
         };
 
         await prayerService.editPrayerPoint(updatedPrayerPoint.id, updateData);

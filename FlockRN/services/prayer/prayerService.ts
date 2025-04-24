@@ -426,7 +426,7 @@ class PrayerService {
   //added for PrayerPoint CRUD
   async updatePrayerPoint(
     prayerPointId: string,
-    data: Partial<PrayerPointDTO>,
+    data: Partial<UpdatePrayerPointDTO>,
   ): Promise<void> {
     try {
       const now = Timestamp.now();
@@ -451,34 +451,6 @@ class PrayerService {
       }
     } catch (error) {
       console.error('Error updating prayer point:', error);
-      throw error;
-    }
-  }
-
-  async deletePrayerPoint(prayerPointId: string): Promise<void> {
-    try {
-      // Get the prayer point to access its prayerId before deletion
-      const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
-      const prayerPointSnap = await getDoc(prayerPointRef);
-
-      if (!prayerPointSnap.exists()) {
-        throw new Error('Prayer point not found');
-      }
-
-      const prayerPointData = prayerPointSnap.data();
-      const prayerId = prayerPointData.prayerId;
-
-      // Delete the prayer point document
-      await deleteDoc(prayerPointRef);
-
-      // Update the parent prayer's updatedAt timestamp
-      if (prayerId) {
-        await updateDoc(doc(this.prayersCollection, prayerId), {
-          updatedAt: Timestamp.now(),
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting prayer point:', error);
       throw error;
     }
   }
