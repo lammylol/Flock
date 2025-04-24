@@ -20,7 +20,8 @@ const initializeOpenAI = async () => {
   });
 }
 
-// Create the exports function for openAI.
+// Create the exports function for openAI. Not in use as of April 24.
+// Vectorization is done through client.
 export const getVectorEmbeddings = functions.https.onRequest(
   async (req, res) => {
     console.log('Request body:', req.query);
@@ -50,7 +51,7 @@ export const getVectorEmbeddings = functions.https.onRequest(
     try {
       const openAI = await initializeOpenAI();
 
-      console.log(`openAIinput: ${input}`);
+      console.log(`openAIinput: ${input}`); // swap for analytics
 
       const response = await openAI.embeddings.create({
             model: 'text-embedding-3-small',
@@ -60,7 +61,6 @@ export const getVectorEmbeddings = functions.https.onRequest(
       
       // Accessing the response correctly
       const vectorEmbeddings = response.data[0]?.embedding || "No response from AI.";
-      console.log(vectorEmbeddings);  // Logs the response text
 
       // Send a 200 response with the result.
       console.log('Vectors generated:', vectorEmbeddings);

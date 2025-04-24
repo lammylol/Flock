@@ -143,15 +143,6 @@ export default function PrayerPointMetadataScreen() {
   }, [params.mode, params.id, userPrayerPoints]);
 
   const handlePrayerPointUpdate = (updatedPrayerPointData: PrayerPoint) => {
-    console.log(
-      '⭐ Prayer update received:',
-      JSON.stringify({
-        title: updatedPrayerPointData.title,
-        content: updatedPrayerPointData.content?.substring(0, 20) + '...',
-        tags: updatedPrayerPointData.tags,
-      }),
-    );
-
     setUpdatedPrayerPoint((prevPrayerPoint) => ({
       ...prevPrayerPoint,
       ...updatedPrayerPointData,
@@ -165,7 +156,6 @@ export default function PrayerPointMetadataScreen() {
     const embedding = await openAiService.getVectorEmbeddings(input);
 
     if (!user?.uid) {
-      Alert.alert('Not Logged In', 'You must be logged in to create a prayer.');
       return;
     }
 
@@ -174,7 +164,6 @@ export default function PrayerPointMetadataScreen() {
         embedding,
         user.uid,
       );
-      console.log('Similar prayers:', similarPrayers);
       setSimilarPrayerPoints(similarPrayers);
     } catch (error) {
       console.error('Error finding similar prayers:', error);
@@ -206,11 +195,6 @@ export default function PrayerPointMetadataScreen() {
   const handleSubmit = async () => {
     if (!updatedPrayerPoint.title.trim()) {
       Alert.alert('Missing Title', 'Please add a title for your prayer.');
-      return;
-    }
-
-    if (!user?.uid) {
-      Alert.alert('Not Logged In', 'You must be logged in to create a prayer.');
       return;
     }
 
@@ -247,6 +231,10 @@ export default function PrayerPointMetadataScreen() {
           const input =
             `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
           embeddingInput = await openAiService.getVectorEmbeddings(input);
+        }
+
+        if (!user?.uid) {
+          return;
         }
 
         // 2. Construct prayer point data
