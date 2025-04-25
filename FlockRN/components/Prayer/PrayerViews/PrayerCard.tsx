@@ -10,6 +10,7 @@ import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
 import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
 import { prayerTagDisplayNames } from '@/types/Tag';
+import { useMemo } from 'react';
 
 export interface PrayerCardProps {
   prayer: Prayer | PrayerPoint;
@@ -35,6 +36,10 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
     });
   })();
 
+  const isPrayerPoint = useMemo(() => {
+    return 'type' in prayer;
+  }, [prayer]);
+
   return (
     <TouchableOpacity
       style={[
@@ -42,7 +47,7 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         { backgroundColor: Colors[colorScheme].background },
       ]}
       onPress={() => {
-        if ('type' in prayer) {
+        if (isPrayerPoint) {
           // If it's a PrayerPoint, navigate to PrayerPointView
           router.push({
             pathname: '/(tabs)/(prayers)/prayerPointView',
@@ -58,12 +63,14 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
       }}
     >
       <View style={styles.headerContainer}>
-        {'type' in prayer && <EmojiIconBackground type={prayer.type} />}
+        {isPrayerPoint && 'type' in prayer && (
+          <EmojiIconBackground type={prayer.type} />
+        )}
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>
-            {'type' in prayer ? prayer.title : formattedDate}
+            {isPrayerPoint ? prayer.title : formattedDate}
           </ThemedText>
-          {'type' in prayer && typeof prayer.type === 'string' && (
+          {isPrayerPoint && 'type' in prayer && (
             <ThemedText
               style={[
                 styles.subtitle,

@@ -15,28 +15,28 @@ import { ThemedScrollView } from '@/components/ThemedScrollView';
 import {
   CreatePrayerPointDTO,
   PrayerPoint,
-  PrayerType,
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
-import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { PrayerOrPrayerPointType, PrayerType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
 import OpenAiService from '@/services/ai/openAIService';
+import { EditMode } from '@/types/ComponentProps';
 
 export default function PrayerPointMetadataScreen() {
   // Define the ref at the component level
   const processedParamsRef = useRef({
     id: '',
-    mode: '',
+    editMode: '',
   });
 
   const params = useLocalSearchParams<{
     id?: string;
-    mode?: string;
+    editMode?: EditMode;
   }>();
 
   // State for edit mode
@@ -72,17 +72,17 @@ export default function PrayerPointMetadataScreen() {
 
   const setupEditMode = useCallback(async () => {
     console.log('⭐ Setting up edit mode check');
-    console.log('⭐ Mode:', params.mode);
+    console.log('⭐ Mode:', params.editMode);
     console.log('⭐ ID:', params.id);
 
     // Update our tracking ref
     processedParamsRef.current = {
       id: params.id || '',
-      mode: params.mode || '',
+      editMode: params.editMode || EditMode.CREATE,
     };
 
     // Check if we're in edit mode from URL params
-    if (params.mode === 'edit' && params.id) {
+    if (params.editMode === EditMode.EDIT && params.id) {
       console.log('⭐ Edit mode detected from URL params');
       setIsEditMode(true);
 
@@ -140,7 +140,7 @@ export default function PrayerPointMetadataScreen() {
       console.log('⭐ Create mode detected');
       setIsEditMode(false);
     }
-  }, [params.mode, params.id, userPrayerPoints]);
+  }, [params.editMode, params.id, userPrayerPoints]);
 
   const handlePrayerPointUpdate = (updatedPrayerPointData: PrayerPoint) => {
     console.log(
@@ -309,9 +309,8 @@ export default function PrayerPointMetadataScreen() {
       <ThemedScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.upperContainer}>
           <PrayerContent
-            editMode={isEditMode ? 'edit' : 'create'}
+            editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
             prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
-            // prayerId={isEditMode ? updatedPrayerPoint.id : undefined}
             backgroundColor={colorScheme}
             onChange={(updatedPrayerPointData) => {
               if ('type' in updatedPrayerPointData) {
@@ -323,7 +322,7 @@ export default function PrayerPointMetadataScreen() {
 
           {similarPrayerPoints.length > 0 && (
             <PrayerPointLinking
-              editMode={'create'}
+              editMode={EditMode.CREATE}
               similarPrayers={similarPrayerPoints}
             />
           )}

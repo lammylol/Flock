@@ -11,6 +11,7 @@ import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import PrayerCard from './PrayerCard';
+import { EditMode } from '@/types/ComponentProps';
 
 export function PrayerPointLinking({
   editMode,
@@ -18,7 +19,7 @@ export function PrayerPointLinking({
   similarPrayers,
   onChange,
 }: {
-  editMode: 'create' | 'edit' | 'view';
+  editMode: EditMode;
   backgroundColor?: string;
   similarPrayers: PrayerPoint[];
   onChange?: (updatedPrayerPoint: PrayerPoint) => void;
@@ -56,7 +57,7 @@ export function PrayerPointLinking({
         { backgroundColor: backgroundColor, borderColor: Colors.grey1 },
       ]}
     >
-      {editMode === 'create' && (
+      {editMode === EditMode.CREATE && (
         <>
           <View style={styles.modalHeader}>
             <Text style={{ ...styles.modalTitle, color: titleColor }}>
@@ -77,7 +78,6 @@ export function PrayerPointLinking({
                 <TouchableOpacity
                   key={index}
                   onPress={() => handleSelectPrayerPoint(prayerPoint)}
-                  style={styles.prayerCard}
                 >
                   <PrayerCard prayer={prayerPoint}></PrayerCard>
                 </TouchableOpacity>
