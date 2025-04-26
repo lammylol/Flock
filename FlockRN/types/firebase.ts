@@ -3,6 +3,8 @@
 // set all types for Firebase
 import { PrayerTag, PrayerType, Privacy, Status } from './PrayerSubtypes';
 
+// ===== UserProfiles =====
+
 export interface UserProfile {
   email: string;
   username: string;
@@ -22,6 +24,8 @@ export interface UserProfileResponse extends UserProfile {
   id: string;
 }
 
+// ===== Friends =====
+
 export interface FriendRequest {
   userId: string;
   username: string;
@@ -38,6 +42,7 @@ export interface Group {
   createdAt: Date;
 }
 
+// ===== Prayer Types =====
 export interface Prayer {
   id: string;
   content: string;
@@ -66,19 +71,28 @@ export interface PrayerPoint {
   privacy?: Privacy;
   recipientName?: string;
   recipientId?: string;
-  prayerUpdates?: PrayerPointUpdate[];
   embedding?: number[];
   isOrigin: boolean;
 }
 
-export interface PrayerPointUpdate {
+export interface PrayerTopic {
   id: string;
-  authorId: string;
-  authorName: string;
-  content: string;
+  title: string;
   createdAt: Date;
+  updatedAt: Date;
+  authorName: string;
+  authorId: string;
+  prayerTypes?: PrayerType[];
+  status?: Status;
+  privacy?: Privacy;
+  recipientName?: string;
+  recipientId?: string;
+  journey: PrayerPointInPrayerTopicDTO[];
+  contextAsStrings: string;
+  contextAsEmbeddings: number[];
 }
 
+// ===== Other Types =====
 export interface Category {
   id: string;
   name: string;
@@ -91,7 +105,7 @@ export interface FeedPrayer {
   addedAt: Date;
 }
 
-// DTOs for creating/updating
+// ==== DTOs for creating/updating ====
 export type CreatePrayerDTO = Omit<
   Prayer,
   'id' | 'createdAt' | 'updatedAt' | 'prayerPoints'
@@ -110,6 +124,18 @@ export type UpdatePrayerPointDTO = Partial<
   Omit<PrayerPoint, 'id' | 'createdAt'>
 >;
 
+// may want to refactor this in the future if document becomes too large.
+export type PrayerPointInPrayerTopicDTO = Pick<
+  PrayerPoint,
+  | 'id'
+  | 'type'
+  | 'title'
+  | 'content'
+  | 'createdAt'
+  | 'authorName'
+  | 'recipientName'
+>;
+
 export interface ServiceResponse {
   success: boolean;
   message?: string;
@@ -117,7 +143,7 @@ export interface ServiceResponse {
   errorMessage?: string;
 }
 
-// AI Analysis Result Type
+// ==== AI Analysis Result Type ====
 export interface PrayerAnalysisResult {
   title: string;
   cleanedTranscription?: string;
