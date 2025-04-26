@@ -124,6 +124,12 @@ export type UpdatePrayerPointDTO = Partial<
   Omit<PrayerPoint, 'id' | 'createdAt'>
 >;
 
+export type CreatePrayerTopicDTO = Omit<PrayerTopic, 'id' | 'updatedAt'>;
+
+export type UpdatePrayerTopicDTO = Partial<
+  Omit<PrayerTopic, 'id' | 'createdAt'>
+>;
+
 // may want to refactor this in the future if document becomes too large.
 export type PrayerPointInPrayerTopicDTO = Pick<
   PrayerPoint,
