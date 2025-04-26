@@ -21,7 +21,7 @@ import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
-import { PrayerOrPrayerPointType, PrayerType } from '@/types/PrayerSubtypes';
+import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
 import OpenAiService from '@/services/ai/openAIService';
@@ -56,7 +56,7 @@ export default function PrayerPointMetadataScreen() {
     title: '',
     content: '',
     type: 'request',
-    tags: params.tags ? (JSON.parse(params.tags) as PrayerType[]) : [],
+    tags: [],
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: '',
@@ -253,8 +253,8 @@ export default function PrayerPointMetadataScreen() {
           recipientName: 'unknown',
           recipientId: 'unknown',
           createdAt: new Date(),
-          embedding: embeddingInput,
           isOrigin: true,
+          ...(embeddingInput?.length ? { embedding: embeddingInput } : {}), // Only include if it exists
         };
 
         // 3. Save prayer point to backend

@@ -29,6 +29,7 @@ import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
+import { EditMode } from '@/types/ComponentProps';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -100,10 +101,6 @@ export default function PrayerMetadataScreen() {
   }, [transcription, params.content, openAiService, userOptInFlags.optInAI]);
 
   const setupEditMode = useCallback(async () => {
-    console.log('⭐ Setting up edit mode check');
-    console.log('⭐ Mode:', params.mode);
-    console.log('⭐ ID:', params.id);
-
     // Update our tracking ref
     processedParamsRef.current = {
       content: params.content || '',
@@ -113,7 +110,7 @@ export default function PrayerMetadataScreen() {
 
     // Check if we're in edit mode from URL params
     if (params.mode === 'edit' && params.id) {
-      console.log('⭐ Edit mode detected from URL params');
+      console.log('Edit mode detected from URL params');
       setIsEditMode(true);
 
       // First, try to find the prayer point in context
@@ -121,7 +118,7 @@ export default function PrayerMetadataScreen() {
 
       if (contextPrayer) {
         console.log(
-          '⭐ Found prayer point in context:',
+          'Found prayer point in context:',
           JSON.stringify({
             id: contextPrayer.id,
             title: contextPrayer.title,
@@ -141,24 +138,22 @@ export default function PrayerMetadataScreen() {
           ...contextPrayer,
         });
       } else {
-        console.log(
-          '⭐ Prayer point not found in context. Fetching from API...',
-        );
+        console.log('Prayer point not found in context. Fetching from API...');
 
         try {
           const fetchedPrayer = await prayerService.getPrayer(params.id);
           if (fetchedPrayer) {
-            console.log('⭐ Fetched prayer from API');
+            console.log('Fetched prayer from API');
             setUpdatedPrayer({
               ...fetchedPrayer,
             });
           }
         } catch (error) {
-          console.error('⭐ Error fetching prayer point:', error);
+          console.error('Error fetching prayer point:', error);
         }
       }
     } else {
-      console.log('⭐ Create mode detected');
+      console.log('Create mode detected');
       setIsEditMode(false);
       setUpdatedPrayer((prevPrayer) => ({
         ...prevPrayer,
@@ -200,6 +195,24 @@ export default function PrayerMetadataScreen() {
     prayerId: string,
   ): Promise<string[]> => {
     try {
+      // Get prayer point embedding. In the future, we may want to consider 'opt-out' since this uses OpenAI.
+      // However, we should ensure that the embedding is generated for each prayer point so that in the future,
+      // if the user wants to opt-in, we already have the embeddings.
+      await Promise.all(
+        prayerPoints.map(async (point) => {
+          const input = `${point.title} ${point.content}`.trim();
+          const embeddingInput = await openAiService.getVectorEmbeddings(input);
+          if (embeddingInput.length > 0) {
+            point.embedding = embeddingInput;
+          } else {
+            console.error(
+              'Error generating embedding for prayer point:',
+              point,
+            );
+          }
+        }),
+      );
+
       // Transform prayer points
       const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
         (prayerPoint) => ({
@@ -218,6 +231,9 @@ export default function PrayerMetadataScreen() {
           prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
           isOrigin:
             prayerPoint.isOrigin !== undefined ? prayerPoint.isOrigin : true,
+          ...(prayerPoint.embedding?.length
+            ? { embedding: prayerPoint.embedding }
+            : {}), // Only include if it exists. This is essential for embedding search. NaN values will break the search.
         }),
       );
 
@@ -326,7 +342,6 @@ export default function PrayerMetadataScreen() {
 
         Alert.alert('Success', 'Prayer created successfully');
         router.replace('/(tabs)/(prayers)');
-        // router.dismissAll(); // resets 'createPrayer' stack.
       }
     } catch (error) {
       console.error(
@@ -365,7 +380,7 @@ export default function PrayerMetadataScreen() {
       />
 
       <PrayerContent
-        editMode={isEditMode ? 'edit' : 'create'}
+        editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
         backgroundColor={colorScheme}
         prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
         prayer={prayer}
