@@ -28,6 +28,8 @@ import {
   CreatePrayerPointDTO,
   UpdatePrayerPointDTO,
   PrayerType,
+  PrayerTopic,
+  CreatePrayerTopicDTO,
 } from '@/types/firebase';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
@@ -41,7 +43,12 @@ class PrayerService {
     FirestoreCollections.PRAYERPOINTS,
   );
   private feedsCollection = collection(db, FirestoreCollections.FEED);
+  private prayerTopicsCollection = collection(
+    db,
+    FirestoreCollections.PRAYERTOPICS,
+  );
 
+  // ===== Prayer CRUD operations =====
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
     try {
       const now = Timestamp.now();
@@ -212,6 +219,8 @@ class PrayerService {
       throw error;
     }
   }
+
+  // ===== Prayer Point CRUD operations =====
 
   async createPrayerPoint(data: CreatePrayerPointDTO): Promise<string> {
     try {
@@ -514,6 +523,44 @@ class PrayerService {
     }
   }
 
+  // ==== Prayer Topic CRUD ====
+
+  async createPrayerTopic(data: CreatePrayerTopicDTO): Promise<string> {
+    try {
+      const now = Timestamp.now();
+
+      const docRef = await addDoc(this.prayerTopicsCollection, {
+        ...data,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // After the document is created, update it with the generated ID
+      await updateDoc(docRef, { id: docRef.id });
+
+      // Placeholder to add to another feed later.
+
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating prayer topic:', error);
+      throw error;
+    }
+  }
+
+  async getPrayerTopic(id: string): Promise<PrayerTopic | null> {
+    try {
+      const docRef = doc(this.prayerTopicsCollection, id);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) return null;
+
+      return this.convertDocToPrayerTopic(docSnap);
+    } catch (error) {
+      console.error('Error getting prayer points:', error);
+      throw error;
+    }
+  }
+
   private convertDocToPrayer(
     docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
   ): Prayer {
@@ -549,9 +596,30 @@ class PrayerService {
       type: data.type as PrayerType,
       recipientId: data.recipientId,
       recipientName: data.recipientName,
-      prayerUpdates: data.prayerUpdates,
       isOrigin: data.isOrigin,
       embedding: data.embedding,
+    };
+  }
+
+  private convertDocToPrayerTopic(
+    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+  ): PrayerTopic {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      authorId: data.authorId,
+      authorName: data.authorName,
+      title: data.title,
+      createdAt: data.createdAt as Date,
+      updatedAt: data.updatedAt as Date,
+      prayerTypes: data.prayerTypes,
+      status: data.status,
+      privacy: data.privacy,
+      recipientId: data.recipientId,
+      recipientName: data.recipientName,
+      journey: data.journey,
+      contextAsStrings: data.contextAsStrings,
+      contextAsEmbeddings: data.contextAsEmbeddings,
     };
   }
 }
