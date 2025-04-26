@@ -69,6 +69,7 @@ export interface PrayerPoint {
   tags?: PrayerType[];
   status?: Status;
   privacy?: Privacy;
+  prayerUpdates?: [];
   recipientName?: string;
   recipientId?: string;
   embedding?: number[];
