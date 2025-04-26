@@ -21,7 +21,7 @@ import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
-import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { PrayerEntityType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
 import OpenAiService from '@/services/ai/openAIService';
@@ -48,7 +48,6 @@ export default function PrayerPointMetadataScreen() {
   const [similarPrayerPoints, setSimilarPrayerPoints] = useState<PrayerPoint[]>(
     [],
   );
-
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
@@ -248,7 +247,7 @@ export default function PrayerPointMetadataScreen() {
     }
   };
 
-  useEffect(() => {
+  useMemo(() => {
     setupEditMode();
   }, [setupEditMode]);
 
@@ -271,7 +270,7 @@ export default function PrayerPointMetadataScreen() {
         <View style={styles.upperContainer}>
           <PrayerContent
             editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
-            prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
+            prayerOrPrayerPoint={PrayerEntityType.PrayerPoint}
             backgroundColor={colorScheme}
             onChange={(updatedPrayerPointData) => {
               if ('type' in updatedPrayerPointData) {

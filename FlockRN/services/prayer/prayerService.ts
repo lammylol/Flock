@@ -35,6 +35,7 @@ import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getApp } from 'firebase/app';
+import { PrayerEntityType } from '@/types/PrayerSubtypes';
 
 class PrayerService {
   private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
@@ -57,6 +58,7 @@ class PrayerService {
         ...data,
         createdAt: now,
         updatedAt: now,
+        entityType: PrayerEntityType.Prayer,
       });
 
       // After the document is created, update it with the generated ID
@@ -204,6 +206,7 @@ class PrayerService {
           ...point, // Use the actual prayer point data
           createdAt: now,
           updatedAt: now,
+          entityType: PrayerEntityType.PrayerPoint,
         });
 
         // After the document is created, update it with the generated ID
@@ -230,6 +233,7 @@ class PrayerService {
         ...data,
         createdAt: now,
         updatedAt: now,
+        entityType: PrayerEntityType.PrayerPoint,
       });
 
       // After the document is created, update it with the generated ID
@@ -533,6 +537,7 @@ class PrayerService {
         ...data,
         createdAt: now,
         updatedAt: now,
+        entityType: PrayerEntityType.PrayerTopic,
       });
 
       // After the document is created, update it with the generated ID
@@ -574,6 +579,7 @@ class PrayerService {
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
       prayerPoints: data.prayerPoints,
+      entityType: data.entityType as PrayerEntityType,
     };
   }
 
@@ -598,6 +604,7 @@ class PrayerService {
       recipientName: data.recipientName,
       isOrigin: data.isOrigin,
       embedding: data.embedding,
+      entityType: data.entityType as PrayerEntityType,
     };
   }
 
@@ -620,6 +627,7 @@ class PrayerService {
       journey: data.journey,
       contextAsStrings: data.contextAsStrings,
       contextAsEmbeddings: data.contextAsEmbeddings,
+      entityType: data.entityType as PrayerEntityType,
     };
   }
 }

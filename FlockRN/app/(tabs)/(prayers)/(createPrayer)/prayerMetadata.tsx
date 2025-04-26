@@ -25,7 +25,7 @@ import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
-import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { PrayerEntityType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
@@ -66,6 +66,7 @@ export default function PrayerMetadataScreen() {
     authorId: '',
     privacy: 'private',
     prayerPoints: [],
+    entityType: PrayerEntityType.Prayer,
   });
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
 
@@ -364,7 +365,7 @@ export default function PrayerMetadataScreen() {
       <PrayerContent
         editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
         backgroundColor={colorScheme}
-        prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
+        prayerOrPrayerPoint={PrayerEntityType.Prayer}
         prayer={prayer}
         onChange={(updatedPrayer) => {
           handlePrayerUpdate(updatedPrayer as Prayer);

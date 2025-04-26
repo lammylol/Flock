@@ -1,8 +1,9 @@
 import { allTags } from './Tag';
 
-export enum PrayerOrPrayerPointType {
+export enum PrayerEntityType {
   Prayer = 'prayer',
   PrayerPoint = 'prayerPoint',
+  PrayerTopic = 'prayerTopic',
 }
 
 export type PrayerTag = (typeof allTags)[number];

@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { Prayer, PrayerPoint } from '@/types/firebase';
+import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import {
   TouchableOpacity,
   StyleSheet,
@@ -11,9 +11,10 @@ import { router } from 'expo-router';
 import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
 import { prayerTagDisplayNames } from '@/types/Tag';
 import { useMemo } from 'react';
+import { getEntityType } from '@/types/typeGuards';
 
 export interface PrayerCardProps {
-  prayer: Prayer | PrayerPoint;
+  prayer: Prayer | PrayerPoint | PrayerTopic;
 }
 
 export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
@@ -36,9 +37,16 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
     });
   })();
 
-  const isPrayerPoint = useMemo(() => {
-    return 'type' in prayer;
+  const entityType = useMemo(() => {
+    return getEntityType(prayer);
   }, [prayer]);
+
+  console.log('entityType', entityType);
+
+  // Use the entityType to create the boolean checks
+  const isPrayerPoint = entityType === 'prayerPoint';
+  const isPrayer = entityType === 'prayer';
+  const isPrayerTopic = entityType === 'prayerTopic';
 
   return (
     <TouchableOpacity

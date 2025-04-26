@@ -1,7 +1,13 @@
 // ramon jiang
 // 1/29/25
 // set all types for Firebase
-import { PrayerTag, PrayerType, Privacy, Status } from './PrayerSubtypes';
+import {
+  PrayerEntityType,
+  PrayerTag,
+  PrayerType,
+  Privacy,
+  Status,
+} from './PrayerSubtypes';
 
 // ===== UserProfiles =====
 
@@ -54,6 +60,7 @@ export interface Prayer {
   privacy: Privacy;
   prayerPoints: string[];
   tags?: PrayerType[];
+  entityType: PrayerEntityType;
 }
 
 export interface PrayerPoint {
@@ -74,6 +81,7 @@ export interface PrayerPoint {
   recipientId?: string;
   embedding?: number[];
   isOrigin: boolean;
+  entityType: PrayerEntityType;
 }
 
 export interface PrayerTopic {
@@ -91,6 +99,7 @@ export interface PrayerTopic {
   journey: PrayerPointInPrayerTopicDTO[];
   contextAsStrings: string;
   contextAsEmbeddings: number[];
+  entityType: PrayerEntityType;
 }
 
 // ===== Other Types =====
@@ -109,26 +118,29 @@ export interface FeedPrayer {
 // ==== DTOs for creating/updating ====
 export type CreatePrayerDTO = Omit<
   Prayer,
-  'id' | 'createdAt' | 'updatedAt' | 'prayerPoints'
+  'id' | 'createdAt' | 'updatedAt' | 'prayerPoints' | 'entityType'
 >;
 
 export type UpdatePrayerDTO = Partial<
-  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'>
+  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'> | 'entityType'
 >;
 
 export type CreatePrayerPointDTO = Omit<
   PrayerPoint,
-  'id' | 'prayerId' | 'updatedAt'
+  'id' | 'prayerId' | 'updatedAt' | 'entityType'
 >;
 
 export type UpdatePrayerPointDTO = Partial<
-  Omit<PrayerPoint, 'id' | 'createdAt'>
+  Omit<PrayerPoint, 'id' | 'createdAt'> | 'entityType'
 >;
 
-export type CreatePrayerTopicDTO = Omit<PrayerTopic, 'id' | 'updatedAt'>;
+export type CreatePrayerTopicDTO = Omit<
+  PrayerTopic,
+  'id' | 'updatedAt' | 'entityType'
+>;
 
 export type UpdatePrayerTopicDTO = Partial<
-  Omit<PrayerTopic, 'id' | 'createdAt'>
+  Omit<PrayerTopic, 'id' | 'createdAt' | 'entityType'>
 >;
 
 // may want to refactor this in the future if document becomes too large.

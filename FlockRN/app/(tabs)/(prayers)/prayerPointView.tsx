@@ -20,7 +20,7 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { Colors } from '@/constants/Colors';
 import { auth } from '@/firebase/firebaseConfig';
-import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { PrayerEntityType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
 
 const PrayerPointView = () => {
@@ -139,7 +139,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-            'seconds' in prayerPoint.createdAt
+          'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
@@ -190,7 +190,7 @@ const PrayerPointView = () => {
             <PrayerContent
               editMode={EditMode.VIEW}
               prayer={prayerPoint}
-              prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
+              prayerOrPrayerPoint={PrayerEntityType.PrayerPoint}
               backgroundColor={backgroundColor}
             />
 
