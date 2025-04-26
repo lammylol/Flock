@@ -66,7 +66,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === EditMode.EDIT || editMode === EditMode.CREATE) &&
-      prayerOrPrayerPoint === 'prayerPoint' ? (
+        prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={prayer?.title}
