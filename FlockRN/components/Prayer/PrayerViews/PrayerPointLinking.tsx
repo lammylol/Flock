@@ -10,6 +10,8 @@ import { PrayerPoint } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import PrayerCard from './PrayerCard';
+import { EditMode } from '@/types/ComponentProps';
 
 export function PrayerPointLinking({
   editMode,
@@ -17,7 +19,7 @@ export function PrayerPointLinking({
   similarPrayers,
   onChange,
 }: {
-  editMode: 'create' | 'edit' | 'view';
+  editMode: EditMode;
   backgroundColor?: string;
   similarPrayers: PrayerPoint[];
   onChange?: (updatedPrayerPoint: PrayerPoint) => void;
@@ -55,7 +57,7 @@ export function PrayerPointLinking({
         { backgroundColor: backgroundColor, borderColor: Colors.grey1 },
       ]}
     >
-      {editMode === 'create' && (
+      {editMode === EditMode.CREATE && (
         <>
           <View style={styles.modalHeader}>
             <Text style={{ ...styles.modalTitle, color: titleColor }}>
@@ -71,19 +73,13 @@ export function PrayerPointLinking({
           </View>
 
           {showLinkSection && (
-            <>
-              {similarPrayers.slice(0, 2).map((prayer, index) => (
+            <View style={styles.linkContainer}>
+              {similarPrayers.slice(0, 2).map((prayerPoint, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={styles.suggestedCard}
-                  onPress={() => handleSelectPrayerPoint(prayer)}
+                  onPress={() => handleSelectPrayerPoint(prayerPoint)}
                 >
-                  <Text
-                    style={{
-                      ...styles.suggestedCardText,
-                      color: textColor,
-                    }}
-                  >{`${prayer.type}: ${prayer.title}`}</Text>
+                  <PrayerCard prayer={prayerPoint}></PrayerCard>
                 </TouchableOpacity>
               ))}
               <TextInput
@@ -92,7 +88,7 @@ export function PrayerPointLinking({
                 value={searchText}
                 onChangeText={setSearchText}
               />
-            </>
+            </View>
           )}
         </>
       )}
@@ -123,18 +119,12 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: 15,
     borderWidth: 2,
-    gap: 15,
     padding: 16,
+    gap: 10,
     width: '100%', // Make it responsive to parent width
   },
-  suggestedCard: {
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  suggestedCardText: {
-    fontSize: 16,
-    fontWeight: '500',
+  linkContainer: {
+    flex: 1,
   },
 });
 

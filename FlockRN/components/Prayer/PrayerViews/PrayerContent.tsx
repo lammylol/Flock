@@ -1,8 +1,9 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
-import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
-import { Prayer, PrayerPoint, PrayerType } from '@/types/firebase';
+import { PrayerOrPrayerPointType, PrayerType } from '@/types/PrayerSubtypes';
+import { Prayer, PrayerPoint } from '@/types/firebase';
+import { EditMode } from '@/types/ComponentProps';
 
 export function PrayerContent({
   editMode,
@@ -11,7 +12,7 @@ export function PrayerContent({
   prayer,
   onChange, // Callback for changes
 }: {
-  editMode: 'create' | 'edit' | 'view';
+  editMode: EditMode;
   backgroundColor?: string;
   prayerOrPrayerPoint: PrayerOrPrayerPointType;
   prayer?: Prayer | PrayerPoint; // only required for edit and view modes
@@ -64,7 +65,7 @@ export function PrayerContent({
 
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
-      {(editMode === 'edit' || editMode === 'create') &&
+      {(editMode === EditMode.EDIT || editMode === EditMode.CREATE) &&
       prayerOrPrayerPoint === 'prayerPoint' ? (
         <TextInput
           style={[styles.titleText, styles.input]}
