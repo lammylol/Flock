@@ -149,7 +149,7 @@ export type UpdatePrayerTopicDTO = Partial<
 export type PrayerPointInPrayerTopicDTO = Pick<
   PrayerPoint,
   | 'id'
-  | 'type'
+  | 'prayerType'
   | 'title'
   | 'content'
   | 'createdAt'

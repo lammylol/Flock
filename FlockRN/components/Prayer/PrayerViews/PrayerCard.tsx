@@ -1,3 +1,5 @@
+import { ThemedText } from '@/components/ThemedText';
+import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import {
   StyleSheet,
   TextInput,
