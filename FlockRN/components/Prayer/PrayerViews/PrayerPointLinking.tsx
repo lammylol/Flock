@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -6,49 +6,45 @@ import {
   View,
   Text,
 } from 'react-native';
-import { PrayerPoint } from '@/types/firebase';
+import { PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import PrayerCard from './PrayerCard';
 import { EditMode } from '@/types/ComponentProps';
+import PrayerCardWithButtons from './PrayerCardWithButtons';
+import LinkPrayerModal from './LinkPrayerModal';
 
 export function PrayerPointLinking({
   editMode,
   backgroundColor,
   similarPrayers,
-  onChange,
+  prayerPoint,
 }: {
   editMode: EditMode;
   backgroundColor?: string;
   similarPrayers: PrayerPoint[];
+  prayerPoint: PrayerPoint;
   onChange?: (updatedPrayerPoint: PrayerPoint) => void;
 }): JSX.Element {
   // const { userPrayers, userPrayerPoints } = usePrayerCollection();
   const [searchText, setSearchText] = useState('');
-  const [selectedLink, setSelectedLink] = useState<PrayerPoint | null>(null);
+  const [selectedLink, setSelectedLink] = useState<
+    PrayerPoint | PrayerTopic | null
+  >(null);
+  const [showLinkingModal, setShowLinkingModal] = useState(false);
   const textColor = useThemeColor({ light: Colors.link }, 'textPrimary');
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
 
-  useEffect(() => {
-    if (selectedLink && onChange) {
-      onChange(selectedLink);
-    }
-  }, [onChange, selectedLink]);
-
-  // const filteredPrayerPoints = userPrayerPoints.filter((point) =>
-  //   point.title.toLowerCase().includes(searchText.toLowerCase()),
-  // );
-
-  const handleSelectPrayerPoint = (point: PrayerPoint) => {
-    setSelectedLink(point);
+  const handleSetLinkedPrayerandOpenModal = (
+    prayer: PrayerPoint | PrayerTopic,
+  ) => {
+    setSelectedLink(prayer);
+    setShowLinkingModal(true);
+    console.log('Selected Prayer Point:', selectedLink);
   };
 
-  // const handleSearch = (text: string) => {
-  //   // function
-  //   // setData
-  // };
+  console.log('Selected Prayer Point:', selectedLink);
 
   return (
     <ThemedView
@@ -75,12 +71,15 @@ export function PrayerPointLinking({
           {showLinkSection && (
             <View style={styles.linkContainer}>
               {similarPrayers.slice(0, 2).map((prayerPoint, index) => (
-                <TouchableOpacity
+                <PrayerCardWithButtons
                   key={index}
-                  onPress={() => handleSelectPrayerPoint(prayerPoint)}
-                >
-                  <PrayerCard prayer={prayerPoint}></PrayerCard>
-                </TouchableOpacity>
+                  prayer={prayerPoint}
+                  button1={{
+                    label: 'Link and Create #Topic',
+                    onPress: () =>
+                      handleSetLinkedPrayerandOpenModal(prayerPoint),
+                  }}
+                ></PrayerCardWithButtons>
               ))}
               <TextInput
                 style={{ ...styles.searchInput, borderColor: Colors.grey1 }}
@@ -91,6 +90,19 @@ export function PrayerPointLinking({
             </View>
           )}
         </>
+      )}
+
+      {/* Display LinkingModal when showLinkingModal is true */}
+      {selectedLink && setShowLinkingModal && (
+        <LinkPrayerModal
+          visible={showLinkingModal}
+          onClose={() => setShowLinkingModal(false)}
+          originPrayer={selectedLink}
+          newPrayerPoint={prayerPoint}
+          onAddTopic={(title: string): void => {
+            console.log('Topic added:', title);
+          }}
+        />
       )}
     </ThemedView>
   );

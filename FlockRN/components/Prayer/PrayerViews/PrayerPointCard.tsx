@@ -7,20 +7,20 @@ import {
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
-import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
+import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
 import { Entypo } from '@expo/vector-icons';
 import { prayerTagDisplayNames, prayerTags } from '@/types/Tag';
-import { PrayerPoint } from '@/types/firebase';
-import { PrayerType } from '@/types/PrayerSubtypes';
+import { PrayerPoint, PrayerTopic } from '@/types/firebase';
+import { PrayerPointType } from '@/types/PrayerSubtypes';
 
-interface EditablePrayerPointProps {
+interface EditablePrayerPointCardProps {
   prayerPoint: PrayerPoint;
   isEditMode: boolean;
   onDelete?: () => void;
   onChange?: (updated: PrayerPoint) => void;
 }
 
-const EditablePrayerPointCard: React.FC<EditablePrayerPointProps> = ({
+const EditablePrayerPointCard: React.FC<EditablePrayerPointCardProps> = ({
   prayerPoint,
   isEditMode,
   onDelete,
@@ -28,17 +28,19 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointProps> = ({
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
 
-  const triggerChange = (partial: Partial<PrayerPoint>) => {
+  const triggerChange = (
+    partial: Partial<PrayerPoint> | Partial<PrayerTopic>,
+  ) => {
     if (!onChange) return;
 
-    const updatedPrayerPoint = {
+    const updatedPrayer = {
       ...(prayerPoint || {}),
       ...partial,
     };
 
-    console.log(updatedPrayerPoint);
+    console.log(updatedPrayer);
 
-    onChange(updatedPrayerPoint as PrayerPoint);
+    onChange(updatedPrayer as PrayerPoint);
   };
 
   const handleTitleChange = (text: string) => {
@@ -50,7 +52,7 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointProps> = ({
   };
 
   const handleTypeChange = (tag: string) => {
-    const tags = [tag as PrayerType];
+    const tags = [tag as PrayerPointType];
     triggerChange({ tags: tags, type: tags[0] || 'request' });
   };
 
@@ -62,7 +64,7 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointProps> = ({
       ]}
     >
       <View style={styles.headerContainer}>
-        <EmojiIconBackground type={prayerPoint.type} />
+        <IconBackgroundSquare type={prayerPoint.type} />
         <View style={styles.titleContainer}>
           {isEditMode ? (
             <TextInput
@@ -77,7 +79,6 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointProps> = ({
               {prayerPoint.title}
             </ThemedText>
           )}
-
           {isEditMode ? (
             <View style={styles.typeSelector}>
               {prayerTags.map((tag) => (

@@ -1,7 +1,7 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
-import { PrayerEntityType, PrayerType } from '@/types/PrayerSubtypes';
+import { PrayerEntityType, PrayerPointType } from '@/types/PrayerSubtypes';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { EditMode } from '@/types/ComponentProps';
 
@@ -27,7 +27,7 @@ export function PrayerContent({
     triggerChange({ content: text });
   };
 
-  const handleTagsChange = (tags: PrayerType[]) => {
+  const handleTagsChange = (tags: PrayerPointType[]) => {
     triggerChange({ tags: tags, type: tags[0] || 'request' });
   };
 
