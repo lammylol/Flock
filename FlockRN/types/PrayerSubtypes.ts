@@ -7,6 +7,6 @@ export enum PrayerEntityType {
 }
 
 export type PrayerTag = (typeof allTags)[number];
-export type PrayerType = 'request' | 'praise' | 'repentance';
+export type PrayerPointType = 'request' | 'praise' | 'repentance';
 export type Privacy = 'public' | 'private';
 export type Status = 'open' | 'closed' | null;

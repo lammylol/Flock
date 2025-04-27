@@ -5,12 +5,6 @@ import { SymbolWeight } from 'expo-symbols';
 import React from 'react';
 import { OpaqueColorValue, StyleProp, TextStyle } from 'react-native';
 
-export const prayerTypeEmojis = {
-  request: '🙏',
-  praise: '🙌',
-  repentance: '🫴',
-};
-
 // Add your SFSymbol to MaterialIcons mappings here.
 const MAPPING = {
   // See MaterialIcons here: https://icons.expo.fyi

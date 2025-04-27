@@ -1,10 +1,15 @@
 import { Colors } from '@/constants/Colors';
-import { PrayerType } from '@/types/PrayerSubtypes';
+import { PrayerPointType } from '@/types/PrayerSubtypes';
 import { StyleSheet, View, Text } from 'react-native';
-import { prayerTypeEmojis } from './IconSymbol';
+
+export const prayerTypeEmojis = {
+  request: '🙏',
+  praise: '🙌',
+  repentance: '🫴',
+};
 
 export interface IconBackgroundSquare {
-  type?: PrayerType; // only used for prayer points
+  type: PrayerPointType; // only used for prayer points
   customValue?: string;
   customBackground?: string;
 }

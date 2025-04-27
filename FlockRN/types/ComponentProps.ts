@@ -3,3 +3,10 @@ export enum EditMode {
   EDIT = 'edit',
   CREATE = 'create',
 }
+
+export interface PrayerCardButtonProps {
+  label: string;
+  icon?: string;
+  iconSize?: number;
+  onPress: () => void;
+}

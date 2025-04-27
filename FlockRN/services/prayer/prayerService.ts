@@ -30,7 +30,7 @@ import {
   PrayerTopic,
   CreatePrayerTopicDTO,
 } from '@/types/firebase';
-import { PrayerType, PrayerEntityType } from '@/types/PrayerSubtypes';
+import { PrayerPointType, PrayerEntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -657,7 +657,7 @@ class PrayerService {
       updatedAt: data.updatedAt as Date,
       prayerId: data.prayerId,
       tags: data.tags,
-      type: data.type as PrayerType,
+      type: data.type as PrayerPointType,
       recipientId: data.recipientId,
       recipientName: data.recipientName,
       isOrigin: data.isOrigin,
