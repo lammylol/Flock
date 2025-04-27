@@ -27,15 +27,14 @@ import {
   UpdatePrayerDTO,
   CreatePrayerPointDTO,
   UpdatePrayerPointDTO,
-  PrayerType,
   PrayerTopic,
   CreatePrayerTopicDTO,
 } from '@/types/firebase';
+import { PrayerType, PrayerEntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getApp } from 'firebase/app';
-import { PrayerEntityType } from '@/types/PrayerSubtypes';
 
 class PrayerService {
   private prayersCollection = collection(db, FirestoreCollections.PRAYERS);

@@ -87,8 +87,10 @@ export interface PrayerPoint {
 export interface PrayerTopic {
   id: string;
   title: string;
+  content: string; // summary of the prayer topic
   createdAt: Date;
   updatedAt: Date;
+  endDate?: Date;
   authorName: string;
   authorId: string;
   prayerTypes?: PrayerType[];
@@ -122,7 +124,7 @@ export type CreatePrayerDTO = Omit<
 >;
 
 export type UpdatePrayerDTO = Partial<
-  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt'> | 'entityType'
+  Omit<Prayer, 'id' | 'createdAt' | 'updatedAt' | 'entityType'>
 >;
 
 export type CreatePrayerPointDTO = Omit<
@@ -131,7 +133,7 @@ export type CreatePrayerPointDTO = Omit<
 >;
 
 export type UpdatePrayerPointDTO = Partial<
-  Omit<PrayerPoint, 'id' | 'createdAt'> | 'entityType'
+  Omit<PrayerPoint, 'id' | 'createdAt' | 'entityType'>
 >;
 
 export type CreatePrayerTopicDTO = Omit<

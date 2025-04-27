@@ -1,18 +1,14 @@
 import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { PrayerEntityType } from './PrayerSubtypes';
 
-export function getEntityType(obj: unknown): PrayerEntityType | null {
+export function getEntityType(obj: unknown): PrayerEntityType | undefined {
   if (typeof obj === 'object' && obj !== null) {
-    if ('entityType' in obj) {
-      console.log(
-        'Found entityType:',
-        (obj as { entityType: PrayerEntityType }).entityType,
-      );
+    if ('entityType' in obj && obj.entityType !== undefined) {
       return (obj as { entityType: PrayerEntityType }).entityType;
     }
 
     // Check based on available properties
-    if ('title' in obj) {
+    if (!('title' in obj)) {
       return PrayerEntityType.Prayer; // Assuming 'title' means it's a Prayer
     }
     if ('type' in obj) {
@@ -22,7 +18,9 @@ export function getEntityType(obj: unknown): PrayerEntityType | null {
       return PrayerEntityType.PrayerTopic;
     }
   }
-  return null;
+
+  // Default return for unhandled cases
+  return undefined;
 }
 
 export function isPrayer(obj: unknown): obj is Prayer {
