@@ -4,7 +4,7 @@
 import {
   PrayerEntityType,
   PrayerTag,
-  PrayerType,
+  PrayerPointType,
   Privacy,
   Status,
 } from './PrayerSubtypes';
@@ -59,7 +59,7 @@ export interface Prayer {
   updatedAt: Date;
   privacy: Privacy;
   prayerPoints: string[];
-  tags?: PrayerType[];
+  tags?: PrayerPointType[];
   entityType: PrayerEntityType;
 }
 
@@ -72,8 +72,8 @@ export interface PrayerPoint {
   authorName: string;
   authorId: string;
   prayerId?: string | string[];
-  type: PrayerType;
-  tags?: PrayerType[];
+  type: PrayerPointType;
+  tags?: PrayerPointType[];
   status?: Status;
   privacy?: Privacy;
   prayerUpdates?: [];
@@ -93,7 +93,7 @@ export interface PrayerTopic {
   endDate?: Date;
   authorName: string;
   authorId: string;
-  prayerTypes?: PrayerType[];
+  prayerTypes?: PrayerPointType[];
   status?: Status;
   privacy?: Privacy;
   recipientName?: string;
