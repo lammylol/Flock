@@ -8,16 +8,21 @@ import {
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { router } from 'expo-router';
-import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
+import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
 import { prayerTagDisplayNames } from '@/types/Tag';
 import { useMemo } from 'react';
 import { getEntityType } from '@/types/typeGuards';
+import { getPrayerType } from '@/utils/prayerUtils';
 
 export interface PrayerCardProps {
   prayer: Prayer | PrayerPoint | PrayerTopic;
+  children?: React.ReactNode;
 }
 
-export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
+export default function PrayerCard({
+  prayer,
+  children,
+}: PrayerCardProps): JSX.Element {
   const colorScheme = useColorScheme() ?? 'light';
 
   const formattedDate = (() => {
@@ -37,12 +42,43 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
     });
   })();
 
+  const prayerType = getPrayerType(prayer);
+
   const entityType = useMemo(() => {
     return getEntityType(prayer);
   }, [prayer]);
 
   // Use the entityType to create the boolean checks
   const isPrayerPoint = entityType === 'prayerPoint';
+
+  const handlePress = () => {
+    if (entityType) {
+      switch (entityType) {
+        case 'prayerPoint':
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerPointView',
+            params: { id: prayer.id },
+          });
+          break;
+        case 'prayer':
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerView',
+            params: { id: (prayer as Prayer).id },
+          });
+          break;
+        // case 'prayerTopic':
+        //   router.push({
+        //     pathname: '/(tabs)/(prayers)/prayerTopicView',
+        //     params: { id: (prayer as PrayerTopic).id },
+        //   });
+        //   break;
+        default:
+          // Handle unknown entity type
+          console.error('Unknown entity type:', entityType);
+          return;
+      }
+    }
+  };
 
   return (
     <TouchableOpacity
@@ -51,38 +87,27 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
         { backgroundColor: Colors[colorScheme].background },
       ]}
       onPress={() => {
-        if (isPrayerPoint) {
-          // If it's a PrayerPoint, navigate to PrayerPointView
-          router.push({
-            pathname: '/(tabs)/(prayers)/prayerPointView',
-            params: { id: prayer.id },
-          });
-        } else {
-          // If it's a Prayer, navigate to PrayerView
-          router.push({
-            pathname: '/(tabs)/(prayers)/prayerView',
-            params: { id: (prayer as Prayer).id },
-          });
-        }
+        handlePress();
       }}
     >
       <View style={styles.headerContainer}>
-        {isPrayerPoint && 'type' in prayer && (
-          <EmojiIconBackground type={prayer.type} />
+        {isPrayerPoint && (
+          <IconBackgroundSquare type={(prayer as PrayerPoint).type} />
         )}
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>
             {isPrayerPoint ? prayer.title : formattedDate}
           </ThemedText>
-          {isPrayerPoint && 'type' in prayer && (
+          {isPrayerPoint && (
             <ThemedText
               style={[
                 styles.subtitle,
                 { color: Colors[colorScheme].textSecondary },
               ]}
             >
-              {(prayerTagDisplayNames[prayer.type]?.charAt(0).toUpperCase() ??
-                '') + (prayerTagDisplayNames[prayer.type]?.slice(1) ?? '')}
+              {prayerType &&
+                (prayerTagDisplayNames[prayerType]?.charAt(0).toUpperCase() ??
+                  '') + (prayerTagDisplayNames[prayerType]?.slice(1) ?? '')}
             </ThemedText>
           )}
         </View>
@@ -96,45 +121,12 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
           {prayer.content}
         </ThemedText>
       )}
-      {/* Saving to add Later! */}
-      {/* {'type' in prayer && (
-        <View style={styles.actionBar}>
-          <Button
-            label={'Share'}
-            onPress={() => {}}
-            size="s"
-            flex={1}
-            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-            startIcon={
-              <IconSymbol
-                name="square.and.arrow.up"
-                color={Colors[colorScheme].textPrimary}
-                size={16}
-              />
-            }
-            backgroundColor={Colors.grey1}
-          />
-          <Button
-            label={'🙏 Pray!'}
-            onPress={() => {}}
-            size="s"
-            flex={1}
-            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-            backgroundColor={Colors.brown1}
-          />
-        </View>
-      )} */}
+      {children}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  // actionBar: {
-  //   backgroundColor: 'transparent',
-  //   flexDirection: 'row',
-  //   flex: 1,
-  //   gap: 15,
-  // },
   headerContainer: {
     flexDirection: 'row',
     gap: 10,
@@ -148,10 +140,9 @@ const styles = StyleSheet.create({
   // eslint-disable-next-line react-native/no-color-literals
   prayerContainer: {
     backgroundColor: 'transparent',
-    borderRadius: 10,
     width: '100%',
-    gap: 7,
-    paddingVertical: 7,
+    paddingVertical: 10,
+    gap: 15,
   },
   preview: {
     fontSize: 16,

@@ -293,6 +293,7 @@ export default function PrayerPointMetadataScreen() {
             <PrayerPointLinking
               editMode={EditMode.CREATE}
               similarPrayers={similarPrayerPoints}
+              prayerPoint={updatedPrayerPoint}
             />
           )}
 
