@@ -45,8 +45,6 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
 
   // Use the entityType to create the boolean checks
   const isPrayerPoint = entityType === 'prayerPoint';
-  const isPrayer = entityType === 'prayer';
-  const isPrayerTopic = entityType === 'prayerTopic';
 
   return (
     <TouchableOpacity
