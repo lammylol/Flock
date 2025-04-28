@@ -47,7 +47,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
   // Define UI text based on isPrayerPoint
   const title = isOriginAPrayerPoint
     ? 'Link these prayer points together under a new #topic.'
-    : 'Link Prayer to Existing Topic';
+    : 'Link this prayer to an existing #topic';
   const description = isOriginAPrayerPoint
     ? 'You will be able to add other prayer points to this #topic in the future.'
     : 'You are linking a prayer point to an existing topic.';
@@ -76,18 +76,20 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
             {description}
           </Text>
         </ThemedView>
-        <ThemedView>
-          <TextInput
-            style={styles.input}
-            placeholder={inputPlaceholder}
-            value={inputValue}
-            onChangeText={onChangeText}
-            editable={isOriginAPrayerPoint} // <-- important so originPrayer title isn't editable
-          />
-          <Text style={{ ...styles.maxLength, color: primaryTextColor }}>
-            50 characters maximum
-          </Text>
-        </ThemedView>
+        {isOriginAPrayerPoint && (
+          <ThemedView>
+            <TextInput
+              style={styles.input}
+              placeholder={inputPlaceholder}
+              value={inputValue}
+              onChangeText={onChangeText}
+              editable={isOriginAPrayerPoint} // <-- important so originPrayer title isn't editable
+            />
+            <Text style={{ ...styles.maxLength, color: primaryTextColor }}>
+              50 characters maximum
+            </Text>
+          </ThemedView>
+        )}
         <PrayerCard prayer={newPrayerPoint} isDisabled={true}></PrayerCard>
         <PrayerCard prayer={originPrayer} isDisabled={true}></PrayerCard>
       </ThemedView>
