@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Text, TextInput, StyleSheet, Alert, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { Text, TextInput, StyleSheet, Alert } from 'react-native';
 import PopUpModal from '@/components/PopUpModal';
 import { PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { useThemeColor } from '@/hooks/useThemeColor';
