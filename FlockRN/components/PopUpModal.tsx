@@ -21,7 +21,7 @@ const ReusableModal: React.FC<ReusableModalProps> = ({
   const backgroundOverlay = useThemeColor({}, 'modalOverlay'); // Adjust this to get the correct color based on your theme
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType="none">
       <ThemedView
         style={{ ...styles.overlay, backgroundColor: backgroundOverlay }}
       >

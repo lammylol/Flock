@@ -29,9 +29,12 @@ interface EditablePrayerCardProps {
 
 const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   prayer,
+  editable,
+  onDelete,
+  onChange,
   isDisabled,
   children,
-  maxLines = 1,
+  maxLines,
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
   const maxLinesValue = maxLines ?? 1;
