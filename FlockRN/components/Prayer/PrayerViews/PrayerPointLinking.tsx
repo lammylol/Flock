@@ -13,6 +13,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { EditMode } from '@/types/ComponentProps';
 import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
+import PopUpModal from '@/components/PopUpModal';
 
 export function PrayerPointLinking({
   editMode,
@@ -93,11 +94,12 @@ export function PrayerPointLinking({
         <LinkPrayerModal
           visible={showLinkingModal}
           onClose={() => setShowLinkingModal(false)}
+          onAddTopic={(title) => {
+            // Handle adding a new topic here
+            console.log('New Topic Title:', title);
+          }}
           originPrayer={selectedLink}
           newPrayerPoint={prayerPoint}
-          onAddTopic={(title: string): void => {
-            console.log('Topic added:', title);
-          }}
         />
       )}
     </ThemedView>
