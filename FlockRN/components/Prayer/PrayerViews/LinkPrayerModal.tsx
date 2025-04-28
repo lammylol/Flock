@@ -89,8 +89,8 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
             50 characters maximum
           </Text>
         </ThemedView>
-        <PrayerCard prayer={newPrayerPoint}></PrayerCard>
-        <PrayerCard prayer={originPrayer}></PrayerCard>
+        <PrayerCard prayer={newPrayerPoint} isDisabled={true}></PrayerCard>
+        <PrayerCard prayer={originPrayer} isDisabled={true}></PrayerCard>
       </ThemedView>
     </PopUpModal>
   );

@@ -22,15 +22,14 @@ interface EditablePrayerCardProps {
   editable?: boolean;
   onDelete?: () => void;
   onChange?: (updated: PrayerPoint) => void;
+  isDisabled?: boolean;
   children?: React.ReactNode;
   maxLines?: number;
 }
 
 const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   prayer,
-  editable,
-  onDelete,
-  onChange,
+  isDisabled,
   children,
   maxLines = 1,
 }) => {
@@ -125,7 +124,8 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
         styles.container,
         { backgroundColor: Colors[colorScheme].background },
       ]}
-      onPress={handlePress}
+      onPress={!isDisabled ? handlePress : undefined}
+      activeOpacity={isDisabled ? 1 : 0.7} // disable opacity change when disabled
     >
       <View style={styles.headerContainer}>
         {!isPrayer && (
