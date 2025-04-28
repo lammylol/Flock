@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   Text,
+  Animated,
 } from 'react-native';
 import { PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
@@ -35,6 +36,8 @@ export function PrayerPointLinking({
   const textColor = useThemeColor({ light: Colors.link }, 'textPrimary');
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
+  const [linkSectionAnim] = useState(new Animated.Value(1)); // Animation for link section visibility
+  const [modalAnim] = useState(new Animated.Value(0)); // Animation for modal opacity
 
   const handleSetLinkedPrayerandOpenModal = (
     prayer: PrayerPoint | PrayerTopic,
