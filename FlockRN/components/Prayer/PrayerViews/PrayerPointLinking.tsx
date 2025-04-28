@@ -13,7 +13,6 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { EditMode } from '@/types/ComponentProps';
 import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
-import PopUpModal from '@/components/PopUpModal';
 
 export function PrayerPointLinking({
   editMode,
