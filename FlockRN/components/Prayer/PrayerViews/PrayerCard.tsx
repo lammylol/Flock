@@ -8,11 +8,9 @@ import {
   useColorScheme,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { ThemedText } from '@/components/ThemedText';
 import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
 import { Entypo } from '@expo/vector-icons';
 import { prayerTagDisplayNames, prayerTags } from '@/types/Tag';
-import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useMemo } from 'react';
 import { getEntityType } from '@/types/typeGuards';
