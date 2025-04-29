@@ -25,7 +25,7 @@ import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
-import { PrayerEntityType } from '@/types/PrayerSubtypes';
+import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
@@ -67,7 +67,7 @@ export default function PrayerMetadataScreen() {
     authorId: '',
     privacy: 'private',
     prayerPoints: [],
-    entityType: PrayerEntityType.Prayer,
+    entityType: EntityType.Prayer,
   });
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
 
@@ -89,8 +89,6 @@ export default function PrayerMetadataScreen() {
       const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
         ...point,
         id: uuid.v4(), // Ensure each has a unique ID
-        // Initialize with default type as array for new UI
-        types: point.type ? [point.type] : ['request'],
       }));
 
       setPrayerPoints(updatedPrayerPoints);
@@ -190,8 +188,10 @@ export default function PrayerMetadataScreen() {
         updatedPrayerPoints.map((prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
-          type: prayerPoint.type || 'request',
-          tags: prayerPoint.type ? [prayerPoint.type] : ['request'],
+          prayerType: prayerPoint.prayerType || PrayerType.Request,
+          tags: prayerPoint.prayerType
+            ? [prayerPoint.prayerType]
+            : [PrayerType.Request],
           content: prayerPoint.content?.trim() || '',
           createdAt: new Date(),
           authorId: auth.currentUser?.uid || 'unknown',
@@ -353,7 +353,7 @@ export default function PrayerMetadataScreen() {
       <PrayerContent
         editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
         backgroundColor={colorScheme}
-        prayerOrPrayerPoint={PrayerEntityType.Prayer}
+        prayerOrPrayerPoint={EntityType.Prayer}
         prayer={prayer}
         onChange={(updatedPrayer) => {
           handlePrayerUpdate(updatedPrayer as Prayer);

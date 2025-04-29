@@ -15,13 +15,14 @@ import { ThemedScrollView } from '@/components/ThemedScrollView';
 import {
   CreatePrayerPointDTO,
   PrayerPoint,
+  PrayerTopic,
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
-import { PrayerEntityType } from '@/types/PrayerSubtypes';
+import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
 import OpenAiService from '@/services/ai/openAIService';
@@ -45,9 +46,9 @@ export default function PrayerPointMetadataScreen() {
   const { userPrayerPoints, updateCollection } = usePrayerCollection();
   const user = auth.currentUser;
   const openAiService = OpenAiService.getInstance();
-  const [similarPrayerPoints, setSimilarPrayerPoints] = useState<PrayerPoint[]>(
-    [],
-  );
+  const [similarPrayers, setSimilarPrayers] = useState<
+    (Partial<PrayerPoint> | Partial<PrayerTopic>)[]
+  >([]);
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
@@ -55,7 +56,7 @@ export default function PrayerPointMetadataScreen() {
     id: processedParams.id || '',
     title: '',
     content: '',
-    type: 'request',
+    prayerType: PrayerType.Request,
     tags: [],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -67,8 +68,7 @@ export default function PrayerPointMetadataScreen() {
     recipientName: 'unknown',
     recipientId: 'unknown',
     prayerId: '',
-    prayerUpdates: [],
-    entityType: PrayerEntityType.PrayerPoint,
+    entityType: EntityType.PrayerPoint,
   });
 
   const loadPrayerPoint = useCallback(async () => {
@@ -137,7 +137,7 @@ export default function PrayerPointMetadataScreen() {
         user?.uid,
         sourcePrayerId,
       );
-      setSimilarPrayerPoints(similarPrayers);
+      setSimilarPrayers(similarPrayers);
     } catch (error) {
       console.error('Error finding similar prayers:', error);
     }
@@ -185,7 +185,7 @@ export default function PrayerPointMetadataScreen() {
           content: updatedPrayerPoint.content,
           privacy: privacy,
           tags: updatedPrayerPoint.tags,
-          type: updatedPrayerPoint.type,
+          prayerType: updatedPrayerPoint.prayerType,
           updatedAt: new Date(),
           status: updatedPrayerPoint.status,
         };
@@ -223,7 +223,7 @@ export default function PrayerPointMetadataScreen() {
           title: updatedPrayerPoint.title.trim(),
           content: updatedPrayerPoint.content.trim(),
           privacy: updatedPrayerPoint.privacy ?? 'private',
-          type: updatedPrayerPoint.type,
+          prayerType: updatedPrayerPoint.prayerType,
           tags: updatedPrayerPoint.tags,
           authorId: user.uid,
           authorName: user.displayName || 'unknown',
@@ -279,20 +279,18 @@ export default function PrayerPointMetadataScreen() {
         <View style={styles.upperContainer}>
           <PrayerContent
             editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
-            prayerOrPrayerPoint={PrayerEntityType.PrayerPoint}
+            prayerOrPrayerPoint={EntityType.PrayerPoint}
             backgroundColor={colorScheme}
             onChange={(updatedPrayerPointData) => {
-              if ('type' in updatedPrayerPointData) {
-                handlePrayerPointUpdate(updatedPrayerPointData);
-              }
+              handlePrayerPointUpdate(updatedPrayerPointData as PrayerPoint);
             }}
             prayer={updatedPrayerPoint}
           />
 
-          {similarPrayerPoints.length > 0 && (
+          {similarPrayers.length > 0 && (
             <PrayerPointLinking
               editMode={EditMode.CREATE}
-              similarPrayers={similarPrayerPoints}
+              similarPrayers={similarPrayers}
               prayerPoint={updatedPrayerPoint}
             />
           )}

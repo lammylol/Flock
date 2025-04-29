@@ -1,5 +1,5 @@
 import { Colors } from '@/constants/Colors';
-import { PrayerPointType } from '@/types/PrayerSubtypes';
+import { PrayerType } from '@/types/PrayerSubtypes';
 import { StyleSheet, View, Text } from 'react-native';
 
 export const prayerTypeEmojis = {
@@ -9,7 +9,7 @@ export const prayerTypeEmojis = {
 };
 
 export interface IconBackgroundSquare {
-  type: PrayerPointType; // only used for prayer points
+  type: PrayerType; // only used for prayer points
   customValue?: string;
   customBackground?: string;
 }
@@ -22,19 +22,23 @@ export const IconBackgroundSquare: React.FC<IconBackgroundSquare> = ({
   let backgroundColor: string;
   let emoji: string;
 
-  // Logic to determine background color and emoji based on type or customValue
-  if (type) {
-    backgroundColor = Colors.iconBackgroundColors.typeColors[type];
-    emoji = prayerTypeEmojis[type];
-  } else if (customValue) {
-    backgroundColor =
-      customBackground ?? Colors.iconBackgroundColors.defaultTag;
-    emoji = customValue;
-  } else {
-    // Default background and emoji for PrayerTopic
-    backgroundColor =
-      customBackground ?? Colors.iconBackgroundColors.defaultTag;
-    emoji = '#️⃣'; // Default emoji for PrayerTopic
+  // Logic to determine background color and emoji using a switch statement
+  switch (true) {
+    case !!type:
+      backgroundColor = Colors.iconBackgroundColors.typeColors[type];
+      emoji = prayerTypeEmojis[type];
+      break;
+    case !!customValue:
+      backgroundColor =
+        customBackground ?? Colors.iconBackgroundColors.defaultTag;
+      emoji = customValue;
+      break;
+    default:
+      // Default background and emoji for PrayerTopic
+      backgroundColor =
+        customBackground ?? Colors.iconBackgroundColors.defaultTag;
+      emoji = '#️⃣'; // Default emoji for PrayerTopic
+      break;
   }
 
   return (

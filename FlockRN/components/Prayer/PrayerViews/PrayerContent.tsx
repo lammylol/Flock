@@ -1,7 +1,7 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
-import { PrayerEntityType, PrayerPointType } from '@/types/PrayerSubtypes';
+import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { EditMode } from '@/types/ComponentProps';
 
@@ -14,7 +14,7 @@ export function PrayerContent({
 }: {
   editMode: EditMode;
   backgroundColor?: string;
-  prayerOrPrayerPoint: PrayerEntityType;
+  prayerOrPrayerPoint: EntityType;
   prayer?: Prayer | PrayerPoint; // only required for edit and view modes
   onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
 }): JSX.Element {
@@ -27,8 +27,11 @@ export function PrayerContent({
     triggerChange({ content: text });
   };
 
-  const handleTagsChange = (tags: PrayerPointType[]) => {
-    triggerChange({ tags: tags, type: tags[0] || 'request' });
+  const handleTagsChange = (tags: PrayerType[]) => {
+    triggerChange({
+      tags: tags,
+      prayerType: tags[0] || PrayerType.Request,
+    });
   };
 
   const triggerChange = (partial: Partial<Prayer | PrayerPoint>) => {
@@ -66,7 +69,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === EditMode.EDIT || editMode === EditMode.CREATE) &&
-      prayerOrPrayerPoint === 'prayerPoint' ? (
+        prayerOrPrayerPoint === EntityType.PrayerPoint ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={prayer?.title}
@@ -76,14 +79,14 @@ export function PrayerContent({
           placeholder="Enter a title"
           scrollEnabled={false}
         />
-      ) : prayerOrPrayerPoint === 'prayerPoint' ? (
+      ) : prayerOrPrayerPoint === EntityType.PrayerPoint ? (
         <ThemedText style={styles.titleText}>{prayer?.title}</ThemedText>
       ) : (
         <ThemedText style={styles.titleText}>
-          {editMode === 'create' ? 'Transcript' : formattedDate}
+          {editMode === EditMode.CREATE ? 'Transcript' : formattedDate}
         </ThemedText>
       )}
-      {editMode === 'edit' || editMode === 'create' ? (
+      {editMode === EditMode.EDIT || editMode === EditMode.CREATE ? (
         <TextInput
           style={[styles.contentText, styles.input]}
           value={prayer?.content}
@@ -95,7 +98,7 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{prayer?.content}</ThemedText>
       )}
-      {prayerOrPrayerPoint === 'prayerPoint' && (
+      {prayerOrPrayerPoint === EntityType.PrayerPoint && (
         <TagsSection
           tags={prayer?.tags || []}
           onChange={handleTagsChange}
