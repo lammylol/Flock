@@ -133,10 +133,10 @@ export default function PrayerMetadataScreen() {
       loadPrayer();
     } else {
       setIsEditMode(false);
-      setUpdatedPrayer((prevPrayer) => ({
-        ...prevPrayer,
+      setUpdatedPrayer({
+        ...prayer,
         content: processedParams.content || '',
-      }));
+      });
 
       if (isTranscribing) {
         setUpdatedPrayer((prevPrayer) => ({
