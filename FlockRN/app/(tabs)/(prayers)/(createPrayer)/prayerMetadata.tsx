@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -33,17 +33,18 @@ import { EditMode } from '@/types/ComponentProps';
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
-  const processedParamsRef = useRef({
-    content: '',
-    id: '',
-    mode: '',
-  });
-
   const params = useLocalSearchParams<{
     content?: string;
     id?: string;
     mode?: EditMode;
   }>();
+  const processedParams = useMemo(() => {
+    return {
+      content: params.content ?? '',
+      id: params.id ?? '',
+      mode: params.mode ?? '',
+    };
+  }, [params.content, params.id, params.mode]);
 
   // Determine if we're in edit mode
   const [isEditMode, setIsEditMode] = useState(false);
@@ -55,9 +56,9 @@ export default function PrayerMetadataScreen() {
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
   const { userPrayers, updateCollection } = usePrayerCollection();
   const [prayer, setUpdatedPrayer] = useState<Prayer>({
-    id: params.id || '',
+    id: processedParams.id || '',
     title: '',
-    content: params.content || '',
+    content: processedParams.content || '',
     tags: [],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -70,7 +71,7 @@ export default function PrayerMetadataScreen() {
 
   const analyzeContent = useCallback(async () => {
     setIsAnalyzing(true);
-    const content = transcription || params.content || '';
+    const content = transcription || processedParams.content || '';
     try {
       const analysis = await openAiService.analyzePrayerContent(
         content,
@@ -97,66 +98,43 @@ export default function PrayerMetadataScreen() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [transcription, params.content, openAiService, userOptInFlags.optInAI]);
+  }, [
+    transcription,
+    processedParams.content,
+    openAiService,
+    userOptInFlags.optInAI,
+  ]);
+
+  const loadPrayer = useCallback(async () => {
+    if (!processedParams.id) return;
+
+    const contextPrayer = userPrayers.find((p) => p.id === processedParams.id);
+
+    if (contextPrayer) {
+      setUpdatedPrayer({ ...contextPrayer });
+      return;
+    }
+
+    try {
+      const fetchedPrayer = await prayerService.getPrayer(processedParams.id);
+      if (fetchedPrayer) {
+        setUpdatedPrayer({ ...fetchedPrayer });
+      }
+    } catch (error) {
+      console.error('Error loading prayer:', error);
+    }
+  }, [processedParams.id, userPrayers]);
 
   const setupEditMode = useCallback(async () => {
-    // Update our tracking ref
-    processedParamsRef.current = {
-      content: params.content || '',
-      id: params.id || '',
-      mode: params.mode || '',
-    };
-
     // Check if we're in edit mode from URL params
-    if (params.mode === EditMode.EDIT && params.id) {
-      console.log('Edit mode detected from URL params');
+    if (processedParams.mode === EditMode.EDIT && processedParams.id) {
       setIsEditMode(true);
-
-      // First, try to find the prayer point in context
-      const contextPrayer = userPrayers.find((p) => p.id === params.id);
-
-      if (contextPrayer) {
-        console.log(
-          'Found prayer point in context:',
-          JSON.stringify({
-            id: contextPrayer.id,
-            title: contextPrayer.title,
-            content: contextPrayer.content?.substring(0, 20) + '...',
-            tags: contextPrayer.tags,
-            privacy: contextPrayer.privacy,
-            prayerPoints: contextPrayer.prayerPoints,
-            createdAt: contextPrayer.createdAt,
-            updatedAt: contextPrayer.updatedAt,
-            authorName: contextPrayer.authorName,
-            authorId: contextPrayer.authorId,
-          }),
-        );
-
-        // Set initial data from context
-        setUpdatedPrayer({
-          ...contextPrayer,
-        });
-      } else {
-        console.log('Prayer point not found in context. Fetching from API...');
-
-        try {
-          const fetchedPrayer = await prayerService.getPrayer(params.id);
-          if (fetchedPrayer) {
-            console.log('Fetched prayer from API');
-            setUpdatedPrayer({
-              ...fetchedPrayer,
-            });
-          }
-        } catch (error) {
-          console.error('Error fetching prayer point:', error);
-        }
-      }
+      loadPrayer();
     } else {
-      console.log('Create mode detected');
       setIsEditMode(false);
       setUpdatedPrayer((prevPrayer) => ({
         ...prevPrayer,
-        content: params.content || '',
+        content: processedParams.content || '',
       }));
 
       if (isTranscribing) {
@@ -180,12 +158,13 @@ export default function PrayerMetadataScreen() {
       }
     }
   }, [
-    params.mode,
-    params.id,
-    params.content,
-    userPrayers,
+    processedParams.mode,
+    processedParams.id,
+    processedParams.content,
+    loadPrayer,
     isTranscribing,
     transcription,
+    params.content,
     analyzeContent,
   ]);
 
