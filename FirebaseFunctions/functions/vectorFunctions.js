@@ -73,7 +73,7 @@ export const getVectorEmbeddings = functions.https.onRequest(
 
 export const findSimilarPrayersV2 = functions.https.onCall(
   async (request) => {
-    const { sourcePrayerId, queryEmbedding, topK, userId } = request.data;
+    const { sourcePrayerId, searchPrayerId, queryEmbedding, topK, userId } = request.data;
     // mandatory: queryEmbedding, topK, userId
     // optional: sourcePrayerID
 

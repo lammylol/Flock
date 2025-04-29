@@ -8,7 +8,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { Entypo } from '@expo/vector-icons';
 import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import EditablePrayerPointCard from './PrayerPointCard';
+import EditablePrayerCard from './PrayerCard';
 
 interface PrayerPointProps {
   prayerPoints: PrayerPoint[];
@@ -60,10 +60,10 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
         )}
       </View>
       {updatedPrayerPoints.map((prayerPoint: PrayerPoint) => (
-        <EditablePrayerPointCard
+        <EditablePrayerCard
           key={prayerPoint.id}
-          prayerPoint={prayerPoint}
-          isEditMode={isEditMode}
+          prayer={prayerPoint}
+          editable={isEditMode}
           onDelete={() => handleDelete(prayerPoint.id)}
           onChange={(updatedPrayerPoint) => {
             const updatedData = updatedPrayerPoints.map((point) =>
@@ -72,6 +72,7 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
             setUpdatedPrayerPoints(updatedData);
             onChange?.(updatedData);
           }}
+          maxLines={3}
         />
       ))}
     </ThemedView>

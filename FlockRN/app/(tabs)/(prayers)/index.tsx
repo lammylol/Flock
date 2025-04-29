@@ -4,7 +4,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { useFocusEffect } from '@react-navigation/native';
-import PrayerCard from '@/components/Prayer/PrayerViews/PrayerCard';
+import EditablePrayerCard from '@/components/Prayer/PrayerViews/PrayerCard';
 import { Tabs } from '@/components/Tab';
 import SearchBar from '@/components/ui/SearchBar';
 import { FloatingAddPrayerButton } from '@/components/Prayer/PrayerViews/FloatingAddPrayerButton';
@@ -51,14 +51,22 @@ export default function TabTwoScreen() {
           {selectedTab === 'prayerPoints' && (
             <ThemedScrollView>
               {filteredUserPrayerPoints.map((prayerPoint: PrayerPoint) => (
-                <PrayerCard key={prayerPoint.id} prayer={prayerPoint} />
+                <EditablePrayerCard
+                  key={prayerPoint.id}
+                  prayer={prayerPoint}
+                  editable={false}
+                />
               ))}
             </ThemedScrollView>
           )}
           {selectedTab === 'userPrayers' && (
             <ThemedScrollView>
               {filteredUserPrayers.map((prayer: Prayer) => (
-                <PrayerCard key={prayer.id} prayer={prayer} />
+                <EditablePrayerCard
+                  key={prayer.id}
+                  prayer={prayer}
+                  editable={false}
+                />
               ))}
             </ThemedScrollView>
           )}
