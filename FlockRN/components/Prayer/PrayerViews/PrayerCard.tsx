@@ -41,8 +41,6 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
     return getEntityType(prayer);
   }, [prayer]);
 
-  console.log('entityType', entityType);
-
   // Use the entityType to create the boolean checks
   const isPrayerPoint = entityType === 'prayerPoint';
 

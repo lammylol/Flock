@@ -129,7 +129,7 @@ export default function PrayerPointMetadataScreen() {
     }
 
     try {
-      const similarPrayers = await prayerService.findRelatedPrayerPoints(
+      const similarPrayers = await prayerService.findRelatedPrayers(
         embedding,
         user.uid,
       );
@@ -184,7 +184,10 @@ export default function PrayerPointMetadataScreen() {
           status: updatedPrayerPoint.status,
         };
 
-        await prayerService.editPrayerPoint(updatedPrayerPoint.id, updateData);
+        await prayerService.updatePrayerPoint(
+          updatedPrayerPoint.id,
+          updateData,
+        );
 
         // Update the prayer point in the collection context
         const updatedPrayerPointFinal = {

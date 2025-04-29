@@ -14,10 +14,10 @@ import {
   where,
   orderBy,
   Timestamp,
-  writeBatch,
   setDoc,
   QueryDocumentSnapshot,
   DocumentData,
+  CollectionReference,
 } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
 import {
@@ -35,6 +35,7 @@ import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getApp } from 'firebase/app';
+import { getEntityType } from '@/types/typeGuards';
 
 class PrayerService {
   private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
@@ -172,20 +173,6 @@ class PrayerService {
           prayerId,
         ),
       );
-
-      // Delete all updates subcollection
-      const updatesRef = collection(
-        this.prayersCollection,
-        prayerId,
-        'updates',
-      );
-      const updatesSnapshot = await getDocs(updatesRef);
-
-      const batch = writeBatch(db);
-      updatesSnapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-      await batch.commit();
     } catch (error) {
       console.error('Error deleting prayer:', error);
       throw error;
@@ -260,7 +247,7 @@ class PrayerService {
     }
   }
 
-  async editPrayerPoint(
+  async updatePrayerPoint(
     prayerPointId: string,
     data: UpdatePrayerPointDTO,
   ): Promise<void> {
@@ -268,6 +255,7 @@ class PrayerService {
       const now = Timestamp.now();
       const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
 
+      // We should reconsider this if needed. Sounds like an excessive read.
       // Get the current prayer point to check for privacy changes
       const currentPrayerPoint = await this.getPrayerPoint(prayerPointId);
       if (!currentPrayerPoint) {
@@ -315,6 +303,7 @@ class PrayerService {
     authorId: string,
   ): Promise<void> {
     try {
+      // Excessive read - need to refactor and reconsider this.
       // First get the prayer point to check if it exists
       const prayerPoint = await this.getPrayerPoint(prayerPointId);
       if (!prayerPoint) {
@@ -437,38 +426,6 @@ class PrayerService {
     }
   }
 
-  //added for PrayerPoint CRUD
-  async updatePrayerPoint(
-    prayerPointId: string,
-    data: Partial<UpdatePrayerPointDTO>,
-  ): Promise<void> {
-    try {
-      const now = Timestamp.now();
-      const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
-
-      await updateDoc(prayerPointRef, {
-        ...data,
-        updatedAt: now,
-      });
-
-      // If the prayer point's privacy status changes, we might need to handle feed visibility
-      // Similar to how you handle it in updatePrayer()
-      if (data.privacy !== undefined) {
-        // Fetch the prayer point to get its prayerId
-        const prayerPoint = await this.getPrayerPointById(prayerPointId);
-        if (prayerPoint && prayerPoint.prayerId) {
-          // You may want to update the prayer's updatedAt timestamp
-          await updateDoc(doc(this.prayersCollection, prayerPoint.prayerId), {
-            updatedAt: now,
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error updating prayer point:', error);
-      throw error;
-    }
-  }
-
   // Helper method to get a single prayer point by ID
   async getPrayerPointById(prayerPointId: string): Promise<PrayerPoint | null> {
     try {
@@ -484,49 +441,8 @@ class PrayerService {
     }
   }
 
-  // Searchable suggested prayer points
-  async findRelatedPrayerPoints(
-    embedding: number[],
-    userId: string,
-  ): Promise<PrayerPoint[] | []> {
-    try {
-      const functions = getFunctions(getApp());
-      // Ensure the function is deployed and callable
-      const findSimilarPrayerPoints = httpsCallable(
-        functions,
-        'findSimilarPrayers',
-      );
-      const result = await findSimilarPrayerPoints({
-        queryEmbedding: embedding,
-        topK: 5,
-        userId: userId,
-      });
-      const data = (
-        result.data as {
-          result: {
-            id: string;
-            similarity: string;
-            title: string;
-            type: string;
-          }[];
-        }
-      )?.result;
-
-      return data.map(
-        (prayerPoint: { id: string; title: string; type: string }) =>
-          ({
-            id: prayerPoint.id,
-            title: prayerPoint.title,
-            type: prayerPoint.type,
-          }) as PrayerPoint,
-      );
-    } catch (error) {
-      console.error('Error getting prayer point:', error);
-      return []; // Return an empty array in case of an error
-    }
-  }
-
   // ==== Prayer Topic CRUD ====
+  // Sharing is not supported for prayer topics yet.
 
   async createPrayerTopic(data: CreatePrayerTopicDTO): Promise<string> {
     try {
@@ -551,6 +467,75 @@ class PrayerService {
     }
   }
 
+  //added for PrayerPoint CRUD
+  async updatePrayerTopic(
+    prayerTopicId: string,
+    data: Partial<UpdatePrayerPointDTO>,
+  ): Promise<void> {
+    try {
+      const now = Timestamp.now();
+      const prayerPointRef = doc(this.prayerTopicsCollection, prayerTopicId);
+
+      // Check if the prayer topic exists
+      const exists = await this.checkIfDocumentExists(
+        this.prayerTopicsCollection,
+        prayerTopicId,
+      );
+      if (!exists) {
+        throw new Error('Prayer topic not found');
+      }
+
+      await updateDoc(prayerPointRef, {
+        ...data,
+        updatedAt: now,
+      });
+
+      // Placeholder to add to another feed later.
+    } catch (error) {
+      console.error('Error updating prayer point:', error);
+      throw error;
+    }
+  }
+
+  async deletePrayerTopic(prayerTopicId: string): Promise<void> {
+    try {
+      // Check if the prayer topic exists
+      const exists = await this.checkIfDocumentExists(
+        this.prayerTopicsCollection,
+        prayerTopicId,
+      );
+      if (!exists) {
+        throw new Error('Prayer topic not found');
+      }
+
+      // Delete the prayer topic document
+      await deleteDoc(doc(this.prayerTopicsCollection, prayerTopicId));
+
+      // Placeholder to remove from author's feed later.
+    } catch (error) {
+      console.error('Error deleting prayer topic:', error);
+      throw error;
+    }
+  }
+
+  async getUserPrayerTopics(userId: string): Promise<PrayerTopic[]> {
+    try {
+      const q = query(
+        this.prayerTopicsCollection,
+        where('authorId', '==', userId),
+        orderBy('createdAt', 'desc'),
+      );
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) return [];
+      return querySnapshot.docs.map(
+        (doc) => this.convertDocToPrayerTopic(doc) as PrayerTopic,
+      );
+    } catch (error) {
+      console.error('Error getting user prayer topics:', error);
+      throw error;
+    }
+  }
+
   async getPrayerTopic(id: string): Promise<PrayerTopic | null> {
     try {
       const docRef = doc(this.prayerTopicsCollection, id);
@@ -561,6 +546,80 @@ class PrayerService {
       return this.convertDocToPrayerTopic(docSnap);
     } catch (error) {
       console.error('Error getting prayer points:', error);
+      throw error;
+    }
+  }
+
+  // ==== Searchable prayer =====
+
+  // Search suggested prayer points
+  async findRelatedPrayers(
+    embedding: number[],
+    userId: string,
+  ): Promise<(Partial<PrayerPoint> | Partial<PrayerTopic>)[] | []> {
+    try {
+      const functions = getFunctions(getApp());
+      // Ensure the function is deployed and callable
+      const findSimilarPrayers = httpsCallable(
+        functions,
+        'findSimilarPrayersV2',
+      );
+      const result = await findSimilarPrayers({
+        queryEmbedding: embedding,
+        topK: 5,
+        userId: userId,
+      });
+      const data = (
+        result.data as {
+          result: {
+            id: string;
+            similarity: string;
+            title: string;
+            prayerType: string;
+            entityType: string;
+          }[];
+        }
+      )?.result;
+
+      return data.map(
+        (prayer: {
+          id: string;
+          title: string;
+          prayerType: string;
+          entityType: string;
+        }) => {
+          if (getEntityType(prayer.entityType) === 'prayerTopic') {
+            return {
+              id: prayer.id,
+              title: prayer.title,
+              entityType: prayer.entityType,
+            } as Partial<PrayerTopic>;
+          } else {
+            return {
+              id: prayer.id,
+              title: prayer.title,
+              prayerType: prayer.prayerType,
+              entityType: prayer.entityType,
+            } as Partial<PrayerPoint>;
+          }
+        },
+      );
+    } catch (error) {
+      console.error('Error getting prayer point:', error);
+      return []; // Return an empty array in case of an error
+    }
+  }
+
+  async checkIfDocumentExists(
+    collectionName: CollectionReference,
+    documentId: string,
+  ): Promise<boolean> {
+    try {
+      const docRef = doc(collectionName, documentId);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists();
+    } catch (error) {
+      console.error('Error checking document existence:', error);
       throw error;
     }
   }
@@ -627,6 +686,7 @@ class PrayerService {
       contextAsStrings: data.contextAsStrings,
       contextAsEmbeddings: data.contextAsEmbeddings,
       entityType: data.entityType as PrayerEntityType,
+      content: data.content,
     };
   }
 }
