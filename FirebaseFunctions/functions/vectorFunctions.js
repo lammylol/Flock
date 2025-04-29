@@ -73,7 +73,7 @@ export const getVectorEmbeddings = functions.https.onRequest(
 
 export const findSimilarPrayersV2 = functions.https.onCall(
   async (request) => {
-    const { queryEmbedding, topK, userId } = request.data;
+    const { searchPrayerId, queryEmbedding, topK, userId } = request.data;
 
     // Check if the function is called by an authenticated user
     if (!request.auth) {

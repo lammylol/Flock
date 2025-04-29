@@ -1,10 +1,10 @@
 import { ThemedView } from '@/components/ThemedView';
-import PrayerCard from './PrayerCard';
 import Button from '@/components/Button';
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { PrayerCardButtonProps } from '@/types/ComponentProps';
+import EditablePrayerCard from './PrayerCard';
 
 export interface PrayerCardWithButtonProps {
   prayer: Prayer | PrayerPoint | PrayerTopic;
@@ -18,7 +18,7 @@ export default function PrayerCardWithButtons({
   button2,
 }: PrayerCardWithButtonProps): JSX.Element {
   return (
-    <PrayerCard prayer={prayer}>
+    <EditablePrayerCard prayer={prayer} editable={false}>
       <ThemedView style={styles.actionBar}>
         <Button
           label={button1.label}
@@ -39,7 +39,7 @@ export default function PrayerCardWithButtons({
           />
         )}
       </ThemedView>
-    </PrayerCard>
+    </EditablePrayerCard>
   );
 }
 

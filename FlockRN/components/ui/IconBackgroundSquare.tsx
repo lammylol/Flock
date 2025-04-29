@@ -1,5 +1,5 @@
 import { Colors } from '@/constants/Colors';
-import { PrayerType } from '@/types/PrayerSubtypes';
+import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { StyleSheet, View, Text } from 'react-native';
 
 export const prayerTypeEmojis = {
@@ -9,12 +9,14 @@ export const prayerTypeEmojis = {
 };
 
 export interface IconBackgroundSquare {
-  type: PrayerType; // only used for prayer points
+  entityType: EntityType;
+  type?: PrayerType; // only used for prayer points
   customValue?: string;
   customBackground?: string;
 }
 
 export const IconBackgroundSquare: React.FC<IconBackgroundSquare> = ({
+  entityType,
   type,
   customValue,
   customBackground,
@@ -24,7 +26,7 @@ export const IconBackgroundSquare: React.FC<IconBackgroundSquare> = ({
 
   // Logic to determine background color and emoji using a switch statement
   switch (true) {
-    case !!type:
+    case !!entityType && entityType === EntityType.PrayerPoint && !!type:
       backgroundColor = Colors.iconBackgroundColors.typeColors[type];
       emoji = prayerTypeEmojis[type];
       break;

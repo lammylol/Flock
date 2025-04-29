@@ -11,7 +11,7 @@ export function getEntityType(obj: unknown): EntityType | undefined {
     if (!('title' in obj)) {
       return EntityType.Prayer; // Assuming 'title' means it's a Prayer
     }
-    if ('type' in obj) {
+    if ('prayerType' in obj) {
       return EntityType.PrayerPoint;
     }
     if ('journey' in obj) {
