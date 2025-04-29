@@ -42,7 +42,9 @@ export default function PrayerCard({
     });
   })();
 
-  const prayerType = getPrayerType(prayer);
+  const prayerType = useMemo(() => {
+    return getPrayerType(prayer);
+  }, [prayer]);
 
   const entityType = useMemo(() => {
     return getEntityType(prayer);
@@ -66,12 +68,12 @@ export default function PrayerCard({
             params: { id: (prayer as Prayer).id },
           });
           break;
-        // case 'prayerTopic':
-        //   router.push({
-        //     pathname: '/(tabs)/(prayers)/prayerTopicView',
-        //     params: { id: (prayer as PrayerTopic).id },
-        //   });
-        //   break;
+        case 'prayerTopic':
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerTopicView',
+            params: { id: (prayer as PrayerTopic).id },
+          });
+          break;
         default:
           // Handle unknown entity type
           console.error('Unknown entity type:', entityType);
@@ -92,7 +94,7 @@ export default function PrayerCard({
     >
       <View style={styles.headerContainer}>
         {isPrayerPoint && (
-          <IconBackgroundSquare type={(prayer as PrayerPoint).type} />
+          <IconBackgroundSquare type={(prayer as PrayerPoint).prayerType} />
         )}
         <View style={styles.titleContainer}>
           <ThemedText style={styles.title}>

@@ -30,7 +30,7 @@ import {
   PrayerTopic,
   CreatePrayerTopicDTO,
 } from '@/types/firebase';
-import { PrayerPointType, PrayerEntityType } from '@/types/PrayerSubtypes';
+import { PrayerType, EntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { User } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -58,7 +58,7 @@ class PrayerService {
         ...data,
         createdAt: now,
         updatedAt: now,
-        entityType: PrayerEntityType.Prayer,
+        entityType: EntityType.Prayer,
       });
 
       // After the document is created, update it with the generated ID
@@ -192,7 +192,7 @@ class PrayerService {
           ...point, // Use the actual prayer point data
           createdAt: now,
           updatedAt: now,
-          entityType: PrayerEntityType.PrayerPoint,
+          entityType: EntityType.PrayerPoint,
         });
 
         // After the document is created, update it with the generated ID
@@ -219,7 +219,7 @@ class PrayerService {
         ...data,
         createdAt: now,
         updatedAt: now,
-        entityType: PrayerEntityType.PrayerPoint,
+        entityType: EntityType.PrayerPoint,
       });
 
       // After the document is created, update it with the generated ID
@@ -452,7 +452,7 @@ class PrayerService {
         ...data,
         createdAt: now,
         updatedAt: now,
-        entityType: PrayerEntityType.PrayerTopic,
+        entityType: EntityType.PrayerTopic,
       });
 
       // After the document is created, update it with the generated ID
@@ -637,7 +637,7 @@ class PrayerService {
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
       prayerPoints: data.prayerPoints,
-      entityType: data.entityType as PrayerEntityType,
+      entityType: data.entityType as EntityType,
     };
   }
 
@@ -657,12 +657,12 @@ class PrayerService {
       updatedAt: data.updatedAt as Date,
       prayerId: data.prayerId,
       tags: data.tags,
-      type: data.type as PrayerPointType,
+      prayerType: data.prayerType as PrayerType,
       recipientId: data.recipientId,
       recipientName: data.recipientName,
       isOrigin: data.isOrigin,
       embedding: data.embedding,
-      entityType: data.entityType as PrayerEntityType,
+      entityType: data.entityType as EntityType,
     };
   }
 
@@ -677,7 +677,7 @@ class PrayerService {
       title: data.title,
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
-      prayerTypes: data.prayerTypes,
+      prayerTypes: data.prayerTypes as PrayerType[],
       status: data.status,
       privacy: data.privacy,
       recipientId: data.recipientId,
@@ -685,7 +685,7 @@ class PrayerService {
       journey: data.journey,
       contextAsStrings: data.contextAsStrings,
       contextAsEmbeddings: data.contextAsEmbeddings,
-      entityType: data.entityType as PrayerEntityType,
+      entityType: data.entityType as EntityType,
       content: data.content,
     };
   }

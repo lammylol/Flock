@@ -11,7 +11,7 @@ import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
 import { Entypo } from '@expo/vector-icons';
 import { prayerTagDisplayNames, prayerTags } from '@/types/Tag';
 import { PrayerPoint, PrayerTopic } from '@/types/firebase';
-import { PrayerPointType } from '@/types/PrayerSubtypes';
+import { PrayerType } from '@/types/PrayerSubtypes';
 
 interface EditablePrayerPointCardProps {
   prayerPoint: PrayerPoint;
@@ -52,8 +52,11 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointCardProps> = ({
   };
 
   const handleTypeChange = (tag: string) => {
-    const tags = [tag as PrayerPointType];
-    triggerChange({ tags: tags, type: tags[0] || 'request' });
+    const tags = [tag as PrayerType];
+    triggerChange({
+      tags: tags,
+      prayerType: tags[0] || PrayerType.Request,
+    });
   };
 
   return (
@@ -64,7 +67,7 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointCardProps> = ({
       ]}
     >
       <View style={styles.headerContainer}>
-        <IconBackgroundSquare type={prayerPoint.type} />
+        <IconBackgroundSquare type={prayerPoint.prayerType} />
         <View style={styles.titleContainer}>
           {isEditMode ? (
             <TextInput
@@ -88,7 +91,7 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointCardProps> = ({
                     styles.tagButton,
                     {
                       backgroundColor:
-                        tag === prayerPoint.type
+                        tag === prayerPoint.prayerType
                           ? Colors.tagColors.typeColors[tag]
                           : Colors.tagColors.defaultTag,
                     },
@@ -108,10 +111,10 @@ const EditablePrayerPointCard: React.FC<EditablePrayerPointCardProps> = ({
                 { color: Colors[colorScheme].textSecondary },
               ]}
             >
-              {(prayerTagDisplayNames[prayerPoint.type]
+              {(prayerTagDisplayNames[prayerPoint.prayerType]
                 ?.charAt(0)
                 .toUpperCase() ?? '') +
-                (prayerTagDisplayNames[prayerPoint.type]?.slice(1) ?? '')}
+                (prayerTagDisplayNames[prayerPoint.prayerType]?.slice(1) ?? '')}
             </ThemedText>
           )}
         </View>

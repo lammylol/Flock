@@ -38,22 +38,6 @@ export default function PrayerCardWithButtons({
             backgroundColor={Colors.brown1}
           />
         )}
-        {/* <Button
-          label={'Link and Create #Topic'}
-          onPress={() => { }}
-          size="s"
-          flex={1}
-          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-          backgroundColor={Colors.grey1}
-        /> */}
-        {/* <Button
-          label={'🙏 Pray!'}
-          onPress={() => { }}
-          size="s"
-          flex={1}
-          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-          backgroundColor={Colors.brown1}
-        /> */}
       </ThemedView>
     </PrayerCard>
   );

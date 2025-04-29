@@ -2,9 +2,9 @@
 // 1/29/25
 // set all types for Firebase
 import {
-  PrayerEntityType,
+  EntityType,
   PrayerTag,
-  PrayerPointType,
+  PrayerType,
   Privacy,
   Status,
 } from './PrayerSubtypes';
@@ -59,8 +59,8 @@ export interface Prayer {
   updatedAt: Date;
   privacy: Privacy;
   prayerPoints: string[];
-  tags?: PrayerPointType[];
-  entityType: PrayerEntityType;
+  tags?: PrayerType[];
+  entityType: EntityType;
 }
 
 export interface PrayerPoint {
@@ -72,8 +72,8 @@ export interface PrayerPoint {
   authorName: string;
   authorId: string;
   prayerId?: string | string[];
-  type: PrayerPointType;
-  tags?: PrayerPointType[];
+  prayerType: PrayerType;
+  tags?: PrayerType[];
   status?: Status;
   privacy?: Privacy;
   prayerUpdates?: [];
@@ -81,7 +81,7 @@ export interface PrayerPoint {
   recipientId?: string;
   embedding?: number[];
   isOrigin: boolean;
-  entityType: PrayerEntityType;
+  entityType: EntityType;
 }
 
 export interface PrayerTopic {
@@ -93,7 +93,7 @@ export interface PrayerTopic {
   endDate?: Date;
   authorName: string;
   authorId: string;
-  prayerTypes?: PrayerPointType[];
+  prayerTypes?: PrayerType[];
   status?: Status;
   privacy?: Privacy;
   recipientName?: string;
@@ -101,7 +101,7 @@ export interface PrayerTopic {
   journey: PrayerPointInPrayerTopicDTO[];
   contextAsStrings: string;
   contextAsEmbeddings: number[];
-  entityType: PrayerEntityType;
+  entityType: EntityType;
 }
 
 // ===== Other Types =====
