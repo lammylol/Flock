@@ -14,6 +14,7 @@ import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { PrayerPoint } from '@/types/firebase';
 import { forEach } from 'lodash';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { EditMode } from '@/types/ComponentProps';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{
@@ -90,7 +91,7 @@ const PrayerView = () => {
       pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: {
         id: prayer.id,
-        mode: 'edit',
+        editMode: 'edit',
       },
     });
   };
@@ -120,7 +121,7 @@ const PrayerView = () => {
               }}
             />
             <PrayerContent
-              editMode="view"
+              editMode={EditMode.VIEW}
               prayer={prayer}
               prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
               backgroundColor={colorScheme}

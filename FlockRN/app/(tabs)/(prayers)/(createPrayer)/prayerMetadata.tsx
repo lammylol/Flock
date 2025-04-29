@@ -36,15 +36,15 @@ export default function PrayerMetadataScreen() {
   const params = useLocalSearchParams<{
     content?: string;
     id?: string;
-    mode?: EditMode;
+    editMode?: EditMode;
   }>();
   const processedParams = useMemo(() => {
     return {
       content: params.content ?? '',
       id: params.id ?? '',
-      mode: params.mode ?? '',
+      editMode: params.editMode ?? '',
     };
-  }, [params.content, params.id, params.mode]);
+  }, [params.content, params.id, params.editMode]);
 
   // Determine if we're in edit mode
   const [isEditMode, setIsEditMode] = useState(false);
@@ -108,6 +108,7 @@ export default function PrayerMetadataScreen() {
   const loadPrayer = useCallback(async () => {
     if (!processedParams.id) return;
 
+    // Look for prayer
     const contextPrayer = userPrayers.find((p) => p.id === processedParams.id);
 
     if (contextPrayer) {
@@ -127,7 +128,7 @@ export default function PrayerMetadataScreen() {
 
   const setupEditMode = useCallback(async () => {
     // Check if we're in edit mode from URL params
-    if (processedParams.mode === EditMode.EDIT && processedParams.id) {
+    if (processedParams.editMode === EditMode.EDIT && processedParams.id) {
       setIsEditMode(true);
       loadPrayer();
     } else {
@@ -158,7 +159,7 @@ export default function PrayerMetadataScreen() {
       }
     }
   }, [
-    processedParams.mode,
+    processedParams.editMode,
     processedParams.id,
     processedParams.content,
     loadPrayer,

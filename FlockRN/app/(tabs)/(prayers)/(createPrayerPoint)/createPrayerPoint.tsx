@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -28,16 +28,17 @@ import OpenAiService from '@/services/ai/openAIService';
 import { EditMode } from '@/types/ComponentProps';
 
 export default function PrayerPointMetadataScreen() {
-  // Define the ref at the component level
-  const processedParamsRef = useRef({
-    id: '',
-    editMode: '',
-  });
-
   const params = useLocalSearchParams<{
     id?: string;
     editMode?: EditMode;
   }>();
+
+  const processedParams = useMemo(() => {
+    return {
+      id: params.id ?? '',
+      editMode: (params.editMode as EditMode) ?? EditMode.CREATE,
+    };
+  }, [params.editMode, params.id]);
 
   // State for edit mode
   const [isEditMode, setIsEditMode] = useState(false);
@@ -52,7 +53,7 @@ export default function PrayerPointMetadataScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
   const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
-    id: params.id || '',
+    id: processedParams.id || '',
     title: '',
     content: '',
     type: 'request',
@@ -70,77 +71,46 @@ export default function PrayerPointMetadataScreen() {
     prayerUpdates: [],
   });
 
-  const setupEditMode = useCallback(async () => {
-    console.log('⭐ Setting up edit mode check');
-    console.log('⭐ Mode:', params.editMode);
-    console.log('⭐ ID:', params.id);
+  const loadPrayerPoint = useCallback(async () => {
+    // First, try to find the prayer point in context
+    const contextPrayerPoint = userPrayerPoints.find(
+      (p) => p.id === processedParams.id,
+    );
 
-    // Update our tracking ref
-    processedParamsRef.current = {
-      id: params.id || '',
-      editMode: params.editMode || EditMode.CREATE,
-    };
+    if (contextPrayerPoint) {
+      console.log('Found prayer point in context: ', contextPrayerPoint.id);
 
-    // Check if we're in edit mode from URL params
-    if (params.editMode === EditMode.EDIT && params.id) {
-      console.log('⭐ Edit mode detected from URL params');
-      setIsEditMode(true);
-
-      // First, try to find the prayer point in context
-      const contextPrayerPoint = userPrayerPoints.find(
-        (p) => p.id === params.id,
+      // Set initial data from context
+      setUpdatedPrayerPoint({
+        ...contextPrayerPoint,
+      });
+      return;
+    }
+    try {
+      const fetchedPrayer = await prayerService.getPrayerPoint(
+        processedParams.id,
       );
-
-      if (contextPrayerPoint) {
-        console.log(
-          '⭐ Found prayer point in context:',
-          JSON.stringify({
-            id: contextPrayerPoint.id,
-            title: contextPrayerPoint.title,
-            content: contextPrayerPoint.content?.substring(0, 20) + '...',
-            privacy: contextPrayerPoint.privacy,
-            type: contextPrayerPoint.type,
-            tags: contextPrayerPoint.tags,
-            createdAt: contextPrayerPoint.createdAt,
-            updatedAt: contextPrayerPoint.updatedAt,
-            authorName: contextPrayerPoint.authorName,
-            authorId: contextPrayerPoint.authorId,
-            status: contextPrayerPoint.status,
-            origin: contextPrayerPoint.isOrigin,
-            recipientName: contextPrayerPoint.recipientName,
-            recipientId: contextPrayerPoint.recipientId,
-            prayerId: contextPrayerPoint.prayerId,
-            prayerUpdates: contextPrayerPoint.prayerUpdates,
-            embedding: contextPrayerPoint.embedding,
-          }),
-        );
-
-        // Set initial data from context
+      if (fetchedPrayer) {
+        console.log('Fetched prayer from API');
         setUpdatedPrayerPoint({
-          ...contextPrayerPoint,
+          ...fetchedPrayer,
         });
-      } else {
-        console.log(
-          '⭐ Prayer point not found in context. Fetching from API...',
-        );
-
-        try {
-          const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
-          if (fetchedPrayer) {
-            console.log('⭐ Fetched prayer from API');
-            setUpdatedPrayerPoint({
-              ...fetchedPrayer,
-            });
-          }
-        } catch (error) {
-          console.error('⭐ Error fetching prayer point:', error);
-        }
       }
+    } catch (error) {
+      console.error('Error fetching prayer point:', error);
+    }
+  }, [processedParams.id, userPrayerPoints]);
+
+  const setupEditMode = useCallback(async () => {
+    // Check if we're in edit mode from URL params
+    if (processedParams.editMode === EditMode.EDIT && processedParams.id) {
+      setIsEditMode(true);
+      loadPrayerPoint();
     } else {
       console.log('⭐ Create mode detected');
       setIsEditMode(false);
     }
-  }, [params.editMode, params.id, userPrayerPoints]);
+  }, [loadPrayerPoint, processedParams.editMode, processedParams.id]);
 
   const handlePrayerPointUpdate = (updatedPrayerPointData: PrayerPoint) => {
     setUpdatedPrayerPoint((prevPrayerPoint) => ({

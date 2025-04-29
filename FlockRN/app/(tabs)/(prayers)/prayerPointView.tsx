@@ -21,6 +21,7 @@ import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { Colors } from '@/constants/Colors';
 import { auth } from '@/firebase/firebaseConfig';
 import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { EditMode } from '@/types/ComponentProps';
 
 const PrayerPointView = () => {
   const { id: prayerPointId } = useLocalSearchParams() as {
@@ -77,11 +78,7 @@ const PrayerPointView = () => {
         pathname: '/(tabs)/(prayers)/(createPrayerPoint)/createPrayerPoint',
         params: {
           id: prayerPoint.id,
-          title: prayerPoint.title || '',
-          content: prayerPoint.content || '',
-          privacy: prayerPoint.privacy || 'private',
-          tags: JSON.stringify(prayerPoint.tags || []),
-          mode: 'edit',
+          editMode: EditMode.EDIT,
         },
       });
     } catch (error) {
@@ -191,7 +188,7 @@ const PrayerPointView = () => {
             </ThemedText>
 
             <PrayerContent
-              editMode="view"
+              editMode={EditMode.VIEW}
               prayer={prayerPoint}
               prayerOrPrayerPoint={PrayerOrPrayerPointType.PrayerPoint}
               backgroundColor={backgroundColor}
