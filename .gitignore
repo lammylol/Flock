@@ -99,3 +99,4 @@ google-services.json
 *.p12
 *.key
 *.mobileprovision
+FirebaseFunctions/functions/firebaseCredentials.json

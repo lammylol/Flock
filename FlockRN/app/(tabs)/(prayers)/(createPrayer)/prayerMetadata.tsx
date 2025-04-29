@@ -3,7 +3,6 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  View,
   StyleSheet,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
@@ -43,7 +42,7 @@ export default function PrayerMetadataScreen() {
   const params = useLocalSearchParams<{
     content?: string;
     id?: string;
-    mode?: string;
+    mode?: EditMode;
   }>();
 
   // Determine if we're in edit mode
@@ -109,7 +108,7 @@ export default function PrayerMetadataScreen() {
     };
 
     // Check if we're in edit mode from URL params
-    if (params.mode === 'edit' && params.id) {
+    if (params.mode === EditMode.EDIT && params.id) {
       console.log('Edit mode detected from URL params');
       setIsEditMode(true);
 
@@ -198,24 +197,29 @@ export default function PrayerMetadataScreen() {
       // Get prayer point embedding. In the future, we may want to consider 'opt-out' since this uses OpenAI.
       // However, we should ensure that the embedding is generated for each prayer point so that in the future,
       // if the user wants to opt-in, we already have the embeddings.
-      await Promise.all(
+      const updatedPrayerPoints: PrayerPoint[] = await Promise.all(
         prayerPoints.map(async (point) => {
-          const input = `${point.title} ${point.content}`.trim();
-          const embeddingInput = await openAiService.getVectorEmbeddings(input);
-          if (embeddingInput.length > 0) {
-            point.embedding = embeddingInput;
-          } else {
-            console.error(
-              'Error generating embedding for prayer point:',
-              point,
-            );
+          if (userOptInFlags.optInAI) {
+            const input = `${point.title} ${point.content}`.trim();
+            const embeddingInput =
+              await openAiService.getVectorEmbeddings(input);
+
+            if (embeddingInput.length > 0) {
+              return {
+                ...point,
+                embedding: embeddingInput,
+              };
+            } else {
+              console.warn('No embedding generated for point:', point);
+            }
           }
+          return point; // Return original if opt-out or embedding failed
         }),
       );
 
       // Transform prayer points
-      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
-        (prayerPoint) => ({
+      const mappedPrayerPoints: CreatePrayerPointDTO[] =
+        updatedPrayerPoints.map((prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
           type: prayerPoint.type || 'request',
@@ -234,8 +238,7 @@ export default function PrayerMetadataScreen() {
           ...(prayerPoint.embedding?.length
             ? { embedding: prayerPoint.embedding }
             : {}), // Only include if it exists. This is essential for embedding search. NaN values will break the search.
-        }),
-      );
+        }));
 
       // Save to Firestore
       const prayerPointIds =
@@ -397,9 +400,6 @@ export default function PrayerMetadataScreen() {
         />
       )}
 
-      {/* Spacer view to push content up and button to bottom */}
-      <View style={styles.spacer} />
-
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
         onPress={handleSubmit}
@@ -441,8 +441,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     height: 60, // Fixed height for the button
-    justifyContent: 'center',
-    marginTop: 10,
+    marginBottom: 20,
     padding: 16,
   },
   buttonDisabled: {
@@ -484,10 +483,5 @@ const styles = StyleSheet.create({
     gap: 15,
     padding: 16,
     paddingBottom: 24,
-  },
-  // Add a spacer that will push content up and buttons to the bottom
-  spacer: {
-    flex: 1,
-    minHeight: 20, // Minimum height to ensure some spacing even when content is long
   },
 });
