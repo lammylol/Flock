@@ -1,22 +1,12 @@
 import functions from 'firebase-functions';
 import OpenAI from "openai";
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { db } from './firebaseConfig.js';
+import { config } from './config.js';
 
-// Define __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const apiKey = config.apiKey || ''; // OpenAI API key
 
-// Load the .env from FlockRN
-const env = dotenv.config({ path: path.resolve(__dirname, './.env') });
-
-if (env.error) {
-  throw new Error('Failed to load .env file');
-}
-
-const apiKey = env.parsed?.OPENAI_API_KEY || '';
+const MAX_EMBEDDING_LENGTH = 1536; // Set embedding limit based on openAI vector limit.
+const MAX_TOP_K = 10; // Set max limit for returned searches.
 
 const initializeOpenAI = async () => {
   // Initialize openAI with the API key
@@ -100,14 +90,12 @@ export const findSimilarPrayersV2 = functions.https.onCall(
     }
 
     // Limit the size of the query embedding
-    const MAX_EMBEDDING_LENGTH = 1536; // Set to openAI vector limit.
     if (queryEmbedding.length > MAX_EMBEDDING_LENGTH) {
       console.error(`Query embedding exceeds maximum length of ${MAX_EMBEDDING_LENGTH}`);
       throw new functions.https.HttpsError('invalid-argument', `Query embedding exceeds maximum length of ${MAX_EMBEDDING_LENGTH}.`);
     }
 
     // Limit the maximum number of results
-    const MAX_TOP_K = 10; // Changeable... one day.
     const effectiveTopK = Math.min(topK || 5, MAX_TOP_K);
 
     try {

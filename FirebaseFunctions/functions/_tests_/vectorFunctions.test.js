@@ -1,21 +1,8 @@
 import fft from 'firebase-functions-test';
 import * as myFunctions from '../vectorFunctions.js';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { config } from '../config.js'; // Import the config file
 
-// Define __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Load the .env from FlockRN
-const env = dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
-if (env.error) {
-  throw new Error('Failed to load .env file');
-}
-
-const testUid = env.parsed?.TEST_UID_KEY || '' // update with valid test uid.
+const testUid = config.testUid || ''; // test user id
 const fftInstance = fft(); // required for mock tests.
 
 // Test for findSimilarPrayers function based on query embedding.

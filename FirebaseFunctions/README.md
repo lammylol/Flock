@@ -20,7 +20,7 @@ This is the app for firebase cloud functions.
    - Save the file and rename as firebaseCredentials.json and place it in FirebaseFunctions/functions/firebaseCredentials.json.
    - This enables user to sign as a client when running tests.
 
-4. Setup local .env file
+4. Setup local .env file. This is loaded in functions/config.js and must be imported into each file referencing it.
    - Add .env file with:
 
       ```bash
