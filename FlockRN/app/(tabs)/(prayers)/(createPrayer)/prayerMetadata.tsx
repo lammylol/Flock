@@ -194,9 +194,7 @@ export default function PrayerMetadataScreen() {
     prayerId: string,
   ): Promise<string[]> => {
     try {
-      // Get prayer point embedding. In the future, we may want to consider 'opt-out' since this uses OpenAI.
-      // However, we should ensure that the embedding is generated for each prayer point so that in the future,
-      // if the user wants to opt-in, we already have the embeddings.
+      // Get prayer point embedding.
       const updatedPrayerPoints: PrayerPoint[] = await Promise.all(
         prayerPoints.map(async (point) => {
           if (userOptInFlags.optInAI) {
