@@ -6,7 +6,10 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "lint": "eslint .",
+    "lint:ci": "expo lint",
+    "lint:fix": "eslint . --fix"
   },
   "engines": {
     "node": "18"
@@ -15,12 +18,18 @@
   "main": "index.js",
   "dependencies": {
     "dotenv": "^16.5.0",
+    "firebase": "^11.6.1",
     "firebase-admin": "^12.6.0",
-    "firebase-functions": "^6.0.1",
+    "firebase-functions": "^6.3.2",
+    "mocha": "^11.1.0",
     "openai": "^4.95.0"
   },
   "devDependencies": {
-    "firebase-functions-test": "^3.1.0"
+    "@eslint/js": "^9.25.1",
+    "eslint": "^9.25.1",
+    "eslint-plugin-react": "^7.37.5",
+    "firebase-functions-test": "^3.4.1",
+    "globals": "^16.0.0"
   },
   "private": true
 }

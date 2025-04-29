@@ -13,6 +13,9 @@
     }
   ],
   "emulators": {
-    "singleProjectMode": true
+    "functions": {
+      "host": "localhost",
+      "port": 5001
+    }
   }
 }

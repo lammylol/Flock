@@ -14,6 +14,7 @@ export const Colors = {
   secondary: '#F5E9DC80', // Beige background
   purple: '#9747FF',
   mildPurple: '#E8DEF8',
+  red: '#FF3B30',
   white: '#ffffff',
   black: '#000000',
   brown1: '#F5E9DC80',
@@ -30,6 +31,7 @@ export const Colors = {
     background: '#ffffff',
     backgroundSecondary: '#F5E9DC80',
     backgroundVoiceRecording: '#9747FF',
+    borderPrimary: '#F5F5F5',
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
@@ -41,6 +43,7 @@ export const Colors = {
     background: '#151718',
     backgroundSecondary: '#151718',
     backgroundVoiceRecording: '#151718',
+    borderPrimary: '#ECEDEE',
     tint: tintColorDark,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',

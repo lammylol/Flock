@@ -1,7 +1,7 @@
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import TagsSection from '@/components/Prayer/PrayerViews/TagsSection';
-import { PrayerOrPrayerPointType, PrayerType } from '@/types/PrayerSubtypes';
+import { PrayerEntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { EditMode } from '@/types/ComponentProps';
 
@@ -14,7 +14,7 @@ export function PrayerContent({
 }: {
   editMode: EditMode;
   backgroundColor?: string;
-  prayerOrPrayerPoint: PrayerOrPrayerPointType;
+  prayerOrPrayerPoint: PrayerEntityType;
   prayer?: Prayer | PrayerPoint; // only required for edit and view modes
   onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
 }): JSX.Element {
@@ -74,11 +74,14 @@ export function PrayerContent({
           multiline
           maxLength={100}
           placeholder="Enter a title"
+          scrollEnabled={false}
         />
       ) : prayerOrPrayerPoint === 'prayerPoint' ? (
         <ThemedText style={styles.titleText}>{prayer?.title}</ThemedText>
       ) : (
-        <ThemedText style={styles.titleText}>{formattedDate}</ThemedText>
+        <ThemedText style={styles.titleText}>
+          {editMode === 'create' ? 'Transcript' : formattedDate}
+        </ThemedText>
       )}
       {editMode === 'edit' || editMode === 'create' ? (
         <TextInput
@@ -87,6 +90,7 @@ export function PrayerContent({
           onChangeText={handleContentChange}
           multiline
           placeholder="Enter your prayer point here"
+          scrollEnabled={false}
         />
       ) : (
         <ThemedText style={styles.contentText}>{prayer?.content}</ThemedText>

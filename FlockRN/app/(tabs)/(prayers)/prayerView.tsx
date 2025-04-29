@@ -13,7 +13,8 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { PrayerPoint } from '@/types/firebase';
 import { forEach } from 'lodash';
-import { PrayerOrPrayerPointType } from '@/types/PrayerSubtypes';
+import { PrayerEntityType } from '@/types/PrayerSubtypes';
+import { EditMode } from '@/types/ComponentProps';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{
@@ -90,9 +91,7 @@ const PrayerView = () => {
       pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
       params: {
         id: prayer.id,
-        content: prayer.content,
-        privacy: prayer.privacy,
-        mode: 'edit',
+        editMode: EditMode.EDIT,
       },
     });
   };
@@ -122,12 +121,17 @@ const PrayerView = () => {
               }}
             />
             <PrayerContent
-              editMode="view"
+              editMode={EditMode.VIEW}
               prayer={prayer}
-              prayerOrPrayerPoint={PrayerOrPrayerPointType.Prayer}
+              prayerOrPrayerPoint={PrayerEntityType.Prayer}
               backgroundColor={colorScheme}
             />
-            {prayerPoints && <PrayerPointSection prayerPoints={prayerPoints} />}
+            {prayerPoints && (
+              <PrayerPointSection
+                prayerPoints={prayerPoints}
+                isEditable={false}
+              />
+            )}
           </>
         )
       )}

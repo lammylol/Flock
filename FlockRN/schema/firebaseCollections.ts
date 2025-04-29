@@ -3,6 +3,7 @@ export enum FirestoreCollections {
   PRAYERS = 'prayers',
   FEED = 'feeds',
   PRAYERPOINTS = 'prayerPoints',
+  PRAYERTOPICS = 'prayerTopics',
 }
 
 export enum FriendRequestFields {

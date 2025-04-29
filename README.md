@@ -70,7 +70,10 @@ yarn start
 
 3. **Move the configuration files to the appropriate directories:**  
    - Dev plist: `Flock/Flock/dev/Firebase`  
-   - Prod plist: `Flock/Flock/prod/Firebase`  
+   - Prod plist: `Flock/Flock/prod/Firebase`
+
+4. **Run Firebase Cloud Functions and Tests:**
+   - See ReadMe in 'Flock/FirebaseFunctions'
 
 ## Deprecated
 Flockv1
