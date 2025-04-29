@@ -1,50 +1,47 @@
-import fetch from 'node-fetch';
+import fft from 'firebase-functions-test';
+import * as myFunctions from '../vectorFunctions.js';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import admin from 'firebase-admin';
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Initialize Firebase Admin SDK if not already initialized
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
+// Load the .env from FlockRN
+const env = dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+if (env.error) {
+  throw new Error('Failed to load .env file');
 }
 
-// test functions.
-const testFunction = async () => {
-  const url = 'http://127.0.0.1:5001/flock-dev-cb431/us-central1/findSimilarPrayers';
+const testUid = env.parsed?.TEST_UID_KEY || '' // update with valid test uid.
+const fftInstance = fft(); // required for mock tests.
 
-  // Generate a custom token for testing
-  const customToken = await admin.auth().createCustomToken('test-user-id');
+// Test for findSimilarPrayers function based on query embedding.
+async function testFindSimilarPrayers() {
+  const testFunction = fftInstance.wrap(myFunctions.findSimilarPrayers);
 
-  // Exchange the custom token for an ID token
-  const idTokenResponse = await fetch('http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=fake-api-key', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      token: customToken,
-      returnSecureToken: true,
-    }),
-  });
-
-  const idTokenData = await idTokenResponse.json();
-  const idToken = idTokenData.idToken;
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${idToken}`,
+  const request = {
+    data: {
+      queryEmbedding: [-0.03835538, 0.0023366269, -0.046881247],
+      topK: 5,
+      userId: testUid,
     },
-    body: JSON.stringify({
-      data: {
-        queryEmbedding: [0.1, 0.2, 0.3], // Example embedding array
-        topK: 5, // Number of similar prayers to return
-      },
-    }),
-  });
+    auth: {
+      uid: testUid, // test user id
+    },
+  };
 
-  const result = await response.json();
-  console.log('Response:', result);
-};
+  try {
+    console.log('Sending request: ', request);
+    const response = await testFunction(request);
 
-testFunction();
+    const data = response;
+    console.log('Response:', data);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+testFindSimilarPrayers();
