@@ -163,6 +163,7 @@ export default function PrayerMetadataScreen() {
     processedParams.id,
     processedParams.content,
     loadPrayer,
+    prayer,
     isTranscribing,
     transcription,
     params.content,
