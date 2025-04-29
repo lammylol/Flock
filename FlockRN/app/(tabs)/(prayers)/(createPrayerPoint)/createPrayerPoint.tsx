@@ -68,6 +68,7 @@ export default function PrayerPointMetadataScreen() {
     recipientId: 'unknown',
     prayerId: '',
     prayerUpdates: [],
+    entityType: PrayerEntityType.PrayerPoint,
   });
 
   const loadPrayerPoint = useCallback(async () => {

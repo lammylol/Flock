@@ -38,11 +38,12 @@ export default function PrayerMetadataScreen() {
     id?: string;
     editMode?: EditMode;
   }>();
+
   const processedParams = useMemo(() => {
     return {
       content: params.content ?? '',
       id: params.id ?? '',
-      editMode: params.editMode ?? '',
+      editMode: (params.editMode as EditMode) ?? EditMode.CREATE,
     };
   }, [params.content, params.id, params.editMode]);
 
@@ -134,23 +135,12 @@ export default function PrayerMetadataScreen() {
       loadPrayer();
     } else {
       setIsEditMode(false);
-      setUpdatedPrayer({
-        ...prayer,
-        content: processedParams.content || '',
-      });
-
       if (isTranscribing) {
         setUpdatedPrayer((prevPrayer) => ({
           ...prevPrayer,
           content: 'transcribing...',
         }));
-      } else if (transcription || params.content) {
-        if (transcription) {
-          setUpdatedPrayer((prevPrayer) => ({
-            ...prevPrayer,
-            content: transcription,
-          }));
-        }
+      } else if (transcription || processedParams.content) {
         analyzeContent();
       } else if (transcription === '') {
         setUpdatedPrayer((prevPrayer) => ({
@@ -164,10 +154,8 @@ export default function PrayerMetadataScreen() {
     processedParams.id,
     processedParams.content,
     loadPrayer,
-    prayer,
     isTranscribing,
     transcription,
-    params.content,
     analyzeContent,
   ]);
 
