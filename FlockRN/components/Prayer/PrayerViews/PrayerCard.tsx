@@ -24,6 +24,7 @@ interface EditablePrayerCardProps {
   onChange?: (updated: PrayerPoint) => void;
   isDisabled?: boolean;
   children?: React.ReactNode;
+  showContent?: boolean;
   maxLines?: number;
 }
 
@@ -34,6 +35,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   onChange,
   isDisabled,
   children,
+  showContent = true,
   maxLines,
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
@@ -210,7 +212,8 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
           multiline
         />
       ) : (
-        prayer.content && (
+        prayer.content &&
+        showContent && (
           <ThemedText style={styles.contentText} numberOfLines={maxLinesValue}>
             {prayer.content}
           </ThemedText>
@@ -227,6 +230,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 10,
     width: '100%',
+    alignSelf: 'stretch',
   },
   headerContainer: {
     flexDirection: 'row',
