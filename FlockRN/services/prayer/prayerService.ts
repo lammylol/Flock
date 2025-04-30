@@ -29,6 +29,7 @@ import {
   UpdatePrayerPointDTO,
   PrayerTopic,
   CreatePrayerTopicDTO,
+  UpdatePrayerTopicDTO,
 } from '@/types/firebase';
 import { PrayerType, EntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
@@ -470,11 +471,11 @@ class PrayerService {
   //added for PrayerPoint CRUD
   async updatePrayerTopic(
     prayerTopicId: string,
-    data: Partial<UpdatePrayerPointDTO>,
+    data: Partial<UpdatePrayerTopicDTO>,
   ): Promise<void> {
     try {
       const now = Timestamp.now();
-      const prayerPointRef = doc(this.prayerTopicsCollection, prayerTopicId);
+      const prayerTopicRef = doc(this.prayerTopicsCollection, prayerTopicId);
 
       // Check if the prayer topic exists
       const exists = await this.checkIfDocumentExists(
@@ -485,7 +486,7 @@ class PrayerService {
         throw new Error('Prayer topic not found');
       }
 
-      await updateDoc(prayerPointRef, {
+      await updateDoc(prayerTopicRef, {
         ...data,
         updatedAt: now,
       });

@@ -14,7 +14,7 @@ interface LinkPrayerModalProps {
   onClose: () => void;
   originPrayer: PrayerPoint | PrayerTopic;
   newPrayerPoint: PrayerPoint;
-  onAddTopic: (title: string) => void;
+  onAddTopic: (title: string, prayer: PrayerPoint | PrayerTopic) => void;
 }
 
 const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
@@ -40,7 +40,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
     }
 
     if (topicTitle.trim()) {
-      onAddTopic(topicTitle);
+      onAddTopic(topicTitle, originPrayer);
       setTopicTitle('');
       onClose();
     }
@@ -58,7 +58,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
     : 'Prayer Title';
   const saveText = isOriginAPrayerPoint ? 'Add Topic' : 'Add to Topic';
   const inputValue = isOriginAPrayerPoint ? topicTitle : originPrayer.title;
-  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => { };
+  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => {};
   const primaryTextColor = useThemeColor({}, 'textPrimary');
   const secondaryTextColor = useThemeColor({}, 'textSecondary');
 
@@ -79,14 +79,24 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
           </Text>
         </ThemedView>
         <ThemedView style={styles.prayersContainer}>
-          <PrayerCard prayer={newPrayerPoint} isDisabled={true} maxLines={1} />
+          <PrayerCard
+            prayer={newPrayerPoint}
+            isDisabled={true}
+            showContent={false}
+            maxLines={1}
+          />
           <AntDesign
             name="arrowdown"
             size={24}
             color="black"
             style={styles.arrow}
           />
-          <PrayerCard prayer={originPrayer} isDisabled={true} maxLines={1} />
+          <PrayerCard
+            prayer={originPrayer}
+            isDisabled={true}
+            showContent={false}
+            maxLines={1}
+          />
         </ThemedView>
         {isOriginAPrayerPoint && (
           <ThemedView>

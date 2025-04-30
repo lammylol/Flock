@@ -6,43 +6,90 @@ import {
   View,
   Text,
 } from 'react-native';
-import { PrayerPoint, PrayerTopic } from '@/types/firebase';
+import {
+  CreatePrayerTopicDTO,
+  PrayerPoint,
+  PrayerTopic,
+  UpdatePrayerTopicDTO,
+} from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { EditMode } from '@/types/ComponentProps';
 import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
-import PopUpModal from '@/components/PopUpModal';
+import { auth } from '@/firebase/firebaseConfig';
+import { EntityType } from '@/types/PrayerSubtypes';
+import { getTopicDTOForLinkedPrayer } from '@/services/prayer/prayerLinkingHandler';
 
 export function PrayerPointLinking({
   editMode,
   backgroundColor,
   similarPrayers,
   prayerPoint,
+  onChange,
 }: {
   editMode: EditMode;
   backgroundColor?: string;
-  similarPrayers: PrayerPoint[];
+  similarPrayers: (Partial<PrayerPoint> | Partial<PrayerTopic>)[];
   prayerPoint: PrayerPoint;
-  onChange?: (updatedPrayerPoint: PrayerPoint) => void;
+  onChange: (topicDTO: CreatePrayerTopicDTO | UpdatePrayerTopicDTO) => void;
 }): JSX.Element {
   // const { userPrayers, userPrayerPoints } = usePrayerCollection();
+  const user = auth.currentUser;
   const [searchText, setSearchText] = useState('');
   const [selectedLink, setSelectedLink] = useState<
     PrayerPoint | PrayerTopic | null
   >(null);
+  const [label, setLabel] = useState('Link to Prayer');
   const [showLinkingModal, setShowLinkingModal] = useState(false);
   const textColor = useThemeColor({ light: Colors.link }, 'textPrimary');
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
 
-  const handleSetLinkedPrayerandOpenModal = (
-    prayer: PrayerPoint | PrayerTopic,
+  const determineLabel = (prayer: PrayerPoint | PrayerTopic | null): string => {
+    if (!prayer) return 'Link to Prayer';
+    if (prayer.id === selectedLink?.id) return 'Linked';
+
+    switch (prayer.entityType) {
+      case EntityType.PrayerPoint:
+        return 'Link to Prayer Point';
+      case EntityType.PrayerTopic:
+        return 'Link to #Topic';
+      default:
+        return 'Link to Prayer';
+    }
+  };
+
+  const handlePrayerSelection = (prayer: PrayerPoint | PrayerTopic | null) => {
+    const newLabel = determineLabel(prayer);
+    setLabel(newLabel);
+  };
+
+  const handleAddTopic = async (
+    title: string,
+    selectedPrayer: PrayerPoint | PrayerTopic,
   ) => {
+    if (!user) {
+      console.error('User is not authenticated.');
+      return;
+    }
+    const dataDTO = await getTopicDTOForLinkedPrayer({
+      prayerPoint,
+      selectedPrayer,
+      user,
+      title,
+    });
+    onChange(dataDTO as CreatePrayerTopicDTO | UpdatePrayerTopicDTO);
+    // await prayerService.createPrayerTopic(createTopicData);
+    handlePrayerSelection(selectedPrayer);
+  };
+
+  const handleOpenModal = (prayer: PrayerPoint | PrayerTopic) => {
     setSelectedLink(prayer);
     setShowLinkingModal(true);
   };
+
   return (
     <ThemedView
       style={[
@@ -67,17 +114,19 @@ export function PrayerPointLinking({
 
           {showLinkSection && (
             <View style={styles.linkContainer}>
-              {similarPrayers.slice(0, 2).map((prayerPoint, index) => (
-                <PrayerCardWithButtons
-                  key={index}
-                  prayer={prayerPoint}
-                  button1={{
-                    label: 'Link and Create #Topic',
-                    onPress: () =>
-                      handleSetLinkedPrayerandOpenModal(prayerPoint),
-                  }}
-                ></PrayerCardWithButtons>
-              ))}
+              {similarPrayers.slice(0, 3).map((prayer, index) => {
+                const typedPrayer = prayer as PrayerPoint | PrayerTopic;
+                return (
+                  <PrayerCardWithButtons
+                    key={index}
+                    prayer={typedPrayer} // Type assertion
+                    button1={{
+                      label: label,
+                      onPress: () => handleOpenModal(typedPrayer),
+                    }}
+                  />
+                );
+              })}
               <TextInput
                 style={{ ...styles.searchInput, borderColor: Colors.grey1 }}
                 placeholder="Search existing prayer points..."
@@ -94,11 +143,10 @@ export function PrayerPointLinking({
         <LinkPrayerModal
           visible={showLinkingModal}
           onClose={() => setShowLinkingModal(false)}
-          onAddTopic={(title) => {
-            // Handle adding a new topic here
-            console.log('New Topic Title:', title);
+          onAddTopic={(title, selectedLink) => {
+            handleAddTopic(title, selectedLink);
           }}
-          originPrayer={selectedLink}
+          originPrayer={selectedLink as PrayerPoint | PrayerTopic}
           newPrayerPoint={prayerPoint}
         />
       )}

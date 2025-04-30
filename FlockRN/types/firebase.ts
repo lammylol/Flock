@@ -1,6 +1,7 @@
 // ramon jiang
 // 1/29/25
 // set all types for Firebase
+import { FieldValue } from 'firebase/firestore';
 import {
   EntityType,
   PrayerTag,
@@ -79,7 +80,7 @@ export interface PrayerPoint {
   prayerUpdates?: [];
   recipientName?: string;
   recipientId?: string;
-  embedding?: number[];
+  embedding?: number[] | FieldValue; // enables delete when removing embedding.
   isOrigin: boolean;
   entityType: EntityType;
 }
@@ -129,20 +130,20 @@ export type UpdatePrayerDTO = Partial<
 
 export type CreatePrayerPointDTO = Omit<
   PrayerPoint,
-  'id' | 'prayerId' | 'updatedAt' | 'entityType'
+  'id' | 'createdAt' | 'prayerId' | 'updatedAt' | 'entityType'
 >;
 
 export type UpdatePrayerPointDTO = Partial<
-  Omit<PrayerPoint, 'id' | 'createdAt' | 'entityType'>
+  Omit<PrayerPoint, 'id' | 'createdAt' | 'updatedAt' | 'entityType'>
 >;
 
 export type CreatePrayerTopicDTO = Omit<
   PrayerTopic,
-  'id' | 'updatedAt' | 'entityType'
+  'id' | 'createdAt' | 'updatedAt' | 'entityType' | 'endDate'
 >;
 
 export type UpdatePrayerTopicDTO = Partial<
-  Omit<PrayerTopic, 'id' | 'createdAt' | 'entityType'>
+  Omit<PrayerTopic, 'id' | 'createdAt' | 'updatedAt' | 'entityType' | 'endDate'>
 >;
 
 // may want to refactor this in the future if document becomes too large.
