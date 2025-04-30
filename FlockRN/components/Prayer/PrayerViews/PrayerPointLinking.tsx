@@ -41,11 +41,7 @@ export function PrayerPointLinking({
   ) => {
     setSelectedLink(prayer);
     setShowLinkingModal(true);
-    console.log('Selected Prayer Point:', selectedLink);
   };
-
-  console.log('Selected Prayer Point:', selectedLink);
-
   return (
     <ThemedView
       style={[
