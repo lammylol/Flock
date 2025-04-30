@@ -47,6 +47,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
 
   // Use the entityType to create the boolean checks
   const isPrayerPoint = entityType === EntityType.PrayerPoint;
+  const isPrayerTopic = entityType === EntityType.PrayerTopic;
   const isPrayer = entityType === EntityType.Prayer;
 
   const triggerChange = (
@@ -144,7 +145,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
             />
           ) : (
             <ThemedText style={styles.titleText}>
-              {isPrayerPoint ? prayer.title : formattedDate}
+              {isPrayerPoint || isPrayerTopic ? prayer.title : formattedDate}
             </ThemedText>
           )}
           {editable ? (
@@ -177,8 +178,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
                   { color: Colors[colorScheme].textSecondary },
                 ]}
               >
-                {isPrayerPoint &&
-                  prayerType &&
+                {prayerType &&
                   (prayerTagDisplayNames[prayerType]?.charAt(0).toUpperCase() ??
                     '') + (prayerTagDisplayNames[prayerType]?.slice(1) ?? '')}
               </ThemedText>
