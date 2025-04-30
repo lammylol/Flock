@@ -77,11 +77,9 @@ export interface PrayerPoint {
   tags?: PrayerType[];
   status?: Status;
   privacy?: Privacy;
-  prayerUpdates?: [];
   recipientName?: string;
   recipientId?: string;
   embedding?: number[] | FieldValue; // enables delete when removing embedding.
-  isOrigin: boolean;
   entityType: EntityType;
 }
 
