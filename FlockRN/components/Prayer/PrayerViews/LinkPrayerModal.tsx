@@ -6,6 +6,8 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { getEntityType } from '@/types/typeGuards';
 import PrayerCard from './PrayerCard';
 import { ThemedView } from '@/components/ThemedView';
+import { EntityType } from '@/types/PrayerSubtypes';
+import { AntDesign } from '@expo/vector-icons';
 
 interface LinkPrayerModalProps {
   visible: boolean;
@@ -24,7 +26,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
 }) => {
   const [topicTitle, setTopicTitle] = useState('');
   const originEntityType = getEntityType(originPrayer);
-  const isOriginAPrayerPoint = originEntityType === 'prayerPoint';
+  const isOriginAPrayerPoint = originEntityType === EntityType.PrayerPoint;
 
   const handleAddTopic = () => {
     if (!topicTitle.trim()) {
@@ -49,7 +51,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
     ? 'Link these prayer points together under a new #topic.'
     : 'Link this prayer to an existing #topic';
   const description = isOriginAPrayerPoint
-    ? 'You will be able to add other prayer points to this #topic in the future.'
+    ? 'You will be able to add other prayer points to this topic in the future.'
     : 'You are linking a prayer point to an existing topic.';
   const inputPlaceholder = isOriginAPrayerPoint
     ? 'Enter #topic name'
@@ -76,6 +78,16 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
             {description}
           </Text>
         </ThemedView>
+        <ThemedView style={styles.prayersContainer}>
+          <PrayerCard prayer={newPrayerPoint} isDisabled={true} maxLines={1} />
+          <AntDesign
+            name="arrowdown"
+            size={24}
+            color="black"
+            style={styles.arrow}
+          />
+          <PrayerCard prayer={originPrayer} isDisabled={true} maxLines={1} />
+        </ThemedView>
         {isOriginAPrayerPoint && (
           <ThemedView>
             <TextInput
@@ -90,14 +102,15 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
             </Text>
           </ThemedView>
         )}
-        <PrayerCard prayer={newPrayerPoint} isDisabled={true}></PrayerCard>
-        <PrayerCard prayer={originPrayer} isDisabled={true}></PrayerCard>
       </ThemedView>
     </PopUpModal>
   );
 };
 
 const styles = StyleSheet.create({
+  arrow: {
+    marginLeft: 10,
+  },
   container: {
     justifyContent: 'center',
     gap: 20,
@@ -130,6 +143,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'left',
     marginLeft: 3,
+  },
+  prayersContainer: {
+    paddingHorizontal: 10,
   },
 });
 
