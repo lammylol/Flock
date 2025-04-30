@@ -73,7 +73,9 @@ export const getVectorEmbeddings = functions.https.onRequest(
 
 export const findSimilarPrayersV2 = functions.https.onCall(
   async (request) => {
-    const { searchPrayerId, queryEmbedding, topK, userId } = request.data;
+    const { sourcePrayerId, queryEmbedding, topK, userId } = request.data;
+    // mandatory: queryEmbedding, topK, userId
+    // optional: sourcePrayerID
 
     // Check if the function is called by an authenticated user
     if (!request.auth) {
@@ -123,7 +125,15 @@ export const findSimilarPrayersV2 = functions.https.onCall(
         ...doc.data(),
       }));
       
-      const prayerPointsAndTopics = [...prayerPoints, ...prayerTopics];
+      let prayerPointsAndTopics = [...prayerPoints, ...prayerTopics];
+
+      // Only filter if sourcePrayerId is provided. On new prayer creation, this will be null.
+      // After prayer is created, this is to prevent the prayer from being compared to itself.
+      if (sourcePrayerId) {
+        prayerPointsAndTopics = prayerPointsAndTopics.filter(
+          (prayer) => prayer.id !== sourcePrayerId
+        );
+      }
 
       if (prayerPointsAndTopics.length === 0) {
         console.log('No prayer points or topics found');

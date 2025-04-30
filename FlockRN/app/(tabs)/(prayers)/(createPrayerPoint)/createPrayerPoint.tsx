@@ -130,19 +130,24 @@ export default function PrayerPointMetadataScreen() {
     }
 
     try {
+      const sourcePrayerId = isEditMode ? updatedPrayerPoint.id : undefined;
+
       const similarPrayers = await prayerService.findRelatedPrayers(
         embedding,
-        user.uid,
+        user?.uid,
+        sourcePrayerId,
       );
       setSimilarPrayers(similarPrayers);
     } catch (error) {
       console.error('Error finding similar prayers:', error);
     }
   }, [
-    openAiService,
     updatedPrayerPoint.title,
     updatedPrayerPoint.content,
-    user?.uid,
+    updatedPrayerPoint.id,
+    openAiService,
+    user.uid,
+    isEditMode,
   ]);
 
   useEffect(() => {
