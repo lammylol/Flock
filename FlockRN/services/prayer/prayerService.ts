@@ -556,6 +556,7 @@ class PrayerService {
   async findRelatedPrayers(
     embedding: number[],
     userId: string,
+    sourcePrayerId?: string,
   ): Promise<(Partial<PrayerPoint> | Partial<PrayerTopic>)[] | []> {
     try {
       const functions = getFunctions(getApp());
@@ -565,6 +566,7 @@ class PrayerService {
         'findSimilarPrayersV2',
       );
       const result = await findSimilarPrayers({
+        ...(sourcePrayerId && { sourcePrayerId }),
         queryEmbedding: embedding,
         topK: 5,
         userId: userId,

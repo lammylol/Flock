@@ -11,6 +11,7 @@ async function testFindSimilarPrayers() {
 
   const request = {
     data: {
+      sourcePrayerId: '12345', // test prayer document
       queryEmbedding: [-0.03835538, 0.0023366269, -0.046881247],
       topK: 5,
       userId: testUid,
