@@ -31,6 +31,7 @@ import {
   CreatePrayerTopicDTO,
   UpdatePrayerTopicDTO,
   LinkedTopicInPrayerDTO,
+  PartialLinkedPrayerEntity,
 } from '@/types/firebase';
 import { PrayerType, EntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
@@ -216,6 +217,7 @@ class PrayerService {
   async createPrayerPoint(data: CreatePrayerPointDTO): Promise<string> {
     try {
       const now = Timestamp.now();
+      console.log(data);
 
       const docRef = await addDoc(this.prayerPointsCollection, {
         ...data,
@@ -555,7 +557,7 @@ class PrayerService {
     embedding: number[],
     userId: string,
     sourcePrayerId?: string,
-  ): Promise<(Partial<PrayerPoint> | Partial<PrayerTopic>)[] | []> {
+  ): Promise<PartialLinkedPrayerEntity[] | []> {
     try {
       const functions = getFunctions(getApp());
       // Ensure the function is deployed and callable

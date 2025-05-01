@@ -5,10 +5,10 @@ import OpenAiService from '@/services/ai/openAIService';
 import { prayerService } from './prayerService';
 import {
   PrayerPoint,
-  PrayerTopic,
   PrayerPointInPrayerTopicDTO,
   CreatePrayerTopicDTO,
   UpdatePrayerTopicDTO,
+  LinkedPrayerEntity,
   LinkedTopicInPrayerDTO,
 } from '@/types/firebase';
 import { isPrayerTopic } from '@/types/typeGuards';
@@ -20,7 +20,7 @@ const openAiService = OpenAiService.getInstance();
 
 export const getJourney = (
   prayerPoint: PrayerPoint,
-  selectedPrayer: PrayerPoint | PrayerTopic,
+  selectedPrayer: LinkedPrayerEntity,
 ): PrayerPointInPrayerTopicDTO[] => {
   // This function either: 1) updates an existing journey for a topic with a new prayer point being created, or
   // 2) creates a net new journey for the prayer point being created linked to an existing prayer point.
@@ -45,7 +45,7 @@ export const getJourney = (
 
 export const getDistinctPrayerTypes = (
   prayerPoint: PrayerPoint,
-  selectedPrayer: PrayerPoint | PrayerTopic,
+  selectedPrayer: LinkedPrayerEntity,
 ): PrayerType[] => {
   const types = new Set<PrayerType>();
 
@@ -65,7 +65,7 @@ export const getDistinctPrayerTypes = (
 
 export const setContextAsStringsAndGetEmbeddings = async (
   prayerPoint: PrayerPoint,
-  selectedPrayer: PrayerPoint | PrayerTopic,
+  selectedPrayer: LinkedPrayerEntity,
 ) => {
   // There is no slice on (selectedPrayer) original content, just the new prayer point.
   // this is for 2 reasons: 1) keep original prayer point intact and
@@ -106,7 +106,7 @@ export const getPrayerTopicDTO = async ({
   user,
 }: {
   prayerPoint: PrayerPoint;
-  selectedPrayer: PrayerPoint | PrayerTopic;
+  selectedPrayer: LinkedPrayerEntity;
   title: string;
   user: User;
 }) => {
@@ -184,7 +184,7 @@ export const removeEmbeddingLocally = (
 };
 
 export const removeEmbeddingFromFirebase = async (
-  selectedPrayer: PrayerPoint | PrayerTopic,
+  selectedPrayer: LinkedPrayerEntity,
 ) => {
   if (selectedPrayer.entityType === EntityType.PrayerPoint) {
     await prayerService.updatePrayerPoint(selectedPrayer.id, {

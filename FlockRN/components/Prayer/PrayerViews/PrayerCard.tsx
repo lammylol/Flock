@@ -1,5 +1,11 @@
 import { ThemedText } from '@/components/ThemedText';
-import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
+import {
+  AnyPrayerEntity,
+  PartialLinkedPrayerEntity,
+  Prayer,
+  PrayerPoint,
+  PrayerTopic,
+} from '@/types/firebase';
 import {
   StyleSheet,
   TextInput,
@@ -18,7 +24,7 @@ import { getPrayerType } from '@/utils/prayerUtils';
 import { router } from 'expo-router';
 
 interface EditablePrayerCardProps {
-  prayer: Prayer | PrayerPoint | PrayerTopic;
+  prayer: AnyPrayerEntity;
   editable?: boolean;
   onDelete?: () => void;
   onChange?: (updated: PrayerPoint) => void;
@@ -54,9 +60,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   const isPrayerTopic = entityType === EntityType.PrayerTopic;
   const isPrayer = entityType === EntityType.Prayer;
 
-  const triggerChange = (
-    partial: Partial<PrayerPoint> | Partial<PrayerTopic>,
-  ) => {
+  const triggerChange = (partial: PartialLinkedPrayerEntity) => {
     if (!onChange) return;
     onChange({ ...prayer, ...partial } as PrayerPoint);
   };

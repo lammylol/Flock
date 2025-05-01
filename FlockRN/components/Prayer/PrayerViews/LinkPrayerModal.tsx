@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, TextInput, StyleSheet, Alert } from 'react-native';
 import PopUpModal from '@/components/PopUpModal';
-import { PrayerPoint, PrayerTopic } from '@/types/firebase';
+import { LinkedPrayerEntity, PrayerPoint } from '@/types/firebase';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { getEntityType } from '@/types/typeGuards';
 import PrayerCard from './PrayerCard';
@@ -12,9 +12,9 @@ import { AntDesign } from '@expo/vector-icons';
 interface LinkPrayerModalProps {
   visible: boolean;
   onClose: () => void;
-  originPrayer: PrayerPoint | PrayerTopic;
+  originPrayer: LinkedPrayerEntity;
   newPrayerPoint: PrayerPoint;
-  onAddTopic: (title: string, prayer: PrayerPoint | PrayerTopic) => void;
+  onAddTopic: (title: string, prayer: LinkedPrayerEntity) => void;
 }
 
 const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
@@ -58,7 +58,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
     : 'Prayer Title';
   const saveText = isOriginAPrayerPoint ? 'Add Topic' : 'Add to Topic';
   const inputValue = isOriginAPrayerPoint ? topicTitle : originPrayer.title;
-  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => {};
+  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => { };
   const primaryTextColor = useThemeColor({}, 'textPrimary');
   const secondaryTextColor = useThemeColor({}, 'textSecondary');
 

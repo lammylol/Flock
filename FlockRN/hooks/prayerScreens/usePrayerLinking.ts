@@ -4,6 +4,8 @@ import { useState } from 'react';
 import {
   CreatePrayerTopicDTO,
   LinkedTopicInPrayerDTO,
+  FlatPrayerTopicDTO,
+  LinkedPrayerEntity,
   PrayerPoint,
   PrayerTopic,
   UpdatePrayerTopicDTO,
@@ -24,12 +26,11 @@ export function usePrayerLinking(
   handlePrayerPointUpdate: (updated: PrayerPoint) => void,
 ) {
   const { updateCollection } = usePrayerCollection();
-  const [prayerTopicDTO, setPrayerTopicDTO] = useState<
-    CreatePrayerTopicDTO | UpdatePrayerTopicDTO | null
-  >(null);
-  const [originPrayer, setOriginPrayer] = useState<
-    PrayerTopic | PrayerPoint | null
-  >(null);
+  const [prayerTopicDTO, setPrayerTopicDTO] =
+    useState<FlatPrayerTopicDTO | null>(null);
+  const [originPrayer, setOriginPrayer] = useState<LinkedPrayerEntity | null>(
+    null,
+  );
 
   const user = auth.currentUser;
 
@@ -72,7 +73,7 @@ export function usePrayerLinking(
   // and is called when the user selects a prayer point or topic to link to.
   // It updates the selected prayer and the prayer topic DTO.
   const handlePrayerLinkingOnChange = (
-    selectedPrayer: PrayerPoint | PrayerTopic,
+    selectedPrayer: LinkedPrayerEntity,
     title: string,
   ) => {
     setOriginPrayer(selectedPrayer);
@@ -136,16 +137,17 @@ export function usePrayerLinking(
     }
 
     try {
-      const fullOriginPrayer = (await loadOriginPrayer()) as
-        | PrayerPoint
-        | PrayerTopic; // fetch additional values that aren't in the prayer topic or point if exists.
-
+      const fullOriginPrayer = (await loadOriginPrayer()) as LinkedPrayerEntity; // fetch additional values that aren't in the prayer topic or point if exists.
+      if (!prayerTopicDTO.title) {
+        console.error('Missing title in prayerTopic');
+        return;
+      }
       const topicDTO = (await getPrayerTopicDTO({
         prayerPoint,
         selectedPrayer: fullOriginPrayer,
-        title: prayerTopicDTO.title,
-        user: user!,
-      })) as CreatePrayerTopicDTO | UpdatePrayerTopicDTO;
+        title: prayerTopicDTO.title ?? '',
+        user: user,
+      })) as FlatPrayerTopicDTO;
       if (!topicDTO) {
         console.error('Failed to build topicDTO');
         return;

@@ -2,12 +2,12 @@ import { ThemedView } from '@/components/ThemedView';
 import Button from '@/components/Button';
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
+import { AnyPrayerEntity } from '@/types/firebase';
 import { PrayerCardButtonProps } from '@/types/ComponentProps';
 import EditablePrayerCard from './PrayerCard';
 
 export interface PrayerCardWithButtonProps {
-  prayer: Prayer | PrayerPoint | PrayerTopic;
+  prayer: AnyPrayerEntity;
   button1: PrayerCardButtonProps;
   button2?: PrayerCardButtonProps;
 }

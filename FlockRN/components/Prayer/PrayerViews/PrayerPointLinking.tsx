@@ -7,10 +7,10 @@ import {
   Text,
 } from 'react-native';
 import {
-  CreatePrayerTopicDTO,
+  FlatPrayerTopicDTO,
+  PartialLinkedPrayerEntity,
+  LinkedPrayerEntity,
   PrayerPoint,
-  PrayerTopic,
-  UpdatePrayerTopicDTO,
 } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
@@ -29,24 +29,24 @@ export function PrayerPointLinking({
 }: {
   editMode: EditMode;
   backgroundColor?: string;
-  similarPrayers: (Partial<PrayerPoint> | Partial<PrayerTopic>)[];
+  similarPrayers: PartialLinkedPrayerEntity[];
   prayerPoint: PrayerPoint;
   onChange: (
-    selectedPrayer: PrayerPoint | PrayerTopic,
-    topicDTO: CreatePrayerTopicDTO | UpdatePrayerTopicDTO,
+    selectedPrayer: LinkedPrayerEntity,
+    topicDTO: FlatPrayerTopicDTO,
   ) => void;
 }): JSX.Element {
   const [searchText, setSearchText] = useState('');
-  const [selectedLink, setSelectedLink] = useState<
-    PrayerPoint | PrayerTopic | null
-  >(null);
+  const [selectedLink, setSelectedLink] = useState<LinkedPrayerEntity | null>(
+    null,
+  );
   const [label, setLabel] = useState('Link to Prayer');
   const [showLinkingModal, setShowLinkingModal] = useState(false);
   const textColor = useThemeColor({ light: Colors.link }, 'textPrimary');
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
 
-  const determineLabel = (prayer: PrayerPoint | PrayerTopic | null): string => {
+  const determineLabel = (prayer: LinkedPrayerEntity | null): string => {
     if (!prayer) return 'Link to Prayer';
     if (prayer.id === selectedLink?.id) return 'Linked';
 
@@ -60,20 +60,20 @@ export function PrayerPointLinking({
     }
   };
 
-  const handlePrayerSelection = (prayer: PrayerPoint | PrayerTopic | null) => {
+  const handlePrayerSelection = (prayer: LinkedPrayerEntity | null) => {
     const newLabel = determineLabel(prayer);
     setLabel(newLabel);
   };
 
   const handleAddTopic = async (
     title: string,
-    selectedPrayer: PrayerPoint | PrayerTopic,
+    selectedPrayer: LinkedPrayerEntity,
   ) => {
-    onChange(selectedPrayer as PrayerPoint | PrayerTopic, title);
+    onChange(selectedPrayer as LinkedPrayerEntity, title);
     handlePrayerSelection(selectedPrayer);
   };
 
-  const handleOpenModal = (prayer: PrayerPoint | PrayerTopic) => {
+  const handleOpenModal = (prayer: LinkedPrayerEntity) => {
     setSelectedLink(prayer);
     setShowLinkingModal(true);
   };
@@ -103,7 +103,7 @@ export function PrayerPointLinking({
           {showLinkSection && (
             <View style={styles.linkContainer}>
               {similarPrayers.slice(0, 3).map((prayer, index) => {
-                const typedPrayer = prayer as PrayerPoint | PrayerTopic;
+                const typedPrayer = prayer as LinkedPrayerEntity;
                 return (
                   <PrayerCardWithButtons
                     key={index}
@@ -134,7 +134,7 @@ export function PrayerPointLinking({
           onAddTopic={(title, selectedLink) => {
             handleAddTopic(title, selectedLink);
           }}
-          originPrayer={selectedLink as PrayerPoint | PrayerTopic}
+          originPrayer={selectedLink as LinkedPrayerEntity}
           newPrayerPoint={prayerPoint}
         />
       )}
