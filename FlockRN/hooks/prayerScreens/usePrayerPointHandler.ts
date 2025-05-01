@@ -1,7 +1,6 @@
 // hooks/usePrayerPointHandler.ts
 import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
 import { auth } from '@/firebase/firebaseConfig';
 import { prayerService } from '@/services/prayer/prayerService';
 import OpenAiService from '@/services/ai/openAIService';
@@ -14,7 +13,7 @@ import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
-export function usePrayerPointHandler(processedParams: {
+export function usePrayerPointHandler(params: {
   id: string;
   editMode: EditMode;
 }) {
@@ -23,7 +22,7 @@ export function usePrayerPointHandler(processedParams: {
   const user = auth.currentUser;
 
   const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
-    id: processedParams.id || '',
+    id: params.id || '',
     title: '',
     content: '',
     prayerType: PrayerType.Request,
@@ -46,38 +45,35 @@ export function usePrayerPointHandler(processedParams: {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
-  const { id, editMode } = processedParams;
 
   const handlePrayerPointUpdate = (data: Partial<PrayerPoint>) => {
     setUpdatedPrayerPoint((prev) => ({ ...prev, ...data }));
   };
 
   const loadPrayerPoint = useCallback(async () => {
-    const contextPrayerPoint = userPrayerPoints.find((p) => p.id === id);
+    const contextPrayerPoint = userPrayerPoints.find((p) => p.id === params.id);
     if (contextPrayerPoint) {
       setUpdatedPrayerPoint({ ...contextPrayerPoint });
       return;
     }
     try {
-      const fetchedPrayer = await prayerService.getPrayerPoint(
-        processedParams.id,
-      );
+      const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
       if (fetchedPrayer) {
         setUpdatedPrayerPoint({ ...fetchedPrayer });
       }
     } catch (error) {
       console.error('Error fetching prayer point:', error);
     }
-  }, [id, processedParams.id, userPrayerPoints]);
+  }, [params.id, userPrayerPoints]);
 
   const setupEditMode = useCallback(() => {
-    if (editMode === EditMode.EDIT && id) {
+    if (params.editMode === EditMode.EDIT && params.id) {
       setIsEditMode(true);
       loadPrayerPoint();
     } else {
       setIsEditMode(false);
     }
-  }, [editMode, id, loadPrayerPoint]);
+  }, [params.editMode, params.id, loadPrayerPoint]);
 
   const handleFindSimilarPrayers = useCallback(async () => {
     const input =
@@ -121,7 +117,7 @@ export function usePrayerPointHandler(processedParams: {
     handleFindSimilarPrayers,
   ]);
 
-  const handleCreatePrayerPoint = async () => {
+  const createPrayerPoint = async () => {
     let embeddingInput = (updatedPrayerPoint.embedding as number[]) || [];
 
     if (embeddingInput.length === 0) {
@@ -150,60 +146,38 @@ export function usePrayerPointHandler(processedParams: {
     Alert.alert('Success', 'Prayer Point created successfully.');
   };
 
-  const handleSubmit = async () => {
-    if (!updatedPrayerPoint.title.trim()) {
-      Alert.alert('Missing Title', 'Please add a title for your prayer.');
-      return;
-    }
+  const updatePrayerPoint = async () => {
+    const updateData: UpdatePrayerPointDTO = {
+      title: updatedPrayerPoint.title.trim(),
+      content: updatedPrayerPoint.content,
+      privacy,
+      tags: updatedPrayerPoint.tags,
+      prayerType: updatedPrayerPoint.prayerType,
+      status: updatedPrayerPoint.status,
+    };
 
-    setPrivacy('private');
-    setIsLoading(true);
+    await prayerService.updatePrayerPoint(updatedPrayerPoint.id, updateData);
 
-    try {
-      if (isEditMode && updatedPrayerPoint.id) {
-        const updateData: UpdatePrayerPointDTO = {
-          title: updatedPrayerPoint.title.trim(),
-          content: updatedPrayerPoint.content,
-          privacy,
-          tags: updatedPrayerPoint.tags,
-          prayerType: updatedPrayerPoint.prayerType,
-          status: updatedPrayerPoint.status,
-        };
+    updateCollection(
+      { ...updatedPrayerPoint, ...updateData } as PrayerPoint,
+      'prayerPoint',
+    );
 
-        await prayerService.updatePrayerPoint(
-          updatedPrayerPoint.id,
-          updateData,
-        );
-
-        updateCollection(
-          { ...updatedPrayerPoint, ...updateData } as PrayerPoint,
-          'prayerPoint',
-        );
-
-        Alert.alert('Success', 'Prayer Point updated successfully');
-      } else {
-        await handleCreatePrayerPoint();
-      }
-
-      router.replace('/(tabs)/(prayers)');
-      router.dismissAll();
-    } catch (error) {
-      console.error('Error submitting prayer point:', error);
-      Alert.alert('Something went wrong', 'Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    Alert.alert('Success', 'Prayer Point updated successfully');
   };
 
   return {
     updatedPrayerPoint,
+    setUpdatedPrayerPoint,
     handlePrayerPointUpdate,
-    handleSubmit,
+    createPrayerPoint,
+    updatePrayerPoint,
     setupEditMode,
     isEditMode,
     similarPrayers,
     setPrivacy,
     privacy,
     isLoading,
+    setIsLoading,
   };
 }

@@ -449,19 +449,15 @@ class PrayerService {
     try {
       const now = Timestamp.now();
 
-      const docRef = await addDoc(this.prayerTopicsCollection, {
+      const newDocRef = doc(this.prayerTopicsCollection); // generate empty ref with ID
+      await setDoc(newDocRef, {
         ...data,
+        id: newDocRef.id,
         createdAt: now,
         updatedAt: now,
         entityType: EntityType.PrayerTopic,
       });
-
-      // After the document is created, update it with the generated ID
-      await updateDoc(docRef, { id: docRef.id });
-
-      // Placeholder to add to another feed later.
-
-      return docRef.id;
+      return newDocRef.id;
     } catch (error) {
       console.error('Error creating prayer topic:', error);
       throw error;

@@ -20,7 +20,7 @@ import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
 import { auth } from '@/firebase/firebaseConfig';
 import { EntityType } from '@/types/PrayerSubtypes';
-import { getTopicDTOForLinkedPrayer } from '@/services/prayer/prayerLinkingHandler';
+import { getPrayerTopicDTO } from '@/services/prayer/prayerLinkingService';
 
 export function PrayerPointLinking({
   editMode,
@@ -33,7 +33,10 @@ export function PrayerPointLinking({
   backgroundColor?: string;
   similarPrayers: (Partial<PrayerPoint> | Partial<PrayerTopic>)[];
   prayerPoint: PrayerPoint;
-  onChange: (topicDTO: CreatePrayerTopicDTO | UpdatePrayerTopicDTO) => void;
+  onChange: (
+    selectedPrayer: PrayerPoint | PrayerTopic,
+    topicDTO: CreatePrayerTopicDTO | UpdatePrayerTopicDTO,
+  ) => void;
 }): JSX.Element {
   // const { userPrayers, userPrayerPoints } = usePrayerCollection();
   const user = auth.currentUser;
@@ -70,18 +73,7 @@ export function PrayerPointLinking({
     title: string,
     selectedPrayer: PrayerPoint | PrayerTopic,
   ) => {
-    if (!user) {
-      console.error('User is not authenticated.');
-      return;
-    }
-    const dataDTO = await getTopicDTOForLinkedPrayer({
-      prayerPoint,
-      selectedPrayer,
-      user,
-      title,
-    });
-    onChange(dataDTO as CreatePrayerTopicDTO | UpdatePrayerTopicDTO);
-    // await prayerService.createPrayerTopic(createTopicData);
+    onChange(selectedPrayer as PrayerPoint | PrayerTopic, title);
     handlePrayerSelection(selectedPrayer);
   };
 

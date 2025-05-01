@@ -1,5 +1,11 @@
 import { useMemo } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
@@ -13,6 +19,7 @@ import { EntityType } from '@/types/PrayerSubtypes';
 import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
 import { EditMode } from '@/types/ComponentProps';
 import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
+import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -29,24 +36,64 @@ export default function PrayerPointMetadataScreen() {
 
   // State for edit mode
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
+  const { id, editMode } = processedParams;
 
+  // All things are editable, but nothing is sent to firebase until the user clicks "Create" or "Update".
+  // That is handled in handleSubmit.
+
+  // This hook handles the prayer point creation and update logic
+  // and manages the state of the prayer point being created or edited.
   const {
     updatedPrayerPoint,
     handlePrayerPointUpdate,
-    handleSubmit,
+    createPrayerPoint,
+    updatePrayerPoint,
     isEditMode,
     setupEditMode,
     similarPrayers,
     privacy,
+    setPrivacy,
+    setIsLoading,
     isLoading,
   } = usePrayerPointHandler({
-    id: processedParams.id,
-    editMode: processedParams.editMode,
+    id: id,
+    editMode: editMode,
   });
 
   useMemo(() => {
     setupEditMode();
   }, [setupEditMode]);
+
+  // This hook handles separate logic for linking prayer points and topics.
+  const { handlePrayerLinkingOnChange, linkAndSyncPrayerPoint } =
+    usePrayerLinking(updatedPrayerPoint, handlePrayerPointUpdate);
+
+  const handleSubmit = async () => {
+    if (!updatedPrayerPoint.title.trim()) {
+      Alert.alert('Missing Title', 'Please add a title for your prayer.');
+      return;
+    }
+
+    setPrivacy('private');
+    setIsLoading(true);
+
+    try {
+      await linkAndSyncPrayerPoint();
+      if (isEditMode && updatedPrayerPoint.id) {
+        await updatePrayerPoint();
+      } else {
+        await createPrayerPoint();
+      }
+
+      router.replace('/(tabs)/(prayers)');
+      router.dismissAll();
+    } catch (error) {
+      console.error('Error submitting prayer point:', error);
+      Alert.alert('Something went wrong', 'Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <ThemedKeyboardAvoidingView
@@ -80,6 +127,7 @@ export default function PrayerPointMetadataScreen() {
               editMode={EditMode.CREATE}
               similarPrayers={similarPrayers}
               prayerPoint={updatedPrayerPoint}
+              onChange={handlePrayerLinkingOnChange}
             />
           )}
 

@@ -63,9 +63,43 @@ export const getDistinctPrayerTypes = (
   return Array.from(types);
 };
 
+export const setContextAsStringsAndGetEmbeddings = async (
+  prayerPoint: PrayerPoint,
+  selectedPrayer: PrayerPoint | PrayerTopic,
+) => {
+  // There is no slice on (selectedPrayer) original content, just the new prayer point.
+  // this is for 2 reasons: 1) keep original prayer point intact and
+  // to lean more heavily on it when there are few topics. 2) if linking to a prayer topic,
+  // we need the full content.
+  const contextAsStrings = [
+    `${prayerPoint.title} ${prayerPoint.content.slice(0, maxCharactersPerPrayerContext)}`,
+    `${selectedPrayer.title} ${selectedPrayer.content ?? ''}`,
+  ]
+    .join(', ')
+    .trim();
+
+  try {
+    const embeddings =
+      await openAiService.getVectorEmbeddings(contextAsStrings);
+
+    if (!embeddings || embeddings.length === 0) {
+      console.error('Failed to generate embeddings');
+      return {};
+    }
+
+    return {
+      contextAsStrings,
+      contextAsEmbeddings: embeddings,
+    };
+  } catch (error) {
+    console.error('Error generating embeddings:', error);
+    throw error;
+  }
+};
+
 // This function handles all the logic for prayer topics when linking
 // either prayer point to prayer point or prayer point to an existing prayer topic.
-export const getTopicDTOForLinkedPrayer = async ({
+export const getPrayerTopicDTO = async ({
   prayerPoint,
   selectedPrayer,
   title,
@@ -76,7 +110,13 @@ export const getTopicDTOForLinkedPrayer = async ({
   title: string;
   user: User;
 }) => {
+  if (!user.uid) {
+    console.error('User ID is not available');
+    return;
+  }
+
   const journey = getJourney(prayerPoint, selectedPrayer);
+  console.log('Journey:', journey);
   if (!journey) {
     console.error('Failed to get journey');
     return;
@@ -91,12 +131,21 @@ export const getTopicDTOForLinkedPrayer = async ({
 
   const content = `Latest ${prayerPoint.prayerType.trim()}: ${prayerPoint.title.trim()}`;
 
+  // Get context strings + embeddings
+  const { contextAsStrings, contextAsEmbeddings } =
+    await setContextAsStringsAndGetEmbeddings(prayerPoint, selectedPrayer);
+
+  if (!contextAsStrings || !contextAsEmbeddings) {
+    console.error('Missing context or embeddings');
+    return;
+  }
+
   const sharedFields = {
     title,
     content,
     journey,
-    contextAsStrings: '', // to be filled in later
-    contextAsEmbeddings: [], // to be filled in later
+    contextAsStrings,
+    contextAsEmbeddings,
     prayerTypes,
   };
 
@@ -104,8 +153,8 @@ export const getTopicDTOForLinkedPrayer = async ({
     case EntityType.PrayerTopic: {
       const updateTopicData: UpdatePrayerTopicDTO = {
         ...sharedFields,
-        authorName: selectedPrayer.authorName, // Author of the existing prayer topic
-        authorId: selectedPrayer.authorId, // ID of the existing prayer topic's author
+        authorName: selectedPrayer.authorName,
+        authorId: selectedPrayer.authorId,
       };
       return { updateTopicData };
     }
@@ -126,37 +175,16 @@ export const getTopicDTOForLinkedPrayer = async ({
   }
 };
 
-export const setContentAndGetEmbeddings = async (
+export const removeEmbeddingFromExistingPrayerPoints = async (
   prayerPoint: PrayerPoint,
   selectedPrayer: PrayerPoint | PrayerTopic,
-  onChange: (p: PrayerPoint) => void,
 ) => {
-  // There is no slice on (selectedPrayer) original content, just the new prayer point.
-  // this is for 2 reasons: 1) keep original prayer point intact and
-  // to lean more heavily on it when there are few topics. 2) if linking to a prayer topic,
-  // we need the full content.
-  const contextAsStrings = [
-    `${prayerPoint.title} ${prayerPoint.content.slice(0, maxCharactersPerPrayerContext)}`,
-    `${selectedPrayer.title} ${selectedPrayer.content}`,
-  ]
-    .join(', ')
-    .trim();
-
-  const embeddings = await openAiService.getVectorEmbeddings(contextAsStrings);
-  if (!embeddings || embeddings.length === 0) {
-    console.error('Failed to generate embeddings');
-    return [];
-  }
-
-  // Once embeddings are fetched or updated for the topic, remove embeddings from any
-  // prayer points that have been linked.
-
   // 1. Delete the existing embedding from firebase for selected prayer.
-  if (selectedPrayer.entityType === EntityType.PrayerTopic) {
+  if (selectedPrayer.entityType === EntityType.PrayerPoint) {
     const updateData: UpdatePrayerPointDTO = {
       embedding: deleteField(),
     };
-    prayerService.updatePrayerPoint(selectedPrayer.id, updateData);
+    await prayerService.updatePrayerPoint(selectedPrayer.id, updateData);
   }
 
   // 2. Delete the embedding from the new prayer point being created.
@@ -164,10 +192,6 @@ export const setContentAndGetEmbeddings = async (
     ...prayerPoint,
     embedding: undefined,
   };
-  onChange(updatedPrayerPoint);
 
-  return {
-    contextAsStrings,
-    contextAsEmbeddings: embeddings,
-  };
+  return updatedPrayerPoint;
 };
