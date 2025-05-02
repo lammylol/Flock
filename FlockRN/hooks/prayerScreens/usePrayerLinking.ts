@@ -74,12 +74,12 @@ export function usePrayerLinking(
   // It updates the selected prayer and the prayer topic DTO.
   const handlePrayerLinkingOnChange = (
     selectedPrayer: LinkedPrayerEntity,
-    title: string,
+    title?: string,
   ) => {
     setOriginPrayer(selectedPrayer);
     setPrayerTopicDTO((prev) => ({
       ...prev,
-      ...(title && { title }),
+      ...(title != null ? { title } : {}),
     }));
   };
 
@@ -103,17 +103,20 @@ export function usePrayerLinking(
     );
   };
 
-  const updateLinkedTopicWithSync = async (
+  const updatePrayerPointWithLinkedTopic = async (
     prayerPoint: PrayerPoint,
     topicToModify: LinkedTopicInPrayerDTO,
+    isExistingPrayerPoint?: boolean,
   ) => {
     const updated = await updateLinkedPrayerTopic(prayerPoint, topicToModify);
 
-    await prayerService.updatePrayerPoint(prayerPoint.id, {
-      linkedTopic: updated.linkedTopic,
-    });
+    if (isExistingPrayerPoint) {
+      await prayerService.updatePrayerPoint(prayerPoint.id, {
+        linkedTopic: updated.linkedTopic,
+      });
 
-    updateCollection(updated, 'prayerPoint');
+      updateCollection(updated, 'prayerPoint');
+    }
 
     return updated;
   };
@@ -153,17 +156,19 @@ export function usePrayerLinking(
         return;
       }
 
-      // Create new topic or update existing.
+      let updatedPrayerPoint: PrayerPoint | null = null;
       if (originPrayer.entityType === EntityType.PrayerTopic) {
+        // Update existing prayer topic
         await updatePrayerTopic(
           originPrayer as PrayerTopic,
           topicDTO as UpdatePrayerTopicDTO,
         );
-        await updateLinkedTopicWithSync(
+        updatedPrayerPoint = await updatePrayerPointWithLinkedTopic(
           prayerPoint,
           topicDTO as LinkedTopicInPrayerDTO,
         );
       } else {
+        // If the origin prayer is a prayer point, create a new prayer topic
         const topicId = await createPrayerTopic(
           topicDTO as CreatePrayerTopicDTO,
         );
@@ -178,21 +183,27 @@ export function usePrayerLinking(
           title: prayerTopicDTO.title,
         } as LinkedTopicInPrayerDTO;
 
-        // Update the new prayer point and the original prayer with the new linked topic
-        await Promise.all([
-          updateLinkedTopicWithSync(prayerPoint, linkedTopic),
-          updateLinkedTopicWithSync(
-            fullOriginPrayer as PrayerPoint,
-            linkedTopic,
-          ),
-        ]);
+        // Update the new prayer point
+        updatedPrayerPoint = await updatePrayerPointWithLinkedTopic(
+          prayerPoint,
+          linkedTopic,
+        );
+
+        // Update the original prayer point
+        await updatePrayerPointWithLinkedTopic(
+          fullOriginPrayer as PrayerPoint,
+          linkedTopic,
+          true,
+        );
       }
 
-      // update embeddings - remove from prayer points and add to prayer topic.
-      const updatedPrayerPoint = removeEmbeddingLocally(prayerPoint);
+      // Remove embeddings and finalize
+      const finalPrayerPoint = removeEmbeddingLocally(
+        updatedPrayerPoint,
+      ) as PrayerPoint;
       await removeEmbeddingFromFirebase(originPrayer);
 
-      handlePrayerPointUpdate(updatedPrayerPoint);
+      handlePrayerPointUpdate(finalPrayerPoint);
       setOriginPrayer(null);
       setPrayerTopicDTO(null);
     } catch (error) {

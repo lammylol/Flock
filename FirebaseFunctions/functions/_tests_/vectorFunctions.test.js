@@ -7,13 +7,14 @@ const fftInstance = fft(); // required for mock tests.
 
 // Test for findSimilarPrayers function based on query embedding.
 async function testFindSimilarPrayers() {
-  const testFunction = fftInstance.wrap(myFunctions.findSimilarPrayers);
+  const testFunction = fftInstance.wrap(myFunctions.findSimilarPrayersV2);
 
   const request = {
     data: {
       sourcePrayerId: '12345', // test prayer document
-      queryEmbedding: [-0.03835538, 0.0023366269, -0.046881247],
-      topK: 5,
+      queryEmbedding: 
+      [-0.018328054, -0.05464863, -0.013648, -0.014328, -0.012328, -0.015328, -0.016328, -0.017328, -0.018328, -0.019328],
+      topK: 10,
       userId: testUid,
     },
     auth: {

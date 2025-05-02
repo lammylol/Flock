@@ -6,6 +6,8 @@ import { prayerService } from '@/services/prayer/prayerService';
 import OpenAiService from '@/services/ai/openAIService';
 import {
   CreatePrayerPointDTO,
+  LinkedPrayerEntity,
+  PartialLinkedPrayerEntity,
   PrayerPoint,
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
@@ -39,9 +41,9 @@ export function usePrayerPointHandler(params: {
     entityType: EntityType.PrayerPoint,
   });
 
-  const [similarPrayers, setSimilarPrayers] = useState<Partial<PrayerPoint>[]>(
-    [],
-  );
+  const [similarPrayers, setSimilarPrayers] = useState<
+    PartialLinkedPrayerEntity[]
+  >([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
@@ -140,6 +142,7 @@ export function usePrayerPointHandler(params: {
       recipientName: 'unknown',
       recipientId: 'unknown',
       embedding: embeddingInput,
+      linkedTopic: updatedPrayerPoint.linkedTopic || [],
     };
 
     await prayerService.createPrayerPoint(prayerPointData);

@@ -30,7 +30,7 @@ export function PrayerPointLinking({
   backgroundColor?: string;
   similarPrayers: PartialLinkedPrayerEntity[];
   prayerPoint: PrayerPoint;
-  onChange: (selectedPrayer: LinkedPrayerEntity, title: string) => void;
+  onChange: (selectedPrayer: LinkedPrayerEntity, title?: string) => void;
 }): JSX.Element {
   const [searchText, setSearchText] = useState('');
   const [selectedLink, setSelectedLink] = useState<LinkedPrayerEntity | null>(
@@ -62,8 +62,8 @@ export function PrayerPointLinking({
   };
 
   const handleAddTopic = async (
-    title: string,
     selectedPrayer: LinkedPrayerEntity,
+    title?: string,
   ) => {
     onChange(selectedPrayer as LinkedPrayerEntity, title);
     handlePrayerSelection(selectedPrayer);
@@ -127,8 +127,8 @@ export function PrayerPointLinking({
         <LinkPrayerModal
           visible={showLinkingModal}
           onClose={() => setShowLinkingModal(false)}
-          onAddTopic={(title, selectedLink) => {
-            handleAddTopic(title, selectedLink);
+          onAddTopic={(selectedLink, title) => {
+            handleAddTopic(selectedLink, title);
           }}
           originPrayer={selectedLink as LinkedPrayerEntity}
           newPrayerPoint={prayerPoint}

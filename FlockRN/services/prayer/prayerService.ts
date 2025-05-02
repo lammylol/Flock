@@ -217,7 +217,6 @@ class PrayerService {
   async createPrayerPoint(data: CreatePrayerPointDTO): Promise<string> {
     try {
       const now = Timestamp.now();
-      console.log(data);
 
       const docRef = await addDoc(this.prayerPointsCollection, {
         ...data,
