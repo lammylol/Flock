@@ -18,9 +18,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { EditMode } from '@/types/ComponentProps';
 import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
-import { auth } from '@/firebase/firebaseConfig';
 import { EntityType } from '@/types/PrayerSubtypes';
-import { getPrayerTopicDTO } from '@/services/prayer/prayerLinkingService';
 
 export function PrayerPointLinking({
   editMode,
@@ -38,8 +36,6 @@ export function PrayerPointLinking({
     topicDTO: CreatePrayerTopicDTO | UpdatePrayerTopicDTO,
   ) => void;
 }): JSX.Element {
-  // const { userPrayers, userPrayerPoints } = usePrayerCollection();
-  const user = auth.currentUser;
   const [searchText, setSearchText] = useState('');
   const [selectedLink, setSelectedLink] = useState<
     PrayerPoint | PrayerTopic | null

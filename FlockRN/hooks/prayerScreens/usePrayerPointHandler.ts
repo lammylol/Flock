@@ -154,6 +154,9 @@ export function usePrayerPointHandler(params: {
       tags: updatedPrayerPoint.tags,
       prayerType: updatedPrayerPoint.prayerType,
       status: updatedPrayerPoint.status,
+      ...(updatedPrayerPoint.linkedTopic?.length
+        ? { linkedPrayerPoints: updatedPrayerPoint.linkedTopic }
+        : {}),
     };
 
     await prayerService.updatePrayerPoint(updatedPrayerPoint.id, updateData);

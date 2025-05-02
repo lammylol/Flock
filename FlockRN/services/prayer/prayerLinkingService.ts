@@ -8,8 +8,8 @@ import {
   PrayerTopic,
   PrayerPointInPrayerTopicDTO,
   CreatePrayerTopicDTO,
-  UpdatePrayerPointDTO,
   UpdatePrayerTopicDTO,
+  LinkedTopicInPrayerDTO,
 } from '@/types/firebase';
 import { isPrayerTopic } from '@/types/typeGuards';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
@@ -116,7 +116,6 @@ export const getPrayerTopicDTO = async ({
   }
 
   const journey = getJourney(prayerPoint, selectedPrayer);
-  console.log('Journey:', journey);
   if (!journey) {
     console.error('Failed to get journey');
     return;
@@ -156,7 +155,7 @@ export const getPrayerTopicDTO = async ({
         authorName: selectedPrayer.authorName,
         authorId: selectedPrayer.authorId,
       };
-      return { updateTopicData };
+      return updateTopicData;
     }
 
     case EntityType.PrayerPoint:
@@ -170,28 +169,79 @@ export const getPrayerTopicDTO = async ({
         recipientName: 'User',
         recipientId: 'Unknown',
       };
-      return { createTopicData };
+      return createTopicData;
     }
   }
 };
 
-export const removeEmbeddingFromExistingPrayerPoints = async (
+export const removeEmbeddingLocally = (
   prayerPoint: PrayerPoint,
-  selectedPrayer: PrayerPoint | PrayerTopic,
-) => {
-  // 1. Delete the existing embedding from firebase for selected prayer.
-  if (selectedPrayer.entityType === EntityType.PrayerPoint) {
-    const updateData: UpdatePrayerPointDTO = {
-      embedding: deleteField(),
-    };
-    await prayerService.updatePrayerPoint(selectedPrayer.id, updateData);
-  }
-
-  // 2. Delete the embedding from the new prayer point being created.
-  const updatedPrayerPoint: PrayerPoint = {
+): PrayerPoint => {
+  return {
     ...prayerPoint,
     embedding: undefined,
   };
+};
 
-  return updatedPrayerPoint;
+export const removeEmbeddingFromFirebase = async (
+  selectedPrayer: PrayerPoint | PrayerTopic,
+) => {
+  if (selectedPrayer.entityType === EntityType.PrayerPoint) {
+    await prayerService.updatePrayerPoint(selectedPrayer.id, {
+      embedding: deleteField(),
+    });
+  }
+};
+
+export const updateLinkedPrayerTopic = async (
+  prayerPoint: PrayerPoint,
+  topicToModify?: LinkedTopicInPrayerDTO,
+  options?: { remove?: boolean },
+): Promise<PrayerPoint> => {
+  const existingTopics = prayerPoint.linkedTopic ?? [];
+
+  if (options?.remove) {
+    if (!existingTopics.length) return prayerPoint;
+
+    if (!topicToModify?.id) {
+      throw new Error('topicToModify.id is required when removing a topic');
+    }
+
+    const updatedTopics = existingTopics.filter(
+      (t) => t.id !== topicToModify.id,
+    );
+
+    return {
+      ...prayerPoint,
+      linkedTopic: updatedTopics.length > 0 ? updatedTopics : undefined,
+    };
+  }
+
+  if (!topicToModify) {
+    throw new Error('topicToModify is required when adding a topic');
+  }
+
+  // Ensure no duplicates
+  const mergedLinkedTopics = Array.from(
+    new Map(
+      [...existingTopics, topicToModify].map((topic) => [topic.id, topic]),
+    ).values(),
+  );
+
+  return {
+    ...prayerPoint,
+    linkedTopic: mergedLinkedTopics,
+  };
+};
+
+export const getLinkedPrayerTopicFromDTO = async (
+  topicDTO: CreatePrayerTopicDTO | UpdatePrayerTopicDTO,
+) => {
+  const linkedTopic = {
+    id: 'id' in topicDTO ? topicDTO.id : undefined,
+    title: topicDTO.title,
+    content: topicDTO.content,
+  };
+
+  return linkedTopic;
 };

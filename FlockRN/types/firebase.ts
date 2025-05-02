@@ -75,6 +75,7 @@ export interface PrayerPoint {
   prayerId?: string | string[];
   prayerType: PrayerType;
   tags?: PrayerType[];
+  linkedTopic?: LinkedTopicInPrayerDTO[]; // linked topics. id/title of topic.
   status?: Status;
   privacy?: Privacy;
   recipientName?: string;
@@ -155,6 +156,8 @@ export type PrayerPointInPrayerTopicDTO = Pick<
   | 'authorName'
   | 'recipientName'
 >;
+
+export type LinkedTopicInPrayerDTO = Pick<PrayerPoint, 'id' | 'title'>;
 
 export interface ServiceResponse {
   success: boolean;

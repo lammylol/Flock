@@ -30,6 +30,7 @@ import {
   PrayerTopic,
   CreatePrayerTopicDTO,
   UpdatePrayerTopicDTO,
+  LinkedTopicInPrayerDTO,
 } from '@/types/firebase';
 import { PrayerType, EntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
@@ -449,7 +450,7 @@ class PrayerService {
     try {
       const now = Timestamp.now();
 
-      const newDocRef = doc(this.prayerTopicsCollection); // generate empty ref with ID
+      const newDocRef = doc(this.prayerTopicsCollection);
       await setDoc(newDocRef, {
         ...data,
         id: newDocRef.id,
@@ -656,10 +657,10 @@ class PrayerService {
       updatedAt: data.updatedAt as Date,
       prayerId: data.prayerId,
       tags: data.tags,
+      linkedTopic: data.linkedTopic as LinkedTopicInPrayerDTO[],
       prayerType: data.prayerType as PrayerType,
       recipientId: data.recipientId,
       recipientName: data.recipientName,
-      isOrigin: data.isOrigin,
       embedding: data.embedding,
       entityType: data.entityType as EntityType,
     };
