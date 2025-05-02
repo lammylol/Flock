@@ -7,7 +7,6 @@ import {
   Text,
 } from 'react-native';
 import {
-  FlatPrayerTopicDTO,
   PartialLinkedPrayerEntity,
   LinkedPrayerEntity,
   PrayerPoint,
@@ -31,10 +30,7 @@ export function PrayerPointLinking({
   backgroundColor?: string;
   similarPrayers: PartialLinkedPrayerEntity[];
   prayerPoint: PrayerPoint;
-  onChange: (
-    selectedPrayer: LinkedPrayerEntity,
-    topicDTO: FlatPrayerTopicDTO,
-  ) => void;
+  onChange: (selectedPrayer: LinkedPrayerEntity, title: string) => void;
 }): JSX.Element {
   const [searchText, setSearchText] = useState('');
   const [selectedLink, setSelectedLink] = useState<LinkedPrayerEntity | null>(

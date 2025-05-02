@@ -27,7 +27,7 @@ export const tagColors = {
 
 export const iconBackgroundColors = {
   // Default tag color
-  defaultTag: '#FFFFFF',
+  defaultTag: '#F5E9DC80',
 
   typeColors: {
     request: '#F5E9DC80',

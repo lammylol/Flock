@@ -14,7 +14,7 @@ interface LinkPrayerModalProps {
   onClose: () => void;
   originPrayer: LinkedPrayerEntity;
   newPrayerPoint: PrayerPoint;
-  onAddTopic: (title: string, prayer: LinkedPrayerEntity) => void;
+  onAddTopic: (prayer: LinkedPrayerEntity, title?: string) => void;
 }
 
 const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
@@ -40,7 +40,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
     }
 
     if (topicTitle.trim()) {
-      onAddTopic(topicTitle, originPrayer);
+      onAddTopic(originPrayer, topicTitle);
       setTopicTitle('');
       onClose();
     }
@@ -53,12 +53,10 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
   const description = isOriginAPrayerPoint
     ? 'You will be able to add other prayer points to this topic in the future.'
     : 'You are linking a prayer point to an existing topic.';
-  const inputPlaceholder = isOriginAPrayerPoint
-    ? 'Enter #topic name'
-    : 'Prayer Title';
+  const inputPlaceholder = isOriginAPrayerPoint ? 'Enter #topic name' : '';
   const saveText = isOriginAPrayerPoint ? 'Add Topic' : 'Add to Topic';
   const inputValue = isOriginAPrayerPoint ? topicTitle : originPrayer.title;
-  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => {};
+  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => { };
   const primaryTextColor = useThemeColor({}, 'textPrimary');
   const secondaryTextColor = useThemeColor({}, 'textSecondary');
 

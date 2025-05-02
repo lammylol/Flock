@@ -187,9 +187,15 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
                   { color: Colors[colorScheme].textSecondary },
                 ]}
               >
-                {prayerType &&
-                  (prayerTagDisplayNames[prayerType]?.charAt(0).toUpperCase() ??
-                    '') + (prayerTagDisplayNames[prayerType]?.slice(1) ?? '')}
+                {isPrayerPoint && prayerType && (
+                  <ThemedText>
+                    {prayerTagDisplayNames[prayerType]
+                      ?.charAt(0)
+                      .toUpperCase() +
+                      prayerTagDisplayNames[prayerType]?.slice(1)}
+                  </ThemedText>
+                )}
+                {isPrayerTopic && <ThemedText>{'#topic'}</ThemedText>}
               </ThemedText>
             )
           )}
