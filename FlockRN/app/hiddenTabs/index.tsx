@@ -3,11 +3,11 @@ import { HelloWave } from '@/components/HelloWave';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import useAuth from '@/hooks/useAuth';
 import { WeekCalendar } from '@/components/ui/calendar';
+import useAuthContext from '@/hooks/useAuthContext';
 
 export default function HomeScreen() {
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const greeting = user?.displayName ? `Hi ${user.displayName}` : 'Hi there';
 
   return (

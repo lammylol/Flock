@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { StyleSheet, FlatList } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { friendsService } from '@/services/friends/friendsService';
 import { Tabs } from '@/components/Tab';
 import { FriendRequest, UserProfileResponse } from '@/types/firebase';
 import SearchBar from '@/components/ui/SearchBar';
+import useAuthContext from '@/hooks/useAuthContext';
 
 export default function ConnectionsScreen() {
-  const { user, userProfile } = useAuth();
+  const { user, userProfile } = useAuthContext();
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState<UserProfileResponse[]>([]);
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);

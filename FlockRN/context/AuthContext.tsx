@@ -1,36 +1,82 @@
 // Purpose: Create a context for user authentication. This context will be used to provide user
 // authentication information to the entire application.
 
-import React, { createContext, useState, useEffect } from 'react';
-import useAuth from '@/hooks/useAuth';
-import { User } from 'firebase/auth';
+import {
+  createContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from 'react';
+import {
+  FirebaseAuthTypes,
+  onAuthStateChanged,
+  signOut,
+} from '@react-native-firebase/auth';
+import { UserProfileResponse } from '@/types/firebase';
+import { auth } from '@/firebase/firebaseConfig';
+import { userService } from '@/services/userService';
 
-// Context Type for AuthContext
+// Context type
 interface AuthContextType {
-  user: User | null;
+  user: FirebaseAuthTypes.User | null;
+  userProfile: UserProfileResponse | null;
   userIsAuthenticated: boolean;
   isAuthLoading: boolean;
+  signOutUser: () => void;
 }
 
-// Create a context
+// Create context
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Define provider props - ensures proper usage of AuthProvider.
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+// Provider
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfileResponse | null>(
+    null,
+  );
+  const [userIsAuthenticated, setUserIsAuthenticated] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const { user, userIsAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Update isAuthLoading after the authentication process has completed
-    setIsAuthLoading(false);
-  }, [user]);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const profile = await userService.getUser(user.uid);
+        setUser(user);
+        setUserProfile(profile);
+        setUserIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setUserProfile(null);
+        setUserIsAuthenticated(false);
+      }
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const signOutUser = useCallback(async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      setUserProfile(null);
+      setUserIsAuthenticated(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, userIsAuthenticated, isAuthLoading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userProfile,
+        userIsAuthenticated,
+        isAuthLoading,
+        signOutUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

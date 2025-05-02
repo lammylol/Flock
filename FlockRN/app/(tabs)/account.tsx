@@ -1,17 +1,16 @@
 import { Alert, StyleSheet, Switch } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import useAuth from '@/hooks/useAuth';
 import Button from '@/components/Button';
 import { router } from 'expo-router';
-import { auth } from '@/firebase/firebaseConfig';
 import MuiStack from '@/components/MuiStack';
 import useUserContext from '@/hooks/useUserContext';
 import { flagTranslations, UserOptInFlags } from '@/types/UserFlags';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import useAuthContext from '@/hooks/useAuthContext';
 
 export default function TabTwoScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOutUser } = useAuthContext();
   const { userOptInFlags, toggleUserOptInFlagState } = useUserContext();
 
   const handleToggleUserOptInFlag = async (flag: UserOptInFlags) => {
@@ -52,7 +51,7 @@ export default function TabTwoScreen() {
         <Button
           label="Sign out"
           onPress={async () => {
-            await signOut(auth); // Pass the auth instance
+            await signOutUser(); // Pass the auth instance
             router.replace('/auth/login');
           }}
         />

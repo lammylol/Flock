@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { prayerService } from '@/services/prayer/prayerService';
-import useAuth from '@/hooks/useAuth';
+import useAuthContext from '@/hooks/useAuthContext';
 
 interface PrayerCollectionContextType {
   userPrayers: Prayer[];
@@ -29,7 +29,7 @@ export const PrayerCollectionProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const [userPrayers, setUserPrayers] = useState<Prayer[]>([]);
   const [userPrayerPoints, setUserPrayerPoints] = useState<PrayerPoint[]>([]);
   const [filteredUserPrayers, setFilteredUserPrayers] = useState<Prayer[]>([]);
