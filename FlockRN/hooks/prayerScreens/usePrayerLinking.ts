@@ -145,8 +145,8 @@ export function usePrayerLinking(
       const topicDTO = (await getPrayerTopicDTO({
         prayerPoint,
         selectedPrayer: fullOriginPrayer,
-        title: prayerTopicDTO.title ?? '',
-        user: user,
+        title: prayerTopicDTO.title,
+        user: user!,
       })) as FlatPrayerTopicDTO;
       if (!topicDTO) {
         console.error('Failed to build topicDTO');
