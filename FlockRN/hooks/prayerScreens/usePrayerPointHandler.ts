@@ -13,6 +13,7 @@ import {
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { deleteField } from 'firebase/firestore';
 
 export function usePrayerPointHandler(params: {
   id: string;
@@ -48,7 +49,8 @@ export function usePrayerPointHandler(params: {
   const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
 
   const handlePrayerPointUpdate = (data: Partial<PrayerPoint>) => {
-    setUpdatedPrayerPoint((prev) => ({ ...prev, ...data }));
+    const newUpdated = { ...updatedPrayerPoint, ...data };
+    setUpdatedPrayerPoint(newUpdated);
   };
 
   const loadPrayerPoint = useCallback(async () => {
@@ -105,7 +107,7 @@ export function usePrayerPointHandler(params: {
   useEffect(() => {
     const debounce = setTimeout(() => {
       if (
-        updatedPrayerPoint.title.trim() ||
+        updatedPrayerPoint.title?.trim() ||
         updatedPrayerPoint.content.trim()
       ) {
         handleFindSimilarPrayers();
@@ -119,9 +121,10 @@ export function usePrayerPointHandler(params: {
   ]);
 
   const createPrayerPoint = async () => {
-    let embeddingInput = (updatedPrayerPoint.embedding as number[]) || [];
+    let embeddingInput =
+      (updatedPrayerPoint.embedding as number[]) || undefined;
 
-    if (embeddingInput.length === 0) {
+    if (embeddingInput.length === 0 && !updatedPrayerPoint.linkedTopic) {
       const input =
         `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
       embeddingInput = await openAiService.getVectorEmbeddings(input);
@@ -130,7 +133,7 @@ export function usePrayerPointHandler(params: {
     if (!user?.uid) return;
 
     const prayerPointData: CreatePrayerPointDTO = {
-      title: updatedPrayerPoint.title.trim(),
+      title: updatedPrayerPoint.title?.trim(),
       content: updatedPrayerPoint.content.trim(),
       privacy,
       prayerType: updatedPrayerPoint.prayerType,
@@ -141,7 +144,7 @@ export function usePrayerPointHandler(params: {
       recipientName: 'unknown',
       recipientId: 'unknown',
       embedding: embeddingInput,
-      linkedTopic: updatedPrayerPoint.linkedTopic || [],
+      linkedTopic: updatedPrayerPoint.linkedTopic || undefined,
     };
 
     await prayerService.createPrayerPoint(prayerPointData);
@@ -150,7 +153,7 @@ export function usePrayerPointHandler(params: {
 
   const updatePrayerPoint = async () => {
     const updateData: UpdatePrayerPointDTO = {
-      title: updatedPrayerPoint.title.trim(),
+      title: updatedPrayerPoint.title?.trim(),
       content: updatedPrayerPoint.content,
       privacy,
       tags: updatedPrayerPoint.tags,
@@ -159,6 +162,11 @@ export function usePrayerPointHandler(params: {
       ...(updatedPrayerPoint.linkedTopic?.length
         ? { linkedPrayerPoints: updatedPrayerPoint.linkedTopic }
         : {}),
+      embedding:
+        updatedPrayerPoint.embedding === undefined
+          ? deleteField()
+          : updatedPrayerPoint.embedding,
+      linkedTopic: updatedPrayerPoint.linkedTopic || undefined,
     };
 
     await prayerService.updatePrayerPoint(updatedPrayerPoint.id, updateData);

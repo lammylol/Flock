@@ -29,21 +29,27 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
   const isOriginAPrayerPoint = originEntityType === EntityType.PrayerPoint;
 
   const handleAddTopic = () => {
-    if (!topicTitle.trim()) {
+    if (!isOriginAPrayerPoint) {
+      onAddTopic(originPrayer);
+      onClose();
+      return;
+    }
+
+    const trimmedTitle = topicTitle.trim();
+
+    if (!trimmedTitle) {
       Alert.alert('Error', 'You must enter a topic name.');
       return;
     }
 
-    if (topicTitle.trim().length > 50) {
+    if (trimmedTitle.length > 50) {
       Alert.alert('Error', 'You must keep the topic name below 50 characters.');
       return;
     }
 
-    if (topicTitle.trim()) {
-      onAddTopic(originPrayer, topicTitle);
-      setTopicTitle('');
-      onClose();
-    }
+    onAddTopic(originPrayer, trimmedTitle);
+    setTopicTitle('');
+    onClose();
   };
 
   // Define UI text based on isPrayerPoint
@@ -56,7 +62,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
   const inputPlaceholder = isOriginAPrayerPoint ? 'Enter #topic name' : '';
   const saveText = isOriginAPrayerPoint ? 'Add Topic' : 'Add to Topic';
   const inputValue = isOriginAPrayerPoint ? topicTitle : originPrayer.title;
-  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => {};
+  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => { };
   const primaryTextColor = useThemeColor({}, 'textPrimary');
   const secondaryTextColor = useThemeColor({}, 'textSecondary');
 

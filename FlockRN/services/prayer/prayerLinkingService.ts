@@ -71,12 +71,12 @@ export const setContextAsStringsAndGetEmbeddings = async (
   // this is for 2 reasons: 1) keep original prayer point intact and
   // to lean more heavily on it when there are few topics. 2) if linking to a prayer topic,
   // we need the full content.
-  const contextAsStrings = [
-    `${prayerPoint.title} ${prayerPoint.content.slice(0, maxCharactersPerPrayerContext)}`,
-    `${selectedPrayer.title} ${selectedPrayer.content ?? ''}`,
-  ]
-    .join(', ')
-    .trim();
+  const newContent = `${prayerPoint.title}, ${prayerPoint.content.slice(0, maxCharactersPerPrayerContext)}`;
+  const oldContent = isPrayerTopic(selectedPrayer)
+    ? `${selectedPrayer.contextAsStrings}`
+    : `${selectedPrayer.title} ${selectedPrayer.content}`.trim();
+
+  const contextAsStrings = [oldContent, newContent].join(', ').trim();
 
   try {
     const embeddings =
@@ -102,12 +102,12 @@ export const setContextAsStringsAndGetEmbeddings = async (
 export const getPrayerTopicDTO = async ({
   prayerPoint,
   selectedPrayer,
-  title,
+  topicTitle,
   user,
 }: {
   prayerPoint: PrayerPoint;
   selectedPrayer: LinkedPrayerEntity;
-  title: string;
+  topicTitle?: string;
   user: User;
 }) => {
   if (!user.uid) {
@@ -128,7 +128,7 @@ export const getPrayerTopicDTO = async ({
     return;
   }
 
-  const content = `Latest ${prayerPoint.prayerType.trim()}: ${prayerPoint.title.trim()}`;
+  const content = `Latest ${prayerPoint.prayerType.trim()}: ${prayerPoint.title!.trim()} `;
 
   // Get context strings + embeddings
   const { contextAsStrings, contextAsEmbeddings } =
@@ -140,18 +140,19 @@ export const getPrayerTopicDTO = async ({
   }
 
   const sharedFields = {
-    title,
-    content,
-    journey,
-    contextAsStrings,
-    contextAsEmbeddings,
-    prayerTypes,
+    id: selectedPrayer.id,
+    content: content,
+    journey: journey,
+    contextAsStrings: contextAsStrings,
+    contextAsEmbeddings: contextAsEmbeddings,
+    prayerTypes: prayerTypes,
   };
 
   switch (selectedPrayer.entityType) {
     case EntityType.PrayerTopic: {
       const updateTopicData: UpdatePrayerTopicDTO = {
         ...sharedFields,
+        title: selectedPrayer.title,
         authorName: selectedPrayer.authorName,
         authorId: selectedPrayer.authorId,
       };
@@ -162,6 +163,7 @@ export const getPrayerTopicDTO = async ({
     default: {
       const createTopicData: CreatePrayerTopicDTO = {
         ...sharedFields,
+        title: topicTitle,
         authorName: user.displayName || 'Unknown',
         authorId: user.uid,
         status: 'open',

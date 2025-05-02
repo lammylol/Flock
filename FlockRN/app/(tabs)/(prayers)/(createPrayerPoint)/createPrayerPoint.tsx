@@ -69,11 +69,6 @@ export default function PrayerPointMetadataScreen() {
     usePrayerLinking(updatedPrayerPoint, handlePrayerPointUpdate);
 
   const handleSubmit = async () => {
-    if (!updatedPrayerPoint.title.trim()) {
-      Alert.alert('Missing Title', 'Please add a title for your prayer.');
-      return;
-    }
-
     setPrivacy('private');
     setIsLoading(true);
 
