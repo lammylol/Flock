@@ -56,7 +56,7 @@ const LinkPrayerModal: React.FC<LinkPrayerModalProps> = ({
   const inputPlaceholder = isOriginAPrayerPoint ? 'Enter #topic name' : '';
   const saveText = isOriginAPrayerPoint ? 'Add Topic' : 'Add to Topic';
   const inputValue = isOriginAPrayerPoint ? topicTitle : originPrayer.title;
-  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => { };
+  const onChangeText = isOriginAPrayerPoint ? setTopicTitle : () => {};
   const primaryTextColor = useThemeColor({}, 'textPrimary');
   const secondaryTextColor = useThemeColor({}, 'textSecondary');
 

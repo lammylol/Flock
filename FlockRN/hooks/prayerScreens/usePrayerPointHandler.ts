@@ -6,7 +6,6 @@ import { prayerService } from '@/services/prayer/prayerService';
 import OpenAiService from '@/services/ai/openAIService';
 import {
   CreatePrayerPointDTO,
-  LinkedPrayerEntity,
   PartialLinkedPrayerEntity,
   PrayerPoint,
   UpdatePrayerPointDTO,
