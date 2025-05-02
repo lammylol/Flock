@@ -16,7 +16,7 @@ import { ThemedText } from '@/components/ThemedText';
 import Button from '@/components/Button';
 import { UserProfile } from '@/types/firebase';
 
-export default function SignUpScreen() {
+const SignUpScreen = () => {
   const theme = useColorScheme() ?? 'light';
   const [userName, setUserName] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -149,7 +149,9 @@ export default function SignUpScreen() {
       <Button label="Sign Up" onPress={handleSignUp} />
     </ThemedView>
   );
-}
+};
+
+export default SignUpScreen;
 
 const styles = StyleSheet.create({
   container: {

@@ -17,7 +17,7 @@ import { UserIntroFlow } from '@/types/UserFlags';
 import { auth, db } from '@/firebase/firebaseConfig';
 import { FirebaseFirestoreError } from '@/types/firebaseErrors';
 
-export default function LoginScreen() {
+const LoginScreen = () => {
   const router = useRouter();
   const { updateUserIntroFlowFlagState } = useUserContext();
 
@@ -110,7 +110,9 @@ export default function LoginScreen() {
       </View>
     </SafeAreaView>
   );
-}
+};
+
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   buttons: {

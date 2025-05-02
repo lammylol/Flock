@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { ThemedStack } from '@/components/ThemedStack';
 import { PrayerCollectionProvider } from '@/context/PrayerCollectionContext';
 
-export default function prayers() {
+const prayers = () => {
   return (
     <PrayerCollectionProvider>
       <ThemedStack>
@@ -60,4 +60,6 @@ export default function prayers() {
       </ThemedStack>
     </PrayerCollectionProvider>
   );
-}
+};
+
+export default prayers;

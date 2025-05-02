@@ -6,7 +6,7 @@ import { ThemedScrollView } from '@/components/ThemedScrollView';
 import { WeekCalendar } from '@/components/ui/calendar';
 import useAuthContext from '@/hooks/useAuthContext';
 
-export default function HomeScreen() {
+const HomeScreen = () => {
   const { user } = useAuthContext();
   const greeting = user?.displayName ? `Hi ${user.displayName}` : 'Hi there';
 
@@ -27,7 +27,9 @@ export default function HomeScreen() {
       </ThemedView>
     </ThemedScrollView>
   );
-}
+};
+
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   header: {

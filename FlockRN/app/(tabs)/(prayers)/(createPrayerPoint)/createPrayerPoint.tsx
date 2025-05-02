@@ -27,7 +27,7 @@ import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinki
 import OpenAiService from '@/services/ai/openAIService';
 import { EditMode } from '@/types/ComponentProps';
 
-export default function PrayerPointMetadataScreen() {
+const PrayerPointMetadataScreen = () => {
   const params = useLocalSearchParams<{
     id?: string;
     editMode?: EditMode;
@@ -326,7 +326,9 @@ export default function PrayerPointMetadataScreen() {
       </ThemedScrollView>
     </ThemedKeyboardAvoidingView>
   );
-}
+};
+
+export default PrayerPointMetadataScreen;
 
 const styles = StyleSheet.create({
   button: {

@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lammylol.FlockRN",
-      "googleServicesFile": "./firebase/GoogleService-Info.plist",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "We need access to speech recognition to enable voice commands and transcription.",
         "NSMicrophoneUsageDescription": "We need access to the microphone for capturing your voice input."
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "googleServicesFile": "./firebase/google-services.json",
+      "googleServicesFile": "./google-services.json",
       "package": "com.lammylol.FlockRN"
     },
     "web": {
@@ -31,6 +31,18 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/firestore",
+      "@react-native-firebase/function",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",

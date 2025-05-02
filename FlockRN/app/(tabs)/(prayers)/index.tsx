@@ -13,7 +13,7 @@ import { useState } from 'react';
 
 type TabType = 'prayerPoints' | 'userPrayers';
 
-export default function TabTwoScreen() {
+const TabTwoScreen = () => {
   const {
     userPrayers,
     userPrayerPoints,
@@ -78,7 +78,9 @@ export default function TabTwoScreen() {
       />
     </ThemedView>
   );
-}
+};
+
+export default TabTwoScreen;
 
 const styles = StyleSheet.create({
   container: {

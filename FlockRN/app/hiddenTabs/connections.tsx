@@ -9,7 +9,7 @@ import { FriendRequest, UserProfileResponse } from '@/types/firebase';
 import SearchBar from '@/components/ui/SearchBar';
 import useAuthContext from '@/hooks/useAuthContext';
 
-export default function ConnectionsScreen() {
+const ConnectionsScreen = () => {
   const { user, userProfile } = useAuthContext();
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState<UserProfileResponse[]>([]);
@@ -132,7 +132,9 @@ export default function ConnectionsScreen() {
       )}
     </ThemedView>
   );
-}
+};
+
+export default ConnectionsScreen;
 
 const styles = StyleSheet.create({
   container: {

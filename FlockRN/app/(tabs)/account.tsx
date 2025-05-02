@@ -9,7 +9,7 @@ import { flagTranslations, UserOptInFlags } from '@/types/UserFlags';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAuthContext from '@/hooks/useAuthContext';
 
-export default function TabTwoScreen() {
+const AccountScreen = () => {
   const { user, signOutUser } = useAuthContext();
   const { userOptInFlags, toggleUserOptInFlagState } = useUserContext();
 
@@ -58,7 +58,9 @@ export default function TabTwoScreen() {
       </ThemedView>
     </ThemedView>
   );
-}
+};
+
+export default AccountScreen;
 
 const styles = StyleSheet.create({
   container: {

@@ -30,7 +30,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
 
-export default function PrayerMetadataScreen() {
+const PrayerMetadataScreen = () => {
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
   const params = useLocalSearchParams<{
@@ -397,7 +397,9 @@ export default function PrayerMetadataScreen() {
       )}
     </ThemedScrollView>
   );
-}
+};
+
+export default PrayerMetadataScreen;
 
 const styles = StyleSheet.create({
   activityIndicator: {
