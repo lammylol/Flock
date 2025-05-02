@@ -1,15 +1,14 @@
-import app from '@/firebase/firebaseConfig';
 import {
   getDownloadURL,
   getStorage,
   ref,
   uploadBytesResumable,
-} from 'firebase/storage';
+} from '@react-native-firebase/storage';
 
 // this file handles the uploading and downloading of files to firebase storage
 // it is mainly used in the recording service to upload and download the audio files.
 
-const storage = getStorage(app);
+const storage = getStorage();
 
 // Define types for function parameters
 export const uploadFile = async (
@@ -62,9 +61,13 @@ export const uploadFile = async (
     },
     () => {
       // Upload completed successfully, now we can get the download URL
-      getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-        console.log('File available at', downloadURL);
-      });
+      if (uploadTask.snapshot) {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          console.log('File available at', downloadURL);
+        });
+      } else {
+        console.error('Upload task snapshot is null.');
+      }
     },
   );
 };
