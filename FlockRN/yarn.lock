@@ -2121,6 +2121,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-firebase/firestore/-/firestore-22.1.0.tgz#849f26b2a8b526da4aca17dfd32f6b5205c03705"
   integrity sha512-jiizCp+XGMDy7FjuuSAOhjp6dgkFOgZZRoWnSYAOxo9kHJKkJqwtXTO3Bmc94nTGudQGoRVFWG2D8CPv+Cj7hA==
 
+"@react-native-firebase/functions@^22.1.0":
+  version "22.1.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/functions/-/functions-22.1.0.tgz#0752da8a32bb1ada86eee9f74c7bc5aed806bf34"
+  integrity sha512-jDfgg/LvDwab9lYQ3K8cILL9SsD4/diwgNDqkOPAqqLkpJyib1VZGf1o2ZENm45ISZjBJFeryp5wm7hNHISUpw==
+
 "@react-native-picker/picker@2.9.0":
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/@react-native-picker/picker/-/picker-2.9.0.tgz#0a7053ca174ec697388cb79032fb4c1445554e07"

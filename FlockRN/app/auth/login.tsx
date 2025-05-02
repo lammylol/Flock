@@ -6,16 +6,16 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
-import { auth, db } from '@/firebase/firebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from '@react-native-firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
-import { FirebaseError } from 'firebase/app';
 import { Colors } from '@/constants/Colors';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from '@react-native-firebase/firestore';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import useUserContext from '@/hooks/useUserContext';
 import { UserIntroFlow } from '@/types/UserFlags';
+import { auth, db } from '@/firebase/firebaseConfig';
+import { FirebaseFirestoreError } from '@/types/firebaseErrors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -46,11 +46,8 @@ export default function LoginScreen() {
       updateUserIntroFlowFlagState(UserIntroFlow.hasIntroDisclosures, true);
       router.replace('/(tabs)/(prayers)');
     } catch (error) {
-      if (error instanceof FirebaseError) {
-        console.error('Login error:', error.message);
-      } else {
-        console.error('Unknown login error:', error);
-      }
+      const firebaseError = error as FirebaseFirestoreError;
+      console.error('Login error:', firebaseError.message);
     }
   };
 
@@ -235,7 +232,7 @@ async function logIn(email: string, password: string) {
     );
     return userCredential.user;
   } catch (error) {
-    if (error instanceof FirebaseError) {
+    if (error) {
       throw error;
     }
     throw new Error('Failed to log in. Please try again.');

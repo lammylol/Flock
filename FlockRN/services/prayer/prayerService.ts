@@ -15,10 +15,8 @@ import {
   orderBy,
   Timestamp,
   setDoc,
-  QueryDocumentSnapshot,
-  DocumentData,
-  CollectionReference,
-} from 'firebase/firestore';
+  FirebaseFirestoreTypes,
+} from '@react-native-firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
 import {
   Prayer,
@@ -32,9 +30,9 @@ import {
 } from '@/types/firebase';
 import { PrayerType, PrayerEntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
-import { User } from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { getApp } from 'firebase/app';
+import { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import { getFunctions, httpsCallable } from '@react-native-firebase/functions';
+import { getApp } from '@react-native-firebase/app';
 import { getEntityType } from '@/types/typeGuards';
 
 class PrayerService {
@@ -364,7 +362,7 @@ class PrayerService {
 
   async getPrayerPoints(
     prayerId: string,
-    user: User,
+    user: FirebaseAuthTypes.User,
   ): Promise<PrayerPoint[] | null> {
     try {
       // Query for public OR user's own prayer points
@@ -613,7 +611,7 @@ class PrayerService {
   }
 
   async checkIfDocumentExists(
-    collectionName: CollectionReference,
+    collectionName: FirebaseFirestoreTypes.CollectionReference,
     documentId: string,
   ): Promise<boolean> {
     try {
@@ -627,26 +625,30 @@ class PrayerService {
   }
 
   private convertDocToPrayer(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    docSnap: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): Prayer {
     const data = docSnap.data();
+    if (!data) throw new Error('No data found in document snapshot');
     return {
       id: docSnap.id,
-      authorId: data.authorId,
-      authorName: data.authorName,
-      content: data.content,
-      privacy: data.privacy,
-      createdAt: data.createdAt as Date,
-      updatedAt: data.updatedAt as Date,
-      prayerPoints: data.prayerPoints,
-      entityType: data.entityType as PrayerEntityType,
+      authorId: data?.authorId ?? null,
+      authorName: data?.authorName ?? null,
+      content: data?.content ?? null,
+      privacy: data?.privacy ?? null,
+      createdAt: (data?.createdAt as Date) ?? new Date(),
+      updatedAt: (data?.updatedAt as Date) ?? new Date(),
+      prayerPoints: data?.prayerPoints ?? [],
+      entityType:
+        (data?.entityType as PrayerEntityType) ?? PrayerEntityType.Prayer,
     };
   }
 
   private convertDocToPrayerPoint(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    docSnap: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): PrayerPoint {
     const data = docSnap.data();
+    if (!data) throw new Error('No data found in document snapshot');
+
     return {
       id: docSnap.id,
       authorId: data.authorId,
@@ -669,9 +671,10 @@ class PrayerService {
   }
 
   private convertDocToPrayerTopic(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
+    docSnap: FirebaseFirestoreTypes.DocumentSnapshot<FirebaseFirestoreTypes.DocumentData>,
   ): PrayerTopic {
     const data = docSnap.data();
+    if (!data) throw new Error('No data found in document snapshot');
     return {
       id: docSnap.id,
       authorId: data.authorId,
