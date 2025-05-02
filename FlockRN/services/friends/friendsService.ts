@@ -17,7 +17,7 @@ import {
   query,
   where,
   writeBatch,
-} from 'firebase/firestore';
+} from '@react-native-firebase/firestore';
 
 class FriendsService {
   private userCollection = collection(db, FirestoreCollections.USERS);

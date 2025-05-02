@@ -1,6 +1,11 @@
 import create from 'zustand';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { db } from '../firebaseConfig'; // Ensure you import your Firebase config
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+} from '@react-native-firebase/firestore';
+import { db } from '@/firebase/firebaseConfig';
 
 const usePrayerStore = create((set) => ({
   prayers: {}, // Cached prayers { [id]: { ...prayerData } }
