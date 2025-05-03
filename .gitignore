@@ -12,6 +12,7 @@ expo-env.d.ts
 *.expo/
 
 # Native (iOS & Android)
+/ios
 */ios/build/
 */ios/Pods/
 */ios/Podfile.lock
@@ -20,6 +21,7 @@ expo-env.d.ts
 */ios/.DS_Store
 */ios/.xcode.env.local
 
+/android
 */android/.gradle/
 */android/.idea/
 */android/app/build/
