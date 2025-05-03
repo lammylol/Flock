@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lammylol.FlockRN",
-      "googleServicesFile": "./GoogleService-Info.plist",
+      "googleServicesFile": "./firebase/GoogleService-Info.plist",
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "We need access to speech recognition to enable voice commands and transcription.",
         "NSMicrophoneUsageDescription": "We need access to the microphone for capturing your voice input."
@@ -22,7 +22,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "googleServicesFile": "./google-services.json",
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./firebase/google-services.json",
       "package": "com.lammylol.FlockRN"
     },
     "web": {
