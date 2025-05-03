@@ -1,14 +1,20 @@
 // __tests__/test-utils.tsx
 import React, { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react-native';
-import { auth } from '../__mocks__/firebase/auth';
-import { db } from '../__mocks__/firebase/firestore';
+import { render as rtlRender, RenderOptions } from '@testing-library/react-native';
+
+// Import auth related modules after the mock
+// The key fix here is to declare a mockCurrentUser object directly
+const mockCurrentUser = {
+    uid: 'test-user-id',
+    displayName: 'Test User'
+};
 
 // Mock the auth hook
 jest.mock('../hooks/useAuth', () => ({
     __esModule: true,
     default: () => ({
-        user: auth.currentUser,
+        // Use mock object directly instead of referencing auth
+        user: mockCurrentUser,
         loading: false,
         error: null,
         signIn: jest.fn(),
@@ -74,10 +80,17 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
 const customRender = (
     ui: ReactElement,
     options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options });
+) => rtlRender(ui, { wrapper: AllTheProviders, ...options });
 
 // Re-export everything from testing-library
 export * from '@testing-library/react-native';
 
 // Override render method with custom render that includes providers
-export { customRender as render };
+export { customRender as render, mockCurrentUser };
+
+// Add a simple test to prevent "Your test suite must contain at least one test" error
+describe('Test utilities', () => {
+    it('should provide a custom render function', () => {
+        expect(typeof customRender).toBe('function');
+    });
+});
