@@ -16,7 +16,7 @@ import { prayerService } from '../../../services/prayer/prayerService';
 const PrayerEntityType = {
   Prayer: 'prayer',
   PrayerPoint: 'prayerPoint',
-  PrayerTopic: 'prayerTopic'
+  PrayerTopic: 'prayerTopic',
 };
 
 // Once the service is imported, we can now mock its methods directly

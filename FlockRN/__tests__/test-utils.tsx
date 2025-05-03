@@ -14,13 +14,14 @@ export interface MockPrayer {
   updatedAt: Date;
   prayerPoints: string[];
   entityType: string;
-  [key: string]: any; // For any additional properties
+  // Change this line from [key: string]: any to a more specific type
+  [key: string]: unknown; // Use 'unknown' instead of 'any'
 }
 
 // Wrap components with navigation container for testing
 export function renderWithNavigation(
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
+  options?: Omit<RenderOptions, 'wrapper'>,
 ) {
   return render(ui, {
     wrapper: ({ children }) => (
@@ -51,7 +52,7 @@ export const mockUser = {
   email: 'test@example.com',
 };
 
-// Add this at the end of __tests__/test-utils.tsx
+// Add the test to make Jest happy
 describe('Test utilities', () => {
   it('should be set up correctly', () => {
     expect(true).toBe(true);

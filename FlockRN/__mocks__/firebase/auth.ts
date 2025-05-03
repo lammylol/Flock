@@ -37,21 +37,21 @@ export const getAuth = jest.fn(() => ({
   signOut: jest.fn(() => Promise.resolve()),
 }));
 
-export const signInWithEmailAndPassword = jest.fn(() => 
+export const signInWithEmailAndPassword = jest.fn(() =>
   Promise.resolve({
     user: {
       uid: 'test-user-id',
       displayName: 'Test User',
       email: 'test@example.com',
-    }
-  })
+    },
+  }),
 );
 
-export const createUserWithEmailAndPassword = jest.fn(() => 
+export const createUserWithEmailAndPassword = jest.fn(() =>
   Promise.resolve({
     user: {
       uid: 'new-test-user-id',
       email: 'new-test@example.com',
-    }
-  })
+    },
+  }),
 );
