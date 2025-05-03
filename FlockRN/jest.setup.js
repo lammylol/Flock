@@ -32,6 +32,13 @@ jest.mock('expo-router', () => ({
     },
 }));
 
+// Common enums to avoid import issues
+global.PrayerEntityType = {
+    Prayer: 'prayer',
+    PrayerPoint: 'prayerPoint',
+    PrayerTopic: 'prayerTopic'
+  };
+
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
     setItem: jest.fn(() => Promise.resolve()),

@@ -11,7 +11,13 @@ jest.mock('@/firebase/firebaseConfig');
 
 // Import our service to test
 import { prayerService } from '../../../services/prayer/prayerService';
-import { PrayerEntityType } from '@/types/PrayerSubtypes';
+
+// Define PrayerEntityType directly in the test to avoid import issues
+const PrayerEntityType = {
+  Prayer: 'prayer',
+  PrayerPoint: 'prayerPoint',
+  PrayerTopic: 'prayerTopic'
+};
 
 // Once the service is imported, we can now mock its methods directly
 // This approach bypasses the complex Firebase mocking

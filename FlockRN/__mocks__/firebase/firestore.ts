@@ -1,92 +1,79 @@
 // __mocks__/firebase/firestore.ts
-// This is a comprehensive mock for Firebase Firestore
+export const initializeFirestore = jest.fn(() => ({
+  collection: jest.fn(() => ({
+    doc: jest.fn(() => ({
+      get: jest.fn(() => Promise.resolve({
+        exists: true,
+        data: () => ({ id: 'test-doc' })
+      })),
+      set: jest.fn(() => Promise.resolve()),
+      update: jest.fn(() => Promise.resolve())
+    })),
+    where: jest.fn(() => ({
+      get: jest.fn(() => Promise.resolve({
+        docs: [
+          { id: 'doc1', data: () => ({ name: 'Test Doc 1' }) },
+          { id: 'doc2', data: () => ({ name: 'Test Doc 2' }) }
+        ]
+      }))
+    }))
+  }))
+}));
 
-// Define mock document and query snapshots
-export const mockDocumentSnapshot = {
-  exists: jest.fn(() => true),
-  data: jest.fn(() => ({})),
-  id: 'mock-doc-id',
-};
-
-export const mockQuerySnapshot = {
-  docs: [],
-  forEach: jest.fn((callback) => {
-    mockQuerySnapshot.docs.forEach(callback);
-  }),
-  empty: false,
-};
-
-// Create a mock for the db itself
-export const db = {
-  collection: jest.fn().mockReturnValue({}),
-};
-
-// Mock Firestore functions
-export const collection = jest
-  .fn()
-  .mockImplementation((firestore, collectionName) => {
-    // Return an object that can be used with other Firestore functions
-    return {
-      __collectionName: collectionName,
-      __isCollection: true,
-    };
-  });
-
-export const doc = jest
-  .fn()
-  .mockImplementation((firestore, collectionName, ...pathSegments) => {
-    // Return a document reference with the path segments
-    return {
-      __collectionName: collectionName,
-      __pathSegments: pathSegments,
-      __isDocRef: true,
-    };
-  });
-
-export const setDoc = jest.fn().mockResolvedValue(undefined);
-export const updateDoc = jest.fn().mockResolvedValue(undefined);
-export const deleteDoc = jest.fn().mockResolvedValue(undefined);
-export const addDoc = jest.fn();
-export const getDoc = jest.fn().mockResolvedValue(mockDocumentSnapshot);
-export const getDocs = jest.fn().mockResolvedValue(mockQuerySnapshot);
-export const query = jest.fn().mockReturnValue({});
-export const where = jest.fn().mockReturnValue({});
-export const orderBy = jest.fn().mockReturnValue({});
-
-// Mock Timestamp
-export const Timestamp = {
-  now: jest.fn(() => ({
-    toDate: () => new Date(),
-    seconds: Math.floor(Date.now() / 1000),
-    nanoseconds: 0,
+export const collection = jest.fn(() => ({
+  doc: jest.fn(() => ({
+    get: jest.fn(() => Promise.resolve({
+      exists: true,
+      data: () => ({ id: 'test-doc' })
+    })),
+    set: jest.fn(() => Promise.resolve()),
+    update: jest.fn(() => Promise.resolve())
   })),
-  fromDate: jest.fn((date) => ({
-    toDate: () => date,
-    seconds: Math.floor(date.getTime() / 1000),
-    nanoseconds: 0,
+  where: jest.fn(() => ({
+    get: jest.fn(() => Promise.resolve({
+      docs: [
+        { id: 'doc1', data: () => ({ name: 'Test Doc 1' }) },
+        { id: 'doc2', data: () => ({ name: 'Test Doc 2' }) }
+      ]
+    }))
+  }))
+}));
+
+export const doc = jest.fn(() => ({
+  get: jest.fn(() => Promise.resolve({
+    exists: true,
+    data: () => ({ id: 'test-doc' })
   })),
-};
+  set: jest.fn(() => Promise.resolve()),
+  update: jest.fn(() => Promise.resolve())
+}));
 
-// Mock Firestore initialization
-export const initializeFirestore = jest.fn().mockReturnValue(db);
+export const getDoc = jest.fn(() => 
+  Promise.resolve({
+    exists: jest.fn(() => true),
+    data: jest.fn(() => ({ 
+      id: 'test-doc-id',
+      name: 'Test Document'
+    }))
+  })
+);
 
-// Reset all mocks
-export const resetMocks = jest.fn(() => {
-  collection.mockClear();
-  doc.mockClear();
-  setDoc.mockClear();
-  updateDoc.mockClear();
-  deleteDoc.mockClear();
-  addDoc.mockClear();
-  getDoc.mockClear();
-  getDocs.mockClear();
-  query.mockClear();
-  where.mockClear();
-  orderBy.mockClear();
+export const getDocs = jest.fn(() => 
+  Promise.resolve({
+    docs: [
+      {
+        id: 'doc1',
+        data: () => ({ name: 'Doc 1' })
+      },
+      {
+        id: 'doc2',
+        data: () => ({ name: 'Doc 2' })
+      }
+    ]
+  })
+);
 
-  mockDocumentSnapshot.exists.mockClear();
-  mockDocumentSnapshot.data.mockClear();
-
-  Timestamp.now.mockClear();
-  Timestamp.fromDate.mockClear();
-});
+export const setDoc = jest.fn(() => Promise.resolve());
+export const updateDoc = jest.fn(() => Promise.resolve());
+export const deleteDoc = jest.fn(() => Promise.resolve());
+export const addDoc = jest.fn(() => Promise.resolve({ id: 'new-doc-id' }));
