@@ -1,11 +1,14 @@
 import { IPrayerPointsService, prayerPointService } from './prayerPointService';
-import { prayerService } from './prayerService';
+import { IPrayerService, prayerService } from './prayerService';
 
 class ComplexPrayerOperations {
-  private prayerService;
+  private prayerService: IPrayerService;
   private prayerPointService: IPrayerPointsService;
 
-  constructor(prayerService, prayerPointService: IPrayerPointsService) {
+  constructor(
+    prayerService: IPrayerService,
+    prayerPointService: IPrayerPointsService,
+  ) {
     this.prayerService = prayerService;
     this.prayerPointService = prayerPointService;
   }

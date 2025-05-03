@@ -11,7 +11,6 @@ import {
   UpdatePrayerTopicDTO,
 } from '@/types/firebase';
 import { EntityType } from '@/types/PrayerSubtypes';
-import { prayerService } from '@/services/prayer/prayerService';
 import {
   getPrayerTopicDTO,
   removeEmbeddingFromFirebase,
@@ -21,6 +20,7 @@ import {
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { auth } from '@/firebase/firebaseConfig';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
+import { prayerTopicService } from '@/services/prayer/prayerTopicService';
 
 export function usePrayerLinking(prayerPoint: PrayerPoint) {
   const { updateCollection } = usePrayerCollection();
@@ -51,7 +51,7 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
           break;
         case EntityType.PrayerTopic:
           // If the origin prayer is a prayer topic, fetch the prayer topic from Firebase
-          fetchedPrayer = await prayerService.getPrayerTopic(
+          fetchedPrayer = await prayerTopicService.getPrayerTopic(
             originPrayer?.id as PrayerTopic['id'],
           );
           break;
@@ -88,7 +88,7 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       console.error('Missing title in prayer topic');
       return;
     }
-    return prayerService.createPrayerTopic(data);
+    return prayerTopicService.createPrayerTopic(data);
   };
 
   const updatePrayerTopic = async (
@@ -99,7 +99,7 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       console.error('Missing data for updating prayer topic');
       return;
     }
-    await prayerService.updatePrayerTopic(
+    await prayerTopicService.updatePrayerTopic(
       origin.id,
       data as UpdatePrayerTopicDTO,
     );
