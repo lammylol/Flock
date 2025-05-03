@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -20,6 +20,7 @@ import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinki
 import { EditMode } from '@/types/ComponentProps';
 import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
 import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
+import useFormState from '@/hooks/useFormState';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -43,26 +44,26 @@ export default function PrayerPointMetadataScreen() {
 
   // This hook handles the prayer point creation and update logic
   // and manages the state of the prayer point being created or edited.
+  const { isEditMode, isLoading, setIsLoading, privacy, setPrivacy } =
+    useFormState({ editMode: editMode });
+
   const {
     updatedPrayerPoint,
     handlePrayerPointUpdate,
     createPrayerPoint,
     updatePrayerPoint,
-    isEditMode,
-    setupEditMode,
+    loadPrayerPoint,
     similarPrayers,
-    privacy,
-    setPrivacy,
-    setIsLoading,
-    isLoading,
   } = usePrayerPointHandler({
     id: id,
+    privacy: privacy,
     editMode: editMode,
   });
 
-  useMemo(() => {
-    setupEditMode();
-  }, [setupEditMode]);
+  // setup editor state and load prayer point data
+  useEffect(() => {
+    if (isEditMode) loadPrayerPoint();
+  }, [loadPrayerPoint, isEditMode]);
 
   // This hook handles separate logic for linking prayer points and topics.
   const { handlePrayerLinkingOnChange, linkAndSyncPrayerPoint } =

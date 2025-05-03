@@ -15,16 +15,22 @@ import { EditMode } from '@/types/ComponentProps';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { deleteField } from 'firebase/firestore';
 
-export function usePrayerPointHandler(params: {
+export interface UsePrayerPointHandlerProps {
   id: string;
+  privacy?: 'public' | 'private';
   editMode: EditMode;
-}) {
+}
+export function usePrayerPointHandler({
+  id,
+  privacy = 'private',
+  editMode,
+}: UsePrayerPointHandlerProps) {
   const openAiService = OpenAiService.getInstance();
   const { userPrayerPoints, updateCollection } = usePrayerCollection();
   const user = auth.currentUser;
 
   const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
-    id: params.id || '',
+    id: id || '',
     title: '',
     content: '',
     prayerType: PrayerType.Request,
@@ -44,9 +50,6 @@ export function usePrayerPointHandler(params: {
   const [similarPrayers, setSimilarPrayers] = useState<
     PartialLinkedPrayerEntity[]
   >([]);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
 
   const handlePrayerPointUpdate = (data: Partial<PrayerPoint>) => {
     const newUpdated = { ...updatedPrayerPoint, ...data };
@@ -54,29 +57,20 @@ export function usePrayerPointHandler(params: {
   };
 
   const loadPrayerPoint = useCallback(async () => {
-    const contextPrayerPoint = userPrayerPoints.find((p) => p.id === params.id);
+    const contextPrayerPoint = userPrayerPoints.find((p) => p.id === id);
     if (contextPrayerPoint) {
       setUpdatedPrayerPoint({ ...contextPrayerPoint });
       return;
     }
     try {
-      const fetchedPrayer = await prayerService.getPrayerPoint(params.id);
+      const fetchedPrayer = await prayerService.getPrayerPoint(id);
       if (fetchedPrayer) {
         setUpdatedPrayerPoint({ ...fetchedPrayer });
       }
     } catch (error) {
       console.error('Error fetching prayer point:', error);
     }
-  }, [params.id, userPrayerPoints]);
-
-  const setupEditMode = useCallback(() => {
-    if (params.editMode === EditMode.EDIT && params.id) {
-      setIsEditMode(true);
-      loadPrayerPoint();
-    } else {
-      setIsEditMode(false);
-    }
-  }, [params.editMode, params.id, loadPrayerPoint]);
+  }, [id, userPrayerPoints]);
 
   const handleFindSimilarPrayers = useCallback(async () => {
     const input =
@@ -85,7 +79,8 @@ export function usePrayerPointHandler(params: {
     if (!user?.uid) return;
 
     try {
-      const sourcePrayerId = isEditMode ? updatedPrayerPoint.id : undefined;
+      const sourcePrayerId =
+        editMode === EditMode.EDIT ? updatedPrayerPoint.id : undefined;
       const similar = await prayerService.findRelatedPrayers(
         embedding,
         user.uid,
@@ -99,9 +94,9 @@ export function usePrayerPointHandler(params: {
     updatedPrayerPoint.title,
     updatedPrayerPoint.content,
     updatedPrayerPoint.id,
-    isEditMode,
     openAiService,
-    user?.uid,
+    user.uid,
+    editMode,
   ]);
 
   useEffect(() => {
@@ -185,12 +180,7 @@ export function usePrayerPointHandler(params: {
     handlePrayerPointUpdate,
     createPrayerPoint,
     updatePrayerPoint,
-    setupEditMode,
-    isEditMode,
     similarPrayers,
-    setPrivacy,
-    privacy,
-    isLoading,
-    setIsLoading,
+    loadPrayerPoint,
   };
 }
