@@ -9,6 +9,10 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "GOOGLE_SERVICES_PLIST": "./firebase/GoogleService-Info.plist",
+        "GOOGLE_SERVICES_JSON": "./firebase/google-services.json"
       }
     },
     "preview": {

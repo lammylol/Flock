@@ -1,6 +1,6 @@
 import { EditMode } from '@/types/ComponentProps';
 import { Privacy } from '@/types/PrayerSubtypes';
-import { useReducer } from 'react';
+import { useReducer, useState } from 'react';
 
 export interface UseFormStateProps {
   editMode: EditMode;
@@ -8,8 +8,6 @@ export interface UseFormStateProps {
 
 export interface FormState {
   isEditMode: boolean;
-  isDataLoading: boolean;
-  isSubmissionLoading: boolean;
   privacy: Privacy;
 }
 
@@ -17,25 +15,20 @@ export interface FormState {
 const useFormState = ({ editMode }: UseFormStateProps) => {
   const initialState = {
     isEditMode: editMode === EditMode.EDIT,
-    isDataLoading: false,
-    isSubmissionLoading: false,
     privacy: 'private' as 'public' | 'private',
   } as FormState;
 
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isSubmissionLoading, setIsSubmissionLoading] = useState(false);
+
   type Action =
     | { type: 'SET_EDIT_MODE'; payload: boolean }
-    | { type: 'SET_DATA_LOADING'; payload: boolean }
-    | { type: 'SET_SUBMISSION_LOADING'; payload: boolean }
     | { type: 'SET_PRIVACY'; payload: 'public' | 'private' };
 
   const reducer = (state: typeof initialState, action: Action) => {
     switch (action.type) {
       case 'SET_EDIT_MODE':
         return { ...state, isEditMode: action.payload };
-      case 'SET_DATA_LOADING':
-        return { ...state, isLoading: action.payload };
-      case 'SET_SUBMISSION_LOADING':
-        return { ...state, isSubmissionLoading: action.payload };
       case 'SET_PRIVACY':
         return { ...state, privacy: action.payload };
       default:
@@ -47,14 +40,14 @@ const useFormState = ({ editMode }: UseFormStateProps) => {
 
   return {
     formState,
+    isDataLoading,
+    isSubmissionLoading,
     setIsEditMode: (isEditMode: boolean) =>
       dispatch({ type: 'SET_EDIT_MODE', payload: isEditMode }),
-    setIsDataLoading: (isLoading: boolean) =>
-      dispatch({ type: 'SET_DATA_LOADING', payload: isLoading }),
-    setIsSubmissionLoading: (isLoading: boolean) =>
-      dispatch({ type: 'SET_SUBMISSION_LOADING', payload: isLoading }),
     setPrivacy: (privacy: 'public' | 'private') =>
       dispatch({ type: 'SET_PRIVACY', payload: privacy }),
+    setIsDataLoading,
+    setIsSubmissionLoading,
   };
 };
 export default useFormState;
