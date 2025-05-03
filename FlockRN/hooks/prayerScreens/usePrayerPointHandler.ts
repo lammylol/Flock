@@ -10,14 +10,14 @@ import {
   PrayerPoint,
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
-import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
+import { EntityType, PrayerType, Privacy } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { deleteField } from 'firebase/firestore';
 
 export interface UsePrayerPointHandlerProps {
   id: string;
-  privacy?: 'public' | 'private';
+  privacy?: Privacy;
   editMode: EditMode;
 }
 export function usePrayerPointHandler({

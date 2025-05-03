@@ -44,8 +44,9 @@ export default function PrayerPointMetadataScreen() {
 
   // This hook handles the prayer point creation and update logic
   // and manages the state of the prayer point being created or edited.
-  const { isEditMode, isLoading, setIsLoading, privacy, setPrivacy } =
-    useFormState({ editMode: editMode });
+  const { formState, setIsLoading, setPrivacy } = useFormState({
+    editMode: editMode,
+  });
 
   const {
     updatedPrayerPoint,
@@ -56,14 +57,14 @@ export default function PrayerPointMetadataScreen() {
     similarPrayers,
   } = usePrayerPointHandler({
     id: id,
-    privacy: privacy,
+    privacy: formState.privacy,
     editMode: editMode,
   });
 
   // setup editor state and load prayer point data
   useEffect(() => {
-    if (isEditMode) loadPrayerPoint();
-  }, [loadPrayerPoint, isEditMode]);
+    if (formState.isEditMode) loadPrayerPoint();
+  }, [loadPrayerPoint, formState.isEditMode]);
 
   // This hook handles separate logic for linking prayer points and topics.
   const { handlePrayerLinkingOnChange, linkAndSyncPrayerPoint } =
@@ -76,7 +77,7 @@ export default function PrayerPointMetadataScreen() {
     try {
       const linkedPrayerPoint = await linkAndSyncPrayerPoint();
       if (linkedPrayerPoint) handlePrayerPointUpdate(linkedPrayerPoint);
-      if (isEditMode && updatedPrayerPoint.id) {
+      if (formState.isEditMode && updatedPrayerPoint.id) {
         await updatePrayerPoint();
       } else {
         await createPrayerPoint();
