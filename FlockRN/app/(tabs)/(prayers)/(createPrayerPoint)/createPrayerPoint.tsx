@@ -44,10 +44,15 @@ export default function PrayerPointMetadataScreen() {
 
   // This hook handles the prayer point creation and update logic
   // and manages the state of the prayer point being created or edited.
-  const { formState, setIsDataLoading, setIsSubmissionLoading, setPrivacy } =
-    useFormState({
-      editMode: editMode,
-    });
+  const {
+    formState,
+    isSubmissionLoading,
+    setIsDataLoading,
+    setIsSubmissionLoading,
+    setPrivacy,
+  } = useFormState({
+    editMode: editMode,
+  });
 
   const {
     updatedPrayerPoint,
@@ -150,15 +155,12 @@ export default function PrayerPointMetadataScreen() {
         </View>
 
         <TouchableOpacity
-          style={[
-            styles.button,
-            formState.isSubmissionLoading && styles.buttonDisabled,
-          ]}
+          style={[styles.button, isSubmissionLoading && styles.buttonDisabled]}
           onPress={handleSubmit}
-          disabled={formState.isSubmissionLoading}
+          disabled={isSubmissionLoading}
         >
           <ThemedText style={styles.buttonText}>
-            {formState.isSubmissionLoading
+            {isSubmissionLoading
               ? `${formState.isEditMode ? 'Updating' : 'Creating'}...`
               : `${formState.isEditMode ? 'Update' : 'Create'} Prayer Point`}
           </ThemedText>

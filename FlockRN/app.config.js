@@ -11,9 +11,7 @@ export default () => ({
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.lammylol.FlockRN',
-      googleServicesFile:
-        process.env.GOOGLE_SERVICES_PLIST ??
-        './firebase/GoogleService-Info.plist',
+      googleServicesFile: process.env.GOOGLE_SERVICES_PLIST,
       infoPlist: {
         NSSpeechRecognitionUsageDescription:
           'We need access to speech recognition to enable voice commands and transcription.',
@@ -26,8 +24,7 @@ export default () => ({
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
-      googleServicesFile:
-        process.env.GOOGLE_SERVICES_JSON ?? './firebase/google-services.json',
+      googleServicesFile: process.env.GOOGLE_SERVICES_JSON,
       package: 'com.lammylol.FlockRN',
     },
     web: {
