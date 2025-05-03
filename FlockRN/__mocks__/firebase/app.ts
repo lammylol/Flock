@@ -3,9 +3,9 @@
 
 // Create a mock app instance
 const mockApp = {
-    name: 'mock-firebase-app',
-    options: {},
-    automaticDataCollectionEnabled: false
+  name: 'mock-firebase-app',
+  options: {},
+  automaticDataCollectionEnabled: false,
 };
 
 // Export initialization functions
