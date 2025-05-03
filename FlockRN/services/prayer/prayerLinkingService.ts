@@ -195,6 +195,7 @@ export const removeEmbeddingFromFirebase = async (
   }
 };
 
+// This function updates the linked topics in a prayer point.
 export const updateLinkedPrayerTopic = async (
   prayerPoint: PrayerPoint,
   topicToModify?: LinkedTopicInPrayerDTO,

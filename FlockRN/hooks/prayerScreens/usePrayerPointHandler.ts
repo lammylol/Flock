@@ -120,7 +120,7 @@ export function usePrayerPointHandler({
     let embeddingInput =
       (updatedPrayerPoint.embedding as number[]) || undefined;
 
-    if (embeddingInput.length === 0 && !updatedPrayerPoint.linkedTopic) {
+    if (!embeddingInput && !updatedPrayerPoint.linkedTopic) {
       const input =
         `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
       embeddingInput = await openAiService.getVectorEmbeddings(input);
@@ -140,7 +140,9 @@ export function usePrayerPointHandler({
       recipientName: 'unknown',
       recipientId: 'unknown',
       embedding: embeddingInput,
-      linkedTopic: updatedPrayerPoint.linkedTopic || undefined,
+      ...(updatedPrayerPoint.linkedTopic && {
+        linkedTopic: updatedPrayerPoint.linkedTopic,
+      }),
     };
 
     await prayerPointService.createPrayerPoint(prayerPointData);
@@ -155,14 +157,14 @@ export function usePrayerPointHandler({
       tags: updatedPrayerPoint.tags,
       prayerType: updatedPrayerPoint.prayerType,
       status: updatedPrayerPoint.status,
-      ...(updatedPrayerPoint.linkedTopic?.length
-        ? { linkedPrayerPoints: updatedPrayerPoint.linkedTopic }
-        : {}),
       embedding:
-        updatedPrayerPoint.embedding === undefined
+        updatedPrayerPoint.embedding == null
           ? deleteField()
           : updatedPrayerPoint.embedding,
-      linkedTopic: updatedPrayerPoint.linkedTopic || undefined,
+      linkedTopic:
+        updatedPrayerPoint.linkedTopic == null
+          ? deleteField()
+          : updatedPrayerPoint.linkedTopic,
     };
 
     await prayerPointService.updatePrayerPoint(

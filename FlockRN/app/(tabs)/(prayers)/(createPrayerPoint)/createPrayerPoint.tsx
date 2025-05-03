@@ -81,7 +81,9 @@ export default function PrayerPointMetadataScreen() {
     setIsSubmissionLoading(true);
 
     try {
-      const linkedPrayerPoint = await linkAndSyncPrayerPoint();
+      const linkedPrayerPoint = await linkAndSyncPrayerPoint({
+        isNewPrayerPoint: formState.isEditMode,
+      });
       if (linkedPrayerPoint) handlePrayerPointUpdate(linkedPrayerPoint);
       if (formState.isEditMode && updatedPrayerPoint.id) {
         await updatePrayerPoint();
