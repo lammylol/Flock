@@ -8,7 +8,8 @@ export interface UseFormStateProps {
 
 export interface FormState {
   isEditMode: boolean;
-  isLoading: boolean;
+  isDataLoading: boolean;
+  isSubmissionLoading: boolean;
   privacy: Privacy;
 }
 
@@ -16,21 +17,25 @@ export interface FormState {
 const useFormState = ({ editMode }: UseFormStateProps) => {
   const initialState = {
     isEditMode: editMode === EditMode.EDIT,
-    isLoading: false,
+    isDataLoading: false,
+    isSubmissionLoading: false,
     privacy: 'private' as 'public' | 'private',
   } as FormState;
 
   type Action =
     | { type: 'SET_EDIT_MODE'; payload: boolean }
-    | { type: 'SET_LOADING'; payload: boolean }
+    | { type: 'SET_DATA_LOADING'; payload: boolean }
+    | { type: 'SET_SUBMISSION_LOADING'; payload: boolean }
     | { type: 'SET_PRIVACY'; payload: 'public' | 'private' };
 
   const reducer = (state: typeof initialState, action: Action) => {
     switch (action.type) {
       case 'SET_EDIT_MODE':
         return { ...state, isEditMode: action.payload };
-      case 'SET_LOADING':
+      case 'SET_DATA_LOADING':
         return { ...state, isLoading: action.payload };
+      case 'SET_SUBMISSION_LOADING':
+        return { ...state, isSubmissionLoading: action.payload };
       case 'SET_PRIVACY':
         return { ...state, privacy: action.payload };
       default:
@@ -44,8 +49,10 @@ const useFormState = ({ editMode }: UseFormStateProps) => {
     formState,
     setIsEditMode: (isEditMode: boolean) =>
       dispatch({ type: 'SET_EDIT_MODE', payload: isEditMode }),
-    setIsLoading: (isLoading: boolean) =>
-      dispatch({ type: 'SET_LOADING', payload: isLoading }),
+    setIsDataLoading: (isLoading: boolean) =>
+      dispatch({ type: 'SET_DATA_LOADING', payload: isLoading }),
+    setIsSubmissionLoading: (isLoading: boolean) =>
+      dispatch({ type: 'SET_SUBMISSION_LOADING', payload: isLoading }),
     setPrivacy: (privacy: 'public' | 'private') =>
       dispatch({ type: 'SET_PRIVACY', payload: privacy }),
   };

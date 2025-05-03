@@ -44,9 +44,10 @@ export default function PrayerPointMetadataScreen() {
 
   // This hook handles the prayer point creation and update logic
   // and manages the state of the prayer point being created or edited.
-  const { formState, setIsLoading, setPrivacy } = useFormState({
-    editMode: editMode,
-  });
+  const { formState, setIsDataLoading, setIsSubmissionLoading, setPrivacy } =
+    useFormState({
+      editMode: editMode,
+    });
 
   const {
     updatedPrayerPoint,
@@ -63,8 +64,13 @@ export default function PrayerPointMetadataScreen() {
 
   // setup editor state and load prayer point data
   useEffect(() => {
-    if (formState.isEditMode) loadPrayerPoint();
-  }, [loadPrayerPoint, formState.isEditMode]);
+    const setup = async () => {
+      setIsDataLoading(true);
+      await loadPrayerPoint();
+      setIsDataLoading(false);
+    };
+    if (formState.isEditMode) setup();
+  }, [loadPrayerPoint, formState.isEditMode, setIsDataLoading]);
 
   // This hook handles separate logic for linking prayer points and topics.
   const { handlePrayerLinkingOnChange, linkAndSyncPrayerPoint } =
@@ -72,7 +78,7 @@ export default function PrayerPointMetadataScreen() {
 
   const handleSubmit = async () => {
     setPrivacy('private');
-    setIsLoading(true);
+    setIsSubmissionLoading(true);
 
     try {
       const linkedPrayerPoint = await linkAndSyncPrayerPoint();
@@ -89,7 +95,7 @@ export default function PrayerPointMetadataScreen() {
       console.error('Error submitting prayer point:', error);
       Alert.alert('Something went wrong', 'Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmissionLoading(false);
     }
   };
 
@@ -104,14 +110,16 @@ export default function PrayerPointMetadataScreen() {
           headerLeft: () => (
             <HeaderButton onPress={router.back} label="Cancel" />
           ),
-          title: isEditMode ? 'Edit Prayer Point' : 'Add Prayer Point',
+          title: formState.isEditMode
+            ? 'Edit Prayer Point'
+            : 'Add Prayer Point',
           headerTitleStyle: styles.headerTitleStyle,
         }}
       />
       <ThemedScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.upperContainer}>
           <PrayerContent
-            editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
+            editMode={formState.isEditMode ? EditMode.EDIT : EditMode.CREATE}
             prayerOrPrayerPoint={EntityType.PrayerPoint}
             backgroundColor={colorScheme}
             onChange={(updatedPrayerPointData) => {
@@ -134,7 +142,7 @@ export default function PrayerPointMetadataScreen() {
               <ThemedText style={styles.label}>Privacy</ThemedText>
               <View style={styles.privacyValueContainer}>
                 <ThemedText style={styles.privacyValue}>
-                  {privacy === 'private' ? 'Private' : 'Public'}
+                  {formState.privacy === 'private' ? 'Private' : 'Public'}
                 </ThemedText>
               </View>
             </View>
@@ -142,18 +150,17 @@ export default function PrayerPointMetadataScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            formState.isSubmissionLoading && styles.buttonDisabled,
+          ]}
           onPress={handleSubmit}
-          disabled={isLoading}
+          disabled={formState.isSubmissionLoading}
         >
           <ThemedText style={styles.buttonText}>
-            {isLoading
-              ? isEditMode
-                ? 'Updating...'
-                : 'Creating...'
-              : isEditMode
-                ? 'Update Prayer Point'
-                : 'Create Prayer Point'}
+            {formState.isSubmissionLoading
+              ? `${formState.isEditMode ? 'Updating' : 'Creating'}...`
+              : `${formState.isEditMode ? 'Update' : 'Create'} Prayer Point`}
           </ThemedText>
         </TouchableOpacity>
       </ThemedScrollView>
