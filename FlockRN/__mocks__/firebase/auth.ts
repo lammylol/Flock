@@ -1,7 +1,9 @@
 // __mocks__/firebase/auth.ts
+// Mock Firebase Auth
+
 // Mock user
-const mockUser = {
-    uid: 'test-user-123',
+export const mockUser = {
+    uid: 'test-user-id',
     email: 'test@example.com',
     displayName: 'Test User',
     photoURL: 'https://example.com/photo.jpg',
@@ -10,23 +12,21 @@ const mockUser = {
 
 // Auth state observer
 let authStateObserver = null;
-let currentUser = mockUser;  // Start with logged in user for easier testing
+let currentUser = mockUser;  // Start with logged in user
 
-// Mock sign in functions
-const mockSignInWithEmailAndPassword = jest.fn();
-const mockCreateUserWithEmailAndPassword = jest.fn();
-const mockSignOut = jest.fn();
-const mockSendPasswordResetEmail = jest.fn();
-const mockSendEmailVerification = jest.fn();
-const mockUpdateProfile = jest.fn();
-const mockUpdateEmail = jest.fn();
-const mockUpdatePassword = jest.fn();
-const mockDeleteUser = jest.fn();
-const mockGetReactNativePersistence = jest.fn();
-const mockInitializeAuth = jest.fn();
+// Mock auth functions
+export const signInWithEmailAndPassword = jest.fn().mockResolvedValue({ user: mockUser });
+export const createUserWithEmailAndPassword = jest.fn().mockResolvedValue({ user: mockUser });
+export const signOut = jest.fn().mockResolvedValue(undefined);
+export const sendPasswordResetEmail = jest.fn().mockResolvedValue(undefined);
+export const sendEmailVerification = jest.fn().mockResolvedValue(undefined);
+export const updateProfile = jest.fn().mockResolvedValue(undefined);
+export const updateEmail = jest.fn().mockResolvedValue(undefined);
+export const updatePassword = jest.fn().mockResolvedValue(undefined);
+export const deleteUser = jest.fn().mockResolvedValue(undefined);
 
-// onAuthStateChanged mock that calls the observer with the current user
-const mockOnAuthStateChanged = jest.fn((auth, callback) => {
+// Mock onAuthStateChanged
+export const onAuthStateChanged = jest.fn((auth, callback) => {
     authStateObserver = callback;
     // Immediately call with current value
     if (callback) {
@@ -39,83 +39,36 @@ const mockOnAuthStateChanged = jest.fn((auth, callback) => {
     };
 });
 
-// Function to simulate sign in
-const simulateSignIn = (user = mockUser) => {
+// Mock Auth initialization functions
+export const getReactNativePersistence = jest.fn().mockReturnValue({});
+export const initializeAuth = jest.fn().mockReturnValue({
+    currentUser,
+    onAuthStateChanged: (callback) => onAuthStateChanged(auth, callback)
+});
+
+// Simulate sign in/out for testing
+export const simulateSignIn = (user = mockUser) => {
     currentUser = user;
     if (authStateObserver) {
         authStateObserver(currentUser);
     }
 };
 
-// Function to simulate sign out
-const simulateSignOut = () => {
+export const simulateSignOut = () => {
     currentUser = null;
     if (authStateObserver) {
         authStateObserver(null);
     }
 };
 
-// Reset all mocks between tests
-const resetMocks = () => {
-    mockSignInWithEmailAndPassword.mockReset();
-    mockCreateUserWithEmailAndPassword.mockReset();
-    mockSignOut.mockReset();
-    mockSendPasswordResetEmail.mockReset();
-    mockSendEmailVerification.mockReset();
-    mockUpdateProfile.mockReset();
-    mockUpdateEmail.mockReset();
-    mockUpdatePassword.mockReset();
-    mockDeleteUser.mockReset();
-    mockOnAuthStateChanged.mockReset();
-
-    // Set default implementations
-    mockSignInWithEmailAndPassword.mockImplementation((auth, email, password) => {
-        return Promise.resolve({ user: mockUser });
-    });
-
-    mockCreateUserWithEmailAndPassword.mockImplementation((auth, email, password) => {
-        return Promise.resolve({ user: mockUser });
-    });
-
-    mockSignOut.mockImplementation((auth) => {
-        simulateSignOut();
-        return Promise.resolve();
-    });
-
-    mockInitializeAuth.mockReturnValue({
-        currentUser: mockUser,
-        onAuthStateChanged: mockOnAuthStateChanged
-    });
-
+// Reset mocks for testing
+export const resetMocks = () => {
+    jest.clearAllMocks();
     currentUser = mockUser;
 };
 
-// Initialize with default implementations
-resetMocks();
-
-// Export auth functions
-export const signInWithEmailAndPassword = mockSignInWithEmailAndPassword;
-export const createUserWithEmailAndPassword = mockCreateUserWithEmailAndPassword;
-export const signOut = mockSignOut;
-export const sendPasswordResetEmail = mockSendPasswordResetEmail;
-export const sendEmailVerification = mockSendEmailVerification;
-export const updateProfile = mockUpdateProfile;
-export const updateEmail = mockUpdateEmail;
-export const updatePassword = mockUpdatePassword;
-export const deleteUser = mockDeleteUser;
-export const onAuthStateChanged = mockOnAuthStateChanged;
-export const getReactNativePersistence = mockGetReactNativePersistence;
-export const initializeAuth = mockInitializeAuth;
-
-// Auth instance
+// Export auth instance
 export const auth = {
     currentUser,
-    onAuthStateChanged: (callback) => mockOnAuthStateChanged(auth, callback)
-};
-
-// Export testing utilities
-export const testUtils = {
-    simulateSignIn,
-    simulateSignOut,
-    resetMocks
+    onAuthStateChanged: (callback) => onAuthStateChanged(auth, callback)
 };

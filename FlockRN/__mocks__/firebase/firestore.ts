@@ -1,30 +1,14 @@
 // __mocks__/firebase/firestore.ts
+// This is a comprehensive mock for Firebase Firestore
 
-const mockCollection = jest.fn();
-const mockDoc = jest.fn();
-const mockSetDoc = jest.fn();
-const mockUpdateDoc = jest.fn();
-const mockDeleteDoc = jest.fn();
-const mockAddDoc = jest.fn();
-const mockGetDoc = jest.fn();
-const mockGetDocs = jest.fn();
-const mockWhere = jest.fn();
-const mockOrderBy = jest.fn();
-const mockQuery = jest.fn();
-const mockOnSnapshot = jest.fn();
-
-// Firestore data converter mock
-const mockWithConverter = jest.fn();
-
-// Mock document snapshot
-const mockDocumentSnapshot = {
-    exists: jest.fn(),
-    data: jest.fn(),
+// Define mock document and query snapshots
+export const mockDocumentSnapshot = {
+    exists: jest.fn(() => true),
+    data: jest.fn(() => ({})),
     id: 'mock-doc-id'
 };
 
-// Mock query snapshot
-const mockQuerySnapshot = {
+export const mockQuerySnapshot = {
     docs: [],
     forEach: jest.fn(callback => {
         mockQuerySnapshot.docs.forEach(callback);
@@ -32,75 +16,40 @@ const mockQuerySnapshot = {
     empty: false
 };
 
-// Reset all mocks between tests
-const resetMocks = () => {
-    mockCollection.mockReset();
-    mockDoc.mockReset();
-    mockSetDoc.mockReset();
-    mockUpdateDoc.mockReset();
-    mockDeleteDoc.mockReset();
-    mockAddDoc.mockReset();
-    mockGetDoc.mockReset();
-    mockGetDocs.mockReset();
-    mockWhere.mockReset();
-    mockOrderBy.mockReset();
-    mockQuery.mockReset();
-    mockOnSnapshot.mockReset();
-    mockWithConverter.mockReset();
-
-    // Configure default behaviors
-    mockCollection.mockReturnValue({
-        doc: mockDoc,
-        withConverter: mockWithConverter,
-        add: jest.fn()
-    });
-
-    mockDoc.mockReturnValue({
-        set: mockSetDoc,
-        update: mockUpdateDoc,
-        delete: mockDeleteDoc,
-        get: mockGetDoc,
-        onSnapshot: mockOnSnapshot
-    });
-
-    mockWithConverter.mockReturnThis();
-
-    mockGetDoc.mockResolvedValue(mockDocumentSnapshot);
-    mockGetDocs.mockResolvedValue(mockQuerySnapshot);
-
-    mockQuery.mockReturnThis();
-    mockWhere.mockReturnThis();
-    mockOrderBy.mockReturnThis();
-};
-
-// Initialize mocks with default behaviors
-resetMocks();
-
-// Export mock functions
-export {
-    mockCollection as collection,
-    mockDoc as doc,
-    mockSetDoc as setDoc,
-    mockUpdateDoc as updateDoc,
-    mockDeleteDoc as deleteDoc,
-    mockAddDoc as addDoc,
-    mockGetDoc as getDoc,
-    mockGetDocs as getDocs,
-    mockWhere as where,
-    mockOrderBy as orderBy,
-    mockQuery as query,
-    mockOnSnapshot as onSnapshot,
-    mockDocumentSnapshot,
-    mockQuerySnapshot,
-    resetMocks
-};
-
-// Create a mock Firestore instance
+// Create a mock for the db itself
 export const db = {
-    collection: mockCollection
+    collection: jest.fn().mockReturnValue({})
 };
 
-// Mock Firestore types for testing
+// Mock Firestore functions
+export const collection = jest.fn().mockImplementation((firestore, collectionName) => {
+    // Return an object that can be used with other Firestore functions
+    return {
+        __collectionName: collectionName,
+        __isCollection: true
+    };
+});
+
+export const doc = jest.fn().mockImplementation((firestore, collectionName, ...pathSegments) => {
+    // Return a document reference with the path segments
+    return {
+        __collectionName: collectionName,
+        __pathSegments: pathSegments,
+        __isDocRef: true
+    };
+});
+
+export const setDoc = jest.fn().mockResolvedValue(undefined);
+export const updateDoc = jest.fn().mockResolvedValue(undefined);
+export const deleteDoc = jest.fn().mockResolvedValue(undefined);
+export const addDoc = jest.fn();
+export const getDoc = jest.fn().mockResolvedValue(mockDocumentSnapshot);
+export const getDocs = jest.fn().mockResolvedValue(mockQuerySnapshot);
+export const query = jest.fn().mockReturnValue({});
+export const where = jest.fn().mockReturnValue({});
+export const orderBy = jest.fn().mockReturnValue({});
+
+// Mock Timestamp
 export const Timestamp = {
     now: jest.fn(() => ({
         toDate: () => new Date(),
@@ -113,3 +62,27 @@ export const Timestamp = {
         nanoseconds: 0
     }))
 };
+
+// Mock Firestore initialization
+export const initializeFirestore = jest.fn().mockReturnValue(db);
+
+// Reset all mocks
+export const resetMocks = jest.fn(() => {
+    collection.mockClear();
+    doc.mockClear();
+    setDoc.mockClear();
+    updateDoc.mockClear();
+    deleteDoc.mockClear();
+    addDoc.mockClear();
+    getDoc.mockClear();
+    getDocs.mockClear();
+    query.mockClear();
+    where.mockClear();
+    orderBy.mockClear();
+
+    mockDocumentSnapshot.exists.mockClear();
+    mockDocumentSnapshot.data.mockClear();
+
+    Timestamp.now.mockClear();
+    Timestamp.fromDate.mockClear();
+});

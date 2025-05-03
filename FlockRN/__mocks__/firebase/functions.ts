@@ -1,4 +1,6 @@
 // __mocks__/firebase/functions.ts
+// Mock Firebase Cloud Functions
+
 export const getFunctions = jest.fn().mockReturnValue({
     region: jest.fn().mockReturnThis(),
 });
@@ -25,3 +27,5 @@ export const httpsCallable = jest.fn().mockImplementation(() => {
         },
     });
 });
+
+export const connectFunctionsEmulator = jest.fn();
