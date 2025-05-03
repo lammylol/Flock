@@ -8,6 +8,7 @@ import React, {
 import { Prayer, PrayerPoint } from '@/types/firebase';
 import { prayerService } from '@/services/prayer/prayerService';
 import useAuth from '@/hooks/useAuth';
+import { prayerPointService } from '@/services/prayer/prayerPointService';
 
 interface PrayerCollectionContextType {
   userPrayers: Prayer[];
@@ -46,7 +47,7 @@ export const PrayerCollectionProvider = ({
 
   const loadPrayerPoints = useCallback(async () => {
     if (!user) return;
-    const prayerPoints = await prayerService.getUserPrayerPoints(user.uid);
+    const prayerPoints = await prayerPointService.getUserPrayerPoints(user.uid);
     setUserPrayerPoints(prayerPoints);
     setFilteredUserPrayerPoints(prayerPoints);
   }, [user]);

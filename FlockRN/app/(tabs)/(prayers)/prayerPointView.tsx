@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { prayerService } from '@/services/prayer/prayerService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import useAuthContext from '@/hooks/useAuthContext';
@@ -22,6 +21,8 @@ import { Colors } from '@/constants/Colors';
 import { auth } from '@/firebase/firebaseConfig';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
+import { complexPrayerOperations } from '@/services/prayer/complexPrayerOperations';
+import { prayerPointService } from '@/services/prayer/prayerPointService';
 
 const PrayerPointView = () => {
   const { id: prayerPointId } = useLocalSearchParams() as {
@@ -46,7 +47,8 @@ const PrayerPointView = () => {
 
   const fetchPrayerPoint = useCallback(async () => {
     try {
-      const fetchedPrayer = await prayerService.getPrayerPoint(prayerPointId);
+      const fetchedPrayer =
+        await prayerPointService.getPrayerPoint(prayerPointId);
       if (fetchedPrayer) {
         updateCollection(fetchedPrayer, 'prayerPoint');
       }
@@ -105,7 +107,7 @@ const PrayerPointView = () => {
           onPress: async () => {
             setIsDeleting(true);
             try {
-              await prayerService.deletePrayerPoint(
+              await complexPrayerOperations.deletePrayerPointAndUnlinkPrayers(
                 prayerPointId,
                 auth.currentUser.uid,
               );

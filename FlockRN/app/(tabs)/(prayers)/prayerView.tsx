@@ -15,6 +15,7 @@ import { PrayerPoint } from '@/types/firebase';
 import { forEach } from 'lodash';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
+import { prayerPointService } from '@/services/prayer/prayerPointService';
 
 const PrayerView = () => {
   const { id } = useLocalSearchParams<{
@@ -52,7 +53,7 @@ const PrayerView = () => {
   const fetchPrayerPoints = useCallback(async () => {
     try {
       if (user && (prayer?.prayerPoints ?? []).length > 0) {
-        const fetchedPrayerPoints = await prayerService.getPrayerPoints(
+        const fetchedPrayerPoints = await prayerPointService.getPrayerPoints(
           id,
           user,
         );

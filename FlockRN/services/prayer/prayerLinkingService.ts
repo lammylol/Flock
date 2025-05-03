@@ -2,7 +2,6 @@
 
 import { deleteField } from 'firebase/firestore';
 import OpenAiService from '@/services/ai/openAIService';
-import { prayerService } from './prayerService';
 import {
   PrayerPoint,
   PrayerPointInPrayerTopicDTO,
@@ -14,6 +13,7 @@ import {
 import { isPrayerTopic } from '@/types/typeGuards';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { User } from 'firebase/auth';
+import { prayerPointService } from './prayerPointService';
 
 const maxCharactersPerPrayerContext = 250; // or whatever your constant is
 const openAiService = OpenAiService.getInstance();
@@ -189,7 +189,7 @@ export const removeEmbeddingFromFirebase = async (
   selectedPrayer: LinkedPrayerEntity,
 ) => {
   if (selectedPrayer.entityType === EntityType.PrayerPoint) {
-    await prayerService.updatePrayerPoint(selectedPrayer.id, {
+    await prayerPointService.updatePrayerPoint(selectedPrayer.id, {
       embedding: deleteField(),
     });
   }

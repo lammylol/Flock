@@ -29,6 +29,7 @@ import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
+import { prayerPointService } from '@/services/prayer/prayerPointService';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -210,7 +211,7 @@ export default function PrayerMetadataScreen() {
 
       // Save to Firestore
       const prayerPointIds =
-        await prayerService.addPrayerPoints(mappedPrayerPoints);
+        await prayerPointService.addPrayerPoints(mappedPrayerPoints);
 
       return prayerPointIds;
     } catch (err) {

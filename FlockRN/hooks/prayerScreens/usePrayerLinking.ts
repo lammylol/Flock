@@ -20,6 +20,7 @@ import {
 } from '@/services/prayer/prayerLinkingService';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { auth } from '@/firebase/firebaseConfig';
+import { prayerPointService } from '@/services/prayer/prayerPointService';
 
 export function usePrayerLinking(prayerPoint: PrayerPoint) {
   const { updateCollection } = usePrayerCollection();
@@ -44,7 +45,7 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       switch (originPrayer?.entityType) {
         case EntityType.PrayerPoint:
           // If the origin prayer is a prayer point, fetch the prayer topic from Firebase
-          fetchedPrayer = await prayerService.getPrayerPoint(
+          fetchedPrayer = await prayerPointService.getPrayerPoint(
             originPrayer?.id as PrayerTopic['id'],
           );
           break;
@@ -112,7 +113,7 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     const updated = await updateLinkedPrayerTopic(prayerPoint, topicToModify);
 
     if (isExistingPrayerPoint) {
-      await prayerService.updatePrayerPoint(prayerPoint.id, {
+      await prayerPointService.updatePrayerPoint(prayerPoint.id, {
         linkedTopic: updated.linkedTopic,
       });
 

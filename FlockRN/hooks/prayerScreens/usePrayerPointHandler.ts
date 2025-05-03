@@ -14,6 +14,7 @@ import { EntityType, PrayerType, Privacy } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { deleteField } from 'firebase/firestore';
+import { prayerPointService } from '@/services/prayer/prayerPointService';
 
 export interface UsePrayerPointHandlerProps {
   id: string;
@@ -63,7 +64,7 @@ export function usePrayerPointHandler({
       return;
     }
     try {
-      const fetchedPrayer = await prayerService.getPrayerPoint(id);
+      const fetchedPrayer = await prayerPointService.getPrayerPoint(id);
       if (fetchedPrayer) {
         setUpdatedPrayerPoint({ ...fetchedPrayer });
       }
@@ -142,7 +143,7 @@ export function usePrayerPointHandler({
       linkedTopic: updatedPrayerPoint.linkedTopic || undefined,
     };
 
-    await prayerService.createPrayerPoint(prayerPointData);
+    await prayerPointService.createPrayerPoint(prayerPointData);
     Alert.alert('Success', 'Prayer Point created successfully.');
   };
 
@@ -164,7 +165,10 @@ export function usePrayerPointHandler({
       linkedTopic: updatedPrayerPoint.linkedTopic || undefined,
     };
 
-    await prayerService.updatePrayerPoint(updatedPrayerPoint.id, updateData);
+    await prayerPointService.updatePrayerPoint(
+      updatedPrayerPoint.id,
+      updateData,
+    );
 
     updateCollection(
       { ...updatedPrayerPoint, ...updateData } as PrayerPoint,
