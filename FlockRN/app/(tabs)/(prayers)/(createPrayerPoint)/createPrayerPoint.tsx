@@ -66,14 +66,15 @@ export default function PrayerPointMetadataScreen() {
 
   // This hook handles separate logic for linking prayer points and topics.
   const { handlePrayerLinkingOnChange, linkAndSyncPrayerPoint } =
-    usePrayerLinking(updatedPrayerPoint, handlePrayerPointUpdate);
+    usePrayerLinking(updatedPrayerPoint);
 
   const handleSubmit = async () => {
     setPrivacy('private');
     setIsLoading(true);
 
     try {
-      await linkAndSyncPrayerPoint();
+      const linkedPrayerPoint = await linkAndSyncPrayerPoint();
+      if (linkedPrayerPoint) handlePrayerPointUpdate(linkedPrayerPoint);
       if (isEditMode && updatedPrayerPoint.id) {
         await updatePrayerPoint();
       } else {

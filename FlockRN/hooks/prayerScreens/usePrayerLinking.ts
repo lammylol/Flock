@@ -21,10 +21,7 @@ import {
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { auth } from '@/firebase/firebaseConfig';
 
-export function usePrayerLinking(
-  prayerPoint: PrayerPoint,
-  handlePrayerPointUpdate: (updated: PrayerPoint) => void,
-) {
+export function usePrayerLinking(prayerPoint: PrayerPoint) {
   const { updateCollection } = usePrayerCollection();
   const [prayerTopicDTO, setPrayerTopicDTO] =
     useState<FlatPrayerTopicDTO | null>(null);
@@ -136,7 +133,7 @@ export function usePrayerLinking(
   // 2) creates the prayer topic in Firebase.
   // 3) deletes the embedding from the original prayer point.
   // 4) removes the embedding from the new prayer point.
-  const linkAndSyncPrayerPoint = async () => {
+  const linkAndSyncPrayerPoint = async (): Promise<PrayerPoint | undefined> => {
     if (!originPrayer || !prayerTopicDTO) return;
 
     try {
@@ -206,10 +203,10 @@ export function usePrayerLinking(
         await removeEmbeddingFromFirebase(originPrayer);
       }
 
-      handlePrayerPointUpdate(finalPrayerPoint);
-
       setOriginPrayer(null);
       setPrayerTopicDTO(null);
+
+      return finalPrayerPoint;
     } catch (error) {
       console.error('Error linking and syncing prayer point:', error);
     }
