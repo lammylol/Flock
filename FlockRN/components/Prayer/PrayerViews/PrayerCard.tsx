@@ -1,24 +1,106 @@
-import { ThemedText } from '@/components/ThemedText';
-import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import {
-  TouchableOpacity,
   StyleSheet,
-  useColorScheme,
+  TextInput,
+  TouchableOpacity,
   View,
+  useColorScheme,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { router } from 'expo-router';
-import { EmojiIconBackground } from '@/components/ui/EmojiIconBackground';
-import { prayerTagDisplayNames } from '@/types/Tag';
+import { ThemedText } from '@/components/ThemedText';
+import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
+import { Entypo } from '@expo/vector-icons';
+import { prayerTagDisplayNames, prayerTags } from '@/types/Tag';
+import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
+import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useMemo } from 'react';
 import { getEntityType } from '@/types/typeGuards';
+import { getPrayerType } from '@/utils/prayerUtils';
+import { router } from 'expo-router';
 
-export interface PrayerCardProps {
+interface EditablePrayerCardProps {
   prayer: Prayer | PrayerPoint | PrayerTopic;
+  editable?: boolean;
+  onDelete?: () => void;
+  onChange?: (updated: PrayerPoint) => void;
+  children?: React.ReactNode;
+  maxLines?: number;
 }
 
-export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
+const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
+  prayer,
+  editable,
+  onDelete,
+  onChange,
+  children,
+  maxLines = 1,
+}) => {
   const colorScheme = useColorScheme() ?? 'light';
+  const maxLinesValue = maxLines ?? 1;
+
+  const { prayerType, entityType } = useMemo(
+    () => ({
+      prayerType: getPrayerType(prayer),
+      entityType: getEntityType(prayer),
+    }),
+    [prayer],
+  );
+
+  // Use the entityType to create the boolean checks
+  const isPrayerPoint = entityType === EntityType.PrayerPoint;
+  const isPrayerTopic = entityType === EntityType.PrayerTopic;
+  const isPrayer = entityType === EntityType.Prayer;
+
+  const triggerChange = (
+    partial: Partial<PrayerPoint> | Partial<PrayerTopic>,
+  ) => {
+    if (!onChange) return;
+    onChange({ ...prayer, ...partial } as PrayerPoint);
+  };
+
+  const handleTitleChange = (text: string) => {
+    triggerChange({ title: text });
+  };
+
+  const handleContentChange = (text: string) => {
+    triggerChange({ content: text });
+  };
+
+  const handleTypeChange = (tag: string) => {
+    const tags = [tag as PrayerType];
+    triggerChange({
+      tags: tags,
+      prayerType: tags[0] || PrayerType.Request,
+    });
+  };
+
+  const handlePress = () => {
+    if (entityType) {
+      switch (entityType) {
+        case 'prayerPoint':
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerPointView',
+            params: { id: prayer.id },
+          });
+          break;
+        case 'prayer':
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerView',
+            params: { id: (prayer as Prayer).id },
+          });
+          break;
+        case 'prayerTopic':
+          router.push({
+            pathname: '/(tabs)/(prayers)/prayerTopicView',
+            params: { id: (prayer as PrayerTopic).id },
+          });
+          break;
+        default:
+          // Handle unknown entity type
+          console.error('Unknown entity type:', entityType);
+          return;
+      }
+    }
+  };
 
   const formattedDate = (() => {
     if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
@@ -37,131 +119,160 @@ export default function PrayerCard({ prayer }: PrayerCardProps): JSX.Element {
     });
   })();
 
-  const entityType = useMemo(() => {
-    return getEntityType(prayer);
-  }, [prayer]);
-
-  // Use the entityType to create the boolean checks
-  const isPrayerPoint = entityType === 'prayerPoint';
-
   return (
     <TouchableOpacity
       style={[
-        styles.prayerContainer,
+        styles.container,
         { backgroundColor: Colors[colorScheme].background },
       ]}
-      onPress={() => {
-        if (isPrayerPoint) {
-          // If it's a PrayerPoint, navigate to PrayerPointView
-          router.push({
-            pathname: '/(tabs)/(prayers)/prayerPointView',
-            params: { id: prayer.id },
-          });
-        } else {
-          // If it's a Prayer, navigate to PrayerView
-          router.push({
-            pathname: '/(tabs)/(prayers)/prayerView',
-            params: { id: (prayer as Prayer).id },
-          });
-        }
-      }}
+      onPress={handlePress}
     >
       <View style={styles.headerContainer}>
-        {isPrayerPoint && 'type' in prayer && (
-          <EmojiIconBackground type={prayer.type} />
+        {!isPrayer && (
+          <IconBackgroundSquare
+            entityType={entityType ?? EntityType.PrayerPoint}
+            type={isPrayerPoint ? prayerType : undefined}
+          />
         )}
         <View style={styles.titleContainer}>
-          <ThemedText style={styles.title}>
-            {isPrayerPoint ? prayer.title : formattedDate}
-          </ThemedText>
-          {isPrayerPoint && 'type' in prayer && (
-            <ThemedText
-              style={[
-                styles.subtitle,
-                { color: Colors[colorScheme].textSecondary },
-              ]}
-            >
-              {(prayerTagDisplayNames[prayer.type]?.charAt(0).toUpperCase() ??
-                '') + (prayerTagDisplayNames[prayer.type]?.slice(1) ?? '')}
+          {editable ? (
+            <TextInput
+              value={prayer.title}
+              onChangeText={handleTitleChange}
+              style={styles.titleInput}
+              placeholder="Title"
+              placeholderTextColor={Colors[colorScheme].textSecondary}
+            />
+          ) : (
+            <ThemedText style={styles.titleText}>
+              {isPrayerPoint || isPrayerTopic ? prayer.title : formattedDate}
             </ThemedText>
           )}
+          {editable ? (
+            <View style={styles.typeSelector}>
+              {prayerTags.map((tag) => (
+                <TouchableOpacity
+                  key={tag}
+                  style={[
+                    styles.tagButton,
+                    {
+                      backgroundColor:
+                        tag === prayerType
+                          ? Colors.tagColors.typeColors[tag]
+                          : Colors.tagColors.defaultTag,
+                    },
+                  ]}
+                  onPress={() => handleTypeChange(tag)}
+                >
+                  <ThemedText style={styles.tagText}>
+                    {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                  </ThemedText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            !isPrayer && (
+              <ThemedText
+                style={[
+                  styles.subtitle,
+                  { color: Colors[colorScheme].textSecondary },
+                ]}
+              >
+                {prayerType &&
+                  (prayerTagDisplayNames[prayerType]?.charAt(0).toUpperCase() ??
+                    '') + (prayerTagDisplayNames[prayerType]?.slice(1) ?? '')}
+              </ThemedText>
+            )
+          )}
         </View>
+
+        {editable && onDelete && (
+          <TouchableOpacity onPress={onDelete} style={styles.deleteIcon}>
+            <Entypo
+              name="circle-with-minus"
+              size={20}
+              color={Colors[colorScheme].textSecondary}
+            />
+          </TouchableOpacity>
+        )}
       </View>
-      {prayer.content && (
-        <ThemedText
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          style={styles.preview}
-        >
-          {prayer.content}
-        </ThemedText>
+
+      {editable ? (
+        <TextInput
+          value={prayer.content}
+          onChangeText={handleContentChange}
+          style={styles.contentInput}
+          placeholder="Write your prayer..."
+          placeholderTextColor={Colors[colorScheme].textSecondary}
+          multiline
+        />
+      ) : (
+        prayer.content && (
+          <ThemedText style={styles.contentText} numberOfLines={maxLinesValue}>
+            {prayer.content}
+          </ThemedText>
+        )
       )}
-      {/* Saving to add Later! */}
-      {/* {'type' in prayer && (
-        <View style={styles.actionBar}>
-          <Button
-            label={'Share'}
-            onPress={() => {}}
-            size="s"
-            flex={1}
-            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-            startIcon={
-              <IconSymbol
-                name="square.and.arrow.up"
-                color={Colors[colorScheme].textPrimary}
-                size={16}
-              />
-            }
-            backgroundColor={Colors.grey1}
-          />
-          <Button
-            label={'🙏 Pray!'}
-            onPress={() => {}}
-            size="s"
-            flex={1}
-            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
-            backgroundColor={Colors.brown1}
-          />
-        </View>
-      )} */}
+      {children}
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  // actionBar: {
-  //   backgroundColor: 'transparent',
-  //   flexDirection: 'row',
-  //   flex: 1,
-  //   gap: 15,
-  // },
+  container: {
+    borderRadius: 10,
+    paddingVertical: 10,
+    gap: 10,
+    width: '100%',
+  },
   headerContainer: {
     flexDirection: 'row',
     gap: 10,
     alignItems: 'center',
   },
   titleContainer: {
-    flexDirection: 'column',
-    gap: 2,
     flex: 1,
+    gap: 4,
   },
-  // eslint-disable-next-line react-native/no-color-literals
-  prayerContainer: {
-    backgroundColor: 'transparent',
-    borderRadius: 10,
-    width: '100%',
-    gap: 7,
-    paddingVertical: 7,
-  },
-  preview: {
-    fontSize: 16,
-  },
-  title: {
+  titleText: {
     fontSize: 18,
     fontWeight: '700',
+  },
+  titleInput: {
+    fontSize: 18,
+    fontWeight: '700',
+    paddingVertical: 2,
   },
   subtitle: {
     fontSize: 16,
     fontWeight: '400',
   },
+  contentText: {
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  contentInput: {
+    fontSize: 16,
+    lineHeight: 22,
+    paddingTop: 4,
+  },
+  deleteIcon: {
+    padding: 4,
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  tagButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  tagText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
 });
+
+export default EditablePrayerCard;

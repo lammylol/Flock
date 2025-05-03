@@ -20,7 +20,7 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { Colors } from '@/constants/Colors';
 import { auth } from '@/firebase/firebaseConfig';
-import { PrayerEntityType } from '@/types/PrayerSubtypes';
+import { EntityType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
 
 const PrayerPointView = () => {
@@ -190,7 +190,7 @@ const PrayerPointView = () => {
             <PrayerContent
               editMode={EditMode.VIEW}
               prayer={prayerPoint}
-              prayerOrPrayerPoint={PrayerEntityType.PrayerPoint}
+              prayerOrPrayerPoint={EntityType.PrayerPoint}
               backgroundColor={backgroundColor}
             />
 
