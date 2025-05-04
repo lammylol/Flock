@@ -73,49 +73,6 @@ export function usePrayerPointHandler({
     }
   }, [id, userPrayerPoints]);
 
-  const handleFindSimilarPrayers = useCallback(async () => {
-    const input =
-      `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
-    const embedding = await openAiService.getVectorEmbeddings(input);
-    if (!user?.uid) return;
-
-    try {
-      const sourcePrayerId =
-        editMode === EditMode.EDIT ? updatedPrayerPoint.id : undefined;
-      const similar = await prayerService.findRelatedPrayers(
-        embedding,
-        user.uid,
-        sourcePrayerId,
-      );
-      setSimilarPrayers(similar);
-    } catch (error) {
-      console.error('Error finding similar prayers:', error);
-    }
-  }, [
-    updatedPrayerPoint.title,
-    updatedPrayerPoint.content,
-    updatedPrayerPoint.id,
-    openAiService,
-    user.uid,
-    editMode,
-  ]);
-
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      if (
-        updatedPrayerPoint.title?.trim() ||
-        updatedPrayerPoint.content.trim()
-      ) {
-        handleFindSimilarPrayers();
-      }
-    }, 1000);
-    return () => clearTimeout(debounce);
-  }, [
-    updatedPrayerPoint.title,
-    updatedPrayerPoint.content,
-    handleFindSimilarPrayers,
-  ]);
-
   // requires parameter to be passed in to avoid possible useState delay.
   const createPrayerPoint = async (data: PrayerPoint): Promise<string> => {
     let embeddingInput = (data.embedding as number[]) || undefined;

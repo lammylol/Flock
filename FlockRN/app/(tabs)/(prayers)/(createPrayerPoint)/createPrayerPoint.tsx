@@ -22,6 +22,7 @@ import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandl
 import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
 import useFormState from '@/hooks/useFormState';
 import { updatePrayerTopicWithJourney } from '@/services/prayer/prayerLinkingService';
+import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -61,12 +62,13 @@ export default function PrayerPointMetadataScreen() {
     createPrayerPoint,
     updatePrayerPoint,
     loadPrayerPoint,
-    similarPrayers,
   } = usePrayerPointHandler({
     id: id,
     privacy: formState.privacy,
     editMode: editMode,
   });
+
+  const { similarPrayers } = useSimilarPrayers(updatedPrayerPoint, editMode);
 
   // setup editor state and load prayer point data
   useEffect(() => {
