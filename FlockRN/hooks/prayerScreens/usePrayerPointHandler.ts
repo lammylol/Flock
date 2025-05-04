@@ -1,12 +1,10 @@
 // hooks/usePrayerPointHandler.ts
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 import { auth } from '@/firebase/firebaseConfig';
-import { prayerService } from '@/services/prayer/prayerService';
 import OpenAiService from '@/services/ai/openAIService';
 import {
   CreatePrayerPointDTO,
-  PartialLinkedPrayerEntity,
   PrayerPoint,
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
@@ -24,7 +22,6 @@ export interface UsePrayerPointHandlerProps {
 export function usePrayerPointHandler({
   id,
   privacy = 'private',
-  editMode,
 }: UsePrayerPointHandlerProps) {
   const openAiService = OpenAiService.getInstance();
   const { userPrayerPoints, updateCollection } = usePrayerCollection();
@@ -47,10 +44,6 @@ export function usePrayerPointHandler({
     prayerId: '',
     entityType: EntityType.PrayerPoint,
   });
-
-  const [similarPrayers, setSimilarPrayers] = useState<
-    PartialLinkedPrayerEntity[]
-  >([]);
 
   const handlePrayerPointUpdate = (data: Partial<PrayerPoint>) => {
     const newUpdated = { ...updatedPrayerPoint, ...data };
@@ -135,7 +128,6 @@ export function usePrayerPointHandler({
     handlePrayerPointUpdate,
     createPrayerPoint,
     updatePrayerPoint,
-    similarPrayers,
     loadPrayerPoint,
   };
 }
