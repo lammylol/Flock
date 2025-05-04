@@ -116,67 +116,59 @@ export function usePrayerPointHandler({
     handleFindSimilarPrayers,
   ]);
 
-  const createPrayerPoint = async () => {
-    let embeddingInput =
-      (updatedPrayerPoint.embedding as number[]) || undefined;
+  // requires parameter to be passed in to avoid possible useState delay.
+  const createPrayerPoint = async (data: PrayerPoint): Promise<string> => {
+    let embeddingInput = (data.embedding as number[]) || undefined;
 
-    if (!embeddingInput && !updatedPrayerPoint.linkedTopic) {
-      const input =
-        `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
+    // only generate embedding if not already present (in cases where
+    // user edits and creates before embeddings are generated).
+    // Do not generate if new prayer point is linked to a topic.
+    if (!embeddingInput && !data.linkedTopic) {
+      const input = `${data.title} ${data.content}`.trim();
       embeddingInput = await openAiService.getVectorEmbeddings(input);
     }
 
-    if (!user?.uid) return;
+    if (!user?.uid) throw new Error('User not authenticated');
 
     const prayerPointData: CreatePrayerPointDTO = {
-      title: updatedPrayerPoint.title?.trim(),
-      content: updatedPrayerPoint.content.trim(),
-      privacy,
-      prayerType: updatedPrayerPoint.prayerType,
-      tags: updatedPrayerPoint.tags,
+      title: data.title?.trim(),
+      content: data.content.trim(),
+      privacy: data.privacy || privacy,
+      prayerType: data.prayerType,
+      tags: data.tags,
       authorId: user.uid,
       authorName: user.displayName || 'unknown',
-      status: 'open',
-      recipientName: 'unknown',
-      recipientId: 'unknown',
-      embedding: embeddingInput,
-      ...(updatedPrayerPoint.linkedTopic && {
-        linkedTopic: updatedPrayerPoint.linkedTopic,
-      }),
+      status: data.status || 'open',
+      recipientName: data.recipientName || 'unknown',
+      recipientId: data.recipientId || 'unknown',
+      ...(data.embedding && { embedding: data.embedding }),
+      ...(data.linkedTopic && { linkedTopic: data.linkedTopic }),
     };
 
-    await prayerPointService.createPrayerPoint(prayerPointData);
+    const docRefId =
+      await prayerPointService.createPrayerPoint(prayerPointData);
     Alert.alert('Success', 'Prayer Point created successfully.');
+    return docRefId;
   };
 
-  const updatePrayerPoint = async () => {
+  // requires parameter to be passed in to avoid possible useState delay.
+  const updatePrayerPoint = async (data: PrayerPoint) => {
     const updateData: UpdatePrayerPointDTO = {
-      title: updatedPrayerPoint.title?.trim(),
-      content: updatedPrayerPoint.content,
-      privacy,
-      tags: updatedPrayerPoint.tags,
-      prayerType: updatedPrayerPoint.prayerType,
-      status: updatedPrayerPoint.status,
-      embedding:
-        updatedPrayerPoint.embedding == null
-          ? deleteField()
-          : updatedPrayerPoint.embedding,
-      linkedTopic:
-        updatedPrayerPoint.linkedTopic == null
-          ? deleteField()
-          : updatedPrayerPoint.linkedTopic,
+      title: data.title?.trim(),
+      content: data.content,
+      privacy: data.privacy || privacy,
+      tags: data.tags,
+      prayerType: data.prayerType,
+      status: data.status,
+      embedding: data.embedding == null ? deleteField() : data.embedding,
+      linkedTopic: data.linkedTopic == null ? deleteField() : data.linkedTopic,
     };
-
-    await prayerPointService.updatePrayerPoint(
-      updatedPrayerPoint.id,
-      updateData,
-    );
+    await prayerPointService.updatePrayerPoint(data.id, updateData);
 
     updateCollection(
       { ...updatedPrayerPoint, ...updateData } as PrayerPoint,
       'prayerPoint',
     );
-
     Alert.alert('Success', 'Prayer Point updated successfully');
   };
 

@@ -25,8 +25,9 @@ export default function PrayerCardWithButtons({
           onPress={button1.onPress}
           size="s"
           flex={1}
-          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+          textProps={{ fontSize: 14, fontWeight: button1.fontWeight }}
           backgroundColor={Colors.grey1}
+          endIcon={button1.icon}
         />
         {button2 && (
           <Button
@@ -34,8 +35,9 @@ export default function PrayerCardWithButtons({
             onPress={button2.onPress}
             size="s"
             flex={1}
-            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+            textProps={{ fontSize: 14, fontWeight: button2.fontWeight }}
             backgroundColor={Colors.brown1}
+            endIcon={button2.icon}
           />
         )}
       </ThemedView>

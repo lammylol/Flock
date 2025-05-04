@@ -47,13 +47,13 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
         case EntityType.PrayerPoint:
           // If the origin prayer is a prayer point, fetch the prayer topic from Firebase
           fetchedPrayer = await prayerPointService.getPrayerPoint(
-            originPrayer?.id as PrayerTopic['id'],
+            originPrayer.id as PrayerTopic['id'],
           );
           break;
         case EntityType.PrayerTopic:
           // If the origin prayer is a prayer topic, fetch the prayer topic from Firebase
           fetchedPrayer = await prayerTopicService.getPrayerTopic(
-            originPrayer?.id as PrayerTopic['id'],
+            originPrayer.id as PrayerTopic['id'],
           );
           break;
         default:
@@ -75,6 +75,10 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     selectedPrayer: LinkedPrayerEntity,
     title?: string,
   ) => {
+    if (!selectedPrayer) {
+      setOriginPrayer(null);
+      setPrayerTopicDTO(null);
+    }
     setOriginPrayer(selectedPrayer);
     setPrayerTopicDTO((prev) => ({
       ...prev,
@@ -89,7 +93,7 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       console.error('Missing title in prayer topic');
       return;
     }
-    return prayerTopicService.createPrayerTopic(data);
+    return prayerTopicService.createPrayerTopic(data) as Promise<string>;
   };
 
   const updatePrayerTopic = async (
@@ -117,8 +121,14 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     isExistingPrayerPoint?: boolean,
   ) => {
     const updated = await updateLinkedPrayerTopic(prayerPoint, topicToModify);
-
     if (isExistingPrayerPoint) {
+      // Update the prayer point in the collection
+      if (!prayerPoint.id) {
+        console.error(
+          'UpdatePrayerPointWithLinkedTopic: Missing prayer point ID',
+        );
+        return;
+      }
       await prayerPointService.updatePrayerPoint(prayerPoint.id, {
         linkedTopic: updated.linkedTopic,
       });
@@ -145,11 +155,17 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       title: topicDTO.title,
     };
 
-    return await updatePrayerPointWithLinkedTopic(
+    const updatedPrayerPoint = await updatePrayerPointWithLinkedTopic(
       prayerPoint,
       linkedTopic,
       !isNewPrayerPoint,
     );
+
+    if (!updatedPrayerPoint) {
+      throw new Error('Failed to update prayer point with linked topic');
+    }
+
+    return updatedPrayerPoint;
   };
 
   const linkToNewTopic = async ({
@@ -160,8 +176,13 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     originPrayerPoint: PrayerPoint;
     topicDTO: FlatPrayerTopicDTO;
     isNewPrayerPoint: boolean;
-  }): Promise<PrayerPoint> => {
-    const topicId = await createPrayerTopic(topicDTO as CreatePrayerTopicDTO);
+  }): Promise<{
+    updatedNewPrayer: PrayerPoint;
+    topicId: string;
+  }> => {
+    const topicId = (await createPrayerTopic(
+      topicDTO as CreatePrayerTopicDTO,
+    )) as string;
 
     const linkedTopic = {
       id: topicId,
@@ -180,7 +201,11 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       true,
     );
 
-    return updatedNewPrayer;
+    if (!updatedNewPrayer) {
+      throw new Error('Failed to update prayer point with linked topic');
+    }
+
+    return { updatedNewPrayer, topicId };
   };
   // This function links the selected prayer point to the new prayer point or topic.
   // If the selected prayer point is a prayer topic:
@@ -197,14 +222,26 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     isNewPrayerPoint,
   }: {
     isNewPrayerPoint: boolean;
-  }): Promise<PrayerPoint | undefined> => {
-    if (!originPrayer || !prayerTopicDTO) return;
+  }): Promise<{
+    finalPrayerPoint?: PrayerPoint;
+    fullOriginPrayer?: LinkedPrayerEntity;
+    topicId?: string;
+  }> => {
+    if (!originPrayer || !prayerTopicDTO)
+      return {
+        finalPrayerPoint: undefined,
+        fullOriginPrayer: undefined,
+      };
 
     try {
       // Load the full origin prayer topic or prayer point from Firebase
       const fullOriginPrayer = (await loadOriginPrayer()) as LinkedPrayerEntity;
       if (!fullOriginPrayer) {
-        return;
+        return {};
+      }
+      if (!fullOriginPrayer.id) {
+        console.error('Missing ID for full origin prayer');
+        return {};
       }
 
       // Create the prayer topic DTO
@@ -215,10 +252,11 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
         user: user!,
       })) as FlatPrayerTopicDTO;
 
-      if (!topicDTO) return;
+      if (!topicDTO) return {};
 
       // Update the prayer topic if linking to topic.
       let updatedPrayerPoint: PrayerPoint;
+      let topicId: string = '';
       const { entityType } = originPrayer;
 
       if (entityType === EntityType.PrayerTopic && isValidUpdateDTO(topicDTO)) {
@@ -227,20 +265,23 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
           topicDTO,
           isNewPrayerPoint,
         });
+        topicId = fullOriginPrayer.id;
       } else if (
         entityType === EntityType.PrayerPoint &&
         isValidCreateDTO(topicDTO)
       ) {
-        updatedPrayerPoint = await linkToNewTopic({
+        const result = await linkToNewTopic({
           originPrayerPoint: fullOriginPrayer as PrayerPoint,
           topicDTO,
           isNewPrayerPoint,
         });
+        updatedPrayerPoint = result.updatedNewPrayer;
+        topicId = result.topicId;
       } else {
         console.warn(
           'Invalid state: originPrayer or topicDTO did not match expected types.',
         );
-        return;
+        return {};
       }
 
       // Remove embeddings and finalize
@@ -254,15 +295,16 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
 
       setOriginPrayer(null);
       setPrayerTopicDTO(null);
-
-      return finalPrayerPoint;
+      return { finalPrayerPoint, fullOriginPrayer, topicId };
     } catch (error) {
       console.error('Error linking and syncing prayer point:', error);
+      return {};
     }
   };
 
   return {
     prayerTopicDTO,
+    originPrayer,
     selectedPrayerToLinkTo: originPrayer,
     handlePrayerLinkingOnChange,
     linkAndSyncPrayerPoint,

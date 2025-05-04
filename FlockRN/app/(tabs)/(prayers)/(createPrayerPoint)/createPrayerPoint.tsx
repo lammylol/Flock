@@ -21,6 +21,7 @@ import { EditMode } from '@/types/ComponentProps';
 import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
 import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
 import useFormState from '@/hooks/useFormState';
+import { updatePrayerTopicWithJourney } from '@/services/prayer/prayerLinkingService';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -86,14 +87,41 @@ export default function PrayerPointMetadataScreen() {
     setIsSubmissionLoading(true);
 
     try {
-      const linkedPrayerPoint = await linkAndSyncPrayerPoint({
-        isNewPrayerPoint: formState.isEditMode,
+      // const { finalPrayerPoint, fullOriginPrayer, topicDTO }
+      // =
+      const result = await linkAndSyncPrayerPoint({
+        isNewPrayerPoint: !formState.isEditMode,
       });
-      if (linkedPrayerPoint) handlePrayerPointUpdate(linkedPrayerPoint);
+      const prayerPointWithoutID = result.finalPrayerPoint;
+      const fullOriginPrayer = result.fullOriginPrayer;
+      const topicId = result.topicId;
+
+      const newPrayerPoint = {
+        ...updatedPrayerPoint,
+        ...(prayerPointWithoutID ?? {}),
+      };
+
+      if (prayerPointWithoutID) {
+        handlePrayerPointUpdate(prayerPointWithoutID); // Sync UI
+      }
+
+      let prayerId: string = newPrayerPoint.id;
       if (formState.isEditMode && updatedPrayerPoint.id) {
-        await updatePrayerPoint();
+        await updatePrayerPoint(newPrayerPoint);
       } else {
-        await createPrayerPoint();
+        const createdPrayerPointId = await createPrayerPoint(newPrayerPoint);
+        prayerId = createdPrayerPointId;
+      }
+      if (fullOriginPrayer && topicId) {
+        const finalPrayerPoint = {
+          ...newPrayerPoint,
+          id: prayerId,
+        };
+        await updatePrayerTopicWithJourney(
+          finalPrayerPoint,
+          fullOriginPrayer,
+          topicId,
+        );
       }
 
       router.replace('/(tabs)/(prayers)');

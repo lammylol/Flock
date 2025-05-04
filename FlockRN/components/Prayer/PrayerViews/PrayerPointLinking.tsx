@@ -17,7 +17,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { EditMode } from '@/types/ComponentProps';
 import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
-import { EntityType } from '@/types/PrayerSubtypes';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export function PrayerPointLinking({
   editMode,
@@ -36,29 +36,14 @@ export function PrayerPointLinking({
   const [selectedLink, setSelectedLink] = useState<LinkedPrayerEntity | null>(
     null,
   );
-  const [label, setLabel] = useState('Link to Prayer');
   const [showLinkingModal, setShowLinkingModal] = useState(false);
   const textColor = useThemeColor({ light: Colors.link }, 'textPrimary');
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
 
-  const determineLabel = (prayer: LinkedPrayerEntity | null): string => {
-    if (!prayer) return 'Link to Prayer';
+  const determineLabel = (prayer: LinkedPrayerEntity): string => {
     if (prayer.id === selectedLink?.id) return 'Linked';
-
-    switch (prayer.entityType) {
-      case EntityType.PrayerPoint:
-        return 'Link to Prayer Point';
-      case EntityType.PrayerTopic:
-        return 'Link to #Topic';
-      default:
-        return 'Link to Prayer';
-    }
-  };
-
-  const handlePrayerSelection = (prayer: LinkedPrayerEntity | null) => {
-    const newLabel = determineLabel(prayer);
-    setLabel(newLabel);
+    return 'Link Prayers';
   };
 
   const handleAddTopic = async (
@@ -66,12 +51,23 @@ export function PrayerPointLinking({
     title?: string,
   ) => {
     onChange(selectedPrayer as LinkedPrayerEntity, title);
-    handlePrayerSelection(selectedPrayer);
   };
 
   const handleOpenModal = (prayer: LinkedPrayerEntity) => {
+    if (selectedLink?.id === prayer.id) {
+      // If already selected, unlink it
+      setSelectedLink(null);
+      onChange(null as unknown as LinkedPrayerEntity); // Optionally inform parent to unlink
+      return;
+    }
+
     setSelectedLink(prayer);
     setShowLinkingModal(true);
+  };
+
+  const linkIcon = (prayer: LinkedPrayerEntity): string => {
+    if (prayer.id === selectedLink?.id) return 'link-outline';
+    return 'unlink-outline';
   };
 
   return (
@@ -105,8 +101,20 @@ export function PrayerPointLinking({
                     key={index}
                     prayer={typedPrayer} // Type assertion
                     button1={{
-                      label: label,
+                      label: determineLabel(typedPrayer),
                       onPress: () => handleOpenModal(typedPrayer),
+                      fontWeight: '500',
+                      icon: (
+                        <Ionicons
+                          name={
+                            linkIcon(
+                              typedPrayer,
+                            ) as keyof typeof Ionicons.glyphMap
+                          }
+                          size={20}
+                          color={titleColor}
+                        />
+                      ),
                     }}
                   />
                 );

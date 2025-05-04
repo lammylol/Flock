@@ -9,11 +9,13 @@ import {
   UpdatePrayerTopicDTO,
   LinkedPrayerEntity,
   LinkedTopicInPrayerDTO,
+  FlatPrayerTopicDTO,
 } from '@/types/firebase';
 import { isPrayerTopic } from '@/types/typeGuards';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { User } from 'firebase/auth';
 import { prayerPointService } from './prayerPointService';
+import { prayerTopicService } from './prayerTopicService';
 
 const maxCharactersPerPrayerContext = 250; // or whatever your constant is
 const openAiService = OpenAiService.getInstance();
@@ -22,25 +24,54 @@ export const getJourney = (
   prayerPoint: PrayerPoint,
   selectedPrayer: LinkedPrayerEntity,
 ): PrayerPointInPrayerTopicDTO[] => {
-  // This function either: 1) updates an existing journey for a topic with a new prayer point being created, or
-  // 2) creates a net new journey for the prayer point being created linked to an existing prayer point.
+  const normalizeDate = (input: string | number | Date): Date => {
+    const date = new Date(input ?? Date.now());
+    return isNaN(date.getTime()) ? new Date() : date;
+  };
   const toDTO = (p: PrayerPoint): PrayerPointInPrayerTopicDTO => ({
     id: p.id,
-    prayerType: p.prayerType,
+    prayerType: p.prayerType ?? 'request',
     title: p.title,
     content: p.content,
-    createdAt: p.createdAt,
+    createdAt: normalizeDate(p.createdAt),
+    authorId: p.authorId ?? 'unknown',
     authorName: p.authorName,
     recipientName: p.recipientName,
   });
 
-  const newDTO = toDTO(prayerPoint);
+  const normalizeJourney = (): PrayerPointInPrayerTopicDTO[] => {
+    if (
+      isPrayerTopic(selectedPrayer) &&
+      Array.isArray(selectedPrayer.journey)
+    ) {
+      return (selectedPrayer.journey as PrayerPoint[]).map(toDTO);
+    }
+    return [toDTO(selectedPrayer as PrayerPoint)];
+  };
 
-  if (isPrayerTopic(selectedPrayer) && selectedPrayer.journey) {
-    return [...selectedPrayer.journey, newDTO];
+  const journey = [...normalizeJourney(), toDTO(prayerPoint)];
+
+  const deduped = Array.from(new Map(journey.map((j) => [j.id, j])).values());
+
+  return deduped.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+};
+
+export const updatePrayerTopicWithJourney = async (
+  prayerPoint: PrayerPoint,
+  selectedPrayer: LinkedPrayerEntity,
+  topicId: string,
+) => {
+  const journey = getJourney(prayerPoint, selectedPrayer);
+  if (!journey || journey.length === 0) {
+    console.warn('Empty journey; removing field');
+    return await prayerTopicService.updatePrayerTopic(topicId, {
+      journey: deleteField(),
+    });
   }
 
-  return [toDTO(selectedPrayer as PrayerPoint), newDTO];
+  return await prayerTopicService.updatePrayerTopic(topicId, {
+    journey,
+  });
 };
 
 export const getDistinctPrayerTypes = (
@@ -115,12 +146,6 @@ export const getPrayerTopicDTO = async ({
     return;
   }
 
-  const journey = getJourney(prayerPoint, selectedPrayer);
-  if (!journey) {
-    console.error('Failed to get journey');
-    return;
-  }
-
   const prayerTypes = getDistinctPrayerTypes(prayerPoint, selectedPrayer);
 
   if (!user?.uid) {
@@ -142,7 +167,6 @@ export const getPrayerTopicDTO = async ({
   const sharedFields = {
     id: selectedPrayer.id,
     content: content,
-    journey: journey,
     contextAsStrings: contextAsStrings,
     contextAsEmbeddings: contextAsEmbeddings,
     prayerTypes: prayerTypes,
@@ -188,6 +212,10 @@ export const removeEmbeddingLocally = (
 export const removeEmbeddingFromFirebase = async (
   selectedPrayer: LinkedPrayerEntity,
 ) => {
+  if (!selectedPrayer.id) {
+    console.error('Missing id for removing embedding');
+    return;
+  }
   if (selectedPrayer.entityType === EntityType.PrayerPoint) {
     await prayerPointService.updatePrayerPoint(selectedPrayer.id, {
       embedding: deleteField(),
@@ -201,11 +229,14 @@ export const updateLinkedPrayerTopic = async (
   topicToModify?: LinkedTopicInPrayerDTO,
   options?: { remove?: boolean },
 ): Promise<PrayerPoint> => {
-  const existingTopics = prayerPoint.linkedTopic ?? [];
+  const existingTopics: LinkedTopicInPrayerDTO[] = Array.isArray(
+    prayerPoint.linkedTopic,
+  )
+    ? (prayerPoint.linkedTopic as LinkedTopicInPrayerDTO[])
+    : [];
 
+  // Removing a topic
   if (options?.remove) {
-    if (!existingTopics.length) return prayerPoint;
-
     if (!topicToModify?.id) {
       throw new Error('topicToModify.id is required when removing a topic');
     }
@@ -220,11 +251,11 @@ export const updateLinkedPrayerTopic = async (
     };
   }
 
+  // Adding a topic
   if (!topicToModify) {
     throw new Error('topicToModify is required when adding a topic');
   }
 
-  // Ensure no duplicates
   const mergedLinkedTopics = Array.from(
     new Map(
       [...existingTopics, topicToModify].map((topic) => [topic.id, topic]),
@@ -238,7 +269,7 @@ export const updateLinkedPrayerTopic = async (
 };
 
 export const getLinkedPrayerTopicFromDTO = async (
-  topicDTO: CreatePrayerTopicDTO | UpdatePrayerTopicDTO,
+  topicDTO: FlatPrayerTopicDTO,
 ) => {
   const linkedTopic = {
     id: 'id' in topicDTO ? topicDTO.id : undefined,

@@ -86,7 +86,7 @@ export interface PrayerTopic extends BasePrayerEntity {
   status?: Status;
   recipientName?: string;
   recipientId?: string;
-  journey: PrayerPointInPrayerTopicDTO[];
+  journey: PrayerPointInPrayerTopicDTO[] | FieldValue; // prayer points in this topic
   contextAsStrings: string;
   contextAsEmbeddings: number[];
 }
@@ -125,7 +125,7 @@ export type UpdatePrayerPointDTO = Partial<
 
 export type CreatePrayerTopicDTO = Omit<
   PrayerTopic,
-  'id' | 'createdAt' | 'updatedAt' | 'entityType' | 'endDate'
+  'id' | 'createdAt' | 'updatedAt' | 'entityType' | 'endDate' | 'journey'
 >;
 
 export type UpdatePrayerTopicDTO = Partial<
@@ -140,6 +140,7 @@ export type PrayerPointInPrayerTopicDTO = Pick<
   | 'title'
   | 'content'
   | 'createdAt'
+  | 'authorId'
   | 'authorName'
   | 'recipientName'
 >;

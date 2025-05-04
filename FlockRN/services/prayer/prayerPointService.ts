@@ -195,9 +195,11 @@ class PrayerPointsService implements IPrayerPointsService {
     data: UpdatePrayerPointDTO,
   ): Promise<void> {
     try {
+      if (!prayerPointId) {
+        throw new Error('No prayerId provided for update');
+      }
       const now = Timestamp.now();
       const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
-
       // We should reconsider this if needed. Sounds like an excessive read.
       // Get the current prayer point to check for privacy changes
       const currentPrayerPoint = await this.getPrayerPoint(prayerPointId);
