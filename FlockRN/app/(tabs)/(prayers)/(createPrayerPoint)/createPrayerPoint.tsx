@@ -87,38 +87,31 @@ export default function PrayerPointMetadataScreen() {
     setIsSubmissionLoading(true);
 
     try {
-      // const { finalPrayerPoint, fullOriginPrayer, topicDTO }
-      // =
-      const result = await linkAndSyncPrayerPoint({
-        isNewPrayerPoint: !formState.isEditMode,
-      });
-      const prayerPointWithoutID = result.finalPrayerPoint;
-      const fullOriginPrayer = result.fullOriginPrayer;
-      const topicId = result.topicId;
+      const { finalPrayerPoint, fullOriginPrayer, topicId } =
+        await linkAndSyncPrayerPoint({
+          isNewPrayerPoint: !formState.isEditMode,
+        });
 
-      const newPrayerPoint = {
+      if (finalPrayerPoint) {
+        handlePrayerPointUpdate(finalPrayerPoint); // Sync UI
+      }
+
+      const mergedPrayerPoint = {
         ...updatedPrayerPoint,
-        ...(prayerPointWithoutID ?? {}),
+        ...(finalPrayerPoint ?? {}),
       };
 
-      if (prayerPointWithoutID) {
-        handlePrayerPointUpdate(prayerPointWithoutID); // Sync UI
+      let prayerId = mergedPrayerPoint.id;
+
+      if (formState.isEditMode && updatedPrayerPoint.id) {
+        await updatePrayerPoint(mergedPrayerPoint);
+      } else {
+        prayerId = await createPrayerPoint(mergedPrayerPoint);
       }
 
-      let prayerId: string = newPrayerPoint.id;
-      if (formState.isEditMode && updatedPrayerPoint.id) {
-        await updatePrayerPoint(newPrayerPoint);
-      } else {
-        const createdPrayerPointId = await createPrayerPoint(newPrayerPoint);
-        prayerId = createdPrayerPointId;
-      }
       if (fullOriginPrayer && topicId) {
-        const finalPrayerPoint = {
-          ...newPrayerPoint,
-          id: prayerId,
-        };
         await updatePrayerTopicWithJourney(
-          finalPrayerPoint,
+          { ...mergedPrayerPoint, id: prayerId },
           fullOriginPrayer,
           topicId,
         );
