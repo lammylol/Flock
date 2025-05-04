@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -30,6 +30,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
+import useFormState from '@/hooks/useFormState';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -50,9 +51,7 @@ export default function PrayerMetadataScreen() {
 
   // Determine if we're in edit mode
   const [isEditMode, setIsEditMode] = useState(false);
-  const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { transcription, isTranscribing } = useRecording();
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
@@ -70,7 +69,21 @@ export default function PrayerMetadataScreen() {
     prayerPoints: [],
     entityType: EntityType.Prayer,
   });
+
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
+  const { content, id, editMode } = processedParams;
+
+  const {
+    formState,
+    isDeleting,
+    isSubmissionLoading,
+    setIsDataLoading,
+    setIsSubmissionLoading,
+    setIsDeleting,
+    setPrivacy,
+  } = useFormState({
+    editMode: editMode,
+  });
 
   const analyzeContent = useCallback(async () => {
     setIsAnalyzing(true);
@@ -126,6 +139,16 @@ export default function PrayerMetadataScreen() {
       console.error('Error loading prayer:', error);
     }
   }, [processedParams.id, userPrayers]);
+
+  // setup editor state and load prayer point data
+  useEffect(() => {
+    const setup = async () => {
+      setIsDataLoading(true);
+      await loadPrayer();
+      setIsDataLoading(false);
+    };
+    if (formState.isEditMode) setup();
+  }, [loadPrayer, formState.isEditMode, setIsDataLoading]);
 
   const setupEditMode = useCallback(async () => {
     // Check if we're in edit mode from URL params
