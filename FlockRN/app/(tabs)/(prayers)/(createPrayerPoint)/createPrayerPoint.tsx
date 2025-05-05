@@ -67,7 +67,16 @@ export default function PrayerPointMetadataScreen() {
     privacy: formState.privacy,
   });
 
-  const { similarPrayers } = useSimilarPrayers(updatedPrayerPoint, editMode);
+  const { similarPrayers } = useSimilarPrayers(
+    updatedPrayerPoint,
+    editMode,
+    (newEmbedding) => {
+      handlePrayerPointUpdate({
+        ...updatedPrayerPoint,
+        embedding: newEmbedding,
+      });
+    },
+  );
 
   // setup editor state and load prayer point data
   useEffect(() => {

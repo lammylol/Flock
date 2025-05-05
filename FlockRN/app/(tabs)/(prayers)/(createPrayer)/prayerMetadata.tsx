@@ -30,6 +30,7 @@ import { EditMode } from '@/types/ComponentProps';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
 import { usePrayerHandler } from '@/hooks/prayerScreens/usePrayerHandler';
+import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -51,8 +52,6 @@ export default function PrayerMetadataScreen() {
   }, [params.content, params.id, params.editMode, params.hasTranscription]);
 
   // Determine if we're in edit mode
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const { transcription, isTranscribing } = useRecording();
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
 
@@ -84,37 +83,17 @@ export default function PrayerMetadataScreen() {
     privacy: formState.privacy,
   });
 
-  const analyzeContent = useCallback(
-    async (mergedContent: string) => {
-      try {
-        setIsAnalyzing(true);
-        console.log('analyzing content:', mergedContent);
-        const analysis = await openAiService.analyzePrayerContent(
-          mergedContent,
-          !!transcription, //has transcription flag.
-          userOptInFlags.optInAI,
-        );
+  useEffect(() => {
+    if (!formState.isEditMode) return;
 
-        handlePrayerUpdate({
-          content: analysis.cleanedTranscription || mergedContent,
-        });
+    const setup = async () => {
+      setIsDataLoading(true);
+      await loadPrayer();
+      setIsDataLoading(false);
+    };
 
-        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
-          ...point,
-          id: uuid.v4(), // Ensure each has a unique ID
-        }));
-
-        setPrayerPoints(updatedPrayerPoints);
-      } catch (error) {
-        console.error('Error using AI fill:', error);
-        // Silent fail - don't show error to user for automatic fill
-      } finally {
-        setIsAnalyzing(false);
-        setHasAnalyzed(true);
-      }
-    },
-    [openAiService, transcription, userOptInFlags.optInAI, handlePrayerUpdate],
-  );
+    setup();
+  }, [formState.isEditMode, loadPrayer, setIsDataLoading]);
 
   const getContent = useCallback(async (): Promise<{
     content: string;
@@ -132,17 +111,11 @@ export default function PrayerMetadataScreen() {
     }
   }, [content, isTranscribing, transcription]);
 
-  useEffect(() => {
-    if (!formState.isEditMode) return;
-
-    const setup = async () => {
-      setIsDataLoading(true);
-      await loadPrayer();
-      setIsDataLoading(false);
-    };
-
-    setup();
-  }, [formState.isEditMode, loadPrayer, setIsDataLoading]);
+  const { analyzeContent, isAnalyzing, hasAnalyzed } = useAnalyzePrayer({
+    transcription,
+    userOptInAI: userOptInFlags.optInAI,
+    handlePrayerUpdate: handlePrayerUpdate,
+  });
 
   useEffect(() => {
     const checkAndAnalyze = async () => {

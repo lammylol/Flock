@@ -8,6 +8,7 @@ import { prayerService } from '@/services/prayer/prayerService';
 export function useSimilarPrayers(
   prayerPoint: PrayerPoint,
   editMode: EditMode,
+  onEmbeddingUpdate?: (embedding: number[]) => void,
 ) {
   const openAiService = OpenAiService.getInstance();
   const user = auth.currentUser;
@@ -19,13 +20,22 @@ export function useSimilarPrayers(
     const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
     if (!input || !user?.uid) return;
 
-    const embedding = await openAiService.getVectorEmbeddings(input);
+    let currentEmbedding = Array.isArray(prayerPoint.embedding)
+      ? prayerPoint.embedding
+      : undefined;
+
+    if (!currentEmbedding) {
+      currentEmbedding = await openAiService.getVectorEmbeddings(input);
+    }
+
+    onEmbeddingUpdate?.(currentEmbedding);
+
     const sourcePrayerId =
       editMode === EditMode.EDIT ? prayerPoint.id : undefined;
 
     try {
       const similar = await prayerService.findRelatedPrayers(
-        embedding,
+        currentEmbedding,
         user.uid,
         sourcePrayerId,
       );
@@ -36,10 +46,11 @@ export function useSimilarPrayers(
   }, [
     prayerPoint.title,
     prayerPoint.content,
+    prayerPoint.embedding,
     prayerPoint.id,
     user.uid,
-    openAiService,
     editMode,
+    openAiService,
   ]);
 
   useEffect(() => {

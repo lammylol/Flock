@@ -89,7 +89,7 @@ export function usePrayerPointHandler({
       status: data.status || 'open',
       recipientName: data.recipientName || 'unknown',
       recipientId: data.recipientId || 'unknown',
-      ...(data.embedding && { embedding: data.embedding }),
+      ...(embeddingInput && { embedding: embeddingInput }),
       ...(data.linkedTopic && { linkedTopic: data.linkedTopic }),
     };
 
