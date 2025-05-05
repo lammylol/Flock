@@ -9,7 +9,6 @@ import {
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
 import { EntityType, PrayerType, Privacy } from '@/types/PrayerSubtypes';
-import { EditMode } from '@/types/ComponentProps';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { deleteField } from 'firebase/firestore';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
@@ -17,7 +16,6 @@ import { prayerPointService } from '@/services/prayer/prayerPointService';
 export interface UsePrayerPointHandlerProps {
   id: string;
   privacy?: Privacy;
-  editMode: EditMode;
 }
 export function usePrayerPointHandler({
   id,

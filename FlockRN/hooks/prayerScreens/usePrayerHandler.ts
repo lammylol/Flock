@@ -1,184 +1,100 @@
 // hooks/usePrayerPointHandler.ts
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert } from 'react-native';
 import { auth } from '@/firebase/firebaseConfig';
 import { prayerService } from '@/services/prayer/prayerService';
-import OpenAiService from '@/services/ai/openAIService';
 import {
-  CreatePrayerPointDTO,
-  PartialLinkedPrayerEntity,
+  CreatePrayerDTO,
+  Prayer,
   PrayerPoint,
-  UpdatePrayerPointDTO,
+  UpdatePrayerDTO,
 } from '@/types/firebase';
-import { EntityType, PrayerType, Privacy } from '@/types/PrayerSubtypes';
-import { EditMode } from '@/types/ComponentProps';
+import { EntityType, Privacy } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
-import { deleteField } from 'firebase/firestore';
-import { prayerPointService } from '@/services/prayer/prayerPointService';
 
-export interface UsePrayerPointHandlerProps {
+export interface UsePrayerHandlerProps {
   id: string;
+  content?: string;
   privacy?: Privacy;
-  editMode: EditMode;
 }
-export function usePrayerPointHandler({
+export function usePrayerHandler({
   id,
+  content,
   privacy = 'private',
-  editMode,
-}: UsePrayerPointHandlerProps) {
-  const openAiService = OpenAiService.getInstance();
-  const { userPrayerPoints, updateCollection } = usePrayerCollection();
+}: UsePrayerHandlerProps) {
+  const { userPrayers, updateCollection } = usePrayerCollection();
   const user = auth.currentUser;
 
-  const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
+  const [updatedPrayer, setUpdatedPrayer] = useState<Prayer>({
     id: id || '',
     title: '',
-    content: '',
-    prayerType: PrayerType.Request,
+    content: content || '',
     tags: [],
     createdAt: new Date(),
     updatedAt: new Date(),
-    authorName: '',
-    authorId: '',
-    status: 'open',
+    authorName: 'unknown',
+    authorId: 'unknown',
     privacy: 'private',
-    recipientName: 'unknown',
-    recipientId: 'unknown',
-    prayerId: '',
-    entityType: EntityType.PrayerPoint,
+    prayerPoints: [],
+    entityType: EntityType.Prayer,
   });
 
-  const [similarPrayers, setSimilarPrayers] = useState<
-    PartialLinkedPrayerEntity[]
-  >([]);
-
-  const handlePrayerPointUpdate = (data: Partial<PrayerPoint>) => {
-    const newUpdated = { ...updatedPrayerPoint, ...data };
-    setUpdatedPrayerPoint(newUpdated);
+  const handlePrayerUpdate = (data: Partial<PrayerPoint>) => {
+    const newUpdated = { ...updatedPrayer, ...data };
+    setUpdatedPrayer(newUpdated);
   };
 
-  const loadPrayerPoint = useCallback(async () => {
-    const contextPrayerPoint = userPrayerPoints.find((p) => p.id === id);
-    if (contextPrayerPoint) {
-      setUpdatedPrayerPoint({ ...contextPrayerPoint });
+  const loadPrayer = useCallback(async () => {
+    const contextPrayer = userPrayers.find((p) => p.id === id);
+    if (contextPrayer) {
+      setUpdatedPrayer({ ...contextPrayer });
       return;
     }
     try {
-      const fetchedPrayer = await prayerPointService.getPrayerPoint(id);
+      const fetchedPrayer = await prayerService.getPrayer(id);
       if (fetchedPrayer) {
-        setUpdatedPrayerPoint({ ...fetchedPrayer });
+        setUpdatedPrayer({ ...fetchedPrayer });
       }
     } catch (error) {
-      console.error('Error fetching prayer point:', error);
+      console.error('Error fetching prayer:', error);
     }
-  }, [id, userPrayerPoints]);
-
-  const handleFindSimilarPrayers = useCallback(async () => {
-    const input =
-      `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
-    const embedding = await openAiService.getVectorEmbeddings(input);
-    if (!user?.uid) return;
-
-    try {
-      const sourcePrayerId =
-        editMode === EditMode.EDIT ? updatedPrayerPoint.id : undefined;
-      const similar = await prayerService.findRelatedPrayers(
-        embedding,
-        user.uid,
-        sourcePrayerId,
-      );
-      setSimilarPrayers(similar);
-    } catch (error) {
-      console.error('Error finding similar prayers:', error);
-    }
-  }, [
-    updatedPrayerPoint.title,
-    updatedPrayerPoint.content,
-    updatedPrayerPoint.id,
-    openAiService,
-    user.uid,
-    editMode,
-  ]);
-
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      if (
-        updatedPrayerPoint.title?.trim() ||
-        updatedPrayerPoint.content.trim()
-      ) {
-        handleFindSimilarPrayers();
-      }
-    }, 1000);
-    return () => clearTimeout(debounce);
-  }, [
-    updatedPrayerPoint.title,
-    updatedPrayerPoint.content,
-    handleFindSimilarPrayers,
-  ]);
+  }, [id, userPrayers]);
 
   // requires parameter to be passed in to avoid possible useState delay.
-  const createPrayerPoint = async (data: PrayerPoint): Promise<string> => {
-    let embeddingInput = (data.embedding as number[]) || undefined;
-
-    // only generate embedding if not already present (in cases where
-    // user edits and creates before embeddings are generated).
-    // Do not generate if new prayer point is linked to a topic.
-    if (!embeddingInput && !data.linkedTopic) {
-      const input = `${data.title} ${data.content}`.trim();
-      embeddingInput = await openAiService.getVectorEmbeddings(input);
-    }
-
+  const createPrayer = async (data: Prayer): Promise<string> => {
     if (!user?.uid) throw new Error('User not authenticated');
 
-    const prayerPointData: CreatePrayerPointDTO = {
-      title: data.title?.trim(),
-      content: data.content.trim(),
-      privacy: data.privacy || privacy,
-      prayerType: data.prayerType,
-      tags: data.tags,
-      authorId: user.uid,
-      authorName: user.displayName || 'unknown',
-      status: data.status || 'open',
-      recipientName: data.recipientName || 'unknown',
-      recipientId: data.recipientId || 'unknown',
-      ...(data.embedding && { embedding: data.embedding }),
-      ...(data.linkedTopic && { linkedTopic: data.linkedTopic }),
+    const prayerData: CreatePrayerDTO = {
+      content: data.content,
+      privacy: data.privacy,
+      tags: [], // Empty tags array since we've removed the feature
+      authorId: auth.currentUser!.uid,
+      authorName: auth.currentUser!.displayName ?? 'Unknown',
     };
 
-    const docRefId =
-      await prayerPointService.createPrayerPoint(prayerPointData);
-    Alert.alert('Success', 'Prayer Point created successfully.');
+    const docRefId = await prayerService.createPrayer(prayerData);
+    Alert.alert('Success', 'Prayer created successfully.');
     return docRefId;
   };
 
   // requires parameter to be passed in to avoid possible useState delay.
-  const updatePrayerPoint = async (data: PrayerPoint) => {
-    const updateData: UpdatePrayerPointDTO = {
-      title: data.title?.trim(),
+  const updatePrayer = async (data: Prayer) => {
+    const updateData: UpdatePrayerDTO = {
       content: data.content,
-      privacy: data.privacy || privacy,
-      tags: data.tags,
-      prayerType: data.prayerType,
-      status: data.status,
-      embedding: data.embedding == null ? deleteField() : data.embedding,
-      linkedTopic: data.linkedTopic == null ? deleteField() : data.linkedTopic,
+      privacy: privacy,
     };
-    await prayerPointService.updatePrayerPoint(data.id, updateData);
+    await prayerService.updatePrayer(data.id, updateData);
 
-    updateCollection(
-      { ...updatedPrayerPoint, ...updateData } as PrayerPoint,
-      'prayerPoint',
-    );
-    Alert.alert('Success', 'Prayer Point updated successfully');
+    updateCollection({ ...updatedPrayer, ...updateData } as Prayer, 'prayer');
+    Alert.alert('Success', 'Prayer updated successfully');
   };
 
   return {
-    updatedPrayerPoint,
-    setUpdatedPrayerPoint,
-    handlePrayerPointUpdate,
-    createPrayerPoint,
-    updatePrayerPoint,
-    similarPrayers,
-    loadPrayerPoint,
+    updatedPrayer,
+    setUpdatedPrayer,
+    handlePrayerUpdate,
+    createPrayer,
+    updatePrayer,
+    loadPrayer,
   };
 }

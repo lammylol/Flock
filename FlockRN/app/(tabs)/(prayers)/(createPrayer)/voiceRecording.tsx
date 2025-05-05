@@ -49,6 +49,10 @@ set in RecordingContext.tsx" */
     // Navigate to metadata screen with the prayer content
     router.push({
       pathname: '/(tabs)/(prayers)/(createPrayer)/prayerMetadata',
+      params: {
+        hasTranscription: 'true',
+        editMode: 'create',
+      },
     });
   };
 

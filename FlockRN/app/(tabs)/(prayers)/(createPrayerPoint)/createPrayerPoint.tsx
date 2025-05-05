@@ -65,7 +65,6 @@ export default function PrayerPointMetadataScreen() {
   } = usePrayerPointHandler({
     id: id,
     privacy: formState.privacy,
-    editMode: editMode,
   });
 
   const { similarPrayers } = useSimilarPrayers(updatedPrayerPoint, editMode);

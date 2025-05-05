@@ -13,7 +13,6 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import uuid from 'react-native-uuid';
 import {
-  CreatePrayerDTO,
   PrayerPoint,
   CreatePrayerPointDTO,
   UpdatePrayerDTO,
@@ -24,59 +23,47 @@ import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSecti
 import useUserContext from '@/hooks/useUserContext';
 import OpenAiService from '@/services/ai/openAIService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
-import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
+import { usePrayerHandler } from '@/hooks/prayerScreens/usePrayerHandler';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
-  const params = useLocalSearchParams<{
+  const params = useLocalSearchParams() as {
     content?: string;
     id?: string;
     editMode?: EditMode;
-  }>();
+    hasTranscription?: boolean;
+  };
 
   const processedParams = useMemo(() => {
     return {
       content: params.content ?? '',
       id: params.id ?? '',
       editMode: (params.editMode as EditMode) ?? EditMode.CREATE,
+      hasTranscription: params.hasTranscription ?? false,
     };
-  }, [params.content, params.id, params.editMode]);
+  }, [params.content, params.id, params.editMode, params.hasTranscription]);
 
   // Determine if we're in edit mode
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [hasAnalyzed, setHasAnalyzed] = useState(false);
   const { transcription, isTranscribing } = useRecording();
   const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
-  const { userPrayers, updateCollection } = usePrayerCollection();
-  const [prayer, setUpdatedPrayer] = useState<Prayer>({
-    id: processedParams.id || '',
-    title: '',
-    content: processedParams.content || '',
-    tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    authorName: '',
-    authorId: '',
-    privacy: 'private',
-    prayerPoints: [],
-    entityType: EntityType.Prayer,
-  });
 
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
-  const { content, id, editMode } = processedParams;
+  const { content, id, editMode, hasTranscription } = processedParams;
 
   const {
     formState,
     isDeleting,
     isSubmissionLoading,
+    isDataLoading,
     setIsDataLoading,
     setIsSubmissionLoading,
     setIsDeleting,
@@ -85,100 +72,104 @@ export default function PrayerMetadataScreen() {
     editMode: editMode,
   });
 
-  const analyzeContent = useCallback(async () => {
-    setIsAnalyzing(true);
-    const content = transcription || processedParams.content || '';
-    try {
-      const analysis = await openAiService.analyzePrayerContent(
-        content,
-        !!transcription,
-        userOptInFlags.optInAI,
-      );
+  const {
+    updatedPrayer,
+    handlePrayerUpdate,
+    createPrayer,
+    updatePrayer,
+    loadPrayer,
+  } = usePrayerHandler({
+    id: id,
+    content: content,
+    privacy: formState.privacy,
+  });
 
-      setUpdatedPrayer((prevPrayer) => ({
-        ...prevPrayer,
-        content: analysis.cleanedTranscription || content,
-      }));
+  const analyzeContent = useCallback(
+    async (mergedContent: string) => {
+      try {
+        setIsAnalyzing(true);
+        console.log('analyzing content:', mergedContent);
+        const analysis = await openAiService.analyzePrayerContent(
+          mergedContent,
+          !!transcription, //has transcription flag.
+          userOptInFlags.optInAI,
+        );
 
-      const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
-        ...point,
-        id: uuid.v4(), // Ensure each has a unique ID
-      }));
+        handlePrayerUpdate({
+          content: analysis.cleanedTranscription || mergedContent,
+        });
 
-      setPrayerPoints(updatedPrayerPoints);
-    } catch (error) {
-      console.error('Error using AI fill:', error);
-      // Silent fail - don't show error to user for automatic fill
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [
-    transcription,
-    processedParams.content,
-    openAiService,
-    userOptInFlags.optInAI,
-  ]);
+        const updatedPrayerPoints = analysis.prayerPoints.map((point) => ({
+          ...point,
+          id: uuid.v4(), // Ensure each has a unique ID
+        }));
 
-  const loadPrayer = useCallback(async () => {
-    if (!processedParams.id) return;
-
-    // Look for prayer
-    const contextPrayer = userPrayers.find((p) => p.id === processedParams.id);
-
-    if (contextPrayer) {
-      setUpdatedPrayer({ ...contextPrayer });
-      return;
-    }
-
-    try {
-      const fetchedPrayer = await prayerService.getPrayer(processedParams.id);
-      if (fetchedPrayer) {
-        setUpdatedPrayer({ ...fetchedPrayer });
+        setPrayerPoints(updatedPrayerPoints);
+      } catch (error) {
+        console.error('Error using AI fill:', error);
+        // Silent fail - don't show error to user for automatic fill
+      } finally {
+        setIsAnalyzing(false);
+        setHasAnalyzed(true);
       }
-    } catch (error) {
-      console.error('Error loading prayer:', error);
-    }
-  }, [processedParams.id, userPrayers]);
+    },
+    [openAiService, transcription, userOptInFlags.optInAI, handlePrayerUpdate],
+  );
 
-  // setup editor state and load prayer point data
+  const getContent = useCallback(async (): Promise<{
+    content: string;
+    isTranscribed: boolean;
+  }> => {
+    const placeholderText = 'transcribing..';
+    const transcriptionUnavailableText = 'transcription unavailable';
+
+    if (isTranscribing) {
+      return { content: placeholderText, isTranscribed: false };
+    } else if (transcription || (content && content !== placeholderText)) {
+      return { content: transcription || content, isTranscribed: true };
+    } else {
+      return { content: transcriptionUnavailableText, isTranscribed: false };
+    }
+  }, [content, isTranscribing, transcription]);
+
   useEffect(() => {
+    if (!formState.isEditMode) return;
+
     const setup = async () => {
       setIsDataLoading(true);
       await loadPrayer();
       setIsDataLoading(false);
     };
-    if (formState.isEditMode) setup();
-  }, [loadPrayer, formState.isEditMode, setIsDataLoading]);
 
-  const setupEditMode = useCallback(async () => {
-    // Check if we're in edit mode from URL params
-    if (processedParams.editMode === EditMode.EDIT && processedParams.id) {
-      setIsEditMode(true);
-      loadPrayer();
-    } else {
-      setIsEditMode(false);
-      if (isTranscribing) {
-        setUpdatedPrayer((prevPrayer) => ({
-          ...prevPrayer,
-          content: 'transcribing...',
-        }));
-      } else if (transcription || processedParams.content) {
-        analyzeContent();
-      } else if (transcription === '') {
-        setUpdatedPrayer((prevPrayer) => ({
-          ...prevPrayer,
-          content: 'Transcription Unavailable',
-        }));
+    setup();
+  }, [formState.isEditMode, loadPrayer, setIsDataLoading]);
+
+  useEffect(() => {
+    const checkAndAnalyze = async () => {
+      const shouldAnalyze =
+        !hasAnalyzed && !isAnalyzing && !formState.isEditMode;
+
+      if (!shouldAnalyze) return;
+
+      if (hasTranscription) {
+        const { content, isTranscribed } = await getContent();
+        if (isTranscribed) {
+          await analyzeContent(content);
+        }
+      } else {
+        await analyzeContent(content);
       }
-    }
+    };
+
+    checkAndAnalyze();
   }, [
-    processedParams.editMode,
-    processedParams.id,
-    processedParams.content,
-    loadPrayer,
-    isTranscribing,
-    transcription,
     analyzeContent,
+    content,
+    formState.isEditMode,
+    getContent,
+    hasAnalyzed,
+    hasTranscription,
+    isAnalyzing,
   ]);
 
   const handlePrayerPoints = async (
@@ -243,17 +234,6 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  useMemo(() => {
-    setupEditMode();
-  }, [setupEditMode]);
-
-  const handlePrayerUpdate = (updatedPrayerData: Prayer) => {
-    setUpdatedPrayer((prevPrayer) => ({
-      ...prevPrayer,
-      ...updatedPrayerData,
-    }));
-  };
-
   const handleDelete = async () => {
     // Confirm deletion
     Alert.alert(
@@ -268,14 +248,14 @@ export default function PrayerMetadataScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            if (!prayer.id || !auth.currentUser?.uid) {
+            if (!id || !auth.currentUser?.uid) {
               Alert.alert('Error', 'Cannot delete prayer');
               return;
             }
 
             setIsDeleting(true);
             try {
-              await prayerService.deletePrayer(prayer.id, auth.currentUser.uid);
+              await prayerService.deletePrayer(id, auth.currentUser.uid);
               Alert.alert('Success', 'Prayer deleted successfully');
               router.push('/(tabs)/(prayers)');
             } catch (error) {
@@ -300,55 +280,41 @@ export default function PrayerMetadataScreen() {
     }
 
     setPrivacy('private'); // temporary set function to bypass lint for now.
-    setIsLoading(true);
+    setIsSubmissionLoading(true);
     try {
-      if (isEditMode && prayer) {
+      if (formState.isEditMode && updatedPrayer) {
         // Update existing prayer
-        const updateData: UpdatePrayerDTO = {
-          content: prayer.content,
-          privacy: privacy,
-        };
-
-        await prayerService.updatePrayer(prayer.id, updateData);
-        updateCollection(prayer as Prayer, 'prayer');
+        updatePrayer(updatedPrayer);
         Alert.alert('Success', 'Prayer updated successfully');
         router.push('/(tabs)/(prayers)');
       } else {
         // Create new prayer
-        const prayerData: CreatePrayerDTO = {
-          content: prayer.content,
-          privacy: prayer.privacy,
-          tags: [], // Empty tags array since we've removed the feature
-          authorId: auth.currentUser.uid,
-          authorName: auth.currentUser.displayName ?? 'Unknown',
-        };
-
-        const prayerId = await prayerService.createPrayer(prayerData);
+        createPrayer(updatedPrayer);
 
         // get list of prayer point ids
-        const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
+        const prayerPointIds = await handlePrayerPoints(prayerPoints, id);
 
         const updatePrayerPoints = {
           prayerPoints: prayerPointIds,
         } as UpdatePrayerDTO;
 
         // update the original prayer with the list of ids
-        await prayerService.updatePrayer(prayerId, updatePrayerPoints);
+        await prayerService.updatePrayer(id, updatePrayerPoints);
 
         Alert.alert('Success', 'Prayer created successfully');
         router.replace('/(tabs)/(prayers)');
       }
     } catch (error) {
       console.error(
-        `Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
+        `Error ${formState.isEditMode ? 'updating' : 'creating'} prayer:`,
         error,
       );
       Alert.alert(
         'Error',
-        `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`,
+        `Failed to ${formState.isEditMode ? 'update' : 'create'} prayer. Please try again.`,
       );
     } finally {
-      setIsLoading(false);
+      setIsSubmissionLoading(false);
     }
   };
 
@@ -356,7 +322,7 @@ export default function PrayerMetadataScreen() {
     <ThemedScrollView contentContainerStyle={styles.scrollContent}>
       <Stack.Screen
         options={{
-          headerTitle: isEditMode ? 'Edit Prayer' : 'Create Prayer',
+          headerTitle: formState.isEditMode ? 'Edit Prayer' : 'Create Prayer',
           headerTitleStyle: styles.headerTitleStyle,
           headerLeft: () => (
             <HeaderButton onPress={router.back} label="Cancel" />
@@ -375,40 +341,35 @@ export default function PrayerMetadataScreen() {
       />
 
       <PrayerContent
-        editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
+        editMode={formState.isEditMode ? EditMode.EDIT : EditMode.CREATE}
         backgroundColor={colorScheme}
         prayerOrPrayerPoint={EntityType.Prayer}
-        prayer={prayer}
+        prayer={updatedPrayer}
         onChange={(updatedPrayer) => {
           handlePrayerUpdate(updatedPrayer as Prayer);
         }}
       />
-      {isTranscribing && <ActivityIndicator color="#9747FF" size="small" />}
-      {isAnalyzing && (
-        <ActivityIndicator
-          color={Colors.primary}
-          size="small"
-          style={styles.activityIndicator}
-        />
-      )}
+      {isTranscribing ||
+        isDataLoading ||
+        (isAnalyzing && <ActivityIndicator color="#9747FF" size="small" />)}
 
       <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
+        style={[styles.button, isSubmissionLoading && styles.buttonDisabled]}
         onPress={handleSubmit}
-        disabled={isLoading}
+        disabled={isSubmissionLoading}
       >
         <ThemedText style={styles.buttonText}>
-          {isLoading
-            ? isEditMode
+          {isSubmissionLoading
+            ? formState.isEditMode
               ? 'Updating...'
               : 'Creating...'
-            : isEditMode
+            : formState.isEditMode
               ? 'Update Prayer'
               : 'Create Prayer'}
         </ThemedText>
       </TouchableOpacity>
 
-      {isEditMode && (
+      {formState.isEditMode && (
         <TouchableOpacity
           style={[styles.deleteButton, isDeleting && styles.buttonDisabled]}
           onPress={handleDelete}
@@ -424,9 +385,6 @@ export default function PrayerMetadataScreen() {
 }
 
 const styles = StyleSheet.create({
-  activityIndicator: {
-    alignSelf: 'center',
-  },
   button: {
     alignItems: 'center',
     backgroundColor: Colors.purple,
