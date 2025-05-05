@@ -58,6 +58,7 @@ class ComplexPrayerOperations {
     }
   };
 }
+
 export const complexPrayerOperations = new ComplexPrayerOperations(
   prayerService,
   prayerPointService,

@@ -31,6 +31,8 @@ import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
 import { usePrayerHandler } from '@/hooks/prayerScreens/usePrayerHandler';
 import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
+import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
+import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -145,6 +147,30 @@ export default function PrayerMetadataScreen() {
     isAnalyzing,
   ]);
 
+  const fetchSimilarPrayerPoints = useCallback(
+    async (point: PrayerPoint) => {
+      if (userOptInFlags.optInAI && updatedPrayer) {
+        const { updatedPrayerPoint, handlePrayerPointUpdate } =
+          usePrayerPointHandler({
+            id: point.id,
+            privacy: point.privacy,
+          });
+        const { similarPrayers } = useSimilarPrayers(
+          point,
+          EditMode.CREATE,
+          (newEmbedding) => {
+            handlePrayerPointUpdate({
+              ...updatedPrayerPoint,
+              embedding: newEmbedding,
+            });
+          },
+        );
+        return { point, similarPrayers };
+      }
+    },
+    [userOptInFlags.optInAI, updatedPrayer],
+  );
+
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
     prayerId: string,
@@ -154,17 +180,14 @@ export default function PrayerMetadataScreen() {
       const updatedPrayerPoints: PrayerPoint[] = await Promise.all(
         prayerPoints.map(async (point) => {
           if (userOptInFlags.optInAI) {
+            if (point.embedding) {
+              return point; // Return original if embedding already exists
+            }
             const input = `${point.title} ${point.content}`.trim();
-            const embeddingInput =
-              await openAiService.getVectorEmbeddings(input);
-
-            if (embeddingInput.length > 0) {
-              return {
-                ...point,
-                embedding: embeddingInput,
-              };
-            } else {
-              console.warn('No embedding generated for point:', point);
+            const embedding = await openAiService.getVectorEmbeddings(input);
+            if (embedding.length === 0) {
+              console.error('Empty embedding array');
+              return point; // Return original if embedding is empty
             }
           }
           return point; // Return original if opt-out or embedding failed
@@ -205,45 +228,6 @@ export default function PrayerMetadataScreen() {
       console.error('Error parsing prayer points:', err);
       return [];
     }
-  };
-
-  const handleDelete = async () => {
-    // Confirm deletion
-    Alert.alert(
-      'Delete Prayer',
-      'Are you sure you want to delete this prayer? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            if (!id || !auth.currentUser?.uid) {
-              Alert.alert('Error', 'Cannot delete prayer');
-              return;
-            }
-
-            setIsDeleting(true);
-            try {
-              await prayerService.deletePrayer(id, auth.currentUser.uid);
-              Alert.alert('Success', 'Prayer deleted successfully');
-              router.push('/(tabs)/(prayers)');
-            } catch (error) {
-              console.error('Error deleting prayer:', error);
-              Alert.alert(
-                'Error',
-                'Failed to delete prayer. Please try again.',
-              );
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ],
-    );
   };
 
   const handleSubmit = async () => {
@@ -289,6 +273,45 @@ export default function PrayerMetadataScreen() {
     } finally {
       setIsSubmissionLoading(false);
     }
+  };
+
+  const handleDelete = async () => {
+    // Confirm deletion
+    Alert.alert(
+      'Delete Prayer',
+      'Are you sure you want to delete this prayer? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (!id || !auth.currentUser?.uid) {
+              Alert.alert('Error', 'Cannot delete prayer');
+              return;
+            }
+
+            setIsDeleting(true);
+            try {
+              await prayerService.deletePrayer(id, auth.currentUser.uid);
+              Alert.alert('Success', 'Prayer deleted successfully');
+              router.push('/(tabs)/(prayers)');
+            } catch (error) {
+              console.error('Error deleting prayer:', error);
+              Alert.alert(
+                'Error',
+                'Failed to delete prayer. Please try again.',
+              );
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (

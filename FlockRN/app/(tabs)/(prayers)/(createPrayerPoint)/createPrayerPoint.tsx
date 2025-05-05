@@ -21,7 +21,7 @@ import { EditMode } from '@/types/ComponentProps';
 import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
 import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
 import useFormState from '@/hooks/useFormState';
-import { updatePrayerTopicWithJourney } from '@/services/prayer/prayerLinkingService';
+import { prayerLinkingService } from '@/services/prayer/prayerLinkingService';
 import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 
 export default function PrayerPointMetadataScreen() {
@@ -67,15 +67,9 @@ export default function PrayerPointMetadataScreen() {
     privacy: formState.privacy,
   });
 
-  const { similarPrayers } = useSimilarPrayers(
+  const { similarPrayers, embedding } = useSimilarPrayers(
     updatedPrayerPoint,
     editMode,
-    (newEmbedding) => {
-      handlePrayerPointUpdate({
-        ...updatedPrayerPoint,
-        embedding: newEmbedding,
-      });
-    },
   );
 
   // setup editor state and load prayer point data
@@ -108,6 +102,7 @@ export default function PrayerPointMetadataScreen() {
 
       const mergedPrayerPoint = {
         ...updatedPrayerPoint,
+        embedding: embedding,
         ...(finalPrayerPoint ?? {}),
       };
 
@@ -120,7 +115,7 @@ export default function PrayerPointMetadataScreen() {
       }
 
       if (fullOriginPrayer && topicId) {
-        await updatePrayerTopicWithJourney(
+        await prayerLinkingService.updatePrayerTopicWithJourney(
           { ...mergedPrayerPoint, id: prayerId },
           fullOriginPrayer,
           topicId,

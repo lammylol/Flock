@@ -48,6 +48,11 @@ class PrayerTopicService implements IPrayerTopicService {
   }
 
   async createPrayerTopic(data: CreatePrayerTopicDTO): Promise<string> {
+    if (!data || !data.title) {
+      console.error('Missing title in prayer topic');
+      throw new Error('Missing title in prayer topic');
+    }
+
     try {
       const now = Timestamp.now();
 
@@ -72,6 +77,11 @@ class PrayerTopicService implements IPrayerTopicService {
     data: Partial<UpdatePrayerTopicDTO>,
   ): Promise<void> {
     try {
+      if (!prayerTopicId || !data) {
+        console.error('Missing data for updating prayer topic');
+        return;
+      }
+
       const now = Timestamp.now();
       const prayerTopicRef = doc(this.prayerTopicsCollection, prayerTopicId);
 

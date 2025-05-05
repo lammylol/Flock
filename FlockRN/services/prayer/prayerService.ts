@@ -241,7 +241,7 @@ class PrayerService implements IPrayerService {
         },
       );
     } catch (error) {
-      console.error('Error getting prayer point:', error);
+      console.error('Error getting related prayer point:', error);
       return []; // Return an empty array in case of an error
     }
   }
