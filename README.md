@@ -40,7 +40,7 @@ Built on Jest framework.
 **Test Structure**
    Tests are organized in the following directories:
 
-__tests__/
+tests/
   ├── unit/           # Pure function tests
   ├── components/     # Component tests
   ├── services/       # Service tests
