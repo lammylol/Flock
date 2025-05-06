@@ -115,10 +115,17 @@ export default function PrayerPointMetadataScreen() {
       }
 
       if (fullOriginPrayer && topicId) {
-        await prayerLinkingService.updatePrayerTopicWithJourney(
+        await prayerLinkingService.updatePrayerTopicWithJourneyAndGetEmbeddings(
           { ...mergedPrayerPoint, id: prayerId },
           fullOriginPrayer,
           topicId,
+        );
+      }
+
+      // remove embedding from firebase if the origin prayer is a prayer point. must happen after context is set.
+      if (fullOriginPrayer?.entityType === EntityType.PrayerPoint) {
+        await prayerLinkingService.removeEmbeddingFromFirebase(
+          fullOriginPrayer,
         );
       }
 

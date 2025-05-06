@@ -38,7 +38,7 @@ export interface IPrayerLinkingService {
     prayerPoint: PrayerPoint,
     selectedPrayer: LinkedPrayerEntity,
   ): PrayerPointInPrayerTopicDTO[];
-  updatePrayerTopicWithJourney(
+  updatePrayerTopicWithJourneyAndGetEmbeddings(
     prayerPoint: PrayerPoint,
     selectedPrayer: LinkedPrayerEntity,
     topicId: string,
@@ -140,6 +140,53 @@ class PrayerLinkingService implements IPrayerLinkingService {
     }
   };
 
+  setContextFromJourneyAndGetEmbeddings = async (
+    journey: PrayerPointInPrayerTopicDTO[],
+  ): Promise<{ contextAsStrings: string; contextAsEmbeddings: number[] }> => {
+    const getCleanedText = (p: PrayerPointInPrayerTopicDTO) => {
+      const title = p.title?.trim();
+      const trimmedContent = p.content
+        ?.slice(0, this.maxCharactersPerPrayerContext)
+        ?.trim();
+
+      // logic to handle empty titles, empty content, etc.
+      if (title && trimmedContent) {
+        return `${title}, ${trimmedContent}`;
+      } else if (title) {
+        return title;
+      } else if (trimmedContent) {
+        return trimmedContent;
+      } else {
+        return '';
+      }
+    };
+
+    const contextAsStrings = journey
+      .map(getCleanedText)
+      .filter(Boolean)
+      .join(', ');
+
+    try {
+      const embeddings =
+        await this.openAiService.getVectorEmbeddings(contextAsStrings);
+      if (!embeddings || embeddings.length === 0) {
+        console.error('Failed to generate embeddings');
+        return {
+          contextAsStrings: '',
+          contextAsEmbeddings: [],
+        };
+      }
+
+      return {
+        contextAsStrings,
+        contextAsEmbeddings: embeddings,
+      };
+    } catch (error) {
+      console.error('Error generating embeddings:', error);
+      throw error;
+    }
+  };
+
   getJourney = (
     prayerPoint: PrayerPoint,
     originPrayer: LinkedPrayerEntity,
@@ -180,21 +227,33 @@ class PrayerLinkingService implements IPrayerLinkingService {
     );
   };
 
-  updatePrayerTopicWithJourney = async (
+  updatePrayerTopicWithJourneyAndGetEmbeddings = async (
     prayerPoint: PrayerPoint,
     originPrayer: LinkedPrayerEntity,
     topicId: string,
   ) => {
     const journey = this.getJourney(prayerPoint, originPrayer);
+
     if (!journey || journey.length === 0) {
-      console.warn('Empty journey; removing field');
+      console.warn('Empty journey; removing journey and context fields');
       return await prayerTopicService.updatePrayerTopic(topicId, {
         journey: deleteField(),
+        contextAsStrings: deleteField(),
+        contextAsEmbeddings: deleteField(),
       });
+    }
+
+    const { contextAsStrings, contextAsEmbeddings } =
+      await this.setContextFromJourneyAndGetEmbeddings(journey);
+
+    if (!contextAsStrings || !contextAsEmbeddings) {
+      console.error('Missing context or embeddings');
     }
 
     return await prayerTopicService.updatePrayerTopic(topicId, {
       journey,
+      contextAsStrings,
+      contextAsEmbeddings,
     });
   };
 
@@ -218,42 +277,42 @@ class PrayerLinkingService implements IPrayerLinkingService {
     return Array.from(types);
   };
 
-  setContextAsStringsAndGetEmbeddings = async (
-    prayerPoint: PrayerPoint,
-    selectedPrayer: LinkedPrayerEntity,
-  ): Promise<{ contextAsStrings: string; contextAsEmbeddings: number[] }> => {
-    // There is no slice on (selectedPrayer) original content, just the new prayer point.
-    // this is for 2 reasons: 1) keep original prayer point intact and
-    // to lean more heavily on it when there are few topics. 2) if linking to a prayer topic,
-    // we need the full content.
-    const newContent = `${prayerPoint.title}, ${prayerPoint.content.slice(0, this.maxCharactersPerPrayerContext)}`;
-    const oldContent = isPrayerTopic(selectedPrayer)
-      ? `${selectedPrayer.contextAsStrings}`
-      : `${selectedPrayer.title} ${selectedPrayer.content}`.trim();
+  // oldSetContextAsStringsAndGetEmbeddings = async (
+  //   prayerPoint: PrayerPoint,
+  //   selectedPrayer: LinkedPrayerEntity,
+  // ): Promise<{ contextAsStrings: string; contextAsEmbeddings: number[] }> => {
+  //   // There is no slice on (selectedPrayer) original content, just the new prayer point.
+  //   // this is for 2 reasons: 1) keep original prayer point intact and
+  //   // to lean more heavily on it when there are few topics. 2) if linking to a prayer topic,
+  //   // we need the full content.
+  //   const newContent = `${prayerPoint.title}, ${prayerPoint.content.slice(0, this.maxCharactersPerPrayerContext)}`;
+  //   const oldContent = isPrayerTopic(selectedPrayer)
+  //     ? `${selectedPrayer.contextAsStrings}`
+  //     : `${selectedPrayer.title} ${selectedPrayer.content}`.trim();
 
-    const contextAsStrings = [oldContent, newContent].join(', ').trim();
+  //   const contextAsStrings = [oldContent, newContent].join(', ').trim();
 
-    try {
-      const embeddings =
-        await this.openAiService.getVectorEmbeddings(contextAsStrings);
+  //   try {
+  //     const embeddings =
+  //       await this.openAiService.getVectorEmbeddings(contextAsStrings);
 
-      if (!embeddings || embeddings.length === 0) {
-        console.error('Failed to generate embeddings');
-        return {
-          contextAsStrings: '',
-          contextAsEmbeddings: [],
-        };
-      }
+  //     if (!embeddings || embeddings.length === 0) {
+  //       console.error('Failed to generate embeddings');
+  //       return {
+  //         contextAsStrings: '',
+  //         contextAsEmbeddings: [],
+  //       };
+  //     }
 
-      return {
-        contextAsStrings,
-        contextAsEmbeddings: embeddings,
-      };
-    } catch (error) {
-      console.error('Error generating embeddings:', error);
-      throw error;
-    }
-  };
+  //     return {
+  //       contextAsStrings,
+  //       contextAsEmbeddings: embeddings,
+  //     };
+  //   } catch (error) {
+  //     console.error('Error generating embeddings:', error);
+  //     throw error;
+  //   }
+  // };
 
   // This function handles all the logic for prayer topics when linking
   // either prayer point to prayer point or prayer point to an existing prayer topic.
@@ -285,23 +344,23 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
     const content = `Latest ${prayerPoint.prayerType.trim()}: ${prayerPoint.title!.trim()} `;
 
-    // Get context strings + embeddings
-    const { contextAsStrings, contextAsEmbeddings } =
-      await this.setContextAsStringsAndGetEmbeddings(
-        prayerPoint,
-        selectedPrayer,
-      );
+    // // Get context strings + embeddings
+    // const { contextAsStrings, contextAsEmbeddings } =
+    //   await this.setContextFromJourneyAndGetEmbeddings(
+    //     prayerPoint,
+    //     selectedPrayer,
+    //   );
 
-    if (!contextAsStrings || !contextAsEmbeddings) {
-      console.error('Missing context or embeddings');
-      return;
-    }
+    // if (!contextAsStrings || !contextAsEmbeddings) {
+    //   console.error('Missing context or embeddings');
+    //   return;
+    // }
 
     const sharedFields = {
       id: selectedPrayer.id,
       content: content,
-      contextAsStrings: contextAsStrings,
-      contextAsEmbeddings: contextAsEmbeddings,
+      contextAsStrings: '',
+      contextAsEmbeddings: [],
       prayerTypes: prayerTypes,
     };
 

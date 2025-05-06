@@ -135,6 +135,7 @@ export default function PrayerMetadataScreen() {
       }
 
       const prayerPoints = await analyzeContent(contentToAnalyze);
+      console.log('Analyzed prayer points:', prayerPoints);
       setPrayerPoints(prayerPoints);
     };
 
@@ -150,50 +151,24 @@ export default function PrayerMetadataScreen() {
     isTranscribing,
   ]);
 
-  const fetchSimilarPrayerPoints = useCallback(
-    async (point: PrayerPoint) => {
-      if (userOptInFlags.optInAI && updatedPrayer) {
-        if (point.embedding) {
-          return point; // Return original if embedding already exists
-        }
-        const input = `${point.title} ${point.content}`.trim();
-        const embedding = await openAiService.getVectorEmbeddings(input);
-        if (embedding.length === 0) {
-          console.error('Empty embedding array');
-          return point; // Return original if embedding is empty
-        }
-
-        const similarPrayers = await prayerService.findRelatedPrayers(
-          embedding,
-          user!.uid,
-          point.id,
-          3,
-        );
-
-        return similarPrayers;
-      }
-    },
-    [userOptInFlags.optInAI, updatedPrayer, openAiService, user],
-  );
-
   const handlePrayerPoints = async (
     prayerPoints: PrayerPoint[],
     prayerId: string,
   ): Promise<string[]> => {
     try {
-      // Get prayer point embedding.
-      const updatedPrayerPoints: PrayerPoint[] = await Promise.all(
-        prayerPoints.map(async (point) => {
-          if (userOptInFlags.optInAI) {
-            const similarPrayers = fetchSimilarPrayerPoints(point);
-          }
-          return point; // Return original if opt-out or embedding failed
-        }),
-      );
+      // // Get prayer point embedding.
+      // const updatedPrayerPoints: PrayerPoint[] = await Promise.all(
+      //   prayerPoints.map(async (point) => {
+      //     if (userOptInFlags.optInAI) {
+      //       const similarPrayers = fetchSimilarPrayerPoints(point);
+      //     }
+      //     return point; // Return original if opt-out or embedding failed
+      //   }),
+      // );
 
       // Transform prayer points
-      const mappedPrayerPoints: CreatePrayerPointDTO[] =
-        updatedPrayerPoints.map((prayerPoint) => ({
+      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
+        (prayerPoint) => ({
           title: prayerPoint.title?.trim() || 'Untitled',
           // Convert types array to a single type if needed for backward compatibility
           prayerType: prayerPoint.prayerType || PrayerType.Request,
@@ -208,13 +183,11 @@ export default function PrayerMetadataScreen() {
           privacy: prayerPoint.privacy ?? 'private',
           prayerId: prayerId,
           recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
-          prayerUpdates: prayerPoint.prayerUpdates || [], // Default to an empty array
-          isOrigin:
-            prayerPoint.isOrigin !== undefined ? prayerPoint.isOrigin : true,
-          ...(prayerPoint.embedding?.length
+          ...(prayerPoint.embedding !== undefined
             ? { embedding: prayerPoint.embedding }
             : {}), // Only include if it exists. This is essential for embedding search. NaN values will break the search.
-        }));
+        }),
+      );
 
       // Save to Firestore
       const prayerPointIds =
@@ -238,22 +211,22 @@ export default function PrayerMetadataScreen() {
     try {
       if (formState.isEditMode && updatedPrayer) {
         // Update existing prayer
-        updatePrayer(updatedPrayer);
+        await updatePrayer(updatedPrayer);
         Alert.alert('Success', 'Prayer updated successfully');
         router.push('/(tabs)/(prayers)');
       } else {
         // Create new prayer
-        createPrayer(updatedPrayer);
+        const prayerId = await createPrayer(updatedPrayer);
 
         // get list of prayer point ids
-        const prayerPointIds = await handlePrayerPoints(prayerPoints, id);
+        const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
 
         const updatePrayerPoints = {
           prayerPoints: prayerPointIds,
         } as UpdatePrayerDTO;
 
         // update the original prayer with the list of ids
-        await prayerService.updatePrayer(id, updatePrayerPoints);
+        await prayerService.updatePrayer(prayerId, updatePrayerPoints);
 
         Alert.alert('Success', 'Prayer created successfully');
         router.replace('/(tabs)/(prayers)');

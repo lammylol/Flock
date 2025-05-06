@@ -25,7 +25,10 @@ class ComplexPrayerOperations {
     prayerPoint: PrayerPoint,
     userId: string,
     topK: number,
-  ): Promise<PartialLinkedPrayerEntity[]> => {
+  ): Promise<{
+    similarPrayers: PartialLinkedPrayerEntity[];
+    prayerPointWithEmbedding: PrayerPoint;
+  }> => {
     try {
       // Check if the prayer point already has an embedding
       let embeddingInput = (prayerPoint.embedding as number[]) || undefined;
@@ -36,7 +39,7 @@ class ComplexPrayerOperations {
       }
       if (embeddingInput.length === 0) {
         console.error('Empty embedding array');
-        return []; // Return an empty array if embedding is empty
+        return { similarPrayers: [], prayerPointWithEmbedding: prayerPoint }; // Return an empty array if embedding is empty
       }
       // Find similar prayers using the generated embedding
       const similarPrayers = await this.prayerService.findRelatedPrayers(
@@ -45,10 +48,16 @@ class ComplexPrayerOperations {
         prayerPoint.id,
         topK,
       );
-      return similarPrayers;
+
+      const prayerPointWithEmbedding = {
+        ...prayerPoint,
+        ...(embeddingInput && { embedding: embeddingInput }),
+      };
+
+      return { similarPrayers, prayerPointWithEmbedding };
     } catch (error) {
       console.error('Error getting related prayer point:', error);
-      return []; // Return an empty array in case of an error
+      return { similarPrayers: [], prayerPointWithEmbedding: prayerPoint }; // Return an empty array if embedding is empty
     }
   };
 
@@ -74,7 +83,7 @@ class ComplexPrayerOperations {
       [];
 
     for (const point of prayerPoints) {
-      const similarPrayers =
+      const { similarPrayers, prayerPointWithEmbedding } =
         await complexPrayerOperations.getEmbeddingsAndFindSimilarPrayerPoints(
           point,
           userId || '',
@@ -83,12 +92,12 @@ class ComplexPrayerOperations {
 
       if (!similarPrayers.length) continue;
 
-      const [closestPrayer, ...others] = similarPrayers
-        .slice()
-        .sort((a, b) => a.similarity - b.similarity) as LinkedPrayerEntity[];
+      const [closestPrayer, ...others] = similarPrayers.sort(
+        (a, b) => b.similarity - a.similarity,
+      ) as LinkedPrayerEntity[];
 
       arrayOfPointsAndClosestPrayer.push({
-        prayerEntity: point,
+        prayerEntity: prayerPointWithEmbedding,
         similarPrayer: closestPrayer,
       });
 

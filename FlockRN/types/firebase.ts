@@ -87,8 +87,8 @@ export interface PrayerTopic extends BasePrayerEntity {
   recipientName?: string;
   recipientId?: string;
   journey: PrayerPointInPrayerTopicDTO[] | FieldValue; // prayer points in this topic
-  contextAsStrings: string;
-  contextAsEmbeddings: number[];
+  contextAsStrings: string | FieldValue; // context strings
+  contextAsEmbeddings: number[] | FieldValue; // context embeddings
 }
 
 // ===== Other Types =====

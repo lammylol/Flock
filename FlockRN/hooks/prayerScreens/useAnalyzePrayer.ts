@@ -25,8 +25,57 @@ export function useAnalyzePrayer({
   const openAiService = OpenAiService.getInstance();
   const user = auth.currentUser;
 
+  // this function is used to fetch similar prayer points and link them to the topic.
+  // it returns an array of objects containing the closest prayer point first, and then the rest are stored
+  // in a separate array for use for manual searching.
+  const fetchClosestPrayerPointsAndReturnSimilar = useCallback(
+    async (
+      prayerPoints: PrayerPoint[],
+    ): Promise<{
+      arrayOfPointsAndClosestPrayer: {
+        prayerEntity: LinkedPrayerEntity;
+        similarPrayer: LinkedPrayerEntity;
+      }[];
+      arrayOfSimilarPrayersExcludingClosestPrayer: LinkedPrayerEntity[];
+    }> => {
+      try {
+        const {
+          arrayOfPointsAndClosestPrayer,
+          arrayOfSimilarPrayersExcludingClosestPrayer,
+        } = await complexPrayerOperations.fetchMostSimilarPrayerPoint(
+          prayerPoints,
+          user!.uid,
+        );
+
+        console.log(
+          'Fetched closest prayer points:',
+          arrayOfPointsAndClosestPrayer,
+        );
+        console.log(
+          'Fetched other prayer points excluding closest:',
+          arrayOfSimilarPrayersExcludingClosestPrayer,
+        );
+
+        setArrayOfClosestPrayer(arrayOfPointsAndClosestPrayer);
+        setArrayOfOtherPrayers(arrayOfSimilarPrayersExcludingClosestPrayer);
+
+        return {
+          arrayOfPointsAndClosestPrayer,
+          arrayOfSimilarPrayersExcludingClosestPrayer,
+        };
+      } catch (error) {
+        console.error('Error fetching similar prayer points:', error);
+        return {
+          arrayOfPointsAndClosestPrayer: [],
+          arrayOfSimilarPrayersExcludingClosestPrayer: [],
+        };
+      }
+    },
+    [user],
+  );
+
   const analyzeContent = useCallback(
-    async (mergedContent: string): Promise<PrayerPoint[]> => {
+    async (mergedContent: string): Promise<LinkedPrayerEntity[]> => {
       try {
         setIsAnalyzing(true);
         console.log('analyzing content:', mergedContent);
@@ -42,14 +91,27 @@ export function useAnalyzePrayer({
           content: analysis.cleanedTranscription || mergedContent,
         });
 
-        const updatedPrayerPoints: PrayerPoint[] = analysis.prayerPoints.map(
+        const prayerPointsWithId: PrayerPoint[] = analysis.prayerPoints.map(
           (point) => ({
             ...point,
             id: uuid.v4(),
           }),
         );
 
-        return updatedPrayerPoints;
+        const result =
+          await fetchClosestPrayerPointsAndReturnSimilar(prayerPointsWithId);
+        const arrayOfPointsAndClosestPrayer =
+          result?.arrayOfPointsAndClosestPrayer || [];
+
+        const prayerPointsWithEmbedding: LinkedPrayerEntity[] =
+          arrayOfPointsAndClosestPrayer.map(
+            (similarArray: {
+              prayerEntity: LinkedPrayerEntity;
+              similarPrayer: LinkedPrayerEntity;
+            }) => similarArray.prayerEntity,
+          );
+
+        return prayerPointsWithEmbedding;
       } catch (error) {
         console.error('Error using AI fill:', error);
         return [];
@@ -58,30 +120,13 @@ export function useAnalyzePrayer({
         setHasAnalyzed(true);
       }
     },
-    [openAiService, transcription, userOptInAI, handlePrayerUpdate],
-  );
-
-  // this function is used to fetch similar prayer points and link them to the topic.
-  // it returns an array of objects containing the closest prayer point first, and then the rest are stored
-  // in a separate array for use for manual searching.
-  const fetchClosestPrayerPointsAndReturnSimilar = useCallback(
-    async (prayerPoints: PrayerPoint[]) => {
-      try {
-        const {
-          arrayOfPointsAndClosestPrayer,
-          arrayOfSimilarPrayersExcludingClosestPrayer,
-        } = await complexPrayerOperations.fetchMostSimilarPrayerPoint(
-          prayerPoints,
-          user!.uid,
-        );
-
-        setArrayOfClosestPrayer(arrayOfPointsAndClosestPrayer);
-        setArrayOfOtherPrayers(arrayOfSimilarPrayersExcludingClosestPrayer);
-      } catch (error) {
-        console.error('Error fetching similar prayer points:', error);
-      }
-    },
-    [user],
+    [
+      openAiService,
+      transcription,
+      userOptInAI,
+      handlePrayerUpdate,
+      fetchClosestPrayerPointsAndReturnSimilar,
+    ],
   );
 
   return {

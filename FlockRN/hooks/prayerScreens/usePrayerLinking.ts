@@ -130,10 +130,6 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
         updatedPrayerPoint,
       ) as PrayerPoint;
 
-      if (originPrayer.entityType === EntityType.PrayerPoint) {
-        await prayerLinkingService.removeEmbeddingFromFirebase(originPrayer);
-      }
-
       setOriginPrayer(null);
       setPrayerTopicDTO(null);
       return { finalPrayerPoint, fullOriginPrayer, topicId };

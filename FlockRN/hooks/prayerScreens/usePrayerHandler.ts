@@ -73,7 +73,7 @@ export function usePrayerHandler({
     };
 
     const docRefId = await prayerService.createPrayer(prayerData);
-    Alert.alert('Success', 'Prayer created successfully.');
+    console.log('Success', 'Prayer created successfully.');
     return docRefId;
   };
 
@@ -86,7 +86,7 @@ export function usePrayerHandler({
     await prayerService.updatePrayer(data.id, updateData);
 
     updateCollection({ ...updatedPrayer, ...updateData } as Prayer, 'prayer');
-    Alert.alert('Success', 'Prayer updated successfully');
+    console.log('Success', 'Prayer updated successfully');
   };
 
   return {
