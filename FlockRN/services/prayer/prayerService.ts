@@ -28,12 +28,15 @@ import {
   UpdatePrayerDTO,
   PrayerTopic,
   PartialLinkedPrayerEntity,
+  LinkedPrayerEntity,
 } from '@/types/firebase';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getApp } from 'firebase/app';
 import { getEntityType } from '@/types/typeGuards';
+import { prayerPointService } from './prayerPointService';
+import { prayerTopicService } from './prayerTopicService';
 
 export interface IPrayerService {
   createPrayer(data: CreatePrayerDTO): Promise<string>;

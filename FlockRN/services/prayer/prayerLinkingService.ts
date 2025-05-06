@@ -31,7 +31,7 @@ import { prayerTopicService } from './prayerTopicService';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 
 export interface IPrayerLinkingService {
-  loadOriginPrayer(
+  loadPrayer(
     originPrayer: LinkedPrayerEntity,
   ): Promise<LinkedPrayerEntity | null>;
   getJourney(
@@ -112,21 +112,21 @@ class PrayerLinkingService implements IPrayerLinkingService {
   maxCharactersPerPrayerContext = 250; // or whatever your constant is
   openAiService = OpenAiService.getInstance();
 
-  // Load the origin prayer (either prayer point or prayer topic)
-  loadOriginPrayer = async (
-    originPrayer: LinkedPrayerEntity,
+  // Load the prayer (either prayer point or prayer topic)
+  loadPrayer = async (
+    prayer: LinkedPrayerEntity,
   ): Promise<LinkedPrayerEntity | null> => {
     try {
       let fetchedPrayer = null;
-      switch (originPrayer?.entityType) {
+      switch (prayer?.entityType) {
         case EntityType.PrayerPoint:
           fetchedPrayer = await prayerPointService.getPrayerPoint(
-            originPrayer.id as PrayerPoint['id'],
+            prayer.id as PrayerPoint['id'],
           );
           break;
         case EntityType.PrayerTopic:
           fetchedPrayer = await prayerTopicService.getPrayerTopic(
-            originPrayer.id as PrayerTopic['id'],
+            prayer.id as PrayerTopic['id'],
           );
           break;
         default:
@@ -437,6 +437,83 @@ class PrayerLinkingService implements IPrayerLinkingService {
     };
 
     return linkedTopic;
+  };
+
+  // Link to an existing prayer topic
+  linkToExistingTopic = async ({
+    originTopic,
+    topicDTO,
+    isNewPrayerPoint,
+    prayerPoint,
+  }: {
+    originTopic: PrayerTopic;
+    topicDTO: FlatPrayerTopicDTO;
+    isNewPrayerPoint: boolean;
+    prayerPoint: PrayerPoint;
+  }): Promise<PrayerPoint> => {
+    await prayerTopicService.updatePrayerTopic(
+      originTopic.id,
+      topicDTO as UpdatePrayerTopicDTO,
+    );
+
+    const linkedTopic: LinkedTopicInPrayerDTO = {
+      id: originTopic.id,
+      title: topicDTO.title,
+    };
+
+    const updatedPrayerPoint = await this.updatePrayerPointWithLinkedTopic(
+      prayerPoint,
+      linkedTopic,
+      !isNewPrayerPoint,
+    );
+
+    if (!updatedPrayerPoint) {
+      throw new Error('Failed to update prayer point with linked topic');
+    }
+
+    return updatedPrayerPoint;
+  };
+
+  linkToNewTopic = async ({
+    originPrayerPoint,
+    topicDTO,
+    isNewPrayerPoint,
+    prayerPoint,
+  }: {
+    originPrayerPoint: PrayerPoint;
+    topicDTO: FlatPrayerTopicDTO;
+    isNewPrayerPoint: boolean;
+    prayerPoint: PrayerPoint;
+  }): Promise<{
+    updatedNewPrayer: PrayerPoint;
+    topicId: string;
+  }> => {
+    const topicId = (await prayerTopicService.createPrayerTopic(
+      topicDTO as CreatePrayerTopicDTO,
+    )) as string;
+
+    const linkedTopic: LinkedTopicInPrayerDTO = {
+      id: topicId,
+      title: topicDTO.title,
+    };
+
+    const updatedNewPrayer = await this.updatePrayerPointWithLinkedTopic(
+      prayerPoint,
+      linkedTopic,
+      !isNewPrayerPoint,
+    );
+
+    await this.updatePrayerPointWithLinkedTopic(
+      originPrayerPoint,
+      linkedTopic,
+      true,
+    );
+
+    if (!updatedNewPrayer) {
+      throw new Error('Failed to update prayer point with linked topic');
+    }
+
+    return { updatedNewPrayer, topicId };
   };
 }
 

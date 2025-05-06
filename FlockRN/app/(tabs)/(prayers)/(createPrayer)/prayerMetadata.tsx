@@ -30,8 +30,8 @@ import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
 import { usePrayerHandler } from '@/hooks/prayerScreens/usePrayerHandler';
 import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
-import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
+import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();

@@ -1,19 +1,14 @@
 // hooks/prayerScreens/usePrayerLinking.ts
-
 import { useState } from 'react';
 import {
-  CreatePrayerTopicDTO,
-  LinkedTopicInPrayerDTO,
   FlatPrayerTopicDTO,
   LinkedPrayerEntity,
   PrayerPoint,
   PrayerTopic,
-  UpdatePrayerTopicDTO,
 } from '@/types/firebase';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { auth } from '@/firebase/firebaseConfig';
 import { prayerLinkingService } from '@/services/prayer/prayerLinkingService';
-import { prayerTopicService } from '@/services/prayer/prayerTopicService';
 import { isValidCreateDTO, isValidUpdateDTO } from '@/types/typeGuards';
 
 export function usePrayerLinking(prayerPoint: PrayerPoint) {
@@ -30,7 +25,7 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       console.error('No origin prayer to load');
       return null;
     }
-    return prayerLinkingService.loadOriginPrayer(originPrayer);
+    return prayerLinkingService.loadPrayer(originPrayer);
   };
 
   // This function is passed to the PrayerPointLinking component
@@ -51,79 +46,6 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     }));
   };
 
-  const linkToExistingTopic = async ({
-    originTopic,
-    topicDTO,
-    isNewPrayerPoint,
-  }: {
-    originTopic: PrayerTopic;
-    topicDTO: FlatPrayerTopicDTO;
-    isNewPrayerPoint: boolean;
-  }): Promise<PrayerPoint> => {
-    await prayerTopicService.updatePrayerTopic(
-      originTopic.id,
-      topicDTO as UpdatePrayerTopicDTO,
-    );
-
-    const linkedTopic = {
-      id: originTopic.id,
-      title: topicDTO.title,
-    };
-
-    const updatedPrayerPoint =
-      await prayerLinkingService.updatePrayerPointWithLinkedTopic(
-        prayerPoint,
-        linkedTopic,
-        !isNewPrayerPoint,
-      );
-
-    if (!updatedPrayerPoint) {
-      throw new Error('Failed to update prayer point with linked topic');
-    }
-
-    return updatedPrayerPoint;
-  };
-
-  const linkToNewTopic = async ({
-    originPrayerPoint,
-    topicDTO,
-    isNewPrayerPoint,
-  }: {
-    originPrayerPoint: PrayerPoint;
-    topicDTO: FlatPrayerTopicDTO;
-    isNewPrayerPoint: boolean;
-  }): Promise<{
-    updatedNewPrayer: PrayerPoint;
-    topicId: string;
-  }> => {
-    const topicId = (await prayerTopicService.createPrayerTopic(
-      topicDTO as CreatePrayerTopicDTO,
-    )) as string;
-
-    const linkedTopic = {
-      id: topicId,
-      title: topicDTO.title,
-    } as LinkedTopicInPrayerDTO;
-
-    const updatedNewPrayer =
-      await prayerLinkingService.updatePrayerPointWithLinkedTopic(
-        prayerPoint,
-        linkedTopic,
-        !isNewPrayerPoint,
-      );
-
-    await prayerLinkingService.updatePrayerPointWithLinkedTopic(
-      originPrayerPoint,
-      linkedTopic,
-      true,
-    );
-
-    if (!updatedNewPrayer) {
-      throw new Error('Failed to update prayer point with linked topic');
-    }
-
-    return { updatedNewPrayer, topicId };
-  };
   // This function links the selected prayer point to the new prayer point or topic.
   // If the selected prayer point is a prayer topic:
   // 1) updates the context and embeddings for the prayer topic.
@@ -177,7 +99,8 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
       const { entityType } = originPrayer;
 
       if (entityType === EntityType.PrayerTopic && isValidUpdateDTO(topicDTO)) {
-        updatedPrayerPoint = await linkToExistingTopic({
+        updatedPrayerPoint = await prayerLinkingService.linkToExistingTopic({
+          prayerPoint,
           originTopic: fullOriginPrayer as PrayerTopic,
           topicDTO,
           isNewPrayerPoint,
@@ -187,7 +110,8 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
         entityType === EntityType.PrayerPoint &&
         isValidCreateDTO(topicDTO)
       ) {
-        const result = await linkToNewTopic({
+        const result = await prayerLinkingService.linkToNewTopic({
+          prayerPoint,
           originPrayerPoint: fullOriginPrayer as PrayerPoint,
           topicDTO,
           isNewPrayerPoint,
