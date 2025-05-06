@@ -22,7 +22,26 @@
     "ios": "expo run:ios"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "./jest.setup.js"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-reanimated|react-native-gesture-handler)"
+    ],
+    "moduleNameMapper": {
+      "^firebase/(.*)$": "<rootDir>/__mocks__/firebase/$1",
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "testEnvironment": "node",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx}",
+      "!**/node_modules/**",
+      "!**/coverage/**",
+      "!**/android/**",
+      "!**/ios/**"
+    ]
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
@@ -70,6 +89,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^13.2.0",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.16",
