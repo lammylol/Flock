@@ -30,12 +30,11 @@ import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
 import { usePrayerHandler } from '@/hooks/prayerScreens/usePrayerHandler';
 import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
-import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
-import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
   const openAiService = OpenAiService.getInstance();
+  const user = auth.currentUser;
   const params = useLocalSearchParams() as {
     content?: string;
     id?: string;
@@ -103,10 +102,12 @@ export default function PrayerMetadataScreen() {
     const placeholderText = 'transcribing..';
     const transcriptionUnavailableText = 'transcription unavailable';
 
-    if (isTranscribing) {
+    if (transcription && transcription !== placeholderText) {
+      return { content: transcription, isTranscribed: true };
+    } else if (isTranscribing) {
       return { content: placeholderText, isTranscribed: false };
-    } else if (transcription || (content && content !== placeholderText)) {
-      return { content: transcription || content, isTranscribed: true };
+    } else if (content && content !== placeholderText) {
+      return { content, isTranscribed: true };
     } else {
       return { content: transcriptionUnavailableText, isTranscribed: false };
     }
@@ -115,7 +116,7 @@ export default function PrayerMetadataScreen() {
   const { analyzeContent, isAnalyzing, hasAnalyzed } = useAnalyzePrayer({
     transcription,
     userOptInAI: userOptInFlags.optInAI,
-    handlePrayerUpdate: handlePrayerUpdate,
+    handlePrayerUpdate,
   });
 
   useEffect(() => {
@@ -125,14 +126,16 @@ export default function PrayerMetadataScreen() {
 
       if (!shouldAnalyze) return;
 
+      let contentToAnalyze = content;
+
       if (hasTranscription) {
         const { content, isTranscribed } = await getContent();
-        if (isTranscribed) {
-          await analyzeContent(content);
-        }
-      } else {
-        await analyzeContent(content);
+        if (!isTranscribed) return;
+        contentToAnalyze = content;
       }
+
+      const prayerPoints = await analyzeContent(contentToAnalyze);
+      setPrayerPoints(prayerPoints);
     };
 
     checkAndAnalyze();
@@ -144,21 +147,32 @@ export default function PrayerMetadataScreen() {
     hasAnalyzed,
     hasTranscription,
     isAnalyzing,
+    isTranscribing,
   ]);
 
   const fetchSimilarPrayerPoints = useCallback(
     async (point: PrayerPoint) => {
       if (userOptInFlags.optInAI && updatedPrayer) {
-        const { updatedPrayerPoint, handlePrayerPointUpdate } =
-          usePrayerPointHandler({
-            id: point.id,
-            privacy: point.privacy,
-          });
-        const { similarPrayers } = useSimilarPrayers(point, EditMode.CREATE);
-        return { point, similarPrayers };
+        if (point.embedding) {
+          return point; // Return original if embedding already exists
+        }
+        const input = `${point.title} ${point.content}`.trim();
+        const embedding = await openAiService.getVectorEmbeddings(input);
+        if (embedding.length === 0) {
+          console.error('Empty embedding array');
+          return point; // Return original if embedding is empty
+        }
+
+        const similarPrayers = await prayerService.findRelatedPrayers(
+          embedding,
+          user!.uid,
+          point.id,
+        );
+
+        return similarPrayers;
       }
     },
-    [userOptInFlags.optInAI, updatedPrayer],
+    [userOptInFlags.optInAI, updatedPrayer, openAiService, user],
   );
 
   const handlePrayerPoints = async (
@@ -170,15 +184,7 @@ export default function PrayerMetadataScreen() {
       const updatedPrayerPoints: PrayerPoint[] = await Promise.all(
         prayerPoints.map(async (point) => {
           if (userOptInFlags.optInAI) {
-            if (point.embedding) {
-              return point; // Return original if embedding already exists
-            }
-            const input = `${point.title} ${point.content}`.trim();
-            const embedding = await openAiService.getVectorEmbeddings(input);
-            if (embedding.length === 0) {
-              console.error('Empty embedding array');
-              return point; // Return original if embedding is empty
-            }
+            const similarPrayers = fetchSimilarPrayerPoints(point);
           }
           return point; // Return original if opt-out or embedding failed
         }),

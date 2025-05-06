@@ -28,6 +28,7 @@ export function useAnalyzePrayer({
           userOptInAI,
         );
 
+        console.log('AI analysis result:', analysis);
         handlePrayerUpdate({
           content: analysis.cleanedTranscription || mergedContent,
         });
