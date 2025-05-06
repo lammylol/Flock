@@ -151,8 +151,8 @@ export type FlatPrayerTopicDTO = CreatePrayerTopicDTO | UpdatePrayerTopicDTO;
 export type AnyPrayerEntity = PrayerTopic | PrayerPoint | Prayer;
 export type LinkedPrayerEntity = PrayerTopic | PrayerPoint;
 export type PartialLinkedPrayerEntity =
-  | Partial<PrayerTopic>
-  | Partial<PrayerPoint>;
+  | (Partial<PrayerPoint> & { similarity: number })
+  | (Partial<PrayerTopic> & { similarity: number });
 
 export interface ServiceResponse {
   success: boolean;

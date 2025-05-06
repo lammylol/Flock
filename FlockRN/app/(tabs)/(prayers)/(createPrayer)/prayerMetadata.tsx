@@ -167,6 +167,7 @@ export default function PrayerMetadataScreen() {
           embedding,
           user!.uid,
           point.id,
+          3,
         );
 
         return similarPrayers;

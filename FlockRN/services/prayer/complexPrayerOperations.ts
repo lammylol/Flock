@@ -1,5 +1,11 @@
+import {
+  LinkedPrayerEntity,
+  PartialLinkedPrayerEntity,
+  PrayerPoint,
+} from '@/types/firebase';
 import { IPrayerPointsService, prayerPointService } from './prayerPointService';
 import { IPrayerService, prayerService } from './prayerService';
+import OpenAiService from '@/services/ai/openAIService';
 
 class ComplexPrayerOperations {
   private prayerService: IPrayerService;
@@ -12,6 +18,90 @@ class ComplexPrayerOperations {
     this.prayerService = prayerService;
     this.prayerPointService = prayerPointService;
   }
+
+  openService = OpenAiService.getInstance();
+
+  getEmbeddingsAndFindSimilarPrayerPoints = async (
+    prayerPoint: PrayerPoint,
+    userId: string,
+    topK: number,
+  ): Promise<PartialLinkedPrayerEntity[]> => {
+    try {
+      // Check if the prayer point already has an embedding
+      let embeddingInput = (prayerPoint.embedding as number[]) || undefined;
+      if (!embeddingInput) {
+        // Generate embedding if not already present
+        const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
+        embeddingInput = await this.openService.getVectorEmbeddings(input);
+      }
+      if (embeddingInput.length === 0) {
+        console.error('Empty embedding array');
+        return []; // Return an empty array if embedding is empty
+      }
+      // Find similar prayers using the generated embedding
+      const similarPrayers = await this.prayerService.findRelatedPrayers(
+        embeddingInput,
+        userId,
+        prayerPoint.id,
+        topK,
+      );
+      return similarPrayers;
+    } catch (error) {
+      console.error('Error getting related prayer point:', error);
+      return []; // Return an empty array in case of an error
+    }
+  };
+
+  // this function is used to fetch similar prayer points and link them to the topic.
+  // it returns an array of objects containing the closest prayer point first, and then the rest are stored
+  // in a separate array for use for manual searching.
+  fetchMostSimilarPrayerPoint = async (
+    prayerPoints: PrayerPoint[],
+    userId: string,
+  ): Promise<{
+    arrayOfPointsAndClosestPrayer: {
+      prayerEntity: LinkedPrayerEntity;
+      similarPrayer: LinkedPrayerEntity;
+    }[];
+    arrayOfSimilarPrayersExcludingClosestPrayer: LinkedPrayerEntity[];
+  }> => {
+    const arrayOfPointsAndClosestPrayer: {
+      prayerEntity: LinkedPrayerEntity;
+      similarPrayer: LinkedPrayerEntity;
+    }[] = [];
+
+    const arrayOfSimilarPrayersExcludingClosestPrayer: LinkedPrayerEntity[] =
+      [];
+
+    for (const point of prayerPoints) {
+      const similarPrayers =
+        await complexPrayerOperations.getEmbeddingsAndFindSimilarPrayerPoints(
+          point,
+          userId || '',
+          5,
+        );
+
+      if (!similarPrayers.length) continue;
+
+      const [closestPrayer, ...others] = similarPrayers
+        .slice()
+        .sort((a, b) => a.similarity - b.similarity) as LinkedPrayerEntity[];
+
+      arrayOfPointsAndClosestPrayer.push({
+        prayerEntity: point,
+        similarPrayer: closestPrayer,
+      });
+
+      arrayOfSimilarPrayersExcludingClosestPrayer.push(
+        ...others.filter((prayer) => prayer.id !== closestPrayer.id),
+      );
+    }
+
+    return {
+      arrayOfPointsAndClosestPrayer,
+      arrayOfSimilarPrayersExcludingClosestPrayer,
+    };
+  };
 
   deletePrayerPointAndUnlinkPrayers = async (
     prayerPointId: string,

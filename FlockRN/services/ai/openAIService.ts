@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { PrayerPoint, PrayerTag } from '@/types/firebase';
+import { PrayerPoint, PrayerType } from '@/types/firebase';
 import { allTags } from '@/types/Tag';
 
 // Initialize OpenAI client
@@ -11,7 +11,7 @@ const openai = new OpenAI({
 interface AIAnalysis {
   title: string;
   cleanedTranscription?: string;
-  tags: PrayerTag[];
+  tags: PrayerType[];
   prayerPoints: PrayerPoint[];
 }
 
