@@ -41,10 +41,15 @@ Built on Jest framework.
    Tests are organized in the following directories:
 
 tests/
+
 ├── unit/        # Pure function tests
+
 ├── components/  # Component tests
+
 ├── services/    # Service tests
+
 ├── hooks/       # Hook tests
+
 └── e2e/         # End-to-end tests
 
 ### Setup  
