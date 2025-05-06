@@ -18,7 +18,6 @@ export function useSimilarPrayers(
 
   // Debounced function
   const debouncedFindSimilarPrayers = useCallback(async () => {
-    console.log('Finding similar prayers...');
     const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
     if (!input || !user?.uid) return;
 

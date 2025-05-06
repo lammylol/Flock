@@ -11,7 +11,6 @@ import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import uuid from 'react-native-uuid';
 import {
   PrayerPoint,
   CreatePrayerPointDTO,
@@ -155,16 +154,7 @@ export default function PrayerMetadataScreen() {
             id: point.id,
             privacy: point.privacy,
           });
-        const { similarPrayers } = useSimilarPrayers(
-          point,
-          EditMode.CREATE,
-          (newEmbedding) => {
-            handlePrayerPointUpdate({
-              ...updatedPrayerPoint,
-              embedding: newEmbedding,
-            });
-          },
-        );
+        const { similarPrayers } = useSimilarPrayers(point, EditMode.CREATE);
         return { point, similarPrayers };
       }
     },
