@@ -1,6 +1,5 @@
 // hooks/usePrayerPointHandler.ts
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
 import { auth } from '@/firebase/firebaseConfig';
 import { prayerService } from '@/services/prayer/prayerService';
 import {

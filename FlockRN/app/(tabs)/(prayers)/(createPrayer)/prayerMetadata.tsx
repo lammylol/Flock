@@ -20,7 +20,6 @@ import {
 import useRecording from '@/hooks/recording/useRecording';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
-import OpenAiService from '@/services/ai/openAIService';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
@@ -33,8 +32,6 @@ import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
-  const openAiService = OpenAiService.getInstance();
-  const user = auth.currentUser;
   const params = useLocalSearchParams() as {
     content?: string;
     id?: string;
@@ -136,7 +133,7 @@ export default function PrayerMetadataScreen() {
 
       const prayerPoints = await analyzeContent(contentToAnalyze);
       console.log('Analyzed prayer points:', prayerPoints);
-      setPrayerPoints(prayerPoints);
+      setPrayerPoints(prayerPoints as PrayerPoint[]);
     };
 
     checkAndAnalyze();
