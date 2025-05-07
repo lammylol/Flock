@@ -18,8 +18,6 @@ export function PrayerContent({
   prayer?: Prayer | PrayerPoint; // only required for edit and view modes
   onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
 }): JSX.Element {
-  console.log('prayerOrPrayerPoint', prayerOrPrayerPoint);
-  console.log('prayer', prayer);
   // Initialize state with provided values or from the selected prayer
   const handleTitleChange = (text: string) => {
     triggerChange({ title: text });

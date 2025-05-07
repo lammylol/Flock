@@ -77,7 +77,7 @@ const PrayerPointView = () => {
     try {
       // Be explicit with the complete path to the specific file
       router.push({
-        pathname: '/(tabs)/(prayers)/(createPrayerPoint)/createPrayerPoint',
+        pathname: '/(tabs)/(prayers)/createPrayerPoint',
         params: {
           id: prayerPoint.id,
           editMode: EditMode.EDIT,

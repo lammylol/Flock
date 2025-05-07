@@ -80,7 +80,7 @@ export default function TabTwoScreen() {
       />
       <FloatingAddPrayerButton
         label="+Add Prayer Point"
-        route={'/(tabs)/(prayers)/(createPrayerPoint)'}
+        route={'/(tabs)/(prayers)/createPrayerPoint'}
         bottom={25}
         right={30}
       />
