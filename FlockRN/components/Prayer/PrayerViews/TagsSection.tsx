@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,21 +7,22 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { PrayerType } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { EditMode } from '@/types/ComponentProps';
+import { PrayerType } from '@/types/PrayerSubtypes';
 import { prayerTags } from '@/types/Tag';
 
 interface TagsListProps {
   tags: PrayerType[];
-  editMode: 'create' | 'edit' | 'view';
+  editMode: EditMode;
   onChange?: (tags: PrayerType[]) => void;
 }
 
 const getTagColor = (tag: string) =>
   Colors.tagColors.typeColors[
-    tag as keyof typeof Colors.tagColors.typeColors
+  tag as keyof typeof Colors.tagColors.typeColors
   ] || Colors.tagColors.defaultTag;
 
 const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
@@ -44,12 +45,15 @@ const TagsList = ({ tags, onChange, editMode }: TagsListProps) => {
     setExpanded((prev) => !prev);
   };
 
+  // inside TagsList component
+  useEffect(() => {
+    setSelectedTags(tags);
+  }, [tags]);
+
   const handleTagsChange = useCallback(
     (tag: PrayerType) => {
       setSelectedTags((prev) => {
-        const next = prev.includes(tag)
-          ? prev.filter((t) => t !== tag)
-          : [...prev, tag];
+        const next = prev.includes(tag) ? [] : [tag];
         onChange?.(next);
         return next;
       });

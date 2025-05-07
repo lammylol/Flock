@@ -18,6 +18,8 @@ export function PrayerContent({
   prayer?: Prayer | PrayerPoint; // only required for edit and view modes
   onChange?: (updatedPrayer: PrayerPoint | Prayer) => void;
 }): JSX.Element {
+  console.log('prayerOrPrayerPoint', prayerOrPrayerPoint);
+  console.log('prayer', prayer);
   // Initialize state with provided values or from the selected prayer
   const handleTitleChange = (text: string) => {
     triggerChange({ title: text });
@@ -69,7 +71,7 @@ export function PrayerContent({
   return (
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       {(editMode === EditMode.EDIT || editMode === EditMode.CREATE) &&
-      prayerOrPrayerPoint === EntityType.PrayerPoint ? (
+        prayerOrPrayerPoint === EntityType.PrayerPoint ? (
         <TextInput
           style={[styles.titleText, styles.input]}
           value={prayer?.title}
@@ -98,13 +100,19 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{prayer?.content}</ThemedText>
       )}
-      {prayerOrPrayerPoint === EntityType.PrayerPoint && (
-        <TagsSection
-          tags={prayer?.tags || []}
-          onChange={handleTagsChange}
-          editMode={editMode}
-        />
-      )}
+      {prayerOrPrayerPoint === EntityType.PrayerPoint &&
+        prayer &&
+        'prayerType' in prayer && (
+          <TagsSection
+            tags={
+              prayer.tags && prayer.tags.length === 0
+                ? [prayer.prayerType]
+                : prayer.tags || [PrayerType.Request]
+            } // this is a workaround for the issue where prayerType is not set
+            onChange={handleTagsChange}
+            editMode={editMode}
+          />
+        )}
     </View>
   );
 }
