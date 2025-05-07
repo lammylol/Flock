@@ -47,10 +47,32 @@ export interface IPrayerLinkingService {
     prayerPoint: PrayerPoint,
     selectedPrayer: LinkedPrayerEntity,
   ): PrayerType[];
-  setContextAsStringsAndGetEmbeddings(
+  linkToExistingTopic(
+    originTopic: PrayerTopic,
+    topicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
     prayerPoint: PrayerPoint,
-    selectedPrayer: LinkedPrayerEntity,
+  ): Promise<PrayerPoint>;
+  linkToNewTopic(
+    originPrayerPoint: PrayerPoint,
+    topicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
+    prayerPoint: PrayerPoint,
+  ): Promise<{
+    updatedNewPrayer: PrayerPoint;
+    topicId: string;
+  }>;
+  removePrayerPointEmbeddings(
+    originPrayer: PrayerPoint,
+  ): Promise<PrayerPoint | undefined>;
+  setContextFromJourneyAndGetEmbeddings(
+    journey: PrayerPointInPrayerTopicDTO[],
   ): Promise<{ contextAsStrings: string; contextAsEmbeddings: number[] }>;
+  updatePrayerPointWithLinkedTopic(
+    prayerPoint: PrayerPoint,
+    topicToModify: LinkedTopicInPrayerDTO,
+    isExistingPrayerPoint?: boolean,
+  ): Promise<PrayerPoint>;
   getPrayerTopicDTO({
     prayerPoint,
     selectedPrayer,
@@ -277,43 +299,6 @@ class PrayerLinkingService implements IPrayerLinkingService {
     return Array.from(types);
   };
 
-  // oldSetContextAsStringsAndGetEmbeddings = async (
-  //   prayerPoint: PrayerPoint,
-  //   selectedPrayer: LinkedPrayerEntity,
-  // ): Promise<{ contextAsStrings: string; contextAsEmbeddings: number[] }> => {
-  //   // There is no slice on (selectedPrayer) original content, just the new prayer point.
-  //   // this is for 2 reasons: 1) keep original prayer point intact and
-  //   // to lean more heavily on it when there are few topics. 2) if linking to a prayer topic,
-  //   // we need the full content.
-  //   const newContent = `${prayerPoint.title}, ${prayerPoint.content.slice(0, this.maxCharactersPerPrayerContext)}`;
-  //   const oldContent = isPrayerTopic(selectedPrayer)
-  //     ? `${selectedPrayer.contextAsStrings}`
-  //     : `${selectedPrayer.title} ${selectedPrayer.content}`.trim();
-
-  //   const contextAsStrings = [oldContent, newContent].join(', ').trim();
-
-  //   try {
-  //     const embeddings =
-  //       await this.openAiService.getVectorEmbeddings(contextAsStrings);
-
-  //     if (!embeddings || embeddings.length === 0) {
-  //       console.error('Failed to generate embeddings');
-  //       return {
-  //         contextAsStrings: '',
-  //         contextAsEmbeddings: [],
-  //       };
-  //     }
-
-  //     return {
-  //       contextAsStrings,
-  //       contextAsEmbeddings: embeddings,
-  //     };
-  //   } catch (error) {
-  //     console.error('Error generating embeddings:', error);
-  //     throw error;
-  //   }
-  // };
-
   // This function handles all the logic for prayer topics when linking
   // either prayer point to prayer point or prayer point to an existing prayer topic.
   getPrayerTopicDTO = async ({
@@ -343,18 +328,6 @@ class PrayerLinkingService implements IPrayerLinkingService {
     }
 
     const content = `Latest ${prayerPoint.prayerType.trim()}: ${prayerPoint.title!.trim()} `;
-
-    // // Get context strings + embeddings
-    // const { contextAsStrings, contextAsEmbeddings } =
-    //   await this.setContextFromJourneyAndGetEmbeddings(
-    //     prayerPoint,
-    //     selectedPrayer,
-    //   );
-
-    // if (!contextAsStrings || !contextAsEmbeddings) {
-    //   console.error('Missing context or embeddings');
-    //   return;
-    // }
 
     const sharedFields = {
       id: selectedPrayer.id,
@@ -469,7 +442,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
     prayerPoint: PrayerPoint,
     topicToModify: LinkedTopicInPrayerDTO,
     isExistingPrayerPoint?: boolean,
-  ) => {
+  ): Promise<PrayerPoint> => {
     const updated = await this.updateLinkedPrayerTopic(
       prayerPoint,
       topicToModify,
@@ -479,7 +452,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
         console.error(
           'UpdatePrayerPointWithLinkedTopic: Missing prayer point ID',
         );
-        return;
+        return updated;
       }
       await prayerPointService.updatePrayerPoint(prayerPoint.id, {
         linkedTopic: updated.linkedTopic,
@@ -488,28 +461,13 @@ class PrayerLinkingService implements IPrayerLinkingService {
     return updated;
   };
 
-  getLinkedPrayerTopicFromDTO = async (topicDTO: FlatPrayerTopicDTO) => {
-    const linkedTopic = {
-      id: 'id' in topicDTO ? topicDTO.id : undefined,
-      title: topicDTO.title,
-      content: topicDTO.content,
-    };
-
-    return linkedTopic;
-  };
-
   // Link to an existing prayer topic
-  linkToExistingTopic = async ({
-    originTopic,
-    topicDTO,
-    isNewPrayerPoint,
-    prayerPoint,
-  }: {
-    originTopic: PrayerTopic;
-    topicDTO: FlatPrayerTopicDTO;
-    isNewPrayerPoint: boolean;
-    prayerPoint: PrayerPoint;
-  }): Promise<PrayerPoint> => {
+  linkToExistingTopic = async (
+    originTopic: PrayerTopic,
+    topicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
+    prayerPoint: PrayerPoint,
+  ): Promise<PrayerPoint> => {
     await prayerTopicService.updatePrayerTopic(
       originTopic.id,
       topicDTO as UpdatePrayerTopicDTO,
@@ -533,17 +491,12 @@ class PrayerLinkingService implements IPrayerLinkingService {
     return updatedPrayerPoint;
   };
 
-  linkToNewTopic = async ({
-    originPrayerPoint,
-    topicDTO,
-    isNewPrayerPoint,
-    prayerPoint,
-  }: {
-    originPrayerPoint: PrayerPoint;
-    topicDTO: FlatPrayerTopicDTO;
-    isNewPrayerPoint: boolean;
-    prayerPoint: PrayerPoint;
-  }): Promise<{
+  linkToNewTopic = async (
+    originPrayerPoint: PrayerPoint,
+    topicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
+    prayerPoint: PrayerPoint,
+  ): Promise<{
     updatedNewPrayer: PrayerPoint;
     topicId: string;
   }> => {

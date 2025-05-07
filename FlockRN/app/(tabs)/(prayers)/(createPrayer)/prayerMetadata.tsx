@@ -153,16 +153,6 @@ export default function PrayerMetadataScreen() {
     prayerId: string,
   ): Promise<string[]> => {
     try {
-      // // Get prayer point embedding.
-      // const updatedPrayerPoints: PrayerPoint[] = await Promise.all(
-      //   prayerPoints.map(async (point) => {
-      //     if (userOptInFlags.optInAI) {
-      //       const similarPrayers = fetchSimilarPrayerPoints(point);
-      //     }
-      //     return point; // Return original if opt-out or embedding failed
-      //   }),
-      // );
-
       // Transform prayer points
       const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
         (prayerPoint) => ({
