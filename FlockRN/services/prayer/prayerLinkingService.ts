@@ -38,7 +38,7 @@ export interface IPrayerLinkingService {
     prayerPoint: PrayerPoint,
     selectedPrayer: LinkedPrayerEntity,
   ): PrayerPointInPrayerTopicDTO[];
-  updatePrayerTopicWithJourneyAndGetEmbeddings(
+  updatePrayerTopicWithJourneyAndGetTopicEmbeddings(
     prayerPoint: PrayerPoint,
     selectedPrayer: LinkedPrayerEntity,
     topicId: string,
@@ -249,7 +249,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
     );
   };
 
-  updatePrayerTopicWithJourneyAndGetEmbeddings = async (
+  updatePrayerTopicWithJourneyAndGetTopicEmbeddings = async (
     prayerPoint: PrayerPoint,
     originPrayer: LinkedPrayerEntity,
     topicId: string,
@@ -399,9 +399,9 @@ class PrayerLinkingService implements IPrayerLinkingService {
     options?: { remove?: boolean },
   ): Promise<PrayerPoint> => {
     const existingTopics: LinkedTopicInPrayerDTO[] = Array.isArray(
-      prayerPoint.linkedTopic,
+      prayerPoint.linkedTopics,
     )
-      ? (prayerPoint.linkedTopic as LinkedTopicInPrayerDTO[])
+      ? (prayerPoint.linkedTopics as LinkedTopicInPrayerDTO[])
       : [];
 
     // Removing a topic
@@ -416,7 +416,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
       return {
         ...prayerPoint,
-        linkedTopic: updatedTopics.length > 0 ? updatedTopics : undefined,
+        linkedTopics: updatedTopics.length > 0 ? updatedTopics : undefined,
       };
     }
 
@@ -433,7 +433,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
     return {
       ...prayerPoint,
-      linkedTopic: mergedLinkedTopics,
+      linkedTopics: mergedLinkedTopics,
     };
   };
 
@@ -455,7 +455,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
         return updated;
       }
       await prayerPointService.updatePrayerPoint(prayerPoint.id, {
-        linkedTopic: updated.linkedTopic,
+        linkedTopics: updated.linkedTopics,
       });
     }
     return updated;
