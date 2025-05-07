@@ -14,18 +14,33 @@ export function useSimilarPrayers(
   const [similarPrayers, setSimilarPrayers] = useState<
     PartialLinkedPrayerEntity[]
   >([]);
+  const [embedding, setEmbedding] = useState<number[]>([]);
 
-  const findSimilarPrayers = useCallback(async () => {
+  // Debounced function
+  const debouncedFindSimilarPrayers = useCallback(async () => {
     const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
     if (!input || !user?.uid) return;
 
-    const embedding = await openAiService.getVectorEmbeddings(input);
+    let currentEmbedding = Array.isArray(prayerPoint.embedding)
+      ? prayerPoint.embedding
+      : undefined;
+
+    if (!currentEmbedding) {
+      currentEmbedding = await openAiService.getVectorEmbeddings(input);
+    }
+
+    setEmbedding(currentEmbedding);
+
     const sourcePrayerId =
       editMode === EditMode.EDIT ? prayerPoint.id : undefined;
 
     try {
+      if (currentEmbedding.length === 0) {
+        console.error('Empty embedding array');
+        return;
+      }
       const similar = await prayerService.findRelatedPrayers(
-        embedding,
+        currentEmbedding,
         user.uid,
         sourcePrayerId,
       );
@@ -34,25 +49,28 @@ export function useSimilarPrayers(
       console.error('Error finding similar prayers:', error);
     }
   }, [
-    prayerPoint.title,
-    prayerPoint.content,
-    prayerPoint.id,
-    user.uid,
-    openAiService,
     editMode,
+    openAiService,
+    prayerPoint.content,
+    prayerPoint.embedding,
+    prayerPoint.id,
+    prayerPoint.title,
+    user.uid,
   ]);
 
   useEffect(() => {
-    const debounce = setTimeout(() => {
+    const debounceTimeout = setTimeout(() => {
       if (prayerPoint.title?.trim() || prayerPoint.content?.trim()) {
-        findSimilarPrayers();
+        debouncedFindSimilarPrayers();
       }
-    }, 1000);
+    }, 1000); // Debounce delay
 
-    return () => clearTimeout(debounce);
-  }, [prayerPoint.title, prayerPoint.content, findSimilarPrayers]);
+    // Cleanup timeout on component unmount or dependency change
+    return () => clearTimeout(debounceTimeout);
+  }, [prayerPoint.title, prayerPoint.content, debouncedFindSimilarPrayers]);
 
   return {
     similarPrayers,
+    embedding,
   };
 }

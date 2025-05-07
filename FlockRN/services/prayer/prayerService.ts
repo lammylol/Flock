@@ -45,6 +45,7 @@ export interface IPrayerService {
     embedding: number[],
     userId: string,
     sourcePrayerId?: string,
+    topK?: number,
   ): Promise<PartialLinkedPrayerEntity[] | []>;
 }
 class PrayerService implements IPrayerService {
@@ -191,6 +192,7 @@ class PrayerService implements IPrayerService {
     embedding: number[],
     userId: string,
     sourcePrayerId?: string,
+    topK: number = 5,
   ): Promise<PartialLinkedPrayerEntity[] | []> {
     try {
       const functions = getFunctions(getApp());
@@ -202,14 +204,14 @@ class PrayerService implements IPrayerService {
       const result = await findSimilarPrayers({
         ...(sourcePrayerId && { sourcePrayerId }),
         queryEmbedding: embedding,
-        topK: 5,
+        topK: topK,
         userId: userId,
       });
       const data = (
         result.data as {
           result: {
             id: string;
-            similarity: string;
+            similarity: number;
             title: string;
             prayerType: string;
             entityType: string;
@@ -221,6 +223,7 @@ class PrayerService implements IPrayerService {
         (prayer: {
           id: string;
           title: string;
+          similarity: number;
           prayerType: string;
           entityType: string;
         }) => {
@@ -229,19 +232,21 @@ class PrayerService implements IPrayerService {
               id: prayer.id,
               title: prayer.title,
               entityType: prayer.entityType,
-            } as Partial<PrayerTopic>;
+              similarity: prayer.similarity,
+            } as Partial<PrayerTopic> & { similarity: number };
           } else {
             return {
               id: prayer.id,
               title: prayer.title,
               prayerType: prayer.prayerType,
               entityType: prayer.entityType,
-            } as Partial<PrayerPoint>;
+              similarity: prayer.similarity,
+            } as Partial<PrayerPoint> & { similarity: number };
           }
         },
       );
     } catch (error) {
-      console.error('Error getting prayer point:', error);
+      console.error('Error getting related prayer point:', error);
       return []; // Return an empty array in case of an error
     }
   }

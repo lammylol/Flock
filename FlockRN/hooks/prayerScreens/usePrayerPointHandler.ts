@@ -9,7 +9,6 @@ import {
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
 import { EntityType, PrayerType, Privacy } from '@/types/PrayerSubtypes';
-import { EditMode } from '@/types/ComponentProps';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { deleteField } from 'firebase/firestore';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
@@ -17,7 +16,6 @@ import { prayerPointService } from '@/services/prayer/prayerPointService';
 export interface UsePrayerPointHandlerProps {
   id: string;
   privacy?: Privacy;
-  editMode: EditMode;
 }
 export function usePrayerPointHandler({
   id,
@@ -35,8 +33,8 @@ export function usePrayerPointHandler({
     tags: [],
     createdAt: new Date(),
     updatedAt: new Date(),
-    authorName: '',
-    authorId: '',
+    authorName: user?.displayName || 'unknown',
+    authorId: user?.uid || 'unknown',
     status: 'open',
     privacy: 'private',
     recipientName: 'unknown',
@@ -91,7 +89,7 @@ export function usePrayerPointHandler({
       status: data.status || 'open',
       recipientName: data.recipientName || 'unknown',
       recipientId: data.recipientId || 'unknown',
-      ...(data.embedding && { embedding: data.embedding }),
+      ...(embeddingInput && { embedding: embeddingInput }),
       ...(data.linkedTopic && { linkedTopic: data.linkedTopic }),
     };
 

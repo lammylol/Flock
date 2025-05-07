@@ -19,6 +19,7 @@ const useFormState = ({ editMode }: UseFormStateProps) => {
   } as FormState;
 
   const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isSubmissionLoading, setIsSubmissionLoading] = useState(false);
 
   type Action =
@@ -41,12 +42,14 @@ const useFormState = ({ editMode }: UseFormStateProps) => {
   return {
     formState,
     isDataLoading,
+    isDeleting,
     isSubmissionLoading,
     setIsEditMode: (isEditMode: boolean) =>
       dispatch({ type: 'SET_EDIT_MODE', payload: isEditMode }),
     setPrivacy: (privacy: 'public' | 'private') =>
       dispatch({ type: 'SET_PRIVACY', payload: privacy }),
     setIsDataLoading,
+    setIsDeleting,
     setIsSubmissionLoading,
   };
 };

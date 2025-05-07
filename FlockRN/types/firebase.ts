@@ -73,7 +73,7 @@ export interface PrayerPoint extends BasePrayerEntity {
   prayerId?: string | string[];
   prayerType: PrayerType;
   tags?: PrayerType[];
-  linkedTopic?: LinkedTopicInPrayerDTO[] | FieldValue; // linked topics. id/title of topic.
+  linkedTopics?: LinkedTopicInPrayerDTO[] | FieldValue; // linked topics. id/title of topic.
   status?: Status;
   recipientName?: string;
   recipientId?: string;
@@ -87,8 +87,8 @@ export interface PrayerTopic extends BasePrayerEntity {
   recipientName?: string;
   recipientId?: string;
   journey: PrayerPointInPrayerTopicDTO[] | FieldValue; // prayer points in this topic
-  contextAsStrings: string;
-  contextAsEmbeddings: number[];
+  contextAsStrings: string | FieldValue; // context strings
+  contextAsEmbeddings: number[] | FieldValue; // context embeddings
 }
 
 // ===== Other Types =====
@@ -151,8 +151,8 @@ export type FlatPrayerTopicDTO = CreatePrayerTopicDTO | UpdatePrayerTopicDTO;
 export type AnyPrayerEntity = PrayerTopic | PrayerPoint | Prayer;
 export type LinkedPrayerEntity = PrayerTopic | PrayerPoint;
 export type PartialLinkedPrayerEntity =
-  | Partial<PrayerTopic>
-  | Partial<PrayerPoint>;
+  | (Partial<PrayerPoint> & { similarity: number })
+  | (Partial<PrayerTopic> & { similarity: number });
 
 export interface ServiceResponse {
   success: boolean;

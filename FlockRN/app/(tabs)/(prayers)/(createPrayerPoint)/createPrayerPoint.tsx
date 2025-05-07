@@ -21,7 +21,7 @@ import { EditMode } from '@/types/ComponentProps';
 import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
 import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
 import useFormState from '@/hooks/useFormState';
-import { updatePrayerTopicWithJourney } from '@/services/prayer/prayerLinkingService';
+import { prayerLinkingService } from '@/services/prayer/prayerLinkingService';
 import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 
 export default function PrayerPointMetadataScreen() {
@@ -65,10 +65,12 @@ export default function PrayerPointMetadataScreen() {
   } = usePrayerPointHandler({
     id: id,
     privacy: formState.privacy,
-    editMode: editMode,
   });
 
-  const { similarPrayers } = useSimilarPrayers(updatedPrayerPoint, editMode);
+  const { similarPrayers, embedding } = useSimilarPrayers(
+    updatedPrayerPoint,
+    editMode,
+  );
 
   // setup editor state and load prayer point data
   useEffect(() => {
@@ -100,6 +102,7 @@ export default function PrayerPointMetadataScreen() {
 
       const mergedPrayerPoint = {
         ...updatedPrayerPoint,
+        embedding: embedding,
         ...(finalPrayerPoint ?? {}),
       };
 
@@ -112,10 +115,17 @@ export default function PrayerPointMetadataScreen() {
       }
 
       if (fullOriginPrayer && topicId) {
-        await updatePrayerTopicWithJourney(
+        await prayerLinkingService.updatePrayerTopicWithJourneyAndGetEmbeddings(
           { ...mergedPrayerPoint, id: prayerId },
           fullOriginPrayer,
           topicId,
+        );
+      }
+
+      // remove embedding from firebase if the origin prayer is a prayer point. must happen after context is set.
+      if (fullOriginPrayer?.entityType === EntityType.PrayerPoint) {
+        await prayerLinkingService.removeEmbeddingFromFirebase(
+          fullOriginPrayer,
         );
       }
 
