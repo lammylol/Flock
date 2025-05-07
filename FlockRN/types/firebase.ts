@@ -73,7 +73,7 @@ export interface PrayerPoint extends BasePrayerEntity {
   prayerId?: string | string[];
   prayerType: PrayerType;
   tags?: PrayerType[];
-  linkedTopic?: LinkedTopicInPrayerDTO[] | FieldValue; // linked topics. id/title of topic.
+  linkedTopics?: LinkedTopicInPrayerDTO[] | FieldValue; // linked topics. id/title of topic.
   status?: Status;
   recipientName?: string;
   recipientId?: string;
