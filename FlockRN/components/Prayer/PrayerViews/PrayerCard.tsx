@@ -18,10 +18,12 @@ import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
 import { Entypo } from '@expo/vector-icons';
 import { prayerTagDisplayNames, prayerTags } from '@/types/Tag';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { getEntityType } from '@/types/typeGuards';
 import { getPrayerType } from '@/utils/prayerUtils';
 import { router } from 'expo-router';
+import { ThemedView } from '@/components/ThemedView';
+import { EditMode } from '@/types/ComponentProps';
 
 interface EditablePrayerCardProps {
   prayer: AnyPrayerEntity;
@@ -59,6 +61,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   const isPrayerPoint = entityType === EntityType.PrayerPoint;
   const isPrayerTopic = entityType === EntityType.PrayerTopic;
   const isPrayer = entityType === EntityType.Prayer;
+  const [isEditMode, setEditMode] = useState(false);
 
   const triggerChange = (partial: PartialLinkedPrayerEntity) => {
     if (!onChange) return;
@@ -79,6 +82,34 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
       tags: tags,
       prayerType: tags[0] || PrayerType.Request,
     });
+  };
+
+  const handleEdit = () => {
+    console.log('passing prayer:', prayer);
+    router.push({
+      pathname: '/(tabs)/(prayers)/createPrayerPoint',
+      params: {
+        editMode: EditMode.EDIT,
+        passingContent: JSON.stringify({
+          prayerPoint: {
+            id: prayer.id,
+            title: prayer.title ?? '',
+            content: prayer.content ?? '',
+            tags: prayer.tags ?? [],
+            prayerType: isPrayerPoint ? prayerType : PrayerType.Request,
+          },
+        }),
+      },
+    });
+    // setEditMode((prev) => !prev);
+    // if (isEditMode) {
+    //   // triggerChange({
+    //   //   title: prayer.title,
+    //   //   content: prayer.content,
+    //   //   tags: prayer.tags,
+    //   //   prayerType: prayerType,
+    //   // });
+    // }
   };
 
   const handlePress = () => {
@@ -144,7 +175,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
           />
         )}
         <View style={styles.titleContainer}>
-          {editable ? (
+          {isEditMode ? (
             <TextInput
               value={prayer.title}
               onChangeText={handleTitleChange}
@@ -157,7 +188,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
               {isPrayerPoint || isPrayerTopic ? prayer.title : formattedDate}
             </ThemedText>
           )}
-          {editable ? (
+          {isEditMode ? (
             <View style={styles.typeSelector}>
               {prayerTags.map((tag) => (
                 <TouchableOpacity
@@ -200,8 +231,20 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
             )
           )}
         </View>
+        {editable && (
+          <TouchableOpacity onPress={handleEdit} style={styles.editContainer}>
+            {!isEditMode && (
+              <ThemedView style={styles.editButton}>
+                <Entypo name="edit" size={10} color={Colors.white} />
+              </ThemedView>
+            )}
+            <ThemedText style={styles.editText}>
+              {!isEditMode ? 'Edit' : 'Done'}
+            </ThemedText>
+          </TouchableOpacity>
+        )}
 
-        {editable && onDelete && (
+        {isEditMode && onDelete && (
           <TouchableOpacity onPress={onDelete} style={styles.deleteIcon}>
             <Entypo
               name="circle-with-minus"
@@ -212,7 +255,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
         )}
       </View>
 
-      {editable ? (
+      {isEditMode ? (
         <TextInput
           value={prayer.content}
           onChangeText={handleContentChange}
@@ -241,6 +284,24 @@ const styles = StyleSheet.create({
     gap: 10,
     width: '100%',
     alignSelf: 'stretch',
+  },
+  editButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.light.textPrimary,
+    borderRadius: 12,
+    height: 18,
+    justifyContent: 'center',
+    width: 18,
+  },
+  editContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    alignSelf: 'flex-start',
+  },
+  editText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   headerContainer: {
     flexDirection: 'row',
