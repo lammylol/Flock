@@ -328,7 +328,7 @@ class PrayerPointsService implements IPrayerPointsService {
       updatedAt: data.updatedAt as Date,
       prayerId: data.prayerId,
       tags: data.tags,
-      linkedTopic: data.linkedTopic as LinkedTopicInPrayerDTO[],
+      linkedTopics: data.linkedTopics as LinkedTopicInPrayerDTO[],
       prayerType: data.prayerType as PrayerType,
       recipientId: data.recipientId,
       recipientName: data.recipientName,
