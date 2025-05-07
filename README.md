@@ -25,6 +25,33 @@ For more information on the project, see [Notion](https://www.notion.so/7a20c472
 
 ---  
 
+### Testing
+Built on Jest framework.
+1. yarn install
+2. yarn test
+
+**Configuration files**
+1. jest.setup.js
+2. package.json -> "jest"
+
+**Mocks**
+   Our testing uses Jest's built-in Mocking capabilities for functions, modules, dependencies, etc.
+
+**Test Structure**
+   Tests are organized in the following directories:
+
+tests/
+
+├── unit/        # Pure function tests
+
+├── components/  # Component tests
+
+├── services/    # Service tests
+
+├── hooks/       # Hook tests
+
+└── e2e/         # End-to-end tests
+
 ### Setup  
 1. Navigate to FlockRN
 2. Run setup script
