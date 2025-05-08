@@ -63,7 +63,6 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   const isPrayerPoint = entityType === EntityType.PrayerPoint;
   const isPrayerTopic = entityType === EntityType.PrayerTopic;
   const isPrayer = entityType === EntityType.Prayer;
-  // const [isEditMode, setEditMode] = useState(false);
 
   const triggerChange = (partial: PartialLinkedPrayerEntity) => {
     if (!onChange) return;

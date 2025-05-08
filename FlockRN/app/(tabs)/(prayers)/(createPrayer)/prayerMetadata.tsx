@@ -149,49 +149,6 @@ export default function PrayerMetadataScreen() {
     setPrayerPoints,
   ]);
 
-  // const addPrayerIdToPrayerPointsAndCreate = async (
-  //   prayerPoints: PrayerPoint[],
-  //   prayerId: string,
-  // ): Promise<string[]> => {
-  //   try {
-  //     // need to also add prayer topic id to the prayer point.
-  //     const linkedTopics = prayerPoints[0]?.linkedTopics;
-
-  //     // Transform prayer points
-  //     const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
-  //       (prayerPoint) => ({
-  //         title: prayerPoint.title?.trim() || 'Untitled',
-  //         // Convert types array to a single type if needed for backward compatibility
-  //         prayerType: prayerPoint.prayerType || PrayerType.Request,
-  //         tags: prayerPoint.prayerType
-  //           ? [prayerPoint.prayerType]
-  //           : [PrayerType.Request],
-  //         content: prayerPoint.content?.trim() || '',
-  //         createdAt: new Date(),
-  //         authorId: auth.currentUser?.uid || 'unknown',
-  //         authorName: auth.currentUser?.displayName || 'Unknown',
-  //         status: prayerPoint.status || 'open',
-  //         privacy: prayerPoint.privacy ?? 'private',
-  //         prayerId: prayerId,
-  //         recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
-  //         ...(prayerPoint.embedding !== undefined
-  //           ? { embedding: prayerPoint.embedding }
-  //           : {}), // Only include if it exists. This is essential for embedding search. NaN values will break the search.
-  //         ...(linkedTopics && { linkedTopics: linkedTopics }),
-  //       }),
-  //     );
-
-  //     // Save to Firestore
-  //     const prayerPointIds =
-  //       await prayerPointService.addPrayerPoints(mappedPrayerPoints);
-
-  //     return prayerPointIds;
-  //   } catch (err) {
-  //     console.error('Error parsing prayer points:', err);
-  //     return [];
-  //   }
-  // };
-
   const getLinkedPrayers = async (point: PrayerPoint) => {
     // find any linked prayers to prayer
     const linkedData = linkedPrayerPairs.find(
@@ -238,17 +195,6 @@ export default function PrayerMetadataScreen() {
           return;
         }
         const prayerId = await createPrayer(prayer);
-
-        // // manage prayer points before you create the prayer points.
-        // // get list of prayer point ids
-        // const prayerPointIds = await addPrayerIdToPrayerPointsAndCreate(
-        //   prayerPoints,
-        //   prayerId,
-        // );
-
-        // const updatePrayerPoints = {
-        //   prayerPoints: prayerPointIds,
-        // } as UpdatePrayerDTO;
 
         Promise.all(
           prayerPoints.map(async (point) => {

@@ -125,10 +125,6 @@ class SubmitOperationsService implements ISubmitOperationsService {
         topicId = result.topicId;
       }
 
-      // if (finalPrayerPoint) {
-      //   handlePrayerPointUpdate(finalPrayerPoint);
-      // }
-
       const mergedPrayerPoint = finalPrayerPoint
         ? finalPrayerPoint
         : {
