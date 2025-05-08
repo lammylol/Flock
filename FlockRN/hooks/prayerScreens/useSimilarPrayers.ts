@@ -21,13 +21,9 @@ export function useSimilarPrayers(
     const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
     if (!input || !user?.uid) return;
 
-    let currentEmbedding = Array.isArray(prayerPoint.embedding)
-      ? prayerPoint.embedding
-      : undefined;
-
-    if (!currentEmbedding) {
-      currentEmbedding = await openAiService.getVectorEmbeddings(input);
-    }
+    const currentEmbedding = await openAiService.getVectorEmbeddings(input);
+    // In the future, we can have a check to see if the context of prayer point has materially changed.
+    // If it has, we can fetch a new embedding. If not, we can use the existing one.
 
     setEmbedding(currentEmbedding);
 
@@ -52,7 +48,6 @@ export function useSimilarPrayers(
     editMode,
     openAiService,
     prayerPoint.content,
-    prayerPoint.embedding,
     prayerPoint.id,
     prayerPoint.title,
     user.uid,

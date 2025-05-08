@@ -98,13 +98,19 @@ export function PrayerContent({
       ) : (
         <ThemedText style={styles.contentText}>{prayer?.content}</ThemedText>
       )}
-      {prayerOrPrayerPoint === EntityType.PrayerPoint && (
-        <TagsSection
-          tags={prayer?.tags || []}
-          onChange={handleTagsChange}
-          editMode={editMode}
-        />
-      )}
+      {prayerOrPrayerPoint === EntityType.PrayerPoint &&
+        prayer &&
+        'prayerType' in prayer && (
+          <TagsSection
+            tags={
+              !prayer.tags || prayer.tags.length === 0
+                ? [prayer.prayerType]
+                : prayer.tags || [PrayerType.Request]
+            } // this is a workaround for the issue where prayerType is not set
+            onChange={handleTagsChange}
+            editMode={editMode}
+          />
+        )}
     </View>
   );
 }

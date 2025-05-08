@@ -22,6 +22,8 @@ import { useMemo } from 'react';
 import { getEntityType } from '@/types/typeGuards';
 import { getPrayerType } from '@/utils/prayerUtils';
 import { router } from 'expo-router';
+import { ThemedView } from '@/components/ThemedView';
+import { EditMode } from '@/types/ComponentProps';
 
 interface EditablePrayerCardProps {
   prayer: AnyPrayerEntity;
@@ -32,6 +34,7 @@ interface EditablePrayerCardProps {
   children?: React.ReactNode;
   showContent?: boolean;
   maxLines?: number;
+  index?: number; // for use when selecting a prayer point w/o id.
 }
 
 const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
@@ -46,6 +49,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
   const maxLinesValue = maxLines ?? 1;
+  const isEditMode = false; // temporarily set to false until we update prayer cards.
 
   const { prayerType, entityType } = useMemo(
     () => ({
@@ -81,7 +85,22 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
     });
   };
 
+  const handleEdit = () => {
+    router.push({
+      pathname: '/(tabs)/(prayers)/(createPrayer)/createPrayerPointFromContent',
+      params: {
+        editMode: EditMode.EDIT,
+        id: prayer.id,
+      },
+    });
+  };
+
   const handlePress = () => {
+    if (editable) {
+      // this basically makes the whole prayer card editable.
+      handleEdit();
+      return;
+    }
     if (entityType) {
       switch (entityType) {
         case 'prayerPoint':
@@ -144,7 +163,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
           />
         )}
         <View style={styles.titleContainer}>
-          {editable ? (
+          {isEditMode ? (
             <TextInput
               value={prayer.title}
               onChangeText={handleTitleChange}
@@ -157,7 +176,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
               {isPrayerPoint || isPrayerTopic ? prayer.title : formattedDate}
             </ThemedText>
           )}
-          {editable ? (
+          {isEditMode ? (
             <View style={styles.typeSelector}>
               {prayerTags.map((tag) => (
                 <TouchableOpacity
@@ -200,8 +219,20 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
             )
           )}
         </View>
+        {editable && (
+          <TouchableOpacity onPress={handleEdit} style={styles.editContainer}>
+            {!isEditMode && (
+              <ThemedView style={styles.editButton}>
+                <Entypo name="edit" size={10} color={Colors.white} />
+              </ThemedView>
+            )}
+            <ThemedText style={styles.editText}>
+              {!isEditMode ? 'Edit' : 'Done'}
+            </ThemedText>
+          </TouchableOpacity>
+        )}
 
-        {editable && onDelete && (
+        {isEditMode && onDelete && (
           <TouchableOpacity onPress={onDelete} style={styles.deleteIcon}>
             <Entypo
               name="circle-with-minus"
@@ -212,7 +243,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
         )}
       </View>
 
-      {editable ? (
+      {isEditMode ? (
         <TextInput
           value={prayer.content}
           onChangeText={handleContentChange}
@@ -241,6 +272,24 @@ const styles = StyleSheet.create({
     gap: 10,
     width: '100%',
     alignSelf: 'stretch',
+  },
+  editButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.light.textPrimary,
+    borderRadius: 12,
+    height: 18,
+    justifyContent: 'center',
+    width: 18,
+  },
+  editContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5,
+    alignSelf: 'flex-start',
+  },
+  editText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   headerContainer: {
     flexDirection: 'row',

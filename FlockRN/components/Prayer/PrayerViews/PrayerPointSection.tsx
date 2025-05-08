@@ -12,13 +12,15 @@ import EditablePrayerCard from './PrayerCard';
 
 interface PrayerPointProps {
   prayerPoints: PrayerPoint[];
-  isEditable: boolean;
+  isSectionEditable?: boolean;
+  isPrayerCardsEditable?: boolean;
   onChange?: (prayerPoints: PrayerPoint[]) => void;
 }
 
 const PrayerPointSection: React.FC<PrayerPointProps> = ({
   prayerPoints,
-  isEditable,
+  isSectionEditable,
+  isPrayerCardsEditable,
   onChange,
 }) => {
   const [isEditMode, setEditMode] = useState(false);
@@ -46,7 +48,7 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
     <ThemedView style={[styles.prayerPointsContainer, { borderColor }]}>
       <View style={styles.titleHeader}>
         <ThemedText style={styles.prayerPointsText}>Prayer Points</ThemedText>
-        {isEditable && (
+        {isSectionEditable && (
           <TouchableOpacity onPress={handleEdit} style={styles.editContainer}>
             {!isEditMode && (
               <ThemedView style={styles.editButton}>
@@ -59,11 +61,11 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
           </TouchableOpacity>
         )}
       </View>
-      {updatedPrayerPoints.map((prayerPoint: PrayerPoint) => (
+      {updatedPrayerPoints.map((prayerPoint: PrayerPoint, index) => (
         <EditablePrayerCard
           key={prayerPoint.id}
           prayer={prayerPoint}
-          editable={isEditMode}
+          editable={isPrayerCardsEditable}
           onDelete={() => handleDelete(prayerPoint.id)}
           onChange={(updatedPrayerPoint) => {
             const updatedData = updatedPrayerPoints.map((point) =>
@@ -71,8 +73,12 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
             );
             setUpdatedPrayerPoints(updatedData);
             onChange?.(updatedData);
+            // handle prayer point update: need to ensure that this prayer can pass forward any changes
+            // editable prayer card should be able to navigate to an editable prayer point screen where you can link.
+            // linking prayer points should update back up to the hook.
           }}
           maxLines={3}
+          index={index.valueOf()}
         />
       ))}
     </ThemedView>

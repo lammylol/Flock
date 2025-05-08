@@ -2,12 +2,7 @@
 import { useCallback, useState } from 'react';
 import { auth } from '@/firebase/firebaseConfig';
 import { prayerService } from '@/services/prayer/prayerService';
-import {
-  CreatePrayerDTO,
-  Prayer,
-  PrayerPoint,
-  UpdatePrayerDTO,
-} from '@/types/firebase';
+import { CreatePrayerDTO, Prayer, UpdatePrayerDTO } from '@/types/firebase';
 import { EntityType, Privacy } from '@/types/PrayerSubtypes';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
@@ -38,7 +33,7 @@ export function usePrayerHandler({
     entityType: EntityType.Prayer,
   });
 
-  const handlePrayerUpdate = (data: Partial<PrayerPoint>) => {
+  const handlePrayerUpdate = (data: Partial<Prayer>) => {
     const newUpdated = { ...updatedPrayer, ...data };
     setUpdatedPrayer(newUpdated);
   };

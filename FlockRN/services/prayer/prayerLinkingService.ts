@@ -29,6 +29,7 @@ import { User } from 'firebase/auth';
 import { prayerPointService } from './prayerPointService';
 import { prayerTopicService } from './prayerTopicService';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
+import { complexPrayerOperations } from './complexPrayerOperations';
 
 export interface IPrayerLinkingService {
   loadPrayer(
@@ -38,7 +39,7 @@ export interface IPrayerLinkingService {
     prayerPoint: PrayerPoint,
     selectedPrayer: LinkedPrayerEntity,
   ): PrayerPointInPrayerTopicDTO[];
-  updatePrayerTopicWithJourneyAndGetEmbeddings(
+  updatePrayerTopicWithJourneyAndGetTopicEmbeddings(
     prayerPoint: PrayerPoint,
     selectedPrayer: LinkedPrayerEntity,
     topicId: string,
@@ -93,6 +94,17 @@ export interface IPrayerLinkingService {
     topicToModify?: LinkedTopicInPrayerDTO,
     options?: { remove?: boolean },
   ): Promise<PrayerPoint>;
+  linkAndSyncPrayerPoint(
+    prayerPoint: PrayerPoint,
+    originPrayer: LinkedPrayerEntity,
+    user: User,
+    prayerTopicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
+  ): Promise<{
+    finalPrayerPoint?: PrayerPoint;
+    fullOriginPrayer?: LinkedPrayerEntity;
+    topicId?: string;
+  }>;
 }
 
 interface FirestoreWrapper {
@@ -245,11 +257,11 @@ class PrayerLinkingService implements IPrayerLinkingService {
     const deduped = Array.from(new Map(journey.map((j) => [j.id, j])).values());
 
     return deduped.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
     );
   };
 
-  updatePrayerTopicWithJourneyAndGetEmbeddings = async (
+  updatePrayerTopicWithJourneyAndGetTopicEmbeddings = async (
     prayerPoint: PrayerPoint,
     originPrayer: LinkedPrayerEntity,
     topicId: string,
@@ -399,9 +411,9 @@ class PrayerLinkingService implements IPrayerLinkingService {
     options?: { remove?: boolean },
   ): Promise<PrayerPoint> => {
     const existingTopics: LinkedTopicInPrayerDTO[] = Array.isArray(
-      prayerPoint.linkedTopic,
+      prayerPoint.linkedTopics,
     )
-      ? (prayerPoint.linkedTopic as LinkedTopicInPrayerDTO[])
+      ? (prayerPoint.linkedTopics as LinkedTopicInPrayerDTO[])
       : [];
 
     // Removing a topic
@@ -416,7 +428,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
       return {
         ...prayerPoint,
-        linkedTopic: updatedTopics.length > 0 ? updatedTopics : undefined,
+        linkedTopics: updatedTopics.length > 0 ? updatedTopics : undefined,
       };
     }
 
@@ -433,7 +445,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
     return {
       ...prayerPoint,
-      linkedTopic: mergedLinkedTopics,
+      linkedTopics: mergedLinkedTopics,
     };
   };
 
@@ -455,7 +467,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
         return updated;
       }
       await prayerPointService.updatePrayerPoint(prayerPoint.id, {
-        linkedTopic: updated.linkedTopic,
+        linkedTopics: updated.linkedTopics,
       });
     }
     return updated;
@@ -526,6 +538,34 @@ class PrayerLinkingService implements IPrayerLinkingService {
     }
 
     return { updatedNewPrayer, topicId };
+  };
+
+  linkAndSyncPrayerPoint = async (
+    prayerPoint: PrayerPoint,
+    originPrayer: LinkedPrayerEntity,
+    user: User,
+    prayerTopicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
+  ): Promise<{
+    finalPrayerPoint?: PrayerPoint;
+    fullOriginPrayer?: LinkedPrayerEntity;
+    topicId?: string;
+  }> => {
+    if (!originPrayer || !prayerTopicDTO || !user) return {};
+
+    try {
+      const result = await complexPrayerOperations.linkPrayerPoint(
+        prayerPoint,
+        originPrayer,
+        user,
+        isNewPrayerPoint,
+        prayerTopicDTO.title,
+      );
+      return result;
+    } catch (error) {
+      console.error('Error in linkAndSyncPrayerPoint:', error);
+      throw new Error('Failed to link and sync prayer point');
+    }
   };
 }
 

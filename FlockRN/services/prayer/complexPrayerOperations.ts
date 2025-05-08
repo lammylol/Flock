@@ -93,8 +93,8 @@ class ComplexPrayerOperations implements IComplexPrayerOperations {
         originPrayer,
       )) as LinkedPrayerEntity;
 
+      // Get topic DTO for either creation or update.
       if (!fullOriginPrayer || !fullOriginPrayer.id) return {};
-
       const topicDTO = (await prayerLinkingService.getPrayerTopicDTO({
         prayerPoint,
         selectedPrayer: fullOriginPrayer,
@@ -104,6 +104,7 @@ class ComplexPrayerOperations implements IComplexPrayerOperations {
 
       if (!topicDTO) return {};
 
+      // Create or update topics, or update origin prayer points, and then return updated prayer point.
       let updatedPrayerPoint: PrayerPoint;
       let topicId = '';
       const { entityType } = originPrayer;

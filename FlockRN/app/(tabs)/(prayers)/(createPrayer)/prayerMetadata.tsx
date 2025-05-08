@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   TouchableOpacity,
   Alert,
@@ -6,29 +6,29 @@ import {
   StyleSheet,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { prayerService } from '@/services/prayer/prayerService';
 import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
 import {
   PrayerPoint,
-  CreatePrayerPointDTO,
-  UpdatePrayerDTO,
   Prayer,
+  FlatPrayerTopicDTO,
+  LinkedPrayerEntity,
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import useUserContext from '@/hooks/useUserContext';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
-import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
+import { EntityType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
-import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
-import { usePrayerHandler } from '@/hooks/prayerScreens/usePrayerHandler';
 import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
+import { HeaderButton } from '@/components/ui/HeaderButton';
+import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
+import { submitOperationsService } from '@/services/prayer/submitOperationsService';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -50,10 +50,10 @@ export default function PrayerMetadataScreen() {
 
   // Determine if we're in edit mode
   const { transcription, isTranscribing } = useRecording();
-  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
-
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
   const { content, id, editMode, hasTranscription } = processedParams;
+  const user = auth.currentUser;
+  const { updateCollection } = usePrayerCollection();
 
   const {
     formState,
@@ -69,28 +69,30 @@ export default function PrayerMetadataScreen() {
   });
 
   const {
-    updatedPrayer,
+    prayer,
     handlePrayerUpdate,
     createPrayer,
     updatePrayer,
     loadPrayer,
-  } = usePrayerHandler({
-    id: id,
-    content: content,
-    privacy: formState.privacy,
-  });
+    deletePrayer,
+    prayerPoints,
+    setPrayerPoints,
+    linkedPrayerPairs,
+    reset,
+  } = usePrayerMetadataContext();
 
   useEffect(() => {
-    if (!formState.isEditMode) return;
+    // this guard guarantees no infinite loop.
+    if (!formState.isEditMode || !id || !prayer || prayer.id === id) return;
 
     const setup = async () => {
       setIsDataLoading(true);
-      await loadPrayer();
+      await loadPrayer(id);
       setIsDataLoading(false);
     };
 
     setup();
-  }, [formState.isEditMode, loadPrayer, setIsDataLoading]);
+  }, [formState.isEditMode, id, loadPrayer, prayer, setIsDataLoading]);
 
   const getContent = useCallback(async (): Promise<{
     content: string;
@@ -132,7 +134,6 @@ export default function PrayerMetadataScreen() {
       }
 
       const prayerPoints = await analyzeContent(contentToAnalyze);
-      console.log('Analyzed prayer points:', prayerPoints);
       setPrayerPoints(prayerPoints as PrayerPoint[]);
     };
 
@@ -145,46 +146,28 @@ export default function PrayerMetadataScreen() {
     hasAnalyzed,
     hasTranscription,
     isAnalyzing,
-    isTranscribing,
+    setPrayerPoints,
   ]);
 
-  const handlePrayerPoints = async (
-    prayerPoints: PrayerPoint[],
-    prayerId: string,
-  ): Promise<string[]> => {
-    try {
-      // Transform prayer points
-      const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
-        (prayerPoint) => ({
-          title: prayerPoint.title?.trim() || 'Untitled',
-          // Convert types array to a single type if needed for backward compatibility
-          prayerType: prayerPoint.prayerType || PrayerType.Request,
-          tags: prayerPoint.prayerType
-            ? [prayerPoint.prayerType]
-            : [PrayerType.Request],
-          content: prayerPoint.content?.trim() || '',
-          createdAt: new Date(),
-          authorId: auth.currentUser?.uid || 'unknown',
-          authorName: auth.currentUser?.displayName || 'Unknown',
-          status: prayerPoint.status || 'open',
-          privacy: prayerPoint.privacy ?? 'private',
-          prayerId: prayerId,
-          recipientName: prayerPoint.recipientName || 'Unknown', // Default to 'Unknown'
-          ...(prayerPoint.embedding !== undefined
-            ? { embedding: prayerPoint.embedding }
-            : {}), // Only include if it exists. This is essential for embedding search. NaN values will break the search.
-        }),
-      );
-
-      // Save to Firestore
-      const prayerPointIds =
-        await prayerPointService.addPrayerPoints(mappedPrayerPoints);
-
-      return prayerPointIds;
-    } catch (err) {
-      console.error('Error parsing prayer points:', err);
-      return [];
+  const getLinkedPrayers = async (point: PrayerPoint) => {
+    // find any linked prayers to prayer
+    const linkedData = linkedPrayerPairs.find(
+      (lp) => lp.prayerPoint.id === point.id,
+    );
+    if (linkedData) {
+      return {
+        prayerPoint: linkedData.prayerPoint,
+        embedding: linkedData.prayerPointEmbedding,
+        originPrayer: linkedData.originPrayer,
+        topicDTO: linkedData.topicTitle,
+      };
     }
+    return {
+      prayerPoint: point,
+      embedding: point.embedding || undefined,
+      originPrayer: undefined,
+      topicDTO: undefined,
+    };
   };
 
   const handleSubmit = async () => {
@@ -196,28 +179,60 @@ export default function PrayerMetadataScreen() {
     setPrivacy('private'); // temporary set function to bypass lint for now.
     setIsSubmissionLoading(true);
     try {
-      if (formState.isEditMode && updatedPrayer) {
+      if (formState.isEditMode && prayer) {
         // Update existing prayer
-        await updatePrayer(updatedPrayer);
+        await updatePrayer(prayer);
         Alert.alert('Success', 'Prayer updated successfully');
         router.push('/(tabs)/(prayers)');
       } else {
         // Create new prayer
-        const prayerId = await createPrayer(updatedPrayer);
+        if (!prayer) {
+          Alert.alert('Error', 'Prayer data is missing. Please try again.');
+          return;
+        }
+        if (!user?.uid) {
+          Alert.alert('Error', 'User data is missing. Please try again.');
+          return;
+        }
+        const prayerId = await createPrayer(prayer);
 
-        // get list of prayer point ids
-        const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
+        Promise.all(
+          prayerPoints.map(async (point) => {
+            const prayerPointWithPrayerId = {
+              ...point,
+              prayerId: prayerId,
+            };
 
-        const updatePrayerPoints = {
-          prayerPoints: prayerPointIds,
-        } as UpdatePrayerDTO;
+            // find linked pairs
+            const linkedData = await getLinkedPrayers(point);
 
-        // update the original prayer with the list of ids
-        await prayerService.updatePrayer(prayerId, updatePrayerPoints);
+            const newPrayerPoint =
+              await submitOperationsService.submitPrayerPointWithEmbeddingsAndLinking(
+                {
+                  formState,
+                  prayerPoint: prayerPointWithPrayerId as PrayerPoint,
+                  originPrayer: linkedData.originPrayer as
+                    | LinkedPrayerEntity
+                    | undefined,
+                  prayerTopicDTO: linkedData.topicDTO as
+                    | FlatPrayerTopicDTO
+                    | undefined,
+                  user,
+                  embedding: linkedData.embedding as number[] | undefined,
+                },
+              );
 
-        Alert.alert('Success', 'Prayer created successfully');
-        router.replace('/(tabs)/(prayers)');
+            updateCollection(
+              { ...newPrayerPoint } as PrayerPoint,
+              'prayerPoint',
+            );
+          }),
+        );
       }
+      Alert.alert('Success', 'Prayer created successfully');
+      router.replace('/(tabs)/(prayers)');
+      router.dismissAll();
+      reset();
     } catch (error) {
       console.error(
         `Error ${formState.isEditMode ? 'updating' : 'creating'} prayer:`,
@@ -232,39 +247,29 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  const handleDelete = async () => {
-    // Confirm deletion
+  const handleDelete = () => {
     Alert.alert(
       'Delete Prayer',
       'Are you sure you want to delete this prayer? This action cannot be undone.',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            if (!id || !auth.currentUser?.uid) {
-              Alert.alert('Error', 'Cannot delete prayer');
-              return;
-            }
-
             setIsDeleting(true);
-            try {
-              await prayerService.deletePrayer(id, auth.currentUser.uid);
-              Alert.alert('Success', 'Prayer deleted successfully');
-              router.push('/(tabs)/(prayers)');
-            } catch (error) {
-              console.error('Error deleting prayer:', error);
-              Alert.alert(
-                'Error',
-                'Failed to delete prayer. Please try again.',
-              );
-            } finally {
-              setIsDeleting(false);
-            }
+            await deletePrayer(
+              id,
+              () => {
+                Alert.alert('Success', 'Prayer deleted successfully');
+                router.push('/(tabs)/(prayers)');
+              },
+              () => {
+                // Optional failure callback
+              },
+            );
+            setIsDeleting(false);
+            router.dismissAll();
           },
         },
       ],
@@ -277,9 +282,7 @@ export default function PrayerMetadataScreen() {
         options={{
           headerTitle: formState.isEditMode ? 'Edit Prayer' : 'Create Prayer',
           headerTitleStyle: styles.headerTitleStyle,
-          headerLeft: () => (
-            <HeaderButton onPress={router.back} label="Cancel" />
-          ),
+          headerLeft: () => <HeaderButton onPress={router.back} label="Back" />,
         }}
       />
       <ThemedText type="default" style={styles.headerText}>
@@ -287,17 +290,14 @@ export default function PrayerMetadataScreen() {
       </ThemedText>
       <PrayerPointSection
         prayerPoints={prayerPoints}
-        isEditable={true}
-        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
-          setPrayerPoints(updatedPrayerPoints)
-        }
+        isPrayerCardsEditable={true}
       />
 
       <PrayerContent
         editMode={formState.isEditMode ? EditMode.EDIT : EditMode.CREATE}
         backgroundColor={colorScheme}
         prayerOrPrayerPoint={EntityType.Prayer}
-        prayer={updatedPrayer}
+        prayer={prayer ?? undefined}
         onChange={(updatedPrayer) => {
           handlePrayerUpdate(updatedPrayer as Prayer);
         }}

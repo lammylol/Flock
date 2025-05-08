@@ -1,5 +1,7 @@
 // tag display names. Separate from type.
 
+import { PrayerType } from './PrayerSubtypes';
+
 export const allTags = [
   'family',
   'health',
@@ -18,7 +20,7 @@ export const tagDisplayNames: { [key: string]: string } = {
   personal: 'Personal',
 };
 
-export const prayerTags = ['request', 'praise', 'repentance'];
+export const prayerTags: PrayerType[] = Object.values(PrayerType);
 
 export const prayerTagDisplayNames: { [key: string]: string } = {
   request: 'Prayer Request',

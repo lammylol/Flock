@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
-import uuid from 'react-native-uuid';
 import { LinkedPrayerEntity, PrayerPoint } from '@/types/firebase';
 import OpenAiService from '@/services/ai/openAIService';
 import { auth } from '@/firebase/firebaseConfig';
 import { complexPrayerOperations } from '@/services/prayer/complexPrayerOperations';
+import { uniqueId } from 'lodash';
 
 export function useAnalyzePrayer({
   transcription,
@@ -47,15 +47,6 @@ export function useAnalyzePrayer({
           user!.uid,
         );
 
-        console.log(
-          'Fetched closest prayer points:',
-          arrayOfPointsAndClosestPrayer,
-        );
-        console.log(
-          'Fetched other prayer points excluding closest:',
-          arrayOfSimilarPrayersExcludingClosestPrayer,
-        );
-
         setArrayOfClosestPrayer(arrayOfPointsAndClosestPrayer);
         setArrayOfOtherPrayers(arrayOfSimilarPrayersExcludingClosestPrayer);
 
@@ -94,24 +85,28 @@ export function useAnalyzePrayer({
         const prayerPointsWithId: PrayerPoint[] = analysis.prayerPoints.map(
           (point) => ({
             ...point,
-            id: uuid.v4(),
+            id: uniqueId(),
+            tags: [point.prayerType],
+            privacy: 'private',
           }),
         );
 
-        const result =
-          await fetchClosestPrayerPointsAndReturnSimilar(prayerPointsWithId);
-        const arrayOfPointsAndClosestPrayer =
-          result?.arrayOfPointsAndClosestPrayer || [];
+        // Hold until later. This will allow us to fetch the closest prayer points and pass to edit.
 
-        const prayerPointsWithEmbedding: LinkedPrayerEntity[] =
-          arrayOfPointsAndClosestPrayer.map(
-            (similarArray: {
-              prayerEntity: LinkedPrayerEntity;
-              similarPrayer: LinkedPrayerEntity;
-            }) => similarArray.prayerEntity,
-          );
+        // const result =
+        //   await fetchClosestPrayerPointsAndReturnSimilar(prayerPointsWithId);
+        // const arrayOfPointsAndClosestPrayer =
+        //   result?.arrayOfPointsAndClosestPrayer || [];
 
-        return prayerPointsWithEmbedding;
+        // const prayerPointsWithEmbedding: LinkedPrayerEntity[] =
+        //   arrayOfPointsAndClosestPrayer.map(
+        //     (similarArray: {
+        //       prayerEntity: LinkedPrayerEntity;
+        //       similarPrayer: LinkedPrayerEntity;
+        //     }) => similarArray.prayerEntity,
+        //   );
+
+        return prayerPointsWithId;
       } catch (error) {
         console.error('Error using AI fill:', error);
         return [];
@@ -120,13 +115,7 @@ export function useAnalyzePrayer({
         setHasAnalyzed(true);
       }
     },
-    [
-      openAiService,
-      transcription,
-      userOptInAI,
-      handlePrayerUpdate,
-      fetchClosestPrayerPointsAndReturnSimilar,
-    ],
+    [openAiService, transcription, userOptInAI, handlePrayerUpdate],
   );
 
   return {

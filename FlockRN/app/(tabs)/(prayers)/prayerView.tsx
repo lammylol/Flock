@@ -130,7 +130,7 @@ const PrayerView = () => {
             {prayerPoints && (
               <PrayerPointSection
                 prayerPoints={prayerPoints}
-                isEditable={false}
+                isSectionEditable={false}
               />
             )}
           </>

@@ -77,7 +77,7 @@ const PrayerPointView = () => {
     try {
       // Be explicit with the complete path to the specific file
       router.push({
-        pathname: '/(tabs)/(prayers)/(createPrayerPoint)/createPrayerPoint',
+        pathname: '/(tabs)/(prayers)/createPrayerPoint',
         params: {
           id: prayerPoint.id,
           editMode: EditMode.EDIT,
@@ -141,7 +141,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-          'seconds' in prayerPoint.createdAt
+            'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 
