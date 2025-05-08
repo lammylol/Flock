@@ -29,6 +29,7 @@ import { User } from 'firebase/auth';
 import { prayerPointService } from './prayerPointService';
 import { prayerTopicService } from './prayerTopicService';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
+import { complexPrayerOperations } from './complexPrayerOperations';
 
 export interface IPrayerLinkingService {
   loadPrayer(
@@ -93,6 +94,17 @@ export interface IPrayerLinkingService {
     topicToModify?: LinkedTopicInPrayerDTO,
     options?: { remove?: boolean },
   ): Promise<PrayerPoint>;
+  linkAndSyncPrayerPoint(
+    prayerPoint: PrayerPoint,
+    originPrayer: LinkedPrayerEntity,
+    user: User,
+    prayerTopicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
+  ): Promise<{
+    finalPrayerPoint?: PrayerPoint;
+    fullOriginPrayer?: LinkedPrayerEntity;
+    topicId?: string;
+  }>;
 }
 
 interface FirestoreWrapper {
@@ -245,7 +257,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
     const deduped = Array.from(new Map(journey.map((j) => [j.id, j])).values());
 
     return deduped.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
     );
   };
 
@@ -526,6 +538,34 @@ class PrayerLinkingService implements IPrayerLinkingService {
     }
 
     return { updatedNewPrayer, topicId };
+  };
+
+  linkAndSyncPrayerPoint = async (
+    prayerPoint: PrayerPoint,
+    originPrayer: LinkedPrayerEntity,
+    user: User,
+    prayerTopicDTO: FlatPrayerTopicDTO,
+    isNewPrayerPoint: boolean,
+  ): Promise<{
+    finalPrayerPoint?: PrayerPoint;
+    fullOriginPrayer?: LinkedPrayerEntity;
+    topicId?: string;
+  }> => {
+    if (!originPrayer || !prayerTopicDTO || !user) return {};
+
+    try {
+      const result = await complexPrayerOperations.linkPrayerPoint(
+        prayerPoint,
+        originPrayer,
+        user,
+        isNewPrayerPoint,
+        prayerTopicDTO.title,
+      );
+      return result;
+    } catch (error) {
+      console.error('Error in linkAndSyncPrayerPoint:', error);
+      throw new Error('Failed to link and sync prayer point');
+    }
   };
 }
 

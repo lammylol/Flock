@@ -88,6 +88,7 @@ export function useBatchPrayerLinking({
       selectedPairs: results,
     };
   };
+
   return {
     linkAndSyncPrayerPoints: linkAndSyncBatchPrayerPoints,
   };

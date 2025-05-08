@@ -17,15 +17,6 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
 
   const user = auth.currentUser;
 
-  const setLinkedPairs = () => {
-    const selectedPairs = {
-      prayerPoint,
-      originPrayer,
-      topicTitle: prayerTopicDTO?.title,
-    };
-    return selectedPairs;
-  };
-
   // This function is passed to the PrayerPointLinking component
   // and is called when the user selects a prayer point or topic to link to.
   // It updates the selected prayer and the prayer topic DTO.
@@ -70,6 +61,5 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     selectedPrayerToLinkTo: originPrayer,
     handlePrayerLinkingOnChange,
     linkAndSyncPrayerPoint,
-    setLinkedPairs,
   };
 }

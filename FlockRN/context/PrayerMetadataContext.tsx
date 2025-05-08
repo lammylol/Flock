@@ -13,6 +13,7 @@ import { prayerService } from '@/services/prayer/prayerService';
 import { usePrayerCollection } from './PrayerCollectionContext';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { reducer, initialState } from './PrayerMetadataReducer';
+import { Alert } from 'react-native';
 
 interface PrayerMetadataContextType {
   prayer: Prayer | null;
@@ -27,6 +28,11 @@ interface PrayerMetadataContextType {
   loadPrayer: (id: string) => Promise<void>;
   updatePrayer: (data: Prayer) => Promise<void>;
   createPrayer: (data: Prayer) => Promise<string>; // returns id
+  deletePrayer: (
+    id: string,
+    onSuccess: () => void,
+    onFailure?: () => void,
+  ) => Promise<void>;
   handlePrayerUpdate: (data: Partial<Prayer>) => void;
   updatePrayerPoints: (index: number, point: PrayerPoint) => void;
   reset: () => void;
@@ -110,6 +116,29 @@ export const PrayerMetadataContextProvider = ({
     console.log('Success', 'Prayer updated successfully');
   };
 
+  const deletePrayer = async (
+    id: string,
+    onSuccess: () => void,
+    onFailure?: () => void,
+  ) => {
+    const userId = auth.currentUser?.uid;
+    if (!id || !userId) {
+      Alert.alert('Error', 'Cannot delete prayer');
+      onFailure?.();
+      return;
+    }
+
+    try {
+      await prayerService.deletePrayer(id, userId);
+      onSuccess();
+      reset(); // reset context
+    } catch (error) {
+      console.error('Error deleting prayer:', error);
+      Alert.alert('Error', 'Failed to delete prayer. Please try again.');
+      onFailure?.();
+    }
+  };
+
   const setPrayerPoints = (pp: PrayerPoint[]) => {
     dispatch({ type: 'SET_PRAYER_POINTS', payload: pp });
   };
@@ -147,6 +176,7 @@ export const PrayerMetadataContextProvider = ({
         loadPrayer,
         updatePrayer,
         createPrayer,
+        deletePrayer,
         handlePrayerUpdate,
         reset,
         setPrayer,

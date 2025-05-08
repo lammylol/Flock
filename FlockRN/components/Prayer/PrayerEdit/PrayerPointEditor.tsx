@@ -10,7 +10,11 @@ import { router, Stack } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { PrayerPoint } from '@/types/firebase';
+import {
+  FlatPrayerTopicDTO,
+  LinkedPrayerEntity,
+  PrayerPoint,
+} from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
@@ -21,9 +25,9 @@ import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandl
 import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
 import useFormState from '@/hooks/useFormState';
 import { prayerLinkingService } from '@/services/prayer/prayerLinkingService';
+import { submitOperationsService } from '@/services/prayer/submitOperationsService';
 import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
-import { useBatchPrayerLinking } from '@/hooks/prayerScreens/useBatchPrayerLinking';
-import { update } from 'lodash';
+import { auth } from '@/firebase/firebaseConfig';
 
 interface PrayerPointEditorProps {
   editMode: EditMode;
@@ -38,6 +42,10 @@ interface PrayerPointEditorProps {
 
 export default function PrayerPointEditor(props: PrayerPointEditorProps) {
   const { editMode, id, shouldPersist, initialContent, onSubmitLocal } = props;
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error('User is not authenticated');
+  }
 
   // State for edit mode
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
@@ -60,8 +68,6 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
   const {
     updatedPrayerPoint,
     handlePrayerPointUpdate,
-    createPrayerPoint,
-    updatePrayerPoint,
     loadPrayerPoint,
     loadPrayerPointFromPassingContent,
   } = usePrayerPointHandler({
@@ -95,12 +101,8 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
   ]);
 
   // This hook handles separate logic for linking prayer points and topics.
-  const {
-    handlePrayerLinkingOnChange,
-    linkAndSyncPrayerPoint,
-    originPrayer,
-    prayerTopicDTO,
-  } = usePrayerLinking(updatedPrayerPoint);
+  const { handlePrayerLinkingOnChange, originPrayer, prayerTopicDTO } =
+    usePrayerLinking(updatedPrayerPoint);
 
   const handleSubmit = async () => {
     setPrivacy('private');
@@ -112,52 +114,24 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
         topicTitle: prayerTopicDTO?.title,
       };
       onSubmitLocal?.(updatedPrayerPoint, linkedPair as LinkedPrayerPointPair);
+      setIsSubmissionLoading(false);
       return;
     }
 
     try {
-      // handle prayer point linking logic
-      const { finalPrayerPoint, fullOriginPrayer, topicId } =
-        await linkAndSyncPrayerPoint({
-          isNewPrayerPoint: !formState.isEditMode,
-        });
-
-      if (finalPrayerPoint) {
-        handlePrayerPointUpdate(finalPrayerPoint); // Sync UI
-      }
-
-      // add embedding to prayer point.
-      const mergedPrayerPoint = {
-        ...updatedPrayerPoint,
-        embedding: embedding,
-        ...(finalPrayerPoint ?? {}),
-      };
-
-      let prayerId = mergedPrayerPoint.id;
-
-      // update or create the prayer point.
-      if (formState.isEditMode && updatedPrayerPoint.id) {
-        await updatePrayerPoint(mergedPrayerPoint);
-      } else {
-        prayerId = await createPrayerPoint(mergedPrayerPoint);
-      }
-
-      // update the prayer topic if it is added or created.
-      if (fullOriginPrayer && topicId) {
-        await prayerLinkingService.updatePrayerTopicWithJourneyAndGetTopicEmbeddings(
-          { ...mergedPrayerPoint, id: prayerId },
-          fullOriginPrayer,
-          topicId,
-        );
-      }
-
-      // remove embedding from firebase if the origin prayer is a prayer point. must happen after context is set.
-      if (fullOriginPrayer?.entityType === EntityType.PrayerPoint) {
-        await prayerLinkingService.removeEmbeddingFromFirebase(
-          fullOriginPrayer,
-        );
-      }
-
+      submitOperationsService.submitPrayerPointWithEmbeddingsAndLinking({
+        formState,
+        prayerPoint: updatedPrayerPoint,
+        originPrayer: originPrayer as PrayerPoint | undefined,
+        prayerTopicDTO: prayerTopicDTO as FlatPrayerTopicDTO | undefined,
+        user,
+        embedding,
+        handlePrayerPointUpdate,
+      });
+      // updateCollection(
+      //   { ...updatedPrayerPoint, ...updateData } as PrayerPoint,
+      //   'prayerPoint',
+      // );
       router.replace('/(tabs)/(prayers)');
       router.dismissAll();
     } catch (error) {

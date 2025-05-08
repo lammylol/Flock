@@ -62,11 +62,6 @@ function reducer(
     case 'UPDATE_PRAYER_POINT_AT_INDEX': {
       const updatedPoints = [...state.prayerPoints];
       updatedPoints[action.payload.index] = action.payload.point;
-      console.log(
-        'Updated prayer points at index:',
-        action.payload.index,
-        action.payload.point,
-      );
       return {
         ...state,
         prayerPoints: updatedPoints,

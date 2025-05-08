@@ -3,22 +3,14 @@ import { EditMode, LinkedPrayerPointPair } from '@/types/ComponentProps';
 import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
 import { PrayerPoint } from '@/types/firebase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { set } from 'lodash';
 
 const PrayerPointMetadataFromPrayerScreen = () => {
   const params = useLocalSearchParams() as {
     index: string;
   };
 
-  const {
-    prayer,
-    setPrayer,
-    prayerPoints,
-    updatePrayerPoints,
-    linkedPrayerPairs,
-    setLinkedPrayerPairs,
-    addLinkedPrayerPairs,
-  } = usePrayerMetadataContext();
+  const { prayerPoints, updatePrayerPoints, addLinkedPrayerPairs } =
+    usePrayerMetadataContext();
 
   const index = parseInt(params.index, 10);
   const prayerPoint = prayerPoints[index] as Partial<PrayerPoint>;
@@ -33,8 +25,13 @@ const PrayerPointMetadataFromPrayerScreen = () => {
       addLinkedPrayerPairs(linkedPrayerPair);
     }
 
+    console.log(
+      'linkedPrayerPair',
+      linkedPrayerPair?.originPrayer?.id,
+      linkedPrayerPair?.prayerPoint.id,
+      linkedPrayerPair?.topicTitle,
+    );
     const updatedPoint = prayerPoint as PrayerPoint;
-    console.log('Updated prayer points:', updatedPoint);
     updatePrayerPoints(index, updatedPoint);
     router.back(); // or pass data to parent
     // alternatively use a context or shared state to collect results

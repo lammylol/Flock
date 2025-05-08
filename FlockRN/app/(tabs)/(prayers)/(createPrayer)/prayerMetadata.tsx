@@ -27,7 +27,6 @@ import { EditMode } from '@/types/ComponentProps';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
 import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
-import { useBatchPrayerLinking } from '@/hooks/prayerScreens/useBatchPrayerLinking';
 import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
 
@@ -73,11 +72,11 @@ export default function PrayerMetadataScreen() {
     createPrayer,
     updatePrayer,
     loadPrayer,
+    deletePrayer,
     prayerPoints,
     setPrayerPoints,
+    reset,
   } = usePrayerMetadataContext();
-
-  console.log('Prayer Poitns:', prayerPoints);
 
   useEffect(() => {
     // this guard guarantees no infinite loop.
@@ -147,15 +146,6 @@ export default function PrayerMetadataScreen() {
     isAnalyzing,
     setPrayerPoints,
   ]);
-
-  // const { linkAndSyncPrayerPoint } = useBatchPrayerLinking({
-  //   prayerPoints: prayerPoints,
-  //   isEditMode: formState.isEditMode,
-  // });
-
-  // useEffect(() => {
-  //   const refetchPrayerPointEmbeddings = async () => {
-  // }
 
   const addPrayerIdToPrayerPointsAndCreate = async (
     prayerPoints: PrayerPoint[],
@@ -238,6 +228,7 @@ export default function PrayerMetadataScreen() {
 
         Alert.alert('Success', 'Prayer created successfully');
         router.replace('/(tabs)/(prayers)');
+        reset();
       }
     } catch (error) {
       console.error(
@@ -253,39 +244,29 @@ export default function PrayerMetadataScreen() {
     }
   };
 
-  const handleDelete = async () => {
-    // Confirm deletion
+  const handleDelete = () => {
     Alert.alert(
       'Delete Prayer',
       'Are you sure you want to delete this prayer? This action cannot be undone.',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            if (!id || !auth.currentUser?.uid) {
-              Alert.alert('Error', 'Cannot delete prayer');
-              return;
-            }
-
             setIsDeleting(true);
-            try {
-              await prayerService.deletePrayer(id, auth.currentUser.uid);
-              Alert.alert('Success', 'Prayer deleted successfully');
-              router.push('/(tabs)/(prayers)');
-            } catch (error) {
-              console.error('Error deleting prayer:', error);
-              Alert.alert(
-                'Error',
-                'Failed to delete prayer. Please try again.',
-              );
-            } finally {
-              setIsDeleting(false);
-            }
+            await deletePrayer(
+              id,
+              () => {
+                Alert.alert('Success', 'Prayer deleted successfully');
+                router.push('/(tabs)/(prayers)');
+              },
+              () => {
+                // Optional failure callback
+              },
+            );
+            setIsDeleting(false);
+            router.dismissAll();
           },
         },
       ],
