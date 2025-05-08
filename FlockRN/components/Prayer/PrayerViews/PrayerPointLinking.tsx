@@ -84,8 +84,8 @@ export function PrayerPointLinking({
       ]}
     >
       {showLinkSection &&
-        (similarPrayers.length > 0 || prayerPoint.linkedTopics) &&
-        linkedPrayer ? (
+      (similarPrayers.length > 0 || prayerPoint.linkedTopics) &&
+      linkedPrayer ? (
         <PrayerCardWithButtons
           key={prayerPoint.id}
           prayer={linkedPrayer}

@@ -39,9 +39,9 @@ const PrayerPointMetadataFromPrayerScreen = () => {
       updatedPoint.linkedTopics = exists
         ? updatedPoint.linkedTopics?.filter((item) => item.title !== topicTitle)
         : [
-          ...(updatedPoint.linkedTopics || []),
-          { id: uniqueId(), title: topicTitle } as LinkedTopicInPrayerDTO,
-        ];
+            ...(updatedPoint.linkedTopics || []),
+            { id: uniqueId(), title: topicTitle } as LinkedTopicInPrayerDTO,
+          ];
     }
 
     if (linkedPrayerPair) {

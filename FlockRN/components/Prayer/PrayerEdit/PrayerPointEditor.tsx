@@ -151,6 +151,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
         { ...updatedPrayerPoint, ...newPrayerPoint } as PrayerPoint,
         'prayerPoint',
       );
+      Alert.alert('Success', 'Prayer point submitted successfully!');
       router.replace('/(tabs)/(prayers)');
       router.dismissAll();
     } catch (error) {

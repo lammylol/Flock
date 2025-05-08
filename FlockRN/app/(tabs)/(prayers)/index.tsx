@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { Prayer, PrayerPoint } from '@/types/firebase';
+import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import EditablePrayerCard from '@/components/Prayer/PrayerViews/PrayerCard';
 import { Tabs } from '@/components/Tab';
@@ -11,19 +11,21 @@ import { FloatingAddPrayerButton } from '@/components/Prayer/PrayerViews/Floatin
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { useState } from 'react';
 
-type TabType = 'prayerPoints' | 'userPrayers';
+type TabType = 'prayerTopics' | 'prayerPoints' | 'userPrayers';
 
 export default function TabTwoScreen() {
   const {
     userPrayers,
     userPrayerPoints,
+    userPrayerTopics,
     filteredUserPrayers,
     filteredUserPrayerPoints,
+    filteredUserPrayerTopics,
     loadAll,
     searchPrayers,
   } = usePrayerCollection();
 
-  const [selectedTab, setSelectedTab] = useState<TabType>('prayerPoints');
+  const [selectedTab, setSelectedTab] = useState<TabType>('prayerTopics');
 
   useFocusEffect(loadAll);
 
@@ -35,19 +37,48 @@ export default function TabTwoScreen() {
         </ThemedView>
         <ThemedView>
           <SearchBar
-            placeholder={`Search ${selectedTab === 'prayerPoints' ? 'Prayer Points' : 'Prayers'}`}
+            placeholder={`Search ${
+              selectedTab === 'prayerTopics'
+                ? 'Prayer Topics'
+                : selectedTab === 'prayerPoints'
+                  ? 'Prayer Points'
+                  : 'Prayers'
+            }`}
             onSearch={searchPrayers}
           />
           <Tabs
             tabs={[
+              `Prayer Topics (${userPrayerTopics.length})`,
               `Prayer Points (${userPrayerPoints.length})`,
               `Prayers (${userPrayers.length})`,
             ]}
-            selectedIndex={selectedTab === 'prayerPoints' ? 0 : 1}
-            onChange={(index) =>
-              setSelectedTab(index === 0 ? 'prayerPoints' : 'userPrayers')
+            selectedIndex={
+              selectedTab === 'prayerTopics'
+                ? 0
+                : selectedTab === 'prayerPoints'
+                  ? 1
+                  : 2
             }
+            onChange={(index) => {
+              const tabMap: TabType[] = [
+                'prayerTopics',
+                'prayerPoints',
+                'userPrayers',
+              ];
+              setSelectedTab(tabMap[index]);
+            }}
           />
+          {selectedTab === 'prayerTopics' && (
+            <ThemedScrollView>
+              {filteredUserPrayerTopics.map((topic: PrayerTopic) => (
+                <EditablePrayerCard
+                  key={topic.id}
+                  prayer={topic}
+                  editable={false}
+                />
+              ))}
+            </ThemedScrollView>
+          )}
           {selectedTab === 'prayerPoints' && (
             <ThemedScrollView>
               {filteredUserPrayerPoints.map((prayerPoint: PrayerPoint) => (

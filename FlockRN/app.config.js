@@ -17,6 +17,8 @@ export default () => ({
           'We need access to speech recognition to enable voice commands and transcription.',
         NSMicrophoneUsageDescription:
           'We need access to the microphone for capturing your voice input.',
+        NSPhotoLibraryUsageDescription:
+          'This app may request photo library access through third-party modules.',
       },
     },
     android: {

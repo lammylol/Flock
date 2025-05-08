@@ -23,7 +23,6 @@ export function usePrayerPointHandler({
     content: '',
     prayerType: PrayerType.Request,
     tags: [],
-    linkedTopics: [],
     embedding: [],
     createdAt: new Date(),
     updatedAt: new Date(),

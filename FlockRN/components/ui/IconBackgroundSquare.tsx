@@ -26,9 +26,12 @@ export const IconBackgroundSquare: React.FC<IconBackgroundSquare> = ({
 
   // Logic to determine background color and emoji using a switch statement
   switch (true) {
-    case !!entityType && entityType === EntityType.PrayerPoint && !!type:
-      backgroundColor = Colors.iconBackgroundColors.typeColors[type];
-      emoji = prayerTypeEmojis[type];
+    case entityType === EntityType.PrayerTopic ||
+      (entityType === EntityType.PrayerPoint && Boolean(type)):
+      backgroundColor =
+        Colors.iconBackgroundColors.typeColors[type] ??
+        Colors.iconBackgroundColors.defaultTag;
+      emoji = prayerTypeEmojis[type] ?? '#';
       break;
     case !!customValue:
       backgroundColor =
@@ -39,7 +42,7 @@ export const IconBackgroundSquare: React.FC<IconBackgroundSquare> = ({
       // Default background and emoji for PrayerTopic
       backgroundColor =
         customBackground ?? Colors.iconBackgroundColors.defaultTag;
-      emoji = '#️⃣'; // Default emoji for PrayerTopic
+      emoji = '#'; // Default emoji for PrayerTopic
       break;
   }
 
@@ -61,6 +64,6 @@ const styles = StyleSheet.create({
   // eslint-disable-next-line react-native/no-color-literals
   text: {
     color: 'black',
-    fontSize: 20,
+    fontSize: 24,
   },
 });

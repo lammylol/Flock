@@ -159,7 +159,13 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
         {!isPrayer && (
           <IconBackgroundSquare
             entityType={entityType ?? EntityType.PrayerPoint}
-            type={isPrayerPoint ? prayerType : undefined}
+            type={
+              entityType === EntityType.PrayerPoint
+                ? prayerType
+                : entityType === EntityType.PrayerTopic
+                  ? prayer?.journey?.[0]?.prayerType
+                  : undefined
+            }
           />
         )}
         <View style={styles.titleContainer}>
@@ -173,7 +179,11 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
             />
           ) : (
             <ThemedText style={styles.titleText}>
-              {isPrayerPoint || isPrayerTopic ? prayer.title : formattedDate}
+              {isPrayerPoint || isPrayerTopic
+                ? isPrayerTopic
+                  ? `#${prayer.title}`
+                  : prayer.title
+                : formattedDate}
             </ThemedText>
           )}
           {isEditMode ? (
@@ -214,7 +224,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
                       prayerTagDisplayNames[prayerType]?.slice(1)}
                   </ThemedText>
                 )}
-                {isPrayerTopic && <ThemedText>{'#topic'}</ThemedText>}
+                {isPrayerTopic && <ThemedText>{'Topic'}</ThemedText>}
               </ThemedText>
             )
           )}
@@ -293,7 +303,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 15,
     alignItems: 'center',
   },
   titleContainer: {

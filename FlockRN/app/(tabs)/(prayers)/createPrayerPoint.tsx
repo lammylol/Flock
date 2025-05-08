@@ -3,6 +3,7 @@ import { EditMode } from '@/types/ComponentProps';
 import { useMemo } from 'react';
 
 import { useLocalSearchParams } from 'expo-router';
+import { PrayerMetadataContextProvider } from '@/context/PrayerMetadataContext';
 
 const PrayerPointMetadataStandaloneScreen = () => {
   const params = useLocalSearchParams<{
@@ -19,7 +20,11 @@ const PrayerPointMetadataStandaloneScreen = () => {
 
   const { id, editMode } = processedParams;
 
-  return <PrayerPointEditor id={id} editMode={editMode} shouldPersist={true} />;
+  return (
+    <PrayerMetadataContextProvider>
+      <PrayerPointEditor id={id} editMode={editMode} shouldPersist={true} />
+    </PrayerMetadataContextProvider>
+  );
 };
 
 export default PrayerPointMetadataStandaloneScreen;
