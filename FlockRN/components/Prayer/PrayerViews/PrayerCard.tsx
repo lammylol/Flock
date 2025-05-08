@@ -34,6 +34,7 @@ interface EditablePrayerCardProps {
   children?: React.ReactNode;
   showContent?: boolean;
   maxLines?: number;
+  index?: number; // for use when selecting a prayer point w/o id.
 }
 
 const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
@@ -45,6 +46,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   children,
   showContent = true,
   maxLines,
+  index,
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
   const maxLinesValue = maxLines ?? 1;
@@ -85,34 +87,21 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   };
 
   const handleEdit = () => {
-    console.log('passing prayer:', prayer);
     router.push({
-      pathname: '/(tabs)/(prayers)/createPrayerPoint',
+      pathname: '/(tabs)/(prayers)/(createPrayer)/createPrayerPointFromContent',
       params: {
         editMode: EditMode.EDIT,
-        passingContent: JSON.stringify({
-          prayerPoint: {
-            id: prayer.id,
-            title: prayer.title ?? '',
-            content: prayer.content ?? '',
-            tags: prayer.tags ?? [],
-            prayerType: isPrayerPoint ? prayerType : PrayerType.Request,
-          },
-        }),
+        index: index,
       },
     });
-    // setEditMode((prev) => !prev);
-    // if (isEditMode) {
-    //   // triggerChange({
-    //   //   title: prayer.title,
-    //   //   content: prayer.content,
-    //   //   tags: prayer.tags,
-    //   //   prayerType: prayerType,
-    //   // });
-    // }
   };
 
   const handlePress = () => {
+    if (editable) {
+      // this basically makes the whole prayer card editable.
+      handleEdit();
+      return;
+    }
     if (entityType) {
       switch (entityType) {
         case 'prayerPoint':

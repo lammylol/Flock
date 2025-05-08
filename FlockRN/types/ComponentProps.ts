@@ -1,4 +1,5 @@
 import { ReactElement } from 'react';
+import { PrayerPoint } from './firebase';
 
 export enum EditMode {
   VIEW = 'view',
@@ -15,3 +16,9 @@ export interface PrayerCardButtonProps {
   icon?: ReactElement;
   onPress: () => void;
 }
+
+export type LinkedPrayerPointPair = {
+  prayerPoint: PrayerPoint;
+  originPrayer: PrayerPoint | null;
+  topicTitle?: string;
+};

@@ -31,6 +31,8 @@ export function usePrayerPointHandler({
     content: '',
     prayerType: PrayerType.Request,
     tags: [],
+    linkedTopics: [],
+    embedding: [],
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: user?.displayName || 'unknown',
@@ -48,14 +50,23 @@ export function usePrayerPointHandler({
     setUpdatedPrayerPoint(newUpdated);
   };
 
+  const loadPrayerPointFromPassingContent = useCallback(
+    (data: Partial<PrayerPoint>) => {
+      setUpdatedPrayerPoint(data as PrayerPoint);
+    },
+    [],
+  );
+
   const loadPrayerPoint = useCallback(async () => {
     const contextPrayerPoint = userPrayerPoints.find((p) => p.id === id);
     if (contextPrayerPoint) {
+      console.log('Found prayer point in context:', contextPrayerPoint);
       setUpdatedPrayerPoint({ ...contextPrayerPoint });
       return;
     }
     try {
       const fetchedPrayer = await prayerPointService.getPrayerPoint(id);
+      console.log('Fetched prayer point:', fetchedPrayer);
       if (fetchedPrayer) {
         setUpdatedPrayerPoint({ ...fetchedPrayer });
       }
@@ -71,7 +82,7 @@ export function usePrayerPointHandler({
     // only generate embedding if not already present (in cases where
     // user edits and creates before embeddings are generated).
     // Do not generate if new prayer point is linked to a topic.
-    if (!embeddingInput && !data.linkedTopic) {
+    if (!embeddingInput && !data.linkedTopics) {
       const input = `${data.title} ${data.content}`.trim();
       embeddingInput = await openAiService.getVectorEmbeddings(input);
     }
@@ -90,7 +101,7 @@ export function usePrayerPointHandler({
       recipientName: data.recipientName || 'unknown',
       recipientId: data.recipientId || 'unknown',
       ...(embeddingInput && { embedding: embeddingInput }),
-      ...(data.linkedTopic && { linkedTopic: data.linkedTopic }),
+      ...(data.linkedTopics && { linkedTopics: data.linkedTopics }),
     };
 
     const docRefId =
@@ -109,7 +120,8 @@ export function usePrayerPointHandler({
       prayerType: data.prayerType,
       status: data.status,
       embedding: data.embedding == null ? deleteField() : data.embedding,
-      linkedTopic: data.linkedTopic == null ? deleteField() : data.linkedTopic,
+      linkedTopics:
+        data.linkedTopics == null ? deleteField() : data.linkedTopics,
     };
     await prayerPointService.updatePrayerPoint(data.id, updateData);
 
@@ -127,5 +139,6 @@ export function usePrayerPointHandler({
     createPrayerPoint,
     updatePrayerPoint,
     loadPrayerPoint,
+    loadPrayerPointFromPassingContent,
   };
 }

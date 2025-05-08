@@ -23,12 +23,13 @@ import useUserContext from '@/hooks/useUserContext';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { HeaderButton } from '@/components/ui/HeaderButton';
 import { EditMode } from '@/types/ComponentProps';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
 import useFormState from '@/hooks/useFormState';
-import { usePrayerHandler } from '@/hooks/prayerScreens/usePrayerHandler';
 import { useAnalyzePrayer } from '@/hooks/prayerScreens/useAnalyzePrayer';
+import { useBatchPrayerLinking } from '@/hooks/prayerScreens/useBatchPrayerLinking';
+import { HeaderButton } from '@/components/ui/HeaderButton';
+import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -50,8 +51,6 @@ export default function PrayerMetadataScreen() {
 
   // Determine if we're in edit mode
   const { transcription, isTranscribing } = useRecording();
-  const [prayerPoints, setPrayerPoints] = useState<PrayerPoint[]>([]);
-
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
   const { content, id, editMode, hasTranscription } = processedParams;
 
@@ -69,28 +68,29 @@ export default function PrayerMetadataScreen() {
   });
 
   const {
-    updatedPrayer,
+    prayer,
     handlePrayerUpdate,
     createPrayer,
     updatePrayer,
     loadPrayer,
-  } = usePrayerHandler({
-    id: id,
-    content: content,
-    privacy: formState.privacy,
-  });
+    prayerPoints,
+    setPrayerPoints,
+  } = usePrayerMetadataContext();
+
+  console.log('Prayer Poitns:', prayerPoints);
 
   useEffect(() => {
-    if (!formState.isEditMode) return;
+    // this guard guarantees no infinite loop.
+    if (!formState.isEditMode || !id || !prayer || prayer.id === id) return;
 
     const setup = async () => {
       setIsDataLoading(true);
-      await loadPrayer();
+      await loadPrayer(id);
       setIsDataLoading(false);
     };
 
     setup();
-  }, [formState.isEditMode, loadPrayer, setIsDataLoading]);
+  }, [formState.isEditMode, id, loadPrayer, prayer, setIsDataLoading]);
 
   const getContent = useCallback(async (): Promise<{
     content: string;
@@ -145,14 +145,26 @@ export default function PrayerMetadataScreen() {
     hasAnalyzed,
     hasTranscription,
     isAnalyzing,
-    isTranscribing,
+    setPrayerPoints,
   ]);
 
-  const handlePrayerPoints = async (
+  // const { linkAndSyncPrayerPoint } = useBatchPrayerLinking({
+  //   prayerPoints: prayerPoints,
+  //   isEditMode: formState.isEditMode,
+  // });
+
+  // useEffect(() => {
+  //   const refetchPrayerPointEmbeddings = async () => {
+  // }
+
+  const addPrayerIdToPrayerPointsAndCreate = async (
     prayerPoints: PrayerPoint[],
     prayerId: string,
   ): Promise<string[]> => {
     try {
+      // need to also add prayer topic id to the prayer point.
+      const linkedTopics = prayerPoints[0]?.linkedTopics;
+
       // Transform prayer points
       const mappedPrayerPoints: CreatePrayerPointDTO[] = prayerPoints.map(
         (prayerPoint) => ({
@@ -173,6 +185,7 @@ export default function PrayerMetadataScreen() {
           ...(prayerPoint.embedding !== undefined
             ? { embedding: prayerPoint.embedding }
             : {}), // Only include if it exists. This is essential for embedding search. NaN values will break the search.
+          ...(linkedTopics && { linkedTopics: linkedTopics }),
         }),
       );
 
@@ -196,17 +209,25 @@ export default function PrayerMetadataScreen() {
     setPrivacy('private'); // temporary set function to bypass lint for now.
     setIsSubmissionLoading(true);
     try {
-      if (formState.isEditMode && updatedPrayer) {
+      if (formState.isEditMode && prayer) {
         // Update existing prayer
-        await updatePrayer(updatedPrayer);
+        await updatePrayer(prayer);
         Alert.alert('Success', 'Prayer updated successfully');
         router.push('/(tabs)/(prayers)');
       } else {
         // Create new prayer
-        const prayerId = await createPrayer(updatedPrayer);
+        if (!prayer) {
+          Alert.alert('Error', 'Prayer data is missing. Please try again.');
+          return;
+        }
+        const prayerId = await createPrayer(prayer);
 
+        // manage prayer points before you create the prayer points.
         // get list of prayer point ids
-        const prayerPointIds = await handlePrayerPoints(prayerPoints, prayerId);
+        const prayerPointIds = await addPrayerIdToPrayerPointsAndCreate(
+          prayerPoints,
+          prayerId,
+        );
 
         const updatePrayerPoints = {
           prayerPoints: prayerPointIds,
@@ -277,9 +298,7 @@ export default function PrayerMetadataScreen() {
         options={{
           headerTitle: formState.isEditMode ? 'Edit Prayer' : 'Create Prayer',
           headerTitleStyle: styles.headerTitleStyle,
-          headerLeft: () => (
-            <HeaderButton onPress={router.back} label="Cancel" />
-          ),
+          headerLeft: () => <HeaderButton onPress={router.back} label="Back" />,
         }}
       />
       <ThemedText type="default" style={styles.headerText}>
@@ -287,17 +306,17 @@ export default function PrayerMetadataScreen() {
       </ThemedText>
       <PrayerPointSection
         prayerPoints={prayerPoints}
-        isEditable={true}
-        onChange={(updatedPrayerPoints: PrayerPoint[]) =>
-          setPrayerPoints(updatedPrayerPoints)
-        }
+        isPrayerCardsEditable={true}
+      // onChange={(updatedPrayerPoints: PrayerPoint[]) =>
+      //   setPrayerPoints(updatedPrayerPoints)
+      // }
       />
 
       <PrayerContent
         editMode={formState.isEditMode ? EditMode.EDIT : EditMode.CREATE}
         backgroundColor={colorScheme}
         prayerOrPrayerPoint={EntityType.Prayer}
-        prayer={updatedPrayer}
+        prayer={prayer ?? undefined}
         onChange={(updatedPrayer) => {
           handlePrayerUpdate(updatedPrayer as Prayer);
         }}

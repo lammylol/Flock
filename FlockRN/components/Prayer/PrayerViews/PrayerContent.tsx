@@ -103,7 +103,7 @@ export function PrayerContent({
         'prayerType' in prayer && (
           <TagsSection
             tags={
-              prayer.tags && prayer.tags.length === 0
+              !prayer.tags || prayer.tags.length === 0
                 ? [prayer.prayerType]
                 : prayer.tags || [PrayerType.Request]
             } // this is a workaround for the issue where prayerType is not set
