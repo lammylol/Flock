@@ -54,15 +54,23 @@ export function useSimilarPrayers(
   ]);
 
   useEffect(() => {
-    const debounceTimeout = setTimeout(() => {
-      if (prayerPoint.title?.trim() || prayerPoint.content?.trim()) {
-        debouncedFindSimilarPrayers();
-      }
-    }, 1000); // Debounce delay
+    // don't search if prayer point is already linked to a topic.
+    if (!prayerPoint.linkedTopics) {
+      const debounceTimeout = setTimeout(() => {
+        if (prayerPoint.title?.trim() || prayerPoint.content?.trim()) {
+          debouncedFindSimilarPrayers();
+        }
+      }, 1000); // Debounce delay
 
-    // Cleanup timeout on component unmount or dependency change
-    return () => clearTimeout(debounceTimeout);
-  }, [prayerPoint.title, prayerPoint.content, debouncedFindSimilarPrayers]);
+      // Cleanup timeout on component unmount or dependency change
+      return () => clearTimeout(debounceTimeout);
+    }
+  }, [
+    prayerPoint.title,
+    prayerPoint.content,
+    debouncedFindSimilarPrayers,
+    prayerPoint.linkedTopics,
+  ]);
 
   return {
     similarPrayers,

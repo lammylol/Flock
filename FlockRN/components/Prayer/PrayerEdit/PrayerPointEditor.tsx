@@ -10,7 +10,11 @@ import { router, Stack } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { FlatPrayerTopicDTO, PrayerPoint } from '@/types/firebase';
+import {
+  FlatPrayerTopicDTO,
+  LinkedPrayerEntity,
+  PrayerPoint,
+} from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
@@ -102,6 +106,19 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
   const { handlePrayerLinkingOnChange, originPrayer, prayerTopicDTO } =
     usePrayerLinking(updatedPrayerPoint);
 
+  // const handlePrayerLinkingOnChangeAndPassTitle = (
+  //   selectedPrayer: LinkedPrayerEntity,
+  //   title?: string,
+  // ) => {
+  //   handlePrayerLinkingOnChange(selectedPrayer, title);
+  //   onSubmitLocal?.(updatedPrayerPoint, {
+  //     prayerPoint: updatedPrayerPoint,
+  //     prayerPointEmbedding: embedding,
+  //     originPrayer: selectedPrayer,
+  //     topicTitle: title,
+  //   } as LinkedPrayerPointPair);
+  // };
+
   const handleSubmit = async () => {
     setPrivacy('private');
     setIsSubmissionLoading(true);
@@ -170,7 +187,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
             prayer={updatedPrayerPoint}
           />
 
-          {similarPrayers.length > 0 && (
+          {(similarPrayers.length > 0 || updatedPrayerPoint.linkedTopics) && (
             <PrayerPointLinking
               editMode={EditMode.CREATE}
               similarPrayers={similarPrayers}

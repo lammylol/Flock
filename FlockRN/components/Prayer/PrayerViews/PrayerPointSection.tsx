@@ -1,6 +1,6 @@
 // PrayerPointSection.tsx
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
 import { Colors } from 'constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { PrayerPoint } from '@/types/firebase';
@@ -26,6 +26,7 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
   const [isEditMode, setEditMode] = useState(false);
   const [updatedPrayerPoints, setUpdatedPrayerPoints] = useState(prayerPoints);
   const borderColor = useThemeColor({}, 'borderPrimary');
+  const textColor = useThemeColor({}, 'textSecondary');
 
   useMemo(() => {
     setUpdatedPrayerPoints(prayerPoints);
@@ -44,6 +45,17 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
     onChange?.(prayerPointsFiltered);
   };
 
+  const groupedPrayerPoints = updatedPrayerPoints.reduce<
+    Record<string, PrayerPoint[]>
+  >((acc, prayerPoint) => {
+    const topic = Array.isArray(prayerPoint.linkedTopics)
+      ? `#${prayerPoint.linkedTopics.map((t) => t.title).join(', ')}`
+      : '';
+    if (!acc[topic]) acc[topic] = [];
+    acc[topic].push(prayerPoint);
+    return acc;
+  }, {});
+
   return prayerPoints.length > 0 ? (
     <ThemedView style={[styles.prayerPointsContainer, { borderColor }]}>
       <View style={styles.titleHeader}>
@@ -61,26 +73,34 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
           </TouchableOpacity>
         )}
       </View>
-      {updatedPrayerPoints.map((prayerPoint: PrayerPoint, index) => (
-        <EditablePrayerCard
-          key={prayerPoint.id}
-          prayer={prayerPoint}
-          editable={isPrayerCardsEditable}
-          onDelete={() => handleDelete(prayerPoint.id)}
-          onChange={(updatedPrayerPoint) => {
-            const updatedData = updatedPrayerPoints.map((point) =>
-              point.id === prayerPoint.id ? updatedPrayerPoint : point,
-            );
-            setUpdatedPrayerPoints(updatedData);
-            onChange?.(updatedData);
-            // handle prayer point update: need to ensure that this prayer can pass forward any changes
-            // editable prayer card should be able to navigate to an editable prayer point screen where you can link.
-            // linking prayer points should update back up to the hook.
-          }}
-          maxLines={3}
-          index={index.valueOf()}
-        />
-      ))}
+      {Object.entries(groupedPrayerPoints).map(
+        ([topic, points], groupIndex) => (
+          <View key={topic} style={styles.innerContainer}>
+            {topic && <Text style={styles.topicHeader}>{topic}</Text>}
+            {groupIndex >= 0 && topic && (
+              <View style={[styles.divider, { backgroundColor: textColor }]} />
+            )}
+            {points.map((prayerPoint: PrayerPoint, index) => (
+              <EditablePrayerCard
+                key={prayerPoint.id}
+                prayer={prayerPoint}
+                editable={isPrayerCardsEditable}
+                onDelete={() => handleDelete(prayerPoint.id)}
+                onChange={(updatedPrayerPoint) => {
+                  const updatedData = updatedPrayerPoints.map((point) =>
+                    point.id === prayerPoint.id ? updatedPrayerPoint : point,
+                  );
+                  setUpdatedPrayerPoints(updatedData);
+                  onChange?.(updatedData);
+                }}
+                maxLines={3}
+                index={index}
+              />
+            ))}
+            {topic && <View style={styles.spacer} />}
+          </View>
+        ),
+      )}
     </ThemedView>
   ) : (
     <ThemedView
@@ -99,6 +119,12 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
 };
 
 const styles = StyleSheet.create({
+  divider: {
+    backgroundColor: Colors.light.textPrimary,
+    height: 1,
+    marginVertical: 0,
+    width: '100%',
+  },
   editButton: {
     alignItems: 'center',
     backgroundColor: Colors.light.textPrimary,
@@ -116,6 +142,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  innerContainer: {
+    gap: 10,
+  },
   prayerPointsContainer: {
     borderRadius: 15,
     borderWidth: 1.5,
@@ -132,6 +161,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  topicHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 5,
+  },
+  spacer: {
+    height: 3,
+    width: '100%',
   },
 });
 

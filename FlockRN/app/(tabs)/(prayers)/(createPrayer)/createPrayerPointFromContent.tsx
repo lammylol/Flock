@@ -1,8 +1,9 @@
 import PrayerPointEditor from '@/components/Prayer/PrayerEdit/PrayerPointEditor';
 import { EditMode, LinkedPrayerPointPair } from '@/types/ComponentProps';
 import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
-import { PrayerPoint } from '@/types/firebase';
+import { LinkedTopicInPrayerDTO, PrayerPoint } from '@/types/firebase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { uniqueId } from 'lodash';
 
 const PrayerPointMetadataFromPrayerScreen = () => {
   const params = useLocalSearchParams() as {
@@ -22,14 +23,37 @@ const PrayerPointMetadataFromPrayerScreen = () => {
     prayerPoint: PrayerPoint,
     linkedPrayerPair?: LinkedPrayerPointPair,
   ) => {
-    if (linkedPrayerPair) {
-      addLinkedPrayerPairs(linkedPrayerPair);
+    let updatedPoint = { ...prayerPoint };
+
+    if (
+      (linkedPrayerPair?.topicTitle &&
+        Array.isArray(updatedPoint.linkedTopics)) ||
+      !updatedPoint.linkedTopics
+    ) {
+      const topicTitle = linkedPrayerPair?.topicTitle;
+
+      const exists = updatedPoint.linkedTopics?.some(
+        (item) => item.title === topicTitle,
+      );
+
+      updatedPoint.linkedTopics = exists
+        ? updatedPoint.linkedTopics?.filter((item) => item.title !== topicTitle)
+        : [
+          ...(updatedPoint.linkedTopics || []),
+          { id: uniqueId(), title: topicTitle } as LinkedTopicInPrayerDTO,
+        ];
     }
 
-    const updatedPoint = prayerPoint as PrayerPoint;
+    if (linkedPrayerPair) {
+      addLinkedPrayerPairs({
+        ...linkedPrayerPair,
+        prayerPoint: updatedPoint, // ensures consistency
+      });
+    }
+
     updatePrayerPoints(updatedPoint);
-    router.back(); // or pass data to parent
-    // alternatively use a context or shared state to collect results
+    console.log('Updated prayer point:', updatedPoint);
+    router.back();
   };
 
   return (
