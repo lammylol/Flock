@@ -21,7 +21,6 @@ export function useSimilarPrayers(
     const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
     if (!input || !user?.uid) return;
 
-    console.log('Fetching new embedding');
     const currentEmbedding = await openAiService.getVectorEmbeddings(input);
     // In the future, we can have a check to see if the context of prayer point has materially changed.
     // If it has, we can fetch a new embedding. If not, we can use the existing one.

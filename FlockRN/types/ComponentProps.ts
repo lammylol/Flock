@@ -19,6 +19,7 @@ export interface PrayerCardButtonProps {
 
 export type LinkedPrayerPointPair = {
   prayerPoint: PrayerPoint;
-  originPrayer: PrayerPoint | null;
-  topicTitle?: string;
+  prayerPointEmbedding?: number[] | null;
+  originPrayer?: PrayerPoint | null;
+  topicTitle?: string | null;
 };

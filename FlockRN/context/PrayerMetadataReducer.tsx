@@ -1,5 +1,9 @@
 import { LinkedPrayerPointPair, EditMode } from '@/types/ComponentProps';
-import { Prayer, PrayerPoint } from '@/types/firebase';
+import {
+  PartialLinkedPrayerEntity,
+  Prayer,
+  PrayerPoint,
+} from '@/types/firebase';
 import { EntityType } from '@/types/PrayerSubtypes';
 
 // types/PrayerMetadataReducer.ts
@@ -7,12 +11,10 @@ type PrayerMetadataAction =
   | { type: 'SET_PRAYER'; payload: Prayer }
   | { type: 'UPDATE_PRAYER'; payload: Partial<Prayer> }
   | { type: 'SET_PRAYER_POINTS'; payload: PrayerPoint[] }
-  | {
-    type: 'UPDATE_PRAYER_POINT_AT_INDEX';
-    payload: { index: number; point: PrayerPoint };
-  }
+  | { type: 'UPDATE_PRAYER_POINT'; payload: PrayerPoint }
   | { type: 'SET_LINKED_PAIRS'; payload: LinkedPrayerPointPair[] }
   | { type: 'ADD_LINKED_PAIR'; payload: LinkedPrayerPointPair }
+  | { type: 'SET_SIMILAR_PRAYERS'; payload: PartialLinkedPrayerEntity[] }
   | { type: 'SET_EDIT_MODE'; payload: EditMode }
   | { type: 'RESET' };
 
@@ -21,11 +23,12 @@ interface PrayerMetadataState {
   prayerPoints: PrayerPoint[];
   linkedPrayerPairs: LinkedPrayerPointPair[];
   editMode: EditMode;
+  similarPrayers: PartialLinkedPrayerEntity[];
 }
 
 const initialState: PrayerMetadataState = {
   prayer: {
-    id: '',
+    id: '', // only temporary
     title: '',
     content: '',
     tags: [],
@@ -40,6 +43,7 @@ const initialState: PrayerMetadataState = {
   prayerPoints: [],
   linkedPrayerPairs: [],
   editMode: EditMode.EDIT,
+  similarPrayers: [],
 };
 
 function reducer(
@@ -47,6 +51,8 @@ function reducer(
   action: PrayerMetadataAction,
 ): PrayerMetadataState {
   switch (action.type) {
+    case 'SET_PRAYER':
+      return { ...state, prayer: action.payload };
     case 'UPDATE_PRAYER':
       return {
         ...state,
@@ -59,12 +65,13 @@ function reducer(
       };
     case 'SET_PRAYER_POINTS':
       return { ...state, prayerPoints: action.payload };
-    case 'UPDATE_PRAYER_POINT_AT_INDEX': {
-      const updatedPoints = [...state.prayerPoints];
-      updatedPoints[action.payload.index] = action.payload.point;
+    case 'UPDATE_PRAYER_POINT': {
+      console.log('Updating prayer point:', action.payload);
       return {
         ...state,
-        prayerPoints: updatedPoints,
+        prayerPoints: state.prayerPoints.map((p) =>
+          p.id === action.payload.id ? { ...p, ...action.payload } : p,
+        ),
       };
     }
     case 'SET_LINKED_PAIRS':
@@ -79,6 +86,23 @@ function reducer(
           ),
           newPair,
         ],
+      };
+    case 'SET_SIMILAR_PRAYERS':
+      const similarPrayers = action.payload;
+      return {
+        ...state,
+        prayerPoints: state.prayerPoints.map((point) => {
+          // Find the similar prayers based on the id of the prayer point
+          const matches = similarPrayers.filter((p) => p.id === point.id);
+
+          // Return a new prayer point with similarPrayers added in the ui field
+          return {
+            ...point,
+            ui: {
+              similarPrayers: matches, // Add the matched prayers to the ui field
+            },
+          };
+        }),
       };
     case 'SET_EDIT_MODE':
       return { ...state, editMode: action.payload };

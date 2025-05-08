@@ -18,7 +18,7 @@ import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
 import { Entypo } from '@expo/vector-icons';
 import { prayerTagDisplayNames, prayerTags } from '@/types/Tag';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { getEntityType } from '@/types/typeGuards';
 import { getPrayerType } from '@/utils/prayerUtils';
 import { router } from 'expo-router';
@@ -46,10 +46,10 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   children,
   showContent = true,
   maxLines,
-  index,
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
   const maxLinesValue = maxLines ?? 1;
+  const isEditMode = false; // temporarily set to false until we update prayer cards.
 
   const { prayerType, entityType } = useMemo(
     () => ({
@@ -63,7 +63,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   const isPrayerPoint = entityType === EntityType.PrayerPoint;
   const isPrayerTopic = entityType === EntityType.PrayerTopic;
   const isPrayer = entityType === EntityType.Prayer;
-  const [isEditMode, setEditMode] = useState(false);
+  // const [isEditMode, setEditMode] = useState(false);
 
   const triggerChange = (partial: PartialLinkedPrayerEntity) => {
     if (!onChange) return;
@@ -91,7 +91,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
       pathname: '/(tabs)/(prayers)/(createPrayer)/createPrayerPointFromContent',
       params: {
         editMode: EditMode.EDIT,
-        index: index,
+        id: prayer.id,
       },
     });
   };

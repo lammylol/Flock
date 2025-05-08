@@ -10,11 +10,7 @@ import { router, Stack } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import {
-  FlatPrayerTopicDTO,
-  LinkedPrayerEntity,
-  PrayerPoint,
-} from '@/types/firebase';
+import { FlatPrayerTopicDTO, PrayerPoint } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
@@ -24,10 +20,10 @@ import { EditMode, LinkedPrayerPointPair } from '@/types/ComponentProps';
 import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
 import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
 import useFormState from '@/hooks/useFormState';
-import { prayerLinkingService } from '@/services/prayer/prayerLinkingService';
 import { submitOperationsService } from '@/services/prayer/submitOperationsService';
 import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 import { auth } from '@/firebase/firebaseConfig';
+import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 
 interface PrayerPointEditorProps {
   editMode: EditMode;
@@ -42,6 +38,8 @@ interface PrayerPointEditorProps {
 
 export default function PrayerPointEditor(props: PrayerPointEditorProps) {
   const { editMode, id, shouldPersist, initialContent, onSubmitLocal } = props;
+  const { updateCollection } = usePrayerCollection();
+
   const user = auth.currentUser;
   if (!user) {
     throw new Error('User is not authenticated');
@@ -110,6 +108,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
     if (!shouldPersist) {
       const linkedPair = {
         prayerPoint: updatedPrayerPoint,
+        prayerPointEmbedding: embedding,
         originPrayer: originPrayer as PrayerPoint | null,
         topicTitle: prayerTopicDTO?.title,
       };
@@ -119,19 +118,22 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
     }
 
     try {
-      submitOperationsService.submitPrayerPointWithEmbeddingsAndLinking({
-        formState,
-        prayerPoint: updatedPrayerPoint,
-        originPrayer: originPrayer as PrayerPoint | undefined,
-        prayerTopicDTO: prayerTopicDTO as FlatPrayerTopicDTO | undefined,
-        user,
-        embedding,
-        handlePrayerPointUpdate,
-      });
-      // updateCollection(
-      //   { ...updatedPrayerPoint, ...updateData } as PrayerPoint,
-      //   'prayerPoint',
-      // );
+      const newPrayerPoint =
+        await submitOperationsService.submitPrayerPointWithEmbeddingsAndLinking(
+          {
+            formState,
+            prayerPoint: updatedPrayerPoint,
+            originPrayer: originPrayer as PrayerPoint | undefined,
+            prayerTopicDTO: prayerTopicDTO as FlatPrayerTopicDTO | undefined,
+            user,
+            embedding,
+          },
+        );
+
+      updateCollection(
+        { ...updatedPrayerPoint, ...newPrayerPoint } as PrayerPoint,
+        'prayerPoint',
+      );
       router.replace('/(tabs)/(prayers)');
       router.dismissAll();
     } catch (error) {

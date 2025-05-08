@@ -1,12 +1,11 @@
 // PrayerCreationContext.tsx
+import { createContext, useContext, ReactNode, useReducer } from 'react';
 import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useReducer,
-} from 'react';
-import { Prayer, PrayerPoint, UpdatePrayerDTO } from '@/types/firebase';
+  PartialLinkedPrayerEntity,
+  Prayer,
+  PrayerPoint,
+  UpdatePrayerDTO,
+} from '@/types/firebase';
 import { EditMode, LinkedPrayerPointPair } from '@/types/ComponentProps';
 import { auth } from '@/firebase/firebaseConfig';
 import { prayerService } from '@/services/prayer/prayerService';
@@ -34,8 +33,10 @@ interface PrayerMetadataContextType {
     onFailure?: () => void,
   ) => Promise<void>;
   handlePrayerUpdate: (data: Partial<Prayer>) => void;
-  updatePrayerPoints: (index: number, point: PrayerPoint) => void;
+  updatePrayerPoints: (point: PrayerPoint) => void;
   reset: () => void;
+  setSimilarPrayers: (data: PartialLinkedPrayerEntity[]) => void;
+  similarPrayers: PartialLinkedPrayerEntity[];
 }
 
 const PrayerMetadataContext = createContext<
@@ -50,19 +51,13 @@ export const PrayerMetadataContextProvider = ({
   const [state, dispatch] = useReducer(reducer, initialState);
   const { userPrayers, updateCollection } = usePrayerCollection();
   const user = auth.currentUser;
-  const [prayer, setPrayer] = useState<Prayer>({
-    id: '',
-    title: '',
-    content: '',
-    tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    authorName: 'unknown',
-    authorId: 'unknown',
-    privacy: 'private',
-    prayerPoints: [],
-    entityType: EntityType.Prayer,
-  });
+
+  const setPrayer = (p: Prayer) => {
+    dispatch({
+      type: 'SET_PRAYER',
+      payload: { ...p, entityType: EntityType.Prayer },
+    });
+  };
 
   const handlePrayerUpdate = (data: Partial<Prayer>) => {
     dispatch({
@@ -93,7 +88,7 @@ export const PrayerMetadataContextProvider = ({
 
     const prayerData = {
       content: data.content,
-      privacy: data.privacy,
+      privacy: data.privacy ?? 'private',
       tags: [],
       authorId: auth.currentUser!.uid,
       authorName: auth.currentUser!.displayName ?? 'Unknown',
@@ -108,11 +103,11 @@ export const PrayerMetadataContextProvider = ({
   const updatePrayer = async (data: Prayer) => {
     const updateData: UpdatePrayerDTO = {
       content: data.content,
-      privacy: prayer?.privacy,
+      privacy: state.prayer?.privacy ?? 'private',
     };
     await prayerService.updatePrayer(data.id, updateData);
 
-    updateCollection({ ...prayer, ...updateData } as Prayer, 'prayer');
+    updateCollection({ ...state.prayer, ...updateData } as Prayer, 'prayer');
     console.log('Success', 'Prayer updated successfully');
   };
 
@@ -151,14 +146,18 @@ export const PrayerMetadataContextProvider = ({
     dispatch({ type: 'ADD_LINKED_PAIR', payload: data });
   };
 
+  const setSimilarPrayers = (data: PartialLinkedPrayerEntity[]) => {
+    dispatch({ type: 'SET_SIMILAR_PRAYERS', payload: data });
+  };
+
   const setEditMode = (mode: EditMode) => {
     dispatch({ type: 'SET_EDIT_MODE', payload: mode });
   };
 
-  const updatePrayerPoints = (index: number, point: PrayerPoint) => {
+  const updatePrayerPoints = (point: PrayerPoint) => {
     dispatch({
-      type: 'UPDATE_PRAYER_POINT_AT_INDEX',
-      payload: { index, point },
+      type: 'UPDATE_PRAYER_POINT',
+      payload: point,
     });
   };
 
@@ -173,6 +172,7 @@ export const PrayerMetadataContextProvider = ({
         prayerPoints: state.prayerPoints,
         linkedPrayerPairs: state.linkedPrayerPairs,
         editMode: state.editMode,
+        similarPrayers: state.similarPrayers,
         loadPrayer,
         updatePrayer,
         createPrayer,
@@ -185,6 +185,7 @@ export const PrayerMetadataContextProvider = ({
         setEditMode,
         addLinkedPrayerPairs,
         updatePrayerPoints,
+        setSimilarPrayers,
       }}
     >
       {children}

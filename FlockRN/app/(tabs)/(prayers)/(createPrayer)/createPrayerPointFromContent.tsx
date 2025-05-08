@@ -6,14 +6,15 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const PrayerPointMetadataFromPrayerScreen = () => {
   const params = useLocalSearchParams() as {
-    index: string;
+    id: string;
   };
 
   const { prayerPoints, updatePrayerPoints, addLinkedPrayerPairs } =
     usePrayerMetadataContext();
 
-  const index = parseInt(params.index, 10);
-  const prayerPoint = prayerPoints[index] as Partial<PrayerPoint>;
+  const prayerPoint = prayerPoints.find(
+    (point) => point.id === params.id,
+  ) as Partial<PrayerPoint>;
 
   const router = useRouter();
 
@@ -25,14 +26,8 @@ const PrayerPointMetadataFromPrayerScreen = () => {
       addLinkedPrayerPairs(linkedPrayerPair);
     }
 
-    console.log(
-      'linkedPrayerPair',
-      linkedPrayerPair?.originPrayer?.id,
-      linkedPrayerPair?.prayerPoint.id,
-      linkedPrayerPair?.topicTitle,
-    );
     const updatedPoint = prayerPoint as PrayerPoint;
-    updatePrayerPoints(index, updatedPoint);
+    updatePrayerPoints(updatedPoint);
     router.back(); // or pass data to parent
     // alternatively use a context or shared state to collect results
   };

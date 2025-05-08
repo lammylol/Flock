@@ -10,7 +10,6 @@ import { User } from 'firebase/auth';
 import { prayerLinkingService } from './prayerLinkingService';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
 import { deleteField } from 'firebase/firestore';
 import { prayerPointService } from './prayerPointService';
 
@@ -28,10 +27,10 @@ export interface ISubmitOperationsService {
   }: {
     formState: { isEditMode: boolean };
     prayerPoint: PrayerPoint;
-    originPrayer?: PrayerPoint;
-    prayerTopicDTO?: FlatPrayerTopicDTO;
+    originPrayer?: LinkedPrayerEntity | undefined;
+    prayerTopicDTO?: FlatPrayerTopicDTO | undefined;
     user: User;
-    embedding: number[];
+    embedding: number[] | undefined;
     handlePrayerPointUpdate: (p: PrayerPoint) => void;
   }) => Promise<PrayerPoint>;
 }
@@ -59,7 +58,7 @@ class SubmitOperationsService implements ISubmitOperationsService {
     const prayerPointData: CreatePrayerPointDTO = {
       title: data.title?.trim(),
       content: data.content.trim(),
-      privacy: data.privacy,
+      privacy: data.privacy ?? 'private',
       prayerType: data.prayerType,
       tags: data.tags,
       authorId: user.uid,
@@ -73,7 +72,6 @@ class SubmitOperationsService implements ISubmitOperationsService {
 
     const docRefId =
       await prayerPointService.createPrayerPoint(prayerPointData);
-    Alert.alert('Success', 'Prayer Point created successfully.');
     return docRefId;
   };
 
@@ -82,7 +80,7 @@ class SubmitOperationsService implements ISubmitOperationsService {
     const updateData: UpdatePrayerPointDTO = {
       title: data.title?.trim(),
       content: data.content,
-      privacy: data.privacy,
+      privacy: data.privacy ?? 'private',
       tags: data.tags,
       prayerType: data.prayerType,
       status: data.status,
@@ -91,7 +89,6 @@ class SubmitOperationsService implements ISubmitOperationsService {
         data.linkedTopics == null ? deleteField() : data.linkedTopics,
     };
     await prayerPointService.updatePrayerPoint(data.id, updateData);
-    Alert.alert('Success', 'Prayer Point updated successfully');
   };
 
   submitPrayerPointWithEmbeddingsAndLinking = async ({
@@ -101,15 +98,14 @@ class SubmitOperationsService implements ISubmitOperationsService {
     prayerTopicDTO,
     user,
     embedding,
-    handlePrayerPointUpdate,
   }: {
     formState: { isEditMode: boolean };
     prayerPoint: PrayerPoint;
-    originPrayer?: PrayerPoint;
-    prayerTopicDTO?: FlatPrayerTopicDTO;
+    originPrayer?: LinkedPrayerEntity | undefined;
+    prayerTopicDTO?: FlatPrayerTopicDTO | undefined;
     user: User;
-    embedding: number[];
-    handlePrayerPointUpdate: (p: PrayerPoint) => void;
+    embedding?: number[] | undefined;
+    // handlePrayerPointUpdate: (p: PrayerPoint) => void;
   }): Promise<PrayerPoint> => {
     try {
       let finalPrayerPoint: PrayerPoint | undefined;
@@ -129,16 +125,16 @@ class SubmitOperationsService implements ISubmitOperationsService {
         topicId = result.topicId;
       }
 
-      if (finalPrayerPoint) {
-        handlePrayerPointUpdate(finalPrayerPoint);
-      }
+      // if (finalPrayerPoint) {
+      //   handlePrayerPointUpdate(finalPrayerPoint);
+      // }
 
       const mergedPrayerPoint = finalPrayerPoint
         ? finalPrayerPoint
         : {
-          ...prayerPoint,
-          embedding,
-        };
+            ...prayerPoint,
+            embedding,
+          };
 
       let prayerId = mergedPrayerPoint.id;
 
