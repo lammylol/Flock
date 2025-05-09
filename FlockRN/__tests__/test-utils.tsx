@@ -1,7 +1,6 @@
 // __tests__/test-utils.tsx
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
 
 // Types for mock data
 export interface MockPrayer {
@@ -18,15 +17,14 @@ export interface MockPrayer {
   [key: string]: unknown; // Use 'unknown' instead of 'any'
 }
 
-// Wrap components with navigation container for testing
+// We'll use a simpler approach without the NavigationContainer
+// to avoid the unmounting issues
 export function renderWithNavigation(
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>,
 ) {
+  // Use a simple div wrapper instead of NavigationContainer
   return render(ui, {
-    wrapper: ({ children }) => (
-      <NavigationContainer>{children}</NavigationContainer>
-    ),
     ...options,
   });
 }

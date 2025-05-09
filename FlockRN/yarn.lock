@@ -4931,6 +4931,11 @@ expo-dev-menu@6.0.25:
   dependencies:
     expo-dev-menu-interface "1.9.3"
 
+expo-doctor@^1.13.3:
+  version "1.13.3"
+  resolved "https://registry.yarnpkg.com/expo-doctor/-/expo-doctor-1.13.3.tgz#ac7b558272cc1dc8638167bfe05199ab5bde4cbf"
+  integrity sha512-jkVAYdByZf15LCIdumHa/VP9KijFDfeq9gdXD+A2koG8J9ITCKsXXevu2rS1Ibo+YwIkFXu9ovLcB1A/y3kkow==
+
 expo-file-system@~18.0.12:
   version "18.0.12"
   resolved "https://registry.npmjs.org/expo-file-system/-/expo-file-system-18.0.12.tgz"

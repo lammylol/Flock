@@ -1,3 +1,11 @@
+import { ThemedText } from '@/components/ThemedText';
+import {
+  AnyPrayerEntity,
+  PartialLinkedPrayerEntity,
+  Prayer,
+  PrayerPoint,
+  PrayerTopic,
+} from '@/types/firebase';
 import {
   StyleSheet,
   TextInput,
@@ -6,11 +14,9 @@ import {
   useColorScheme,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { ThemedText } from '@/components/ThemedText';
 import { IconBackgroundSquare } from '@/components/ui/IconBackgroundSquare';
 import { Entypo } from '@expo/vector-icons';
 import { prayerTagDisplayNames, prayerTags } from '@/types/Tag';
-import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
 import { useMemo } from 'react';
 import { getEntityType } from '@/types/typeGuards';
@@ -18,11 +24,13 @@ import { getPrayerType } from '@/utils/prayerUtils';
 import { router } from 'expo-router';
 
 interface EditablePrayerCardProps {
-  prayer: Prayer | PrayerPoint | PrayerTopic;
+  prayer: AnyPrayerEntity;
   editable?: boolean;
   onDelete?: () => void;
   onChange?: (updated: PrayerPoint) => void;
+  isDisabled?: boolean;
   children?: React.ReactNode;
+  showContent?: boolean;
   maxLines?: number;
 }
 
@@ -31,8 +39,10 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   editable,
   onDelete,
   onChange,
+  isDisabled,
   children,
-  maxLines = 1,
+  showContent = true,
+  maxLines,
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
   const maxLinesValue = maxLines ?? 1;
@@ -50,9 +60,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   const isPrayerTopic = entityType === EntityType.PrayerTopic;
   const isPrayer = entityType === EntityType.Prayer;
 
-  const triggerChange = (
-    partial: Partial<PrayerPoint> | Partial<PrayerTopic>,
-  ) => {
+  const triggerChange = (partial: PartialLinkedPrayerEntity) => {
     if (!onChange) return;
     onChange({ ...prayer, ...partial } as PrayerPoint);
   };
@@ -125,7 +133,8 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
         styles.container,
         { backgroundColor: Colors[colorScheme].background },
       ]}
-      onPress={handlePress}
+      onPress={!isDisabled ? handlePress : undefined}
+      activeOpacity={isDisabled ? 1 : 0.7} // disable opacity change when disabled
     >
       <View style={styles.headerContainer}>
         {!isPrayer && (
@@ -178,9 +187,15 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
                   { color: Colors[colorScheme].textSecondary },
                 ]}
               >
-                {prayerType &&
-                  (prayerTagDisplayNames[prayerType]?.charAt(0).toUpperCase() ??
-                    '') + (prayerTagDisplayNames[prayerType]?.slice(1) ?? '')}
+                {isPrayerPoint && prayerType && (
+                  <ThemedText>
+                    {prayerTagDisplayNames[prayerType]
+                      ?.charAt(0)
+                      .toUpperCase() +
+                      prayerTagDisplayNames[prayerType]?.slice(1)}
+                  </ThemedText>
+                )}
+                {isPrayerTopic && <ThemedText>{'#topic'}</ThemedText>}
               </ThemedText>
             )
           )}
@@ -207,7 +222,8 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
           multiline
         />
       ) : (
-        prayer.content && (
+        prayer.content &&
+        showContent && (
           <ThemedText style={styles.contentText} numberOfLines={maxLinesValue}>
             {prayer.content}
           </ThemedText>
@@ -224,6 +240,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 10,
     width: '100%',
+    alignSelf: 'stretch',
   },
   headerContainer: {
     flexDirection: 'row',

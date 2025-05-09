@@ -2,12 +2,12 @@ import { ThemedView } from '@/components/ThemedView';
 import Button from '@/components/Button';
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
+import { AnyPrayerEntity } from '@/types/firebase';
 import { PrayerCardButtonProps } from '@/types/ComponentProps';
 import EditablePrayerCard from './PrayerCard';
 
 export interface PrayerCardWithButtonProps {
-  prayer: Prayer | PrayerPoint | PrayerTopic;
+  prayer: AnyPrayerEntity;
   button1: PrayerCardButtonProps;
   button2?: PrayerCardButtonProps;
 }
@@ -25,8 +25,9 @@ export default function PrayerCardWithButtons({
           onPress={button1.onPress}
           size="s"
           flex={1}
-          textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+          textProps={{ fontSize: 14, fontWeight: button1.fontWeight }}
           backgroundColor={Colors.grey1}
+          endIcon={button1.icon}
         />
         {button2 && (
           <Button
@@ -34,8 +35,9 @@ export default function PrayerCardWithButtons({
             onPress={button2.onPress}
             size="s"
             flex={1}
-            textProps={{ fontSize: 14, fontWeight: 'semibold' }}
+            textProps={{ fontSize: 14, fontWeight: button2.fontWeight }}
             backgroundColor={Colors.brown1}
+            endIcon={button2.icon}
           />
         )}
       </ThemedView>

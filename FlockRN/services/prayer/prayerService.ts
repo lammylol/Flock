@@ -18,6 +18,7 @@ import {
   QueryDocumentSnapshot,
   DocumentData,
   CollectionReference,
+  Firestore,
 } from 'firebase/firestore';
 import { db } from '../../firebase/firebaseConfig';
 import {
@@ -25,29 +26,34 @@ import {
   PrayerPoint,
   CreatePrayerDTO,
   UpdatePrayerDTO,
-  CreatePrayerPointDTO,
-  UpdatePrayerPointDTO,
   PrayerTopic,
-  CreatePrayerTopicDTO,
+  PartialLinkedPrayerEntity,
 } from '@/types/firebase';
-import { PrayerType, EntityType } from '@/types/PrayerSubtypes';
+import { EntityType } from '@/types/PrayerSubtypes';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
-import { User } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getApp } from 'firebase/app';
 import { getEntityType } from '@/types/typeGuards';
 
-class PrayerService {
-  private prayersCollection = collection(db, FirestoreCollections.PRAYERS);
-  private prayerPointsCollection = collection(
-    db,
-    FirestoreCollections.PRAYERPOINTS,
-  );
-  private feedsCollection = collection(db, FirestoreCollections.FEED);
-  private prayerTopicsCollection = collection(
-    db,
-    FirestoreCollections.PRAYERTOPICS,
-  );
+export interface IPrayerService {
+  createPrayer(data: CreatePrayerDTO): Promise<string>;
+  getPrayer(prayerId: string): Promise<Prayer | null>;
+  getUserPrayers(userId: string): Promise<Prayer[]>;
+  updatePrayer(prayerId: string, data: UpdatePrayerDTO): Promise<void>;
+  deletePrayer(prayerId: string, authorId: string): Promise<void>;
+  findRelatedPrayers(
+    embedding: number[],
+    userId: string,
+    sourcePrayerId?: string,
+    topK?: number,
+  ): Promise<PartialLinkedPrayerEntity[] | []>;
+}
+class PrayerService implements IPrayerService {
+  private prayersCollection: CollectionReference<DocumentData>;
+  constructor(db: Firestore) {
+    // Initialize the prayers collection reference
+    this.prayersCollection = collection(db, FirestoreCollections.PRAYERS);
+  }
 
   // ===== Prayer CRUD operations =====
   async createPrayer(data: CreatePrayerDTO): Promise<string> {
@@ -179,377 +185,6 @@ class PrayerService {
     }
   }
 
-  // Add a list of prayer points, then return the list of prayer IDs.
-  async addPrayerPoints(
-    prayerPoints: CreatePrayerPointDTO[],
-  ): Promise<string[]> {
-    const now = Timestamp.now();
-
-    try {
-      // Map prayerPoints to Firestore write promises
-      const writePromises = prayerPoints.map(async (point) => {
-        const docRef = await addDoc(this.prayerPointsCollection, {
-          ...point, // Use the actual prayer point data
-          createdAt: now,
-          updatedAt: now,
-          entityType: EntityType.PrayerPoint,
-        });
-
-        // After the document is created, update it with the generated ID
-        await updateDoc(docRef, { id: docRef.id });
-
-        return docRef.id;
-      });
-
-      // Wait for all Firestore writes to complete
-      return await Promise.all(writePromises);
-    } catch (error) {
-      console.error('Error adding prayer points:', error);
-      throw error;
-    }
-  }
-
-  // ===== Prayer Point CRUD operations =====
-
-  async createPrayerPoint(data: CreatePrayerPointDTO): Promise<string> {
-    try {
-      const now = Timestamp.now();
-
-      const docRef = await addDoc(this.prayerPointsCollection, {
-        ...data,
-        createdAt: now,
-        updatedAt: now,
-        entityType: EntityType.PrayerPoint,
-      });
-
-      // After the document is created, update it with the generated ID
-      await updateDoc(docRef, { id: docRef.id });
-
-      // If prayer is public, add to author's feed
-      if (data.privacy === 'public') {
-        const feedPrayerRef = doc(
-          db,
-          FirestoreCollections.FEED,
-          data.authorId,
-          FirestoreCollections.PRAYERPOINTS,
-          docRef.id,
-        );
-        await setDoc(feedPrayerRef, {
-          id: docRef.id,
-          addedAt: now,
-        });
-      }
-
-      return docRef.id;
-    } catch (error) {
-      console.error('Error creating prayer:', error);
-      throw error;
-    }
-  }
-
-  async updatePrayerPoint(
-    prayerPointId: string,
-    data: UpdatePrayerPointDTO,
-  ): Promise<void> {
-    try {
-      const now = Timestamp.now();
-      const prayerPointRef = doc(this.prayerPointsCollection, prayerPointId);
-
-      // We should reconsider this if needed. Sounds like an excessive read.
-      // Get the current prayer point to check for privacy changes
-      const currentPrayerPoint = await this.getPrayerPoint(prayerPointId);
-      if (!currentPrayerPoint) {
-        throw new Error('Prayer point not found');
-      }
-
-      // Update the prayer point
-      await updateDoc(prayerPointRef, {
-        ...data,
-        updatedAt: now,
-      });
-
-      // Handle privacy changes if applicable (from public to private or vice versa)
-      if (
-        data.privacy !== undefined &&
-        data.privacy !== currentPrayerPoint.privacy
-      ) {
-        const feedRef = doc(
-          db,
-          FirestoreCollections.FEED,
-          currentPrayerPoint.authorId,
-          FirestoreCollections.PRAYERPOINTS,
-          prayerPointId,
-        );
-
-        if (data.privacy === 'public') {
-          // Add to feed if making public
-          await setDoc(feedRef, {
-            id: prayerPointId,
-            addedAt: now,
-          });
-        } else if (currentPrayerPoint.privacy === 'public') {
-          // Remove from feed if making private (and it was previously public)
-          await deleteDoc(feedRef);
-        }
-      }
-    } catch (error) {
-      console.error('Error updating prayer point:', error);
-      throw error;
-    }
-  }
-
-  async deletePrayerPoint(
-    prayerPointId: string,
-    authorId: string,
-  ): Promise<void> {
-    try {
-      // Excessive read - need to refactor and reconsider this.
-      // First get the prayer point to check if it exists
-      const prayerPoint = await this.getPrayerPoint(prayerPointId);
-      if (!prayerPoint) {
-        throw new Error('Prayer point not found');
-      }
-
-      // Check if the user is the author (this is also enforced by Firebase rules)
-      if (prayerPoint.authorId !== authorId) {
-        throw new Error('Unauthorized to delete this prayer point');
-      }
-
-      // Delete the prayer point document
-      await deleteDoc(doc(this.prayerPointsCollection, prayerPointId));
-
-      // Remove from author's feed if it was public
-      if (prayerPoint.privacy === 'public') {
-        await deleteDoc(
-          doc(
-            db,
-            FirestoreCollections.FEED,
-            authorId,
-            FirestoreCollections.PRAYERPOINTS,
-            prayerPointId,
-          ),
-        );
-      }
-
-      // If this prayer point is associated with a prayer, update that prayer
-      if (prayerPoint.prayerId) {
-        // Handle the case where prayerId could be a string or an array of strings
-        const prayerIds = Array.isArray(prayerPoint.prayerId)
-          ? prayerPoint.prayerId
-          : [prayerPoint.prayerId];
-
-        // Update each associated prayer
-        for (const id of prayerIds) {
-          const prayer = await this.getPrayer(id);
-          if (
-            prayer &&
-            prayer.prayerPoints &&
-            prayer.prayerPoints.includes(prayerPointId)
-          ) {
-            // Remove this prayer point ID from the prayer's prayerPoints array
-            const updatedPrayerPoints = prayer.prayerPoints.filter(
-              (pid) => pid !== prayerPointId,
-            );
-            await this.updatePrayer(id, {
-              prayerPoints: updatedPrayerPoints,
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting prayer point:', error);
-      throw error;
-    }
-  }
-
-  async getPrayerPoints(
-    prayerId: string,
-    user: User,
-  ): Promise<PrayerPoint[] | null> {
-    try {
-      // Query for public OR user's own prayer points
-      const q = query(
-        this.prayerPointsCollection,
-        where('prayerId', '==', prayerId),
-        // where('privacy', '==', 'public'), // Fetch only public prayer points
-        where('authorId', '==', user.uid), // OR fetch the user's own prayer points
-        orderBy('createdAt', 'desc'),
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) return null;
-
-      return querySnapshot.docs.map(
-        (doc) => this.convertDocToPrayerPoint(doc) as PrayerPoint,
-      );
-    } catch (error) {
-      console.error('Error getting prayer points:', error);
-      throw error;
-    }
-  }
-
-  async getPrayerPoint(prayerPointId: string): Promise<PrayerPoint | null> {
-    try {
-      const docRef = doc(this.prayerPointsCollection, prayerPointId);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) return null;
-
-      return this.convertDocToPrayerPoint(docSnap);
-    } catch (error) {
-      console.error('Error getting prayer points:', error);
-      throw error;
-    }
-  }
-
-  async getUserPrayerPoints(userId: string): Promise<PrayerPoint[]> {
-    try {
-      // Query for public OR user's own prayer points
-      const q = query(
-        this.prayerPointsCollection,
-        // where('privacy', '==', 'public'), // Fetch only public prayer points
-        where('authorId', '==', userId), // OR fetch the user's own prayer points
-        orderBy('createdAt', 'desc'),
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) return [];
-
-      return querySnapshot.docs.map(
-        (doc) => this.convertDocToPrayerPoint(doc) as PrayerPoint,
-      );
-    } catch (error) {
-      console.error('Error getting prayer points:', error);
-      throw error;
-    }
-  }
-
-  // Helper method to get a single prayer point by ID
-  async getPrayerPointById(prayerPointId: string): Promise<PrayerPoint | null> {
-    try {
-      const docRef = doc(this.prayerPointsCollection, prayerPointId);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) return null;
-
-      return this.convertDocToPrayerPoint(docSnap);
-    } catch (error) {
-      console.error('Error getting prayer point:', error);
-      throw error;
-    }
-  }
-
-  // ==== Prayer Topic CRUD ====
-  // Sharing is not supported for prayer topics yet.
-
-  async createPrayerTopic(data: CreatePrayerTopicDTO): Promise<string> {
-    try {
-      const now = Timestamp.now();
-
-      const docRef = await addDoc(this.prayerTopicsCollection, {
-        ...data,
-        createdAt: now,
-        updatedAt: now,
-        entityType: EntityType.PrayerTopic,
-      });
-
-      // After the document is created, update it with the generated ID
-      await updateDoc(docRef, { id: docRef.id });
-
-      // Placeholder to add to another feed later.
-
-      return docRef.id;
-    } catch (error) {
-      console.error('Error creating prayer topic:', error);
-      throw error;
-    }
-  }
-
-  //added for PrayerPoint CRUD
-  async updatePrayerTopic(
-    prayerTopicId: string,
-    data: Partial<UpdatePrayerPointDTO>,
-  ): Promise<void> {
-    try {
-      const now = Timestamp.now();
-      const prayerPointRef = doc(this.prayerTopicsCollection, prayerTopicId);
-
-      // Check if the prayer topic exists
-      const exists = await this.checkIfDocumentExists(
-        this.prayerTopicsCollection,
-        prayerTopicId,
-      );
-      if (!exists) {
-        throw new Error('Prayer topic not found');
-      }
-
-      await updateDoc(prayerPointRef, {
-        ...data,
-        updatedAt: now,
-      });
-
-      // Placeholder to add to another feed later.
-    } catch (error) {
-      console.error('Error updating prayer point:', error);
-      throw error;
-    }
-  }
-
-  async deletePrayerTopic(prayerTopicId: string): Promise<void> {
-    try {
-      // Check if the prayer topic exists
-      const exists = await this.checkIfDocumentExists(
-        this.prayerTopicsCollection,
-        prayerTopicId,
-      );
-      if (!exists) {
-        throw new Error('Prayer topic not found');
-      }
-
-      // Delete the prayer topic document
-      await deleteDoc(doc(this.prayerTopicsCollection, prayerTopicId));
-
-      // Placeholder to remove from author's feed later.
-    } catch (error) {
-      console.error('Error deleting prayer topic:', error);
-      throw error;
-    }
-  }
-
-  async getUserPrayerTopics(userId: string): Promise<PrayerTopic[]> {
-    try {
-      const q = query(
-        this.prayerTopicsCollection,
-        where('authorId', '==', userId),
-        orderBy('createdAt', 'desc'),
-      );
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) return [];
-      return querySnapshot.docs.map(
-        (doc) => this.convertDocToPrayerTopic(doc) as PrayerTopic,
-      );
-    } catch (error) {
-      console.error('Error getting user prayer topics:', error);
-      throw error;
-    }
-  }
-
-  async getPrayerTopic(id: string): Promise<PrayerTopic | null> {
-    try {
-      const docRef = doc(this.prayerTopicsCollection, id);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) return null;
-
-      return this.convertDocToPrayerTopic(docSnap);
-    } catch (error) {
-      console.error('Error getting prayer points:', error);
-      throw error;
-    }
-  }
-
   // ==== Searchable prayer =====
 
   // Search suggested prayer points
@@ -557,7 +192,8 @@ class PrayerService {
     embedding: number[],
     userId: string,
     sourcePrayerId?: string,
-  ): Promise<(Partial<PrayerPoint> | Partial<PrayerTopic>)[] | []> {
+    topK: number = 5,
+  ): Promise<PartialLinkedPrayerEntity[] | []> {
     try {
       const functions = getFunctions(getApp());
       // Ensure the function is deployed and callable
@@ -568,14 +204,14 @@ class PrayerService {
       const result = await findSimilarPrayers({
         ...(sourcePrayerId && { sourcePrayerId }),
         queryEmbedding: embedding,
-        topK: 5,
+        topK: topK,
         userId: userId,
       });
       const data = (
         result.data as {
           result: {
             id: string;
-            similarity: string;
+            similarity: number;
             title: string;
             prayerType: string;
             entityType: string;
@@ -587,6 +223,7 @@ class PrayerService {
         (prayer: {
           id: string;
           title: string;
+          similarity: number;
           prayerType: string;
           entityType: string;
         }) => {
@@ -595,19 +232,21 @@ class PrayerService {
               id: prayer.id,
               title: prayer.title,
               entityType: prayer.entityType,
-            } as Partial<PrayerTopic>;
+              similarity: prayer.similarity,
+            } as Partial<PrayerTopic> & { similarity: number };
           } else {
             return {
               id: prayer.id,
               title: prayer.title,
               prayerType: prayer.prayerType,
               entityType: prayer.entityType,
-            } as Partial<PrayerPoint>;
+              similarity: prayer.similarity,
+            } as Partial<PrayerPoint> & { similarity: number };
           }
         },
       );
     } catch (error) {
-      console.error('Error getting prayer point:', error);
+      console.error('Error getting related prayer point:', error);
       return []; // Return an empty array in case of an error
     }
   }
@@ -642,55 +281,6 @@ class PrayerService {
       entityType: data.entityType as EntityType,
     };
   }
-
-  private convertDocToPrayerPoint(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
-  ): PrayerPoint {
-    const data = docSnap.data();
-    return {
-      id: docSnap.id,
-      authorId: data.authorId,
-      authorName: data.authorName,
-      title: data.title,
-      content: data.content,
-      status: data.status,
-      privacy: data.privacy,
-      createdAt: data.createdAt as Date,
-      updatedAt: data.updatedAt as Date,
-      prayerId: data.prayerId,
-      tags: data.tags,
-      prayerType: data.prayerType as PrayerType,
-      recipientId: data.recipientId,
-      recipientName: data.recipientName,
-      isOrigin: data.isOrigin,
-      embedding: data.embedding,
-      entityType: data.entityType as EntityType,
-    };
-  }
-
-  private convertDocToPrayerTopic(
-    docSnap: QueryDocumentSnapshot<DocumentData, DocumentData>,
-  ): PrayerTopic {
-    const data = docSnap.data();
-    return {
-      id: docSnap.id,
-      authorId: data.authorId,
-      authorName: data.authorName,
-      title: data.title,
-      createdAt: data.createdAt as Date,
-      updatedAt: data.updatedAt as Date,
-      prayerTypes: data.prayerTypes as PrayerType[],
-      status: data.status,
-      privacy: data.privacy,
-      recipientId: data.recipientId,
-      recipientName: data.recipientName,
-      journey: data.journey,
-      contextAsStrings: data.contextAsStrings,
-      contextAsEmbeddings: data.contextAsEmbeddings,
-      entityType: data.entityType as EntityType,
-      content: data.content,
-    };
-  }
 }
 
-export const prayerService = new PrayerService();
+export const prayerService = new PrayerService(db);

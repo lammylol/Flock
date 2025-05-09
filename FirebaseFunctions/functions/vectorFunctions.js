@@ -115,15 +115,20 @@ export const findSimilarPrayersV2 = functions.https.onCall(
 
       // Query prayer topics. Prayer Topics do not have a prayerType.
       const querySnapshotPT = await db.collection('prayerTopics')
-        .where('embedding', '!=', null)
+        .where('contextAsEmbeddings', '!=', null)
         .where('authorId', '==', userId)
-        .select('embedding', 'title', 'entityType')
+        .select('contextAsEmbeddings', 'title', 'entityType')
         .get();
     
-      const prayerTopics = querySnapshotPT.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const prayerTopics = querySnapshotPT.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          embedding: data.contextAsEmbeddings, // renamed
+          title: data.title,
+          entityType: data.entityType,
+        };
+      });
       
       let prayerPointsAndTopics = [...prayerPoints, ...prayerTopics];
 
@@ -154,7 +159,7 @@ export const findSimilarPrayersV2 = functions.https.onCall(
         .map((prayer) => ({
           id: prayer.id,
           title: prayer.title,
-          prayerType: prayer.prayerType || null,
+          prayerType: prayer.prayerType || undefined,
           entityType: prayer.entityType,
           similarity: cosineSimilarity(queryEmbedding, prayer.embedding),
         }))

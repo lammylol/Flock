@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -7,26 +7,22 @@ import {
   View,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { prayerService } from '@/services/prayer/prayerService';
-import { auth } from '@/firebase/firebaseConfig';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import {
-  CreatePrayerPointDTO,
-  PrayerPoint,
-  PrayerTopic,
-  UpdatePrayerPointDTO,
-} from '@/types/firebase';
+import { PrayerPoint } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
 import { HeaderButton } from '@/components/ui/HeaderButton';
-import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
-import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { EntityType } from '@/types/PrayerSubtypes';
 import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
-import OpenAiService from '@/services/ai/openAIService';
 import { EditMode } from '@/types/ComponentProps';
+import { usePrayerPointHandler } from '@/hooks/prayerScreens/usePrayerPointHandler';
+import { usePrayerLinking } from '@/hooks/prayerScreens/usePrayerLinking';
+import useFormState from '@/hooks/useFormState';
+import { prayerLinkingService } from '@/services/prayer/prayerLinkingService';
+import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 
 export default function PrayerPointMetadataScreen() {
   const params = useLocalSearchParams<{
@@ -42,223 +38,106 @@ export default function PrayerPointMetadataScreen() {
   }, [params.editMode, params.id]);
 
   // State for edit mode
-  const [isEditMode, setIsEditMode] = useState(false);
-  const { userPrayerPoints, updateCollection } = usePrayerCollection();
-  const user = auth.currentUser;
-  const openAiService = OpenAiService.getInstance();
-  const [similarPrayers, setSimilarPrayers] = useState<
-    (Partial<PrayerPoint> | Partial<PrayerTopic>)[]
-  >([]);
-  const [privacy, setPrivacy] = useState<'public' | 'private'>('private');
-  const [isLoading, setIsLoading] = useState(false);
   const colorScheme = useThemeColor({}, 'backgroundSecondary');
-  const [updatedPrayerPoint, setUpdatedPrayerPoint] = useState<PrayerPoint>({
-    id: processedParams.id || '',
-    title: '',
-    content: '',
-    prayerType: PrayerType.Request,
-    tags: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    authorName: '',
-    authorId: '',
-    status: 'open',
-    isOrigin: true,
-    privacy: 'private',
-    recipientName: 'unknown',
-    recipientId: 'unknown',
-    prayerId: '',
-    entityType: EntityType.PrayerPoint,
+  const { id, editMode } = processedParams;
+
+  // All things are editable, but nothing is sent to firebase until the user clicks "Create" or "Update".
+  // That is handled in handleSubmit.
+
+  // This hook handles the prayer point creation and update logic
+  // and manages the state of the prayer point being created or edited.
+  const {
+    formState,
+    isSubmissionLoading,
+    setIsDataLoading,
+    setIsSubmissionLoading,
+    setPrivacy,
+  } = useFormState({
+    editMode: editMode,
   });
 
-  const loadPrayerPoint = useCallback(async () => {
-    // First, try to find the prayer point in context
-    const contextPrayerPoint = userPrayerPoints.find(
-      (p) => p.id === processedParams.id,
-    );
+  const {
+    updatedPrayerPoint,
+    handlePrayerPointUpdate,
+    createPrayerPoint,
+    updatePrayerPoint,
+    loadPrayerPoint,
+  } = usePrayerPointHandler({
+    id: id,
+    privacy: formState.privacy,
+  });
 
-    if (contextPrayerPoint) {
-      console.log('Found prayer point in context: ', contextPrayerPoint.id);
+  const { similarPrayers, embedding } = useSimilarPrayers(
+    updatedPrayerPoint,
+    editMode,
+  );
 
-      // Set initial data from context
-      setUpdatedPrayerPoint({
-        ...contextPrayerPoint,
-      });
-      return;
-    }
-    try {
-      const fetchedPrayer = await prayerService.getPrayerPoint(
-        processedParams.id,
-      );
-      if (fetchedPrayer) {
-        console.log('Fetched prayer from API');
-        setUpdatedPrayerPoint({
-          ...fetchedPrayer,
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching prayer point:', error);
-    }
-  }, [processedParams.id, userPrayerPoints]);
-
-  const setupEditMode = useCallback(async () => {
-    // Check if we're in edit mode from URL params
-    if (processedParams.editMode === EditMode.EDIT && processedParams.id) {
-      setIsEditMode(true);
-      loadPrayerPoint();
-    } else {
-      console.log('⭐ Create mode detected');
-      setIsEditMode(false);
-    }
-  }, [loadPrayerPoint, processedParams.editMode, processedParams.id]);
-
-  const handlePrayerPointUpdate = (updatedPrayerPointData: PrayerPoint) => {
-    setUpdatedPrayerPoint((prevPrayerPoint) => ({
-      ...prevPrayerPoint,
-      ...updatedPrayerPointData,
-      status: updatedPrayerPointData.status as PrayerPoint['status'], // Ensure status matches the expected type
-    }));
-  };
-
-  const handleFindSimilarPrayers = useCallback(async () => {
-    const input =
-      `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
-    const embedding = await openAiService.getVectorEmbeddings(input);
-
-    if (!user?.uid) {
-      return;
-    }
-
-    try {
-      const sourcePrayerId = isEditMode ? updatedPrayerPoint.id : undefined;
-
-      const similarPrayers = await prayerService.findRelatedPrayers(
-        embedding,
-        user?.uid,
-        sourcePrayerId,
-      );
-      setSimilarPrayers(similarPrayers);
-    } catch (error) {
-      console.error('Error finding similar prayers:', error);
-    }
-  }, [
-    updatedPrayerPoint.title,
-    updatedPrayerPoint.content,
-    updatedPrayerPoint.id,
-    openAiService,
-    user.uid,
-    isEditMode,
-  ]);
-
+  // setup editor state and load prayer point data
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (
-        updatedPrayerPoint.title.trim() ||
-        updatedPrayerPoint.content.trim()
-      ) {
-        handleFindSimilarPrayers();
-      }
-    }, 1000);
+    const setup = async () => {
+      setIsDataLoading(true);
+      await loadPrayerPoint();
+      setIsDataLoading(false);
+    };
+    if (formState.isEditMode) setup();
+  }, [loadPrayerPoint, formState.isEditMode, setIsDataLoading]);
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [
-    updatedPrayerPoint.title,
-    updatedPrayerPoint.content,
-    handleFindSimilarPrayers,
-  ]);
+  // This hook handles separate logic for linking prayer points and topics.
+  const { handlePrayerLinkingOnChange, linkAndSyncPrayerPoint } =
+    usePrayerLinking(updatedPrayerPoint);
 
   const handleSubmit = async () => {
-    if (!updatedPrayerPoint.title.trim()) {
-      Alert.alert('Missing Title', 'Please add a title for your prayer.');
-      return;
-    }
-
     setPrivacy('private');
-    setIsLoading(true);
+    setIsSubmissionLoading(true);
 
     try {
-      if (isEditMode && updatedPrayerPoint.id) {
-        console.log('⭐ Submitting in EDIT mode');
-        // Update existing prayer point
-        const updateData: UpdatePrayerPointDTO = {
-          title: updatedPrayerPoint.title.trim(),
-          content: updatedPrayerPoint.content,
-          privacy: privacy,
-          tags: updatedPrayerPoint.tags,
-          prayerType: updatedPrayerPoint.prayerType,
-          updatedAt: new Date(),
-          status: updatedPrayerPoint.status,
-        };
+      const { finalPrayerPoint, fullOriginPrayer, topicId } =
+        await linkAndSyncPrayerPoint({
+          isNewPrayerPoint: !formState.isEditMode,
+        });
 
-        await prayerService.updatePrayerPoint(
-          updatedPrayerPoint.id,
-          updateData,
-        );
+      if (finalPrayerPoint) {
+        handlePrayerPointUpdate(finalPrayerPoint); // Sync UI
+      }
 
-        // Update the prayer point in the collection context
-        const updatedPrayerPointFinal = {
-          ...updatedPrayerPoint,
-          ...updateData,
-          updatedAt: new Date(),
-        };
-        updateCollection(updatedPrayerPointFinal as PrayerPoint, 'prayerPoint');
+      const mergedPrayerPoint = {
+        ...updatedPrayerPoint,
+        embedding: embedding,
+        ...(finalPrayerPoint ?? {}),
+      };
 
-        Alert.alert('Success', 'Prayer Point updated successfully');
+      let prayerId = mergedPrayerPoint.id;
+
+      if (formState.isEditMode && updatedPrayerPoint.id) {
+        await updatePrayerPoint(mergedPrayerPoint);
       } else {
-        console.log('⭐ Submitting in CREATE mode');
-        let embeddingInput = updatedPrayerPoint.embedding || [];
-        if (embeddingInput.length === 0) {
-          // If no similar prayer points, generate a new embedding
-          const input =
-            `${updatedPrayerPoint.title} ${updatedPrayerPoint.content}`.trim();
-          embeddingInput = await openAiService.getVectorEmbeddings(input);
-        }
+        prayerId = await createPrayerPoint(mergedPrayerPoint);
+      }
 
-        if (!user?.uid) {
-          return;
-        }
+      if (fullOriginPrayer && topicId) {
+        await prayerLinkingService.updatePrayerTopicWithJourneyAndGetEmbeddings(
+          { ...mergedPrayerPoint, id: prayerId },
+          fullOriginPrayer,
+          topicId,
+        );
+      }
 
-        // 2. Construct prayer point data
-        const prayerPointData: CreatePrayerPointDTO = {
-          title: updatedPrayerPoint.title.trim(),
-          content: updatedPrayerPoint.content.trim(),
-          privacy: updatedPrayerPoint.privacy ?? 'private',
-          prayerType: updatedPrayerPoint.prayerType,
-          tags: updatedPrayerPoint.tags,
-          authorId: user.uid,
-          authorName: user.displayName || 'unknown',
-          status: 'open',
-          recipientName: 'unknown',
-          recipientId: 'unknown',
-          createdAt: new Date(),
-          isOrigin: true,
-          ...(embeddingInput?.length ? { embedding: embeddingInput } : {}), // Only include if it exists
-        };
-
-        // 3. Save prayer point to backend
-        await prayerService.createPrayerPoint(prayerPointData);
-        Alert.alert('Success', 'Prayer Point created successfully.');
+      // remove embedding from firebase if the origin prayer is a prayer point. must happen after context is set.
+      if (fullOriginPrayer?.entityType === EntityType.PrayerPoint) {
+        await prayerLinkingService.removeEmbeddingFromFirebase(
+          fullOriginPrayer,
+        );
       }
 
       router.replace('/(tabs)/(prayers)');
-      router.dismissAll(); // Resets navigation stack
+      router.dismissAll();
     } catch (error) {
-      console.error(
-        `⭐ Error ${isEditMode ? 'updating' : 'creating'} prayer:`,
-        error,
-      );
-      Alert.alert(
-        'Something went wrong',
-        `Failed to ${isEditMode ? 'update' : 'create'} prayer. Please try again.`,
-      );
+      console.error('Error submitting prayer point:', error);
+      Alert.alert('Something went wrong', 'Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmissionLoading(false);
     }
   };
-
-  useMemo(() => {
-    setupEditMode();
-  }, [setupEditMode]);
 
   return (
     <ThemedKeyboardAvoidingView
@@ -271,14 +150,16 @@ export default function PrayerPointMetadataScreen() {
           headerLeft: () => (
             <HeaderButton onPress={router.back} label="Cancel" />
           ),
-          title: isEditMode ? 'Edit Prayer Point' : 'Add Prayer Point',
+          title: formState.isEditMode
+            ? 'Edit Prayer Point'
+            : 'Add Prayer Point',
           headerTitleStyle: styles.headerTitleStyle,
         }}
       />
       <ThemedScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.upperContainer}>
           <PrayerContent
-            editMode={isEditMode ? EditMode.EDIT : EditMode.CREATE}
+            editMode={formState.isEditMode ? EditMode.EDIT : EditMode.CREATE}
             prayerOrPrayerPoint={EntityType.PrayerPoint}
             backgroundColor={colorScheme}
             onChange={(updatedPrayerPointData) => {
@@ -292,6 +173,7 @@ export default function PrayerPointMetadataScreen() {
               editMode={EditMode.CREATE}
               similarPrayers={similarPrayers}
               prayerPoint={updatedPrayerPoint}
+              onChange={handlePrayerLinkingOnChange}
             />
           )}
 
@@ -300,7 +182,7 @@ export default function PrayerPointMetadataScreen() {
               <ThemedText style={styles.label}>Privacy</ThemedText>
               <View style={styles.privacyValueContainer}>
                 <ThemedText style={styles.privacyValue}>
-                  {privacy === 'private' ? 'Private' : 'Public'}
+                  {formState.privacy === 'private' ? 'Private' : 'Public'}
                 </ThemedText>
               </View>
             </View>
@@ -308,18 +190,14 @@ export default function PrayerPointMetadataScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.button, isSubmissionLoading && styles.buttonDisabled]}
           onPress={handleSubmit}
-          disabled={isLoading}
+          disabled={isSubmissionLoading}
         >
           <ThemedText style={styles.buttonText}>
-            {isLoading
-              ? isEditMode
-                ? 'Updating...'
-                : 'Creating...'
-              : isEditMode
-                ? 'Update Prayer Point'
-                : 'Create Prayer Point'}
+            {isSubmissionLoading
+              ? `${formState.isEditMode ? 'Updating' : 'Creating'}...`
+              : `${formState.isEditMode ? 'Update' : 'Create'} Prayer Point`}
           </ThemedText>
         </TouchableOpacity>
       </ThemedScrollView>

@@ -1,6 +1,7 @@
 // ramon jiang
 // 1/29/25
 // set all types for Firebase
+import { FieldValue } from 'firebase/firestore';
 import {
   EntityType,
   PrayerTag,
@@ -48,60 +49,46 @@ export interface Group {
   createdAt: Date;
 }
 
-// ===== Prayer Types =====
-export interface Prayer {
+// ===== Base Type =====
+export interface BasePrayerEntity {
   id: string;
-  content: string;
   title?: string;
-  authorId: string;
-  authorName: string;
+  content: string;
   createdAt: Date;
   updatedAt: Date;
-  privacy: Privacy;
-  prayerPoints: string[];
+  authorId: string;
+  authorName: string;
+  privacy?: Privacy;
   tags?: PrayerType[];
   entityType: EntityType;
 }
 
-export interface PrayerPoint {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  authorName: string;
-  authorId: string;
+// ===== Specific Entities =====
+export interface Prayer extends BasePrayerEntity {
+  prayerPoints: string[];
+  // title is optional already in Base
+}
+
+export interface PrayerPoint extends BasePrayerEntity {
   prayerId?: string | string[];
   prayerType: PrayerType;
   tags?: PrayerType[];
+  linkedTopic?: LinkedTopicInPrayerDTO[] | FieldValue; // linked topics. id/title of topic.
   status?: Status;
-  privacy?: Privacy;
-  prayerUpdates?: [];
   recipientName?: string;
   recipientId?: string;
-  embedding?: number[];
-  isOrigin: boolean;
-  entityType: EntityType;
+  embedding?: number[] | FieldValue;
 }
 
-export interface PrayerTopic {
-  id: string;
-  title: string;
-  content: string; // summary of the prayer topic
-  createdAt: Date;
-  updatedAt: Date;
+export interface PrayerTopic extends BasePrayerEntity {
   endDate?: Date;
-  authorName: string;
-  authorId: string;
   prayerTypes?: PrayerType[];
   status?: Status;
-  privacy?: Privacy;
   recipientName?: string;
   recipientId?: string;
-  journey: PrayerPointInPrayerTopicDTO[];
-  contextAsStrings: string;
-  contextAsEmbeddings: number[];
-  entityType: EntityType;
+  journey: PrayerPointInPrayerTopicDTO[] | FieldValue; // prayer points in this topic
+  contextAsStrings: string | FieldValue; // context strings
+  contextAsEmbeddings: number[] | FieldValue; // context embeddings
 }
 
 // ===== Other Types =====
@@ -129,33 +116,43 @@ export type UpdatePrayerDTO = Partial<
 
 export type CreatePrayerPointDTO = Omit<
   PrayerPoint,
-  'id' | 'prayerId' | 'updatedAt' | 'entityType'
+  'id' | 'createdAt' | 'prayerId' | 'updatedAt' | 'entityType'
 >;
 
 export type UpdatePrayerPointDTO = Partial<
-  Omit<PrayerPoint, 'id' | 'createdAt' | 'entityType'>
+  Omit<PrayerPoint, 'id' | 'createdAt' | 'updatedAt' | 'entityType'>
 >;
 
 export type CreatePrayerTopicDTO = Omit<
   PrayerTopic,
-  'id' | 'updatedAt' | 'entityType'
+  'id' | 'createdAt' | 'updatedAt' | 'entityType' | 'endDate' | 'journey'
 >;
 
 export type UpdatePrayerTopicDTO = Partial<
-  Omit<PrayerTopic, 'id' | 'createdAt' | 'entityType'>
+  Omit<PrayerTopic, 'id' | 'createdAt' | 'updatedAt' | 'entityType' | 'endDate'>
 >;
 
 // may want to refactor this in the future if document becomes too large.
 export type PrayerPointInPrayerTopicDTO = Pick<
   PrayerPoint,
   | 'id'
-  | 'type'
+  | 'prayerType'
   | 'title'
   | 'content'
   | 'createdAt'
+  | 'authorId'
   | 'authorName'
   | 'recipientName'
 >;
+
+export type LinkedTopicInPrayerDTO = Pick<PrayerPoint, 'id' | 'title'>;
+
+export type FlatPrayerTopicDTO = CreatePrayerTopicDTO | UpdatePrayerTopicDTO;
+export type AnyPrayerEntity = PrayerTopic | PrayerPoint | Prayer;
+export type LinkedPrayerEntity = PrayerTopic | PrayerPoint;
+export type PartialLinkedPrayerEntity =
+  | (Partial<PrayerPoint> & { similarity: number })
+  | (Partial<PrayerTopic> & { similarity: number });
 
 export interface ServiceResponse {
   success: boolean;

@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { PrayerPoint, PrayerTag } from '@/types/firebase';
+import { PrayerPoint, PrayerType } from '@/types/firebase';
 import { allTags } from '@/types/Tag';
 
 // Initialize OpenAI client
@@ -11,7 +11,7 @@ const openai = new OpenAI({
 interface AIAnalysis {
   title: string;
   cleanedTranscription?: string;
-  tags: PrayerTag[];
+  tags: PrayerType[];
   prayerPoints: PrayerPoint[];
 }
 
@@ -59,8 +59,9 @@ export default class OpenAiService {
 
     const tagPrompt = `Tags: A list of up to 4 relevant tags for the prayer, selected from this list: ${allTags}`;
 
-    const prayerPointPrompt = `Prayer Points: Generate at most 3 prayer points. Each must be a type of either 'request', 'praise', or 'repentance'. 
-    Titles should include context and object with a max character limit of 10. Content should be clear and at most 50 words.`;
+    const prayerPointPrompt = `Prayer Points: Generate 1 to 5 of the most important prayer topics that were explicitly mentioned by the user, and group topics together.
+    Each must be a type of either 'request', 'praise', or 'repentance'. Titles should include context and object with a max character limit of 10.
+    Content should be clear and at most 50 words.`;
 
     const jsonFormat = `
     {

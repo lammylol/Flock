@@ -1,4 +1,10 @@
-import { Prayer, PrayerPoint, PrayerTopic } from '@/types/firebase';
+import {
+  CreatePrayerTopicDTO,
+  Prayer,
+  PrayerPoint,
+  PrayerTopic,
+  UpdatePrayerTopicDTO,
+} from '@/types/firebase';
 import { EntityType } from './PrayerSubtypes';
 
 export function getEntityType(obj: unknown): EntityType | undefined {
@@ -33,4 +39,24 @@ export function isPrayerPoint(obj: unknown): obj is PrayerPoint {
 
 export function isPrayerTopic(obj: unknown): obj is PrayerTopic {
   return getEntityType(obj) === EntityType.PrayerTopic;
+}
+
+export function isValidCreateDTO(dto: unknown): dto is CreatePrayerTopicDTO {
+  return (
+    typeof dto === 'object' &&
+    dto !== null &&
+    typeof (dto as CreatePrayerTopicDTO).title === 'string' &&
+    typeof (dto as CreatePrayerTopicDTO).authorId === 'string' &&
+    typeof (dto as CreatePrayerTopicDTO).status === 'string' &&
+    typeof (dto as CreatePrayerTopicDTO).privacy === 'string'
+  );
+}
+
+export function isValidUpdateDTO(dto: unknown): dto is UpdatePrayerTopicDTO {
+  return (
+    typeof dto === 'object' &&
+    dto !== null &&
+    typeof (dto as UpdatePrayerTopicDTO).title === 'string' &&
+    typeof (dto as UpdatePrayerTopicDTO).authorId === 'string'
+  );
 }
