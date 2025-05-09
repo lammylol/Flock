@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import introFlowBackground from '../../assets/images/introFlowBackground.png';
+import introFlowBackground from '@/assets/images/introFlowBackground.png';
 import { Colors } from '@/constants/Colors';
 import useUserContext from '@/hooks/useUserContext';
 import { UserOptInFlags } from '@/types/UserFlags';
