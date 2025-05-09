@@ -31,10 +31,10 @@ export function PrayerPointLinking({
     null,
   );
   const [showLinkingModal, setShowLinkingModal] = useState(false);
-  const textColor = useThemeColor({ light: Colors.link }, 'textPrimary');
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
   const { linkedPrayerPairs } = usePrayerMetadataContext();
+  setShowLinkSection(false); // temp
 
   const linkedPrayer = linkedPrayerPairs.find(
     (pair) => pair.prayerPoint.id === prayerPoint.id,

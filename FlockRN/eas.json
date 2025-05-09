@@ -16,7 +16,11 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "developmentClient": true,
+      "env": {
+        "ENV": "preview"
+      }
     },
     "production": {
       "autoIncrement": true

@@ -48,9 +48,10 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
   const groupedPrayerPoints = updatedPrayerPoints.reduce<
     Record<string, PrayerPoint[]>
   >((acc, prayerPoint) => {
-    const topic = Array.isArray(prayerPoint.linkedTopics)
-      ? `#${prayerPoint.linkedTopics.map((t) => t.title).join(', ')}`
-      : '';
+    const topic = '';
+    // Array.isArray(prayerPoint.linkedTopics)
+    // ? `#${prayerPoint.linkedTopics.find((t) => t.id === prayerPoint.id)?.title ?? ''}`
+    // : '';
     if (!acc[topic]) acc[topic] = [];
     acc[topic].push(prayerPoint);
     return acc;
@@ -95,6 +96,7 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
                 }}
                 maxLines={3}
                 index={index}
+                showDate={isPrayerCardsEditable ? false : true}
               />
             ))}
             {topic && <View style={styles.spacer} />}

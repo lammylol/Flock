@@ -101,7 +101,6 @@ class ComplexPrayerOperations implements IComplexPrayerOperations {
         topicTitle,
         user,
       })) as FlatPrayerTopicDTO;
-
       if (!topicDTO) return {};
 
       // Create or update topics, or update origin prayer points, and then return updated prayer point.

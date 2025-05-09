@@ -15,6 +15,7 @@ import {
   Prayer,
   FlatPrayerTopicDTO,
   LinkedPrayerEntity,
+  UpdatePrayerDTO,
 } from '@/types/firebase';
 import useRecording from '@/hooks/recording/useRecording';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
@@ -29,6 +30,7 @@ import { HeaderButton } from '@/components/ui/HeaderButton';
 import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
 import { submitOperationsService } from '@/services/prayer/submitOperationsService';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { prayerService } from '@/services/prayer/prayerService';
 
 export default function PrayerMetadataScreen() {
   const { userOptInFlags } = useUserContext();
@@ -156,7 +158,7 @@ export default function PrayerMetadataScreen() {
     );
     if (linkedData) {
       return {
-        prayerPoint: linkedData.prayerPoint,
+        prayerPoint: point, // keep the original point. this is necessary to prevent unfinished topic data from being added to prayer.
         embedding: linkedData.prayerPointEmbedding,
         originPrayer: linkedData.originPrayer,
         topicDTO: linkedData.topicTitle,
@@ -196,7 +198,7 @@ export default function PrayerMetadataScreen() {
         }
         const prayerId = await createPrayer(prayer);
 
-        Promise.all(
+        const createdPrayerPointIds = await Promise.all(
           prayerPoints.map(async (point) => {
             const prayerPointWithPrayerId = {
               ...point,
@@ -221,13 +223,22 @@ export default function PrayerMetadataScreen() {
                   embedding: linkedData.embedding as number[] | undefined,
                 },
               );
-
             updateCollection(
               { ...newPrayerPoint } as PrayerPoint,
               'prayerPoint',
             );
+
+            return newPrayerPoint.id;
           }),
         );
+
+        const updatePrayerPoints = {
+          prayerPoints: createdPrayerPointIds,
+        } as UpdatePrayerDTO;
+
+        // update the original prayer with the list of ids
+        await prayerService.updatePrayer(prayerId, updatePrayerPoints);
+        // updateCollection({ ...newPrayer } as Prayer, 'prayer');
       }
       Alert.alert('Success', 'Prayer created successfully');
       router.replace('/(tabs)/(prayers)');

@@ -29,13 +29,13 @@ const PrayerEntityView = ({
   getEntityById,
   editRoute,
   updateCollection,
-  removeFromCollection,
 }: Props) => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [entity, setEntity] = useState<Prayer | PrayerPoint | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  setIsDeleting(false); // temp
 
   const user = auth.currentUser;
   const isOwner = entity?.authorId === user?.uid;
@@ -81,38 +81,6 @@ const PrayerEntityView = ({
       },
     });
   };
-
-  // const handleDelete = () => {
-  //   if (!entity) return;
-
-  //   Alert.alert(
-  //     'Delete',
-  //     `Are you sure you want to delete this ${entityType}?`,
-  //     [
-  //       { text: 'Cancel', style: 'cancel' },
-  //       {
-  //         text: 'Delete',
-  //         style: 'destructive',
-  //         onPress: async () => {
-  //           setIsDeleting(true);
-  //           try {
-  //             await getEntityById(entityId).then(
-  //               (data) => data?.delete?.(), // fallback for entity-based delete
-  //             );
-  //             removeFromCollection(entityId, entityType);
-  //             Alert.alert('Deleted successfully');
-  //             router.back();
-  //           } catch (e) {
-  //             console.error(e);
-  //             Alert.alert('Error', `Failed to delete ${entityType}`);
-  //           } finally {
-  //             setIsDeleting(false);
-  //           }
-  //         },
-  //       },
-  //     ],
-  //   );
-  // };
 
   const formattedDate = entity?.createdAt
     ? new Date(

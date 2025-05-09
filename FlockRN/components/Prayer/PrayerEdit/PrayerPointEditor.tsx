@@ -10,11 +10,7 @@ import { router, Stack } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import {
-  FlatPrayerTopicDTO,
-  LinkedPrayerEntity,
-  PrayerPoint,
-} from '@/types/firebase';
+import { FlatPrayerTopicDTO, PrayerPoint } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
@@ -127,7 +123,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
         prayerPoint: updatedPrayerPoint,
         prayerPointEmbedding: embedding,
         originPrayer: originPrayer as PrayerPoint | null,
-        topicTitle: prayerTopicDTO?.title,
+        topicTitle: prayerTopicDTO?.title ?? originPrayer?.title,
       };
       onSubmitLocal?.(updatedPrayerPoint, linkedPair as LinkedPrayerPointPair);
       setIsSubmissionLoading(false);

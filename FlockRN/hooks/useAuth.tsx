@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { auth } from '@/firebase/firebaseConfig';
-import { User, onAuthStateChanged, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signOut } from '@firebase/auth';
 import { userService } from '@/services/userService';
 import { UserProfileResponse } from '@/types/firebase';
 

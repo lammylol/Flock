@@ -60,6 +60,7 @@ class SubmitOperationsService implements ISubmitOperationsService {
       content: data.content.trim(),
       privacy: data.privacy ?? 'private',
       prayerType: data.prayerType,
+      prayerId: data.prayerId,
       tags: data.tags,
       authorId: user.uid,
       authorName: user.displayName || 'unknown',
@@ -128,21 +129,33 @@ class SubmitOperationsService implements ISubmitOperationsService {
       const mergedPrayerPoint = finalPrayerPoint
         ? finalPrayerPoint
         : {
-            ...prayerPoint,
-            embedding,
-          };
+          ...prayerPoint,
+          ...(embedding && { embedding }),
+        };
 
-      let prayerId = mergedPrayerPoint.id;
+      let prayerPointId = mergedPrayerPoint.id;
+
+      const mergedPrayerPointWithPrayerId = {
+        ...mergedPrayerPoint,
+        id: prayerPointId,
+        authorId: user.uid,
+        authorName: user.displayName || 'unknown',
+        recipientName: mergedPrayerPoint.recipientName || 'unknown',
+        recipientId: mergedPrayerPoint.recipientId || 'unknown',
+      };
 
       if (formState.isEditMode && prayerPoint.id) {
-        await this.updatePrayerPoint(mergedPrayerPoint);
+        await this.updatePrayerPoint(mergedPrayerPointWithPrayerId);
       } else {
-        prayerId = await this.createPrayerPoint(mergedPrayerPoint, user);
+        prayerPointId = await this.createPrayerPoint(
+          mergedPrayerPointWithPrayerId,
+          user,
+        );
       }
 
       if (fullOriginPrayer && topicId) {
         await prayerLinkingService.updatePrayerTopicWithJourneyAndGetTopicEmbeddings(
-          { ...mergedPrayerPoint, id: prayerId },
+          { ...mergedPrayerPointWithPrayerId, id: prayerPointId },
           fullOriginPrayer,
           topicId,
         );
@@ -153,7 +166,7 @@ class SubmitOperationsService implements ISubmitOperationsService {
           fullOriginPrayer,
         );
       }
-      return mergedPrayerPoint;
+      return mergedPrayerPointWithPrayerId;
     } catch (error) {
       console.error('Error submitting prayer point:', error);
       Alert.alert('Something went wrong', 'Please try again.');

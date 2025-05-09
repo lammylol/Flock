@@ -7,12 +7,12 @@ import {
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from '@firebase/auth';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
-import { FirebaseError } from 'firebase/app';
+import { FirebaseError } from '@firebase/app';
 import { Colors } from '@/constants/Colors';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from '@firebase/firestore';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
 import useUserContext from '@/hooks/useUserContext';
 import { UserIntroFlow } from '@/types/UserFlags';

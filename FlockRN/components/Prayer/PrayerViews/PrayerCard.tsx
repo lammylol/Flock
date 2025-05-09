@@ -24,6 +24,7 @@ import { getPrayerType } from '@/utils/prayerUtils';
 import { router } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { EditMode } from '@/types/ComponentProps';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface EditablePrayerCardProps {
   prayer: AnyPrayerEntity;
@@ -35,6 +36,7 @@ interface EditablePrayerCardProps {
   showContent?: boolean;
   maxLines?: number;
   index?: number; // for use when selecting a prayer point w/o id.
+  showDate?: boolean;
 }
 
 const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
@@ -46,8 +48,10 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
   children,
   showContent = true,
   maxLines,
+  showDate = false,
 }) => {
   const colorScheme = useColorScheme() ?? 'light';
+  const textColor = useThemeColor({}, 'textSecondary');
   const maxLinesValue = maxLines ?? 1;
   const isEditMode = false; // temporarily set to false until we update prayer cards.
 
@@ -129,22 +133,22 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
     }
   };
 
-  const formattedDate = (() => {
-    if (!prayer?.createdAt) return 'Unknown Date'; // Handle missing date
+  const formattedDate = (date: Date) => {
+    if (!date) return 'Unknown Date'; // Handle missing date
 
-    const date =
-      prayer.createdAt instanceof Date
-        ? prayer.createdAt
-        : typeof prayer.createdAt === 'object' && 'seconds' in prayer.createdAt
-          ? new Date(prayer.createdAt.seconds * 1000)
-          : new Date(prayer.createdAt);
+    const formattedDate =
+      date instanceof Date
+        ? date
+        : typeof date === 'object' && 'seconds' in date
+          ? new Date(date.seconds * 1000)
+          : new Date(date);
 
-    return date.toLocaleDateString('en-US', {
+    return formattedDate.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
-  })();
+  };
 
   return (
     <TouchableOpacity
@@ -155,6 +159,13 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
       onPress={!isDisabled ? handlePress : undefined}
       activeOpacity={isDisabled ? 1 : 0.7} // disable opacity change when disabled
     >
+      {(isPrayerPoint || isPrayerTopic) && showDate && (
+        <ThemedText style={[styles.createdAtText, { color: textColor }]}>
+          {isPrayerPoint
+            ? `Created on: ${formattedDate(prayer.createdAt)}`
+            : `Updated on: ${formattedDate(prayer.updatedAt)}`}
+        </ThemedText>
+      )}
       <View style={styles.headerContainer}>
         {!isPrayer && (
           <IconBackgroundSquare
@@ -183,7 +194,7 @@ const EditablePrayerCard: React.FC<EditablePrayerCardProps> = ({
                 ? isPrayerTopic
                   ? `#${prayer.title}`
                   : prayer.title
-                : formattedDate}
+                : formattedDate(prayer.createdAt)}
             </ThemedText>
           )}
           {isEditMode ? (
@@ -282,6 +293,10 @@ const styles = StyleSheet.create({
     gap: 10,
     width: '100%',
     alignSelf: 'stretch',
+  },
+  createdAtText: {
+    fontSize: 14,
+    fontWeight: '300',
   },
   editButton: {
     alignItems: 'center',

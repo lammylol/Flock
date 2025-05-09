@@ -91,6 +91,7 @@ export interface IPrayerLinkingService {
   ): Promise<void>;
   updateLinkedPrayerTopic(
     prayerPoint: PrayerPoint,
+    isExistingPrayerPoint?: boolean,
     topicToModify?: LinkedTopicInPrayerDTO,
     options?: { remove?: boolean },
   ): Promise<PrayerPoint>;
@@ -252,7 +253,6 @@ class PrayerLinkingService implements IPrayerLinkingService {
     };
 
     const journey = [...normalizeJourney(), toDTO(prayerPoint)];
-    console.log('Journey:', journey);
 
     const deduped = Array.from(new Map(journey.map((j) => [j.id, j])).values());
 
@@ -407,14 +407,16 @@ class PrayerLinkingService implements IPrayerLinkingService {
   // This function updates the linked topics in a prayer point.
   updateLinkedPrayerTopic = async (
     prayerPoint: PrayerPoint,
+    isExistingPrayerPoint?: boolean,
     topicToModify?: LinkedTopicInPrayerDTO,
     options?: { remove?: boolean },
   ): Promise<PrayerPoint> => {
-    const existingTopics: LinkedTopicInPrayerDTO[] = Array.isArray(
-      prayerPoint.linkedTopics,
-    )
-      ? (prayerPoint.linkedTopics as LinkedTopicInPrayerDTO[])
-      : [];
+    let existingTopics: LinkedTopicInPrayerDTO[] = [];
+    existingTopics = !isExistingPrayerPoint
+      ? []
+      : Array.isArray(prayerPoint.linkedTopics)
+        ? (prayerPoint.linkedTopics as LinkedTopicInPrayerDTO[])
+        : [];
 
     // Removing a topic
     if (options?.remove) {
@@ -457,6 +459,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
   ): Promise<PrayerPoint> => {
     const updated = await this.updateLinkedPrayerTopic(
       prayerPoint,
+      isExistingPrayerPoint,
       topicToModify,
     );
     if (isExistingPrayerPoint) {
@@ -487,7 +490,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
     const linkedTopic: LinkedTopicInPrayerDTO = {
       id: originTopic.id,
-      title: topicDTO.title,
+      title: originTopic.title,
     };
 
     const updatedPrayerPoint = await this.updatePrayerPointWithLinkedTopic(
@@ -552,14 +555,13 @@ class PrayerLinkingService implements IPrayerLinkingService {
     topicId?: string;
   }> => {
     if (!originPrayer || !prayerTopicDTO || !user) return {};
-
     try {
       const result = await complexPrayerOperations.linkPrayerPoint(
         prayerPoint,
         originPrayer,
         user,
         isNewPrayerPoint,
-        prayerTopicDTO.title,
+        prayerTopicDTO as string,
       );
       return result;
     } catch (error) {

@@ -19,6 +19,7 @@ export default () => ({
           'We need access to the microphone for capturing your voice input.',
         NSPhotoLibraryUsageDescription:
           'This app may request photo library access through third-party modules.',
+        "ITSAppUsesNonExemptEncryption": false
       },
     },
     android: {
@@ -65,6 +66,8 @@ export default () => ({
       ],
       'expo-speech-recognition',
       './plugins/withCustomPodfile',
+      "expo-font",
+      "expo-web-browser"
     ],
     experiments: {
       typedRoutes: true,

@@ -1,26 +1,16 @@
 /* This file sets the screen that a user sees when clicking into a prayer.*/
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-  View,
-} from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ScrollView, StyleSheet, ActivityIndicator, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import useAuthContext from '@/hooks/useAuthContext';
 import { ThemedText } from '@/components/ThemedText';
 import ContentUnavailable from '@/components/UnavailableScreens/ContentUnavailable';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
 import { Colors } from '@/constants/Colors';
-import { auth } from '@/firebase/firebaseConfig';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
-import { complexPrayerOperations } from '@/services/prayer/complexPrayerOperations';
 import PrayerPointSection from '@/components/Prayer/PrayerViews/PrayerPointSection';
 import { prayerTopicService } from '@/services/prayer/prayerTopicService';
 import { PrayerPoint } from '@/types/firebase';
@@ -30,19 +20,17 @@ const PrayerTopicView = () => {
     id: string;
   };
 
-  const { userPrayerTopics, updateCollection, removeFromCollection } =
-    usePrayerCollection();
+  const { userPrayerTopics, updateCollection } = usePrayerCollection();
 
   // Use the collection to get the latest data
   const prayerTopic = userPrayerTopics.find((p) => p.id === id) || null;
 
-  const user = useAuthContext().user;
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const backgroundColor = useThemeColor({}, 'backgroundSecondary');
   const textColor = useThemeColor({}, 'textPrimary');
-  const isOwner = prayerTopic && user && prayerTopic.authorId === user.uid;
+  // const isOwner = prayerTopic && user && prayerTopic.authorId === user.uid;
   const scrollViewRef = useRef<ScrollView>(null);
 
   const fetchPrayerTopic = useCallback(async () => {
@@ -67,71 +55,6 @@ const PrayerTopicView = () => {
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, []); // Scroll to bottom whenever messages change
-
-  const handleEdit = () => {
-    if (!prayerTopic) return;
-
-    console.log('Preparing to edit prayer point:', prayerTopic.id);
-
-    try {
-      // Be explicit with the complete path to the specific file
-      router.push({
-        pathname: '/(tabs)/(prayers)/createPrayerPoint',
-        params: {
-          id: prayerTopic.id,
-          editMode: EditMode.EDIT,
-        },
-      });
-    } catch (error) {
-      console.error('Error navigating to edit screen:', error);
-      Alert.alert('Error', 'Failed to navigate to edit screen');
-    }
-  };
-
-  const handleDelete = () => {
-    if (!prayerTopic || !auth.currentUser?.uid) return;
-
-    // Confirm deletion
-    Alert.alert(
-      'Delete Prayer Point',
-      'Are you sure you want to delete this prayer point? This action cannot be undone.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await complexPrayerOperations.deletePrayerPointAndUnlinkPrayers(
-                id,
-                auth.currentUser!.uid,
-              );
-
-              // Remove from local collection
-              if (removeFromCollection) {
-                removeFromCollection(id, 'prayerPoint');
-              }
-
-              Alert.alert('Success', 'Prayer point deleted successfully');
-              router.back();
-            } catch (error) {
-              console.error('Error deleting prayer point:', error);
-              Alert.alert(
-                'Error',
-                'Failed to delete prayer point. Please try again.',
-              );
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ],
-    );
-  };
 
   const formattedDate = (() => {
     if (!prayerTopic?.createdAt) return 'Unknown Date'; // Handle missing date
@@ -224,19 +147,6 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     paddingLeft: 20,
   },
-  deleteButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.purple,
-    borderRadius: 12,
-    marginBottom: 20,
-    marginHorizontal: 20,
-    paddingVertical: 16,
-  },
-  deleteButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
   loadingContainer: {
     alignItems: 'center',
     flex: 1,
@@ -251,11 +161,6 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingBottom: 16,
     paddingHorizontal: 20,
-  },
-  // Add a spacer that will push content up and delete button to the bottom
-  spacer: {
-    flex: 1,
-    minHeight: 20, // Minimum height to ensure some spacing even when content is long
   },
 });
 

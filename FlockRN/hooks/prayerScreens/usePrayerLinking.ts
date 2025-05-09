@@ -31,7 +31,11 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
     setOriginPrayer(selectedPrayer);
     setPrayerTopicDTO((prev) => ({
       ...prev,
-      ...(title != null ? { title } : {}),
+      ...(title != null
+        ? { title }
+        : originPrayer?.title
+          ? { title: originPrayer.title }
+          : {}),
     }));
   };
 

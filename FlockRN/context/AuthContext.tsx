@@ -3,7 +3,7 @@
 
 import React, { createContext, useState, useEffect } from 'react';
 import useAuth from '@/hooks/useAuth';
-import { User } from 'firebase/auth';
+import { User } from '@firebase/auth';
 
 // Context Type for AuthContext
 interface AuthContextType {

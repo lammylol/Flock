@@ -116,7 +116,7 @@ export type UpdatePrayerDTO = Partial<
 
 export type CreatePrayerPointDTO = Omit<
   PrayerPoint,
-  'id' | 'createdAt' | 'prayerId' | 'updatedAt' | 'entityType'
+  'id' | 'createdAt' | 'updatedAt' | 'entityType'
 >;
 
 export type UpdatePrayerPointDTO = Partial<

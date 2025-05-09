@@ -2,12 +2,12 @@ import { TextInput, StyleSheet, Alert, useColorScheme } from 'react-native';
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { setDoc, doc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, updateProfile } from '@firebase/auth';
+import { setDoc, doc } from '@firebase/firestore';
 import React, { useState } from 'react';
 import { router } from 'expo-router';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
-import { FirebaseError } from 'firebase/app';
+import { FirebaseError } from '@firebase/app';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';

@@ -57,6 +57,7 @@ const PrayerView = () => {
           id,
           user,
         );
+        console.log('Fetched prayer points:', fetchedPrayerPoints);
         setPrayerPoints(fetchedPrayerPoints ?? []);
         forEach(fetchedPrayerPoints, (prayerPoint) =>
           updateCollection(prayerPoint, 'prayerPoint'),

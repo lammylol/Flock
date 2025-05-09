@@ -81,7 +81,6 @@ class PrayerTopicService implements IPrayerTopicService {
         console.error('Missing data for updating prayer topic');
         return;
       }
-
       const now = Timestamp.now();
       const prayerTopicRef = doc(this.prayerTopicsCollection, prayerTopicId);
 
@@ -101,7 +100,7 @@ class PrayerTopicService implements IPrayerTopicService {
 
       // Placeholder to add to another feed later.
     } catch (error) {
-      console.error('Error updating prayer point:', error);
+      console.error('Error updating prayer topic:', error);
       throw error;
     }
   }
