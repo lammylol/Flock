@@ -4,6 +4,7 @@ import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
 import { LinkedTopicInPrayerDTO, PrayerPoint } from '@/types/firebase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { uniqueId } from 'lodash';
+import { EntityType } from '@/types/PrayerSubtypes';
 
 const PrayerPointMetadataFromPrayerScreen = () => {
   const params = useLocalSearchParams() as {
@@ -40,7 +41,11 @@ const PrayerPointMetadataFromPrayerScreen = () => {
         ? updatedPoint.linkedTopics?.filter((item) => item.title !== topicTitle)
         : [
             ...(updatedPoint.linkedTopics || []),
-            { id: uniqueId(), title: topicTitle } as LinkedTopicInPrayerDTO,
+            {
+              id: uniqueId(),
+              title: topicTitle,
+              entityType: EntityType.PrayerTopic,
+            } as LinkedTopicInPrayerDTO,
           ];
     }
 
@@ -52,7 +57,6 @@ const PrayerPointMetadataFromPrayerScreen = () => {
     }
 
     updatePrayerPoints(updatedPoint);
-    console.log('Updated prayer point:', updatedPoint);
     router.back();
   };
 

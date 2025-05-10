@@ -87,7 +87,12 @@ class ComplexPrayerOperations implements IComplexPrayerOperations {
 
       let prayerPointWithEmbedding = prayerPoint;
 
-      if (!validateContextFields({ contextAsEmbeddings, contextAsStrings })) {
+      if (
+        !validateContextFields(
+          { contextAsEmbeddings, contextAsStrings },
+          'update',
+        )
+      ) {
         console.error('Invalid prayer point context fields');
       } else {
         prayerPointWithEmbedding = {

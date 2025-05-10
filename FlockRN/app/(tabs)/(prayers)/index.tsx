@@ -43,13 +43,13 @@ export default function TabTwoScreen() {
                 : selectedTab === 'prayerPoints'
                   ? 'Prayer Points'
                   : 'Prayers'
-            }`}
+              }`}
             onSearch={searchPrayers}
           />
           <Tabs
             tabs={[
-              `Prayer Topics (${userPrayerTopics.length})`,
-              `Prayer Points (${userPrayerPoints.length})`,
+              `#Topics (${userPrayerTopics.length})`,
+              `Points (${userPrayerPoints.length})`,
               `Prayers (${userPrayers.length})`,
             ]}
             selectedIndex={

@@ -1,21 +1,12 @@
 // hooks/prayerScreens/usePrayerLinking.ts
 import { useState } from 'react';
-import {
-  FlatPrayerTopicDTO,
-  LinkedPrayerEntity,
-  PrayerPoint,
-} from '@/types/firebase';
-import { auth } from '@/firebase/firebaseConfig';
-import { complexPrayerOperations } from '@/services/prayer/complexPrayerOperations';
+import { LinkedPrayerEntity } from '@/types/firebase';
 
-export function usePrayerLinking(prayerPoint: PrayerPoint) {
-  const [prayerTopicDTO, setPrayerTopicDTO] =
-    useState<FlatPrayerTopicDTO | null>(null);
+export function usePrayerLinking() {
+  const [topicTitle, setTopicTitle] = useState<string>('');
   const [originPrayer, setOriginPrayer] = useState<LinkedPrayerEntity | null>(
     null,
   );
-
-  const user = auth.currentUser;
 
   // This function is passed to the PrayerPointLinking component
   // and is called when the user selects a prayer point or topic to link to.
@@ -26,44 +17,16 @@ export function usePrayerLinking(prayerPoint: PrayerPoint) {
   ) => {
     if (!selectedPrayer) {
       setOriginPrayer(null);
-      setPrayerTopicDTO(null);
+      setTopicTitle('');
     }
     setOriginPrayer(selectedPrayer);
-    setPrayerTopicDTO((prev) => ({
-      ...prev,
-      ...(title != null
-        ? { title }
-        : originPrayer?.title
-          ? { title: originPrayer.title }
-          : {}),
-    }));
-  };
-
-  const linkAndSyncPrayerPoint = async ({
-    isNewPrayerPoint,
-  }: {
-    isNewPrayerPoint: boolean;
-  }): Promise<{
-    finalPrayerPoint?: PrayerPoint;
-    fullOriginPrayer?: LinkedPrayerEntity;
-    topicId?: string;
-  }> => {
-    if (!originPrayer || !prayerTopicDTO || !user) return {};
-
-    return await complexPrayerOperations.linkPrayerPoint(
-      prayerPoint,
-      originPrayer,
-      user,
-      isNewPrayerPoint,
-      prayerTopicDTO.title,
-    );
+    setTopicTitle(title ?? selectedPrayer?.title ?? '');
   };
 
   return {
-    prayerTopicDTO,
+    prayerTopicDTO: topicTitle,
     originPrayer,
     selectedPrayerToLinkTo: originPrayer,
     handlePrayerLinkingOnChange,
-    linkAndSyncPrayerPoint,
   };
 }

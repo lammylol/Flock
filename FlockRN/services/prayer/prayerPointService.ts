@@ -28,7 +28,9 @@ import {
 } from 'firebase/firestore';
 
 export interface IPrayerPointsService {
-  createPrayerPoint(data: CreatePrayerPointDTO): Promise<string>;
+  createPrayerPoint(
+    data: CreatePrayerPointDTO,
+  ): Promise<{ id: string; createdAt: Timestamp }>;
   updatePrayerPoint(
     prayerPointId: string,
     data: UpdatePrayerPointDTO,
@@ -74,7 +76,9 @@ class PrayerPointsService implements IPrayerPointsService {
     );
   }
 
-  async createPrayerPoint(data: CreatePrayerPointDTO): Promise<string> {
+  async createPrayerPoint(
+    data: CreatePrayerPointDTO,
+  ): Promise<{ id: string; createdAt: Timestamp }> {
     try {
       const now = this.firestoreWrapper.getTimestamp();
 
@@ -104,7 +108,7 @@ class PrayerPointsService implements IPrayerPointsService {
         });
       }
 
-      return docRef.id;
+      return { id: docRef.id, createdAt: now };
     } catch (error) {
       console.error('Error creating prayer:', error);
       throw error;

@@ -23,8 +23,12 @@ import { submitOperationsService } from '@/services/prayer/submitOperationsServi
 import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 import { auth } from '@/firebase/firebaseConfig';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
-import { PrayerPoint } from '@/types/firebase';
-import { useAiOptIn } from '@/hooks/useUserContext';
+import {
+  LinkedPrayerEntity,
+  LinkedTopicInPrayerDTO,
+  PrayerPoint,
+} from '@/types/firebase';
+import useUserContext from '@/hooks/useUserContext';
 
 interface PrayerPointEditorProps {
   editMode: EditMode;
@@ -40,6 +44,7 @@ interface PrayerPointEditorProps {
 export default function PrayerPointEditor(props: PrayerPointEditorProps) {
   const { editMode, id, shouldPersist, initialContent, onSubmitLocal } = props;
   const { updateCollection } = usePrayerCollection();
+  const { userOptInFlags } = useUserContext();
 
   const user = auth.currentUser;
   if (!user) {
@@ -101,7 +106,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
 
   // This hook handles separate logic for linking prayer points and topics.
   const { handlePrayerLinkingOnChange, originPrayer, prayerTopicDTO } =
-    usePrayerLinking(updatedPrayerPoint);
+    usePrayerLinking();
 
   // const handlePrayerLinkingOnChangeAndPassTitle = (
   //   selectedPrayer: LinkedPrayerEntity,
@@ -141,7 +146,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
             topicTitle: prayerTopicDTO as string | undefined,
             user,
             embedding,
-            aiOptIn: useAiOptIn,
+            aiOptIn: userOptInFlags.optInAI,
           },
         );
 
@@ -190,6 +195,9 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
             <PrayerPointLinking
               editMode={EditMode.CREATE}
               similarPrayers={similarPrayers}
+              linkedPrayerPairs={
+                updatedPrayerPoint.linkedTopics as LinkedTopicInPrayerDTO[]
+              }
               prayerPoint={updatedPrayerPoint}
               onChange={handlePrayerLinkingOnChange}
             />

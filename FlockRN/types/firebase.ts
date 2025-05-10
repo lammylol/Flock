@@ -145,7 +145,10 @@ export type PrayerPointInTopicJourneyDTO = Pick<
   | 'recipientName'
 >;
 
-export type LinkedTopicInPrayerDTO = Pick<PrayerPoint, 'id' | 'title'>;
+export type LinkedTopicInPrayerDTO = Pick<
+  PrayerPoint,
+  'id' | 'title' | 'entityType'
+>;
 
 export type FlatPrayerTopicDTO = CreatePrayerTopicDTO | UpdatePrayerTopicDTO;
 export type FlatPrayerPointDTO = CreatePrayerPointDTO | UpdatePrayerPointDTO;

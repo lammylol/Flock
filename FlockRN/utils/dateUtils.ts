@@ -1,15 +1,32 @@
 import { Timestamp } from 'firebase/firestore';
 
-const normalizeDate = (input: any): Date => {
+// Support Firestore Timestamp-like plain objects
+type TimestampLike = {
+  seconds: number;
+  nanoseconds: number;
+};
+
+const isTimestampLike = (input: unknown): input is TimestampLike =>
+  typeof input === 'object' &&
+  input !== null &&
+  'seconds' in input &&
+  'nanoseconds' in input &&
+  typeof (input as TimestampLike).seconds === 'number' &&
+  typeof (input as TimestampLike).nanoseconds === 'number';
+
+const normalizeDate = (
+  input: Date | Timestamp | TimestampLike | string | number | null | undefined,
+): Date => {
   if (input instanceof Date) return input;
-  if (input?.seconds != null && input?.nanoseconds != null) {
-    // Assume it's a Firestore Timestamp-like object
-    return new Date(input.seconds * 1000 + input.nanoseconds / 1e6);
-  }
-  if (Timestamp && input instanceof Timestamp) {
-    // Optional: Handle real Firestore Timestamp instances
+
+  if (input instanceof Timestamp) {
     return input.toDate();
   }
+
+  if (isTimestampLike(input)) {
+    return new Date(input.seconds * 1000 + input.nanoseconds / 1e6);
+  }
+
   const date = new Date(input ?? Date.now());
   return isNaN(date.getTime()) ? new Date() : date;
 };

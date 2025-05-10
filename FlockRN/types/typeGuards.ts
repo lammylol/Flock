@@ -33,38 +33,37 @@ export function getEntityType(obj: unknown): EntityType | undefined {
 }
 
 // Reusable guard for validating embeddings and strings
-export function validateContextFields(dto: unknown): boolean {
+export function validateContextFields(
+  dto: unknown,
+  createOrUpdate: 'create' | 'update',
+): boolean {
   if (typeof dto !== 'object' || dto === null) return false;
 
-  const updateDTO = dto as {
+  const { contextAsEmbeddings, contextAsStrings } = dto as {
     contextAsEmbeddings?: unknown;
     contextAsStrings?: unknown;
   };
 
-  // Check contextAsEmbeddings
-  const hasEmbeddings =
-    'contextAsEmbeddings' in updateDTO &&
-    Array.isArray(updateDTO.contextAsEmbeddings) &&
-    updateDTO.contextAsEmbeddings.every(
-      (item: unknown) => typeof item === 'number',
-    );
+  const isDeleteField = (value: unknown) =>
+    typeof value === 'object' &&
+    value !== null &&
+    '_methodName' in value &&
+    (value as { _methodName?: unknown })._methodName === 'deleteField';
 
-  // Check contextAsStrings
-  const hasStrings =
-    'contextAsStrings' in updateDTO &&
-    typeof updateDTO.contextAsStrings === 'string' &&
-    updateDTO.contextAsStrings.trim() !== '';
+  // Embeddings validation
+  const embeddingsValid =
+    contextAsEmbeddings === undefined ||
+    (Array.isArray(contextAsEmbeddings) &&
+      contextAsEmbeddings.every((item) => typeof item === 'number')) ||
+    (createOrUpdate === 'update' && isDeleteField(contextAsEmbeddings));
 
-  // Only allow valid embeddings or strings if they exist
-  const noInvalidEmbedding =
-    !('contextAsEmbeddings' in updateDTO) ||
-    (updateDTO.contextAsEmbeddings !== null && hasEmbeddings);
+  // Strings validation
+  const stringsValid =
+    contextAsStrings === undefined ||
+    (typeof contextAsStrings === 'string' && contextAsStrings.trim() !== '') ||
+    (createOrUpdate === 'update' && isDeleteField(contextAsStrings));
 
-  const noInvalidString =
-    !('contextAsStrings' in updateDTO) ||
-    (updateDTO.contextAsStrings !== null && hasStrings);
-
-  return noInvalidEmbedding && noInvalidString;
+  return embeddingsValid && stringsValid;
 }
 
 // Reusable guard for validating linkedTopics field.
@@ -73,21 +72,32 @@ export function validateLinkedTopicField(dto: unknown): boolean {
 
   const updateDTO = dto as { linkedTopics?: unknown };
 
-  const hasValidLinkedTopics =
-    'linkedTopics' in updateDTO &&
-    Array.isArray(updateDTO.linkedTopics) &&
-    updateDTO.linkedTopics !== null &&
-    updateDTO.linkedTopics.every(
-      (item: unknown) =>
-        typeof item === 'object' &&
-        item !== null &&
-        'id' in item &&
-        'title' in item &&
-        typeof item.id === 'string' &&
-        typeof item.title === 'string',
-    );
+  if (!('linkedTopics' in updateDTO)) return true;
 
-  return !('linkedTopics' in updateDTO) || hasValidLinkedTopics;
+  const topics = updateDTO.linkedTopics;
+
+  const hasValidLinkedTopics =
+    Array.isArray(topics) &&
+    topics.every((item: unknown) => {
+      if (typeof item !== 'object' || item === null) return false;
+      const topic = item as {
+        id?: unknown;
+        title?: unknown;
+        entityType?: unknown;
+      };
+      return (
+        typeof topic.id === 'string' &&
+        topic.id.trim() !== '' &&
+        typeof topic.title === 'string' &&
+        topic.title.trim() !== '' &&
+        (topic.entityType === EntityType.PrayerTopic ||
+          topic.entityType === EntityType.PrayerPoint ||
+          topic.entityType === EntityType.Prayer)
+        // Add any other necessary checks for the topic object here
+      );
+    });
+
+  return hasValidLinkedTopics;
 }
 
 // Reusable guard for validating linkedTopics field.
@@ -138,15 +148,13 @@ export function isValidCreateTopicDTO(
   if (!hasRequiredFields) return false;
 
   if (aiOptIn) {
-    const hasValidEmbeddings =
-      Array.isArray(createDTO.contextAsEmbeddings) &&
-      createDTO.contextAsEmbeddings.every((item) => typeof item === 'number');
-
-    const hasValidStrings =
-      typeof createDTO.contextAsStrings === 'string' &&
-      createDTO.contextAsStrings.trim() !== '';
-
-    if (!hasValidEmbeddings && !hasValidStrings) return false;
+    // Validate context fields only if they exist. Not required to exist when first loading because
+    // a topic can be created before the prayers are added to journey for context.
+    if ('contextAsEmbeddings' in dto || 'contextAsStrings' in dto) {
+      if (!validateContextFields(dto, 'create')) {
+        return false;
+      }
+    }
   }
 
   if ('journey' in createDTO && !validateJourneyField(createDTO.journey)) {
@@ -167,7 +175,7 @@ export function isValidUpdateTopicDTO(
   }
 
   if ('contextAsEmbeddings' in updateDTO || 'contextAsStrings' in updateDTO) {
-    if (!validateContextFields(updateDTO)) {
+    if (!validateContextFields(updateDTO, 'update')) {
       return false; // Return false if validation fails
     }
   }
@@ -183,7 +191,7 @@ export function isValidPrayerPointInJourneyDTO(
     typeof obj === 'object' &&
     obj !== null &&
     typeof (obj as PrayerPointInTopicJourneyDTO).id === 'string' &&
-    typeof (obj as PrayerPointInTopicJourneyDTO).createdAt === 'string' &&
+    // (obj as PrayerPointInTopicJourneyDTO).createdAt instanceof Date &&
     typeof (obj as PrayerPointInTopicJourneyDTO).title === 'string' &&
     typeof (obj as PrayerPointInTopicJourneyDTO).content === 'string' &&
     typeof (obj as PrayerPointInTopicJourneyDTO).authorId === 'string' &&
@@ -200,28 +208,36 @@ export function isValidCreatePrayerPointDTO(
 
   const createDTO = dto as CreatePrayerPointDTO;
 
-  const hasValidAuthor =
-    typeof createDTO.authorId === 'string' && createDTO.authorId.trim() !== '';
-
+  // Validate content if it's provided
   const hasValidContent =
-    typeof createDTO.content === 'string' && createDTO.content.trim() !== '';
+    createDTO.content !== undefined &&
+    typeof createDTO.content === 'string' &&
+    createDTO.content.trim() !== '';
 
+  // Validate title if it's provided
   const hasValidTitle =
-    typeof createDTO.title === 'string' && createDTO.title.trim() !== '';
+    createDTO.title !== undefined &&
+    typeof createDTO.title === 'string' &&
+    createDTO.title.trim() !== '';
 
-  // these are both optional fields for prayer points.
+  // Ensure at least one of content or title is valid
+  const hasValidContentOrTitle = hasValidContent || hasValidTitle;
+
+  // Optional: contextAsEmbeddings/contextAsStrings check
   if ('contextAsEmbeddings' in dto || 'contextAsStrings' in dto) {
-    if (!validateContextFields(dto)) {
+    if (!validateContextFields(dto, 'create')) {
       return false; // Return false if validation fails
     }
   }
+
+  // Optional: linkedTopics check
   if ('linkedTopics' in dto) {
     if (!validateLinkedTopicField(dto)) {
       return false; // Return false if validation fails
     }
   }
 
-  return hasValidAuthor && hasValidContent && hasValidTitle;
+  return hasValidContentOrTitle; // Ensure at least one of content or title is valid
 }
 
 export function isValidUpdatePrayerPointDTO(
@@ -234,7 +250,7 @@ export function isValidUpdatePrayerPointDTO(
   }
 
   if ('contextAsEmbeddings' in dto || 'contextAsStrings' in dto) {
-    if (!validateContextFields(dto)) {
+    if (!validateContextFields(dto, 'update')) {
       return false; // Return false if validation fails
     }
   }

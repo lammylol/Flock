@@ -1,4 +1,3 @@
-import { validateContextFields } from '@/types/typeGuards';
 import { deleteField, FieldValue } from 'firebase/firestore';
 
 type ContextFields = {
@@ -9,16 +8,13 @@ type ContextFields = {
 export function getContextFieldsIfEmbeddingsExist(
   embeddings: number[] | undefined,
   contextString: string | undefined,
+  isNewPrayerPoint: boolean,
 ): ContextFields {
-  if (
-    !validateContextFields({
-      contextAsEmbeddings: embeddings,
-      contextAsStrings: contextString,
-    })
-  ) {
+  if (embeddings == undefined || embeddings.length === 0) {
     return {
-      contextAsEmbeddings: deleteField(),
-      contextAsStrings: deleteField(),
+      // deleteField() is used to remove the field from Firestore. if not, undefined doesn't load anything.
+      contextAsEmbeddings: isNewPrayerPoint ? undefined : deleteField(),
+      contextAsStrings: isNewPrayerPoint ? undefined : deleteField(),
     };
   }
   return {

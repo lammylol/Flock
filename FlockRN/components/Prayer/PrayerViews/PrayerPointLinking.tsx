@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import {
   PartialLinkedPrayerEntity,
   LinkedPrayerEntity,
   PrayerPoint,
+  LinkedTopicInPrayerDTO,
 } from '@/types/firebase';
 import { Colors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { EditMode } from '@/types/ComponentProps';
+import { EditMode, LinkedPrayerPointPair } from '@/types/ComponentProps';
 import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,16 +17,19 @@ import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
 import { ThemedText } from '@/components/ThemedText';
 
 export function PrayerPointLinking({
+  editMode,
   backgroundColor,
   similarPrayers,
+  linkedPrayerPairs,
   prayerPoint,
   onChange,
 }: {
   editMode: EditMode;
   backgroundColor?: string;
-  similarPrayers: PartialLinkedPrayerEntity[];
+  similarPrayers?: PartialLinkedPrayerEntity[];
+  linkedPrayerPairs?: LinkedTopicInPrayerDTO[];
   prayerPoint: PrayerPoint;
-  onChange: (selectedPrayer: LinkedPrayerEntity, title?: string) => void;
+  onChange?: (selectedPrayer: LinkedPrayerEntity, title?: string) => void;
 }): JSX.Element {
   const [searchText, setSearchText] = useState('');
   const [selectedLink, setSelectedLink] = useState<LinkedPrayerEntity | null>(
@@ -34,18 +38,13 @@ export function PrayerPointLinking({
   const [showLinkingModal, setShowLinkingModal] = useState(false);
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
-  const { linkedPrayerPairs } = usePrayerMetadataContext();
 
-  const linkedPrayer = linkedPrayerPairs.find(
-    (pair) => pair.prayerPoint.id === prayerPoint.id,
-  )?.originPrayer;
-
-  useEffect(() => {
-    setSelectedLink(
-      linkedPrayerPairs.find((pair) => pair.prayerPoint.id === prayerPoint.id)
-        ?.originPrayer || null,
-    );
-  }, [linkedPrayerPairs, prayerPoint.id]);
+  // useEffect(() => {
+  //   setSelectedLink(
+  //     linkedPrayerPairs?.find((pair) => pair.originPrayer === prayerPoint.id)
+  //       ?.originPrayer || null,
+  //   );
+  // }, [linkedPrayerPairs, prayerPoint.id]);
 
   const determineLabel = (prayer: LinkedPrayerEntity): string => {
     if (prayer.id === selectedLink?.id) return 'Linked';
@@ -56,14 +55,18 @@ export function PrayerPointLinking({
     selectedPrayer: LinkedPrayerEntity,
     title?: string,
   ) => {
-    onChange(selectedPrayer as LinkedPrayerEntity, title);
+    if (onChange) {
+      onChange(selectedPrayer as LinkedPrayerEntity, title);
+    }
   };
 
   const handleOpenModal = (prayer: LinkedPrayerEntity) => {
     if (selectedLink?.id === prayer.id) {
       // If already selected, unlink it
       setSelectedLink(null);
-      onChange(null as unknown as LinkedPrayerEntity); // Optionally inform parent to unlink
+      if (onChange) {
+        onChange(null as unknown as LinkedPrayerEntity); // Optionally inform parent to unlink
+      }
       return;
     }
 
@@ -87,54 +90,32 @@ export function PrayerPointLinking({
         <ThemedText style={{ ...styles.modalTitle, color: titleColor }}>
           Link to an Existing Prayer
         </ThemedText>
-        <TouchableOpacity
-          onPress={() => setShowLinkSection(!showLinkSection)}
-        >
+        <TouchableOpacity onPress={() => setShowLinkSection(!showLinkSection)}>
           <ThemedText style={{ ...styles.expandTitle, color: Colors.link }}>
             {showLinkSection ? 'Hide' : 'Show'}
           </ThemedText>
         </TouchableOpacity>
       </View>
 
-      {showLinkSection &&
-        (similarPrayers.length > 0 || prayerPoint.linkedTopics) &&
-        linkedPrayer ? (
-        <PrayerCardWithButtons
-          key={prayerPoint.id}
-          prayer={linkedPrayer}
-          button1={{
-            label: determineLabel(linkedPrayer),
-            onPress: () => handleOpenModal(linkedPrayer),
-            fontWeight: '500',
-            icon: (
-              <Ionicons
-                name={
-                  linkIcon(
-                    linkedPrayer as LinkedPrayerEntity,
-                  ) as keyof typeof Ionicons.glyphMap
-                }
-                size={20}
-                color={titleColor}
-              />
-            ),
-          }}
-        />
-      ) : (
+      {showLinkSection ? (
         <View style={styles.linkContainer}>
-          {similarPrayers.slice(0, 3).map((prayer, index) => {
-            const typedPrayer = prayer as LinkedPrayerEntity;
-            return (
+          {Array.isArray(prayerPoint.linkedTopics) &&
+            prayerPoint.linkedTopics.length > 0 ? (
+            prayerPoint.linkedTopics.map((linkedPrayer, index) => (
               <PrayerCardWithButtons
-                key={index}
-                prayer={typedPrayer} // Type assertion
+                key={linkedPrayer.id ?? index}
+                prayer={linkedPrayer as LinkedPrayerEntity}
                 button1={{
-                  label: determineLabel(typedPrayer),
-                  onPress: () => handleOpenModal(typedPrayer),
+                  label: determineLabel(linkedPrayer as LinkedPrayerEntity),
+                  onPress: () =>
+                    handleOpenModal(linkedPrayer as LinkedPrayerEntity),
                   fontWeight: '500',
                   icon: (
                     <Ionicons
                       name={
-                        linkIcon(typedPrayer) as keyof typeof Ionicons.glyphMap
+                        linkIcon(
+                          linkedPrayer as LinkedPrayerEntity,
+                        ) as keyof typeof Ionicons.glyphMap
                       }
                       size={20}
                       color={titleColor}
@@ -142,16 +123,44 @@ export function PrayerPointLinking({
                   ),
                 }}
               />
-            );
-          })}
-          <TextInput
-            style={{ ...styles.searchInput, borderColor: Colors.grey1 }}
-            placeholder="Search existing prayer points..."
-            value={searchText}
-            onChangeText={setSearchText}
-          />
+            ))
+          ) : similarPrayers!.length > 0 ? (
+            <>
+              {similarPrayers!.slice(0, 3).map((prayer, index) => {
+                const typedPrayer = prayer as LinkedPrayerEntity;
+                return (
+                  <PrayerCardWithButtons
+                    key={index}
+                    prayer={typedPrayer}
+                    button1={{
+                      label: determineLabel(typedPrayer),
+                      onPress: () => handleOpenModal(typedPrayer),
+                      fontWeight: '500',
+                      icon: (
+                        <Ionicons
+                          name={
+                            linkIcon(
+                              typedPrayer,
+                            ) as keyof typeof Ionicons.glyphMap
+                          }
+                          size={20}
+                          color={titleColor}
+                        />
+                      ),
+                    }}
+                  />
+                );
+              })}
+              <TextInput
+                style={{ ...styles.searchInput, borderColor: Colors.grey1 }}
+                placeholder="Search existing prayer points..."
+                value={searchText}
+                onChangeText={setSearchText}
+              />
+            </>
+          ) : null}
         </View>
-      )}
+      ) : null}
 
       {/* Display LinkingModal when showLinkingModal is true */}
       {selectedLink && setShowLinkingModal && (

@@ -48,10 +48,10 @@ const PrayerPointSection: React.FC<PrayerPointProps> = ({
   const groupedPrayerPoints = updatedPrayerPoints.reduce<
     Record<string, PrayerPoint[]>
   >((acc, prayerPoint) => {
-    const topic = '';
-    // Array.isArray(prayerPoint.linkedTopics)
-    // ? `#${prayerPoint.linkedTopics.find((t) => t.id === prayerPoint.id)?.title ?? ''}`
-    // : '';
+    let topic = '';
+    // topic = Array.isArray(prayerPoint.linkedTopics)
+    //   ? `#${prayerPoint.linkedTopics.find((t) => t.id === prayerPoint.id)?.title ?? ''}`
+    //   : '';
     if (!acc[topic]) acc[topic] = [];
     acc[topic].push(prayerPoint);
     return acc;

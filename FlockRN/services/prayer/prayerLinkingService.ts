@@ -25,9 +25,7 @@ import {
 } from '@/types/firebase';
 import {
   isPrayerTopic,
-  isValidCreateTopicDTO,
   isValidPrayerPointInJourneyDTO,
-  isValidUpdateTopicDTO,
   validateJourneyField,
 } from '@/types/typeGuards';
 import { EntityType, PrayerType } from '@/types/PrayerSubtypes';
@@ -35,7 +33,7 @@ import { User } from 'firebase/auth';
 import { prayerPointService } from './prayerPointService';
 import { prayerTopicService } from './prayerTopicService';
 import { FirestoreCollections } from '@/schema/firebaseCollections';
-import normalizeDate from '@/utils/dateUtils';
+import { getDateString, normalizeDate } from '@/utils/dateUtils';
 
 export interface IPrayerLinkingService {
   loadPrayer(
@@ -156,13 +154,13 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
   maxCharactersPerPrayerContext = 250; // or whatever your constant is
   openAiService = OpenAiService.getInstance();
+  now = Timestamp.now();
 
   // Load the prayer (either prayer point or prayer topic)
   loadPrayer = async (
     prayer: LinkedPrayerEntity,
   ): Promise<LinkedPrayerEntity | null> => {
     try {
-      console.log('Loading origin prayer:', prayer);
       let fetchedPrayer = null;
       switch (prayer.entityType) {
         case EntityType.PrayerPoint:
@@ -194,28 +192,37 @@ class PrayerLinkingService implements IPrayerLinkingService {
     contextAsStrings: string | undefined;
     contextAsEmbeddings: number[] | undefined;
   }> => {
-    const getCleanedText = (p: PrayerPointInTopicJourneyDTO) => {
+    // This function takes a journey of prayer points and generates embeddings
+    // for the most recent 5 prayer points, concatenating their titles and content
+    // into a single string.
+    const getCleanedText = (p: PrayerPointInTopicJourneyDTO): string => {
+      const dateStr = p.createdAt
+        ? getDateString(p.createdAt)
+        : getDateString(this.now);
       const title = p.title?.trim();
       const trimmedContent = p.content
         ?.slice(0, this.maxCharactersPerPrayerContext)
         ?.trim();
 
-      // logic to handle empty titles, empty content, etc.
+      // Handle different cases for title and content
       if (title && trimmedContent) {
-        return `${title}, ${trimmedContent}`;
-      } else if (title) {
-        return title;
-      } else if (trimmedContent) {
-        return trimmedContent;
-      } else {
-        return '';
+        return `${dateStr}, ${title}, ${trimmedContent}`;
       }
+      if (title) {
+        return `${dateStr}, ${title}`;
+      }
+      if (trimmedContent) {
+        return `${dateStr}, ${trimmedContent}`;
+      }
+      return '';
     };
 
-    const contextAsStrings = journey
+    // Get the most recent 5 prayer points and map them to cleaned text
+    const recentPrayerPoints = journey.slice(0, 5);
+    const contextAsStrings = recentPrayerPoints
       .map(getCleanedText)
       .filter(Boolean)
-      .join(', ');
+      .join(', '); // Join them with a comma for separation
 
     try {
       const embeddings =
@@ -249,7 +256,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
       prayerType: p.prayerType ?? 'request',
       title: p.title,
       content: p.content,
-      createdAt: normalizeDate(p.createdAt),
+      createdAt: p.createdAt, // use timestamp for firestore for date.
       authorId: p.authorId ?? 'unknown',
       authorName: p.authorName,
       recipientName: p.recipientName,
@@ -264,6 +271,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
       return [toDTO(originPrayer as PrayerPointInTopicJourneyDTO)];
     };
 
+    console.log('Journey:', toDTO(prayerPoint));
     const prayerForJourney = toDTO(prayerPoint);
     if (!isValidPrayerPointInJourneyDTO(toDTO(prayerPoint)))
       console.error('Invalid prayer point in journey DTO');
@@ -272,7 +280,9 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
     const deduped = Array.from(new Map(journey.map((j) => [j.id, j])).values());
     return deduped.sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      (a, b) =>
+        normalizeDate(b.createdAt).getTime() -
+        normalizeDate(a.createdAt).getTime(),
     );
   };
 
@@ -516,6 +526,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
     const linkedTopic: LinkedTopicInPrayerDTO = {
       id: originTopic.id,
       title: originTopic.title,
+      entityType: EntityType.PrayerTopic,
     };
 
     // update the prayer point with the linked topic.
@@ -552,6 +563,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
       const linkedTopic: LinkedTopicInPrayerDTO = {
         id: topicId,
         title: topicDTO.title!,
+        entityType: EntityType.PrayerTopic,
       };
 
       // Update the origin prayer point with the linked topic.
@@ -624,7 +636,7 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
       if (fullOriginPrayer.entityType === EntityType.PrayerTopic) {
         // handle if updating an existing prayer topic.
-
+        console.log('next', topicDTO);
         updatedPrayerPointWithTopic =
           await prayerLinkingService.updateExistingPrayerTopicAndAddLinkedTopicToPrayerPoint(
             fullOriginPrayer as PrayerTopic,

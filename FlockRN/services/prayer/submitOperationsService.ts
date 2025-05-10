@@ -80,6 +80,7 @@ class SubmitOperationsService implements ISubmitOperationsService {
     const contextFields = getContextFieldsIfEmbeddingsExist(
       contextAsEmbeddings,
       contextAsStrings,
+      true,
     );
 
     const prayerPointData: CreatePrayerPointDTO = {
@@ -91,25 +92,29 @@ class SubmitOperationsService implements ISubmitOperationsService {
       tags: data.tags,
       authorId: user.uid,
       authorName: user.displayName || 'unknown',
-      recipientName: data.recipientName || 'unknown',
+      recipientName: data.recipientName?.trim() || 'unknown',
       recipientId: data.recipientId || 'unknown',
-      contextAsEmbeddings: contextFields.contextAsEmbeddings,
-      contextAsStrings: contextFields.contextAsStrings,
+      ...(contextFields.contextAsEmbeddings !== undefined && {
+        contextAsEmbeddings: contextFields.contextAsEmbeddings,
+      }),
+      ...(contextFields.contextAsStrings !== undefined && {
+        contextAsStrings: contextFields.contextAsStrings,
+      }),
       ...(Array.isArray(data.linkedTopics) && data.linkedTopics.length > 0
         ? { linkedTopics: data.linkedTopics }
         : undefined), // ensures no NaN or empty array is sent to firebase.
     };
 
-    if (!isValidCreatePrayerPointDTO(prayerPointData))
+    if (!isValidCreatePrayerPointDTO(data))
       throw new Error('Invalid prayer point data');
-    const docRefId =
+    const { id, createdAt } =
       await prayerPointService.createPrayerPoint(prayerPointData);
 
     return {
       ...prayerPointData,
-      id: docRefId,
-      createdAt: new Date(),
-    } as PrayerPoint; // return the created prayer point with the ID.
+      id: id,
+      createdAt: createdAt.toDate(),
+    } as unknown as PrayerPoint; // return the created prayer point with the ID.
   };
 
   // requires parameter to be passed in to avoid possible useState delay.
@@ -119,6 +124,7 @@ class SubmitOperationsService implements ISubmitOperationsService {
       getContextFieldsIfEmbeddingsExist(
         data.contextAsEmbeddings as number[],
         data.contextAsStrings as string,
+        false,
       );
 
     const updateData: UpdatePrayerPointDTO = {
@@ -132,7 +138,6 @@ class SubmitOperationsService implements ISubmitOperationsService {
       linkedTopics:
         data.linkedTopics == null ? deleteField() : data.linkedTopics,
     };
-
     if (!isValidUpdatePrayerPointDTO(updateData))
       throw new Error('Invalid prayer point data');
 
@@ -165,8 +170,6 @@ class SubmitOperationsService implements ISubmitOperationsService {
         ...prayerPoint,
       };
 
-      console.log('updatedPrayerPointDTO', updatedPrayerPointDTO);
-
       // if there is linking happening, we need to handle prayer linking.
       if (originPrayer && topicTitle) {
         const result =
@@ -178,15 +181,13 @@ class SubmitOperationsService implements ISubmitOperationsService {
             aiOptIn,
             topicTitle,
           );
-        updatedPrayerPointDTO = result.updatedPrayerPointWithTopic;
-        fullOriginPrayer = result.fullOriginPrayer;
-        topicId = result.topicId;
-
         updatedPrayerPointDTO = {
-          ...updatedPrayerPointDTO,
+          ...prayerPoint,
           ...result.updatedPrayerPointWithTopic, // result may be partial
         };
-      } else if (aiOptIn && !embedding) {
+        fullOriginPrayer = result.fullOriginPrayer;
+        topicId = result.topicId;
+      } else if (aiOptIn && embedding == null) {
         // if AI is opted in and embedding is not present, generate embedding.
         try {
           const dateStr = prayerPoint.createdAt
@@ -198,11 +199,11 @@ class SubmitOperationsService implements ISubmitOperationsService {
           embedding =
             await this.openAiService.getVectorEmbeddings(contextAsStrings);
 
+          console.log('embedding', embedding);
           updatedPrayerPointDTO = {
             ...updatedPrayerPointDTO,
-            contextAsEmbeddings: embedding == null ? deleteField() : embedding,
-            contextAsStrings:
-              embedding == null ? deleteField() : contextAsStrings,
+            contextAsEmbeddings: embedding == null ? undefined : embedding,
+            contextAsStrings: embedding == null ? undefined : contextAsStrings,
           };
         } catch (error) {
           console.error('Error generating embedding:', error);

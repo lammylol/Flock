@@ -64,7 +64,6 @@ function reducer(
     case 'SET_PRAYER_POINTS':
       return { ...state, prayerPoints: action.payload };
     case 'UPDATE_PRAYER_POINT': {
-      console.log('Updating prayer point:', action.payload);
       return {
         ...state,
         prayerPoints: state.prayerPoints.map((p) =>

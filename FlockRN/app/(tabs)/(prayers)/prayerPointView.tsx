@@ -23,6 +23,7 @@ import { EntityType } from '@/types/PrayerSubtypes';
 import { EditMode } from '@/types/ComponentProps';
 import { complexPrayerOperations } from '@/services/prayer/complexPrayerOperations';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
+import PrayerPointLinking from '@/components/Prayer/PrayerViews/PrayerPointLinking';
 
 const PrayerPointView = () => {
   const { id: prayerPointId } = useLocalSearchParams() as {
@@ -193,6 +194,13 @@ const PrayerPointView = () => {
               prayerOrPrayerPoint={EntityType.PrayerPoint}
               backgroundColor={backgroundColor}
             />
+
+            {prayerPoint.linkedTopics && (
+              <PrayerPointLinking
+                editMode={EditMode.CREATE}
+                prayerPoint={prayerPoint}
+              />
+            )}
 
             {/* Spacer to push content up and button to bottom */}
             <View style={styles.spacer} />

@@ -23,8 +23,6 @@ export function usePrayerPointHandler({
     content: '',
     prayerType: PrayerType.Request,
     tags: [],
-    contextAsEmbeddings: [],
-    contextAsStrings: '',
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: user?.displayName || 'unknown',
@@ -51,7 +49,6 @@ export function usePrayerPointHandler({
   const loadPrayerPoint = useCallback(async () => {
     const contextPrayerPoint = userPrayerPoints.find((p) => p.id === id);
     if (contextPrayerPoint) {
-      console.log('Found prayer point in context:', contextPrayerPoint.id);
       setUpdatedPrayerPoint({ ...contextPrayerPoint });
       return;
     }

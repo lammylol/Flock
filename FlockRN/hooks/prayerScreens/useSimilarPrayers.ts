@@ -16,7 +16,7 @@ export function useSimilarPrayers(
   const [similarPrayers, setSimilarPrayers] = useState<
     PartialLinkedPrayerEntity[]
   >([]);
-  const [embedding, setEmbedding] = useState<number[]>([]);
+  const [embedding, setEmbedding] = useState<number[]>();
   const now = Timestamp.now();
 
   // Debounced function
@@ -54,12 +54,13 @@ export function useSimilarPrayers(
     }
   }, [
     editMode,
+    now,
     openAiService,
     prayerPoint.content,
     prayerPoint.createdAt,
     prayerPoint.id,
     prayerPoint.title,
-    user?.uid,
+    user.uid,
   ]);
 
   useEffect(() => {

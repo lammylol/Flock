@@ -13,7 +13,6 @@ import { ThemedScrollView } from '@/components/ThemedScrollView';
 import {
   PrayerPoint,
   Prayer,
-  FlatPrayerTopicDTO,
   LinkedPrayerEntity,
   UpdatePrayerDTO,
 } from '@/types/firebase';

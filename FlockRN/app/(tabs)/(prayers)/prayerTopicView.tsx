@@ -27,7 +27,6 @@ const PrayerTopicView = () => {
 
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const backgroundColor = useThemeColor({}, 'backgroundSecondary');
   const textColor = useThemeColor({}, 'textPrimary');
   // const isOwner = prayerTopic && user && prayerTopic.authorId === user.uid;
@@ -94,14 +93,6 @@ const PrayerTopicView = () => {
             errorTitle="Content Unavailable"
             errorMessage="Sorry, your prayer can't be loaded right now."
           />
-        ) : isDeleting ? (
-          <>
-            <ActivityIndicator size="large" color={Colors.primary} />
-            <ContentUnavailable
-              errorTitle="Deleting Prayer Point"
-              errorMessage="Your prayer point is being deleted right now."
-            />
-          </>
         ) : prayerTopic ? (
           <>
             {/* <Stack.Screen
