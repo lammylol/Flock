@@ -322,7 +322,6 @@ class PrayerPointsService implements IPrayerPointsService {
       authorName: data.authorName,
       title: data.title,
       content: data.content,
-      status: data.status,
       privacy: data.privacy,
       createdAt: data.createdAt as Date,
       updatedAt: data.updatedAt as Date,
@@ -332,7 +331,8 @@ class PrayerPointsService implements IPrayerPointsService {
       prayerType: data.prayerType as PrayerType,
       recipientId: data.recipientId,
       recipientName: data.recipientName,
-      embedding: data.embedding,
+      contextAsEmbeddings: data.embedding,
+      contextAsStrings: data.contextAsStrings,
       entityType: data.entityType as EntityType,
     };
   }

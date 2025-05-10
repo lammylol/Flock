@@ -197,10 +197,7 @@ class PrayerService implements IPrayerService {
     try {
       const functions = getFunctions(getApp());
       // Ensure the function is deployed and callable
-      const findSimilarPrayers = httpsCallable(
-        functions,
-        'findSimilarPrayersV2',
-      );
+      const findSimilarPrayers = httpsCallable(functions, 'findSimilarPrayers');
       const result = await findSimilarPrayers({
         ...(sourcePrayerId && { sourcePrayerId }),
         queryEmbedding: embedding,

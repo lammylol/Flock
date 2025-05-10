@@ -4,6 +4,8 @@ import { auth } from '@/firebase/firebaseConfig';
 import { PartialLinkedPrayerEntity, PrayerPoint } from '@/types/firebase';
 import { EditMode } from '@/types/ComponentProps';
 import { prayerService } from '@/services/prayer/prayerService';
+import { Timestamp } from 'firebase/firestore';
+import { getDateString } from '@/utils/dateUtils';
 
 export function useSimilarPrayers(
   prayerPoint: PrayerPoint,
@@ -15,13 +17,19 @@ export function useSimilarPrayers(
     PartialLinkedPrayerEntity[]
   >([]);
   const [embedding, setEmbedding] = useState<number[]>([]);
+  const now = Timestamp.now();
 
   // Debounced function
   const debouncedFindSimilarPrayers = useCallback(async () => {
-    const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
-    if (!input || !user?.uid) return;
+    const dateStr = prayerPoint.createdAt
+      ? getDateString(prayerPoint.createdAt)
+      : getDateString(now);
+    const contextAsStrings =
+      `${dateStr}, ${prayerPoint.title}, ${prayerPoint.content}`.trim();
+    if (!user?.uid) return;
 
-    const currentEmbedding = await openAiService.getVectorEmbeddings(input);
+    const currentEmbedding =
+      await openAiService.getVectorEmbeddings(contextAsStrings);
     // In the future, we can have a check to see if the context of prayer point has materially changed.
     // If it has, we can fetch a new embedding. If not, we can use the existing one.
 
@@ -48,9 +56,10 @@ export function useSimilarPrayers(
     editMode,
     openAiService,
     prayerPoint.content,
+    prayerPoint.createdAt,
     prayerPoint.id,
     prayerPoint.title,
-    user.uid,
+    user?.uid,
   ]);
 
   useEffect(() => {

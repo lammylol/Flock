@@ -71,7 +71,7 @@ export const getVectorEmbeddings = functions.https.onRequest(
     }
   });
 
-export const findSimilarPrayersV2 = functions.https.onCall(
+export const findSimilarPrayers = functions.https.onCall(
   async (request) => {
     const { sourcePrayerId, queryEmbedding, topK, userId } = request.data;
     // mandatory: queryEmbedding, topK, userId
@@ -103,13 +103,14 @@ export const findSimilarPrayersV2 = functions.https.onCall(
     try {
       // Query prayer points. Prayer points have a prayerType.
       const querySnapshotPP = await db.collection('prayerPoints')
-        .where('embedding', '!=', null)
+        .where('contextAsEmbeddings', '!=', null)
         .where('authorId', '==', userId)
-        .select('embedding', 'title', 'prayerType', 'entityType')
+        .select('contextAsEmbeddings', 'title', 'prayerType', 'entityType')
         .get();
       
       const prayerPoints = querySnapshotPP.docs.map((doc) => ({
         id: doc.id,
+        entityType: 'prayerPoint',
         ...doc.data(),
       }));
 
@@ -120,15 +121,11 @@ export const findSimilarPrayersV2 = functions.https.onCall(
         .select('contextAsEmbeddings', 'title', 'entityType')
         .get();
     
-      const prayerTopics = querySnapshotPT.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          embedding: data.contextAsEmbeddings, // renamed
-          title: data.title,
-          entityType: data.entityType,
-        };
-      });
+      const prayerTopics = querySnapshotPT.docs.map((doc) => ({
+        id: doc.id,
+        entityType: 'prayerPoint',
+        ...doc.data(),
+      }));
       
       let prayerPointsAndTopics = [...prayerPoints, ...prayerTopics];
 
@@ -161,7 +158,7 @@ export const findSimilarPrayersV2 = functions.https.onCall(
           title: prayer.title,
           prayerType: prayer.prayerType || undefined,
           entityType: prayer.entityType,
-          similarity: cosineSimilarity(queryEmbedding, prayer.embedding),
+          similarity: cosineSimilarity(queryEmbedding, prayer.contextAsEmbeddings),
         }))
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, effectiveTopK);
@@ -170,63 +167,6 @@ export const findSimilarPrayersV2 = functions.https.onCall(
       return { result: results };
     } catch (error) {
       console.error('Error processing request:', error.message);
-      throw new functions.https.HttpsError('internal', error.message || 'Failure: the process failed on the server.');
-    }
-  });
-
-// TO BE DEPRECATED. Leaving functionality in place for testing.
-export const findSimilarPrayers = functions.https.onCall(
-  async (request) => {
-    const { queryEmbedding, topK, userId } = request.data;
-
-    // Check if the function is called by an authenticated user
-    if (!request.auth) {
-      console.error('Unauthenticated request:', request);
-      throw new functions.https.HttpsError('unauthenticated', 'The function must be called while authenticated.');
-    }
-
-    console.log('Request data:', request.data);
-
-    // Validate the input
-    if (!queryEmbedding || !Array.isArray(queryEmbedding) || queryEmbedding.length === 0) {
-      throw new functions.https.HttpsError('invalid-argument', 'Invalid query embedding.');
-    }
-    
-    try {
-      const querySnapshot = await db.collection('prayerPoints')
-        .where('embedding', '!=', null)
-        .where('isOrigin', '==', true)
-        .where('authorId', '==', userId)
-        .get();
-      
-      const prayerPoints = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-  
-      // Compute cosine similarity
-      const cosineSimilarity = (a, b) => {
-        const dotProduct = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
-        const magnitudeA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
-        const magnitudeB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
-        return dotProduct / (magnitudeA * magnitudeB);
-      };
-  
-      const results = prayerPoints
-        .map((prayer) => ({
-          id: prayer.id,
-          title: prayer.title,
-          type: prayer.type,
-          similarity: cosineSimilarity(queryEmbedding, prayer.embedding),
-        }))
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, topK || 5);
-  
-      console.log('Similar prayers found:', results);
-      return { result: results };
-    } catch (error) {
-      // Throw an HttpsError for an internal server issue.
-      console.error('Error occurred:', error);
       throw new functions.https.HttpsError('internal', error.message || 'Failure: the process failed on the server.');
     }
   });

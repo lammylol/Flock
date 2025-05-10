@@ -76,7 +76,10 @@ export interface IPrayerLinkingService {
   ): Promise<PrayerPoint | undefined>;
   setContextFromJourneyAndGetEmbeddings(
     journey: PrayerPointInTopicJourneyDTO[],
-  ): Promise<{ contextAsStrings: string; contextAsEmbeddings: number[] }>;
+  ): Promise<{
+    contextAsStrings: string | undefined;
+    contextAsEmbeddings: number[] | undefined;
+  }>;
   updatePrayerPointWithLinkedTopic(
     prayerPoint: PrayerPoint,
     topicToModify: LinkedTopicInPrayerDTO,
@@ -159,8 +162,9 @@ class PrayerLinkingService implements IPrayerLinkingService {
     prayer: LinkedPrayerEntity,
   ): Promise<LinkedPrayerEntity | null> => {
     try {
+      console.log('Loading origin prayer:', prayer);
       let fetchedPrayer = null;
-      switch (prayer?.entityType) {
+      switch (prayer.entityType) {
         case EntityType.PrayerPoint:
           fetchedPrayer = await prayerPointService.getPrayerPoint(
             prayer.id as PrayerPoint['id'],
@@ -173,7 +177,9 @@ class PrayerLinkingService implements IPrayerLinkingService {
           break;
         default:
           console.warn('Unknown entityType or originPrayer is null');
-          return null;
+          fetchedPrayer = await prayerPointService.getPrayerPoint(
+            prayer.id as PrayerPoint['id'],
+          ); // this is a fallback. Just treat as prayer point.
       }
       return fetchedPrayer;
     } catch (error) {
@@ -184,7 +190,10 @@ class PrayerLinkingService implements IPrayerLinkingService {
 
   setContextFromJourneyAndGetEmbeddings = async (
     journey: PrayerPointInTopicJourneyDTO[],
-  ): Promise<{ contextAsStrings: string; contextAsEmbeddings: number[] }> => {
+  ): Promise<{
+    contextAsStrings: string | undefined;
+    contextAsEmbeddings: number[] | undefined;
+  }> => {
     const getCleanedText = (p: PrayerPointInTopicJourneyDTO) => {
       const title = p.title?.trim();
       const trimmedContent = p.content
@@ -214,8 +223,8 @@ class PrayerLinkingService implements IPrayerLinkingService {
       if (!embeddings || embeddings.length === 0) {
         console.error('Failed to generate embeddings');
         return {
-          contextAsStrings: '',
-          contextAsEmbeddings: [],
+          contextAsStrings: undefined,
+          contextAsEmbeddings: undefined,
         };
       }
 
@@ -395,7 +404,8 @@ class PrayerLinkingService implements IPrayerLinkingService {
   removeEmbeddingLocally = (prayerPoint: PrayerPoint): PrayerPoint => {
     return {
       ...prayerPoint,
-      embedding: undefined,
+      contextAsStrings: undefined,
+      contextAsEmbeddings: undefined,
     };
   };
 
@@ -405,7 +415,8 @@ class PrayerLinkingService implements IPrayerLinkingService {
       return;
     }
     await prayerPointService.updatePrayerPoint(prayer.id, {
-      embedding: deleteField(),
+      contextAsStrings: deleteField(),
+      contextAsEmbeddings: deleteField(),
     });
   };
 

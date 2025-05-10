@@ -198,28 +198,4 @@ export default class OpenAiService {
     console.error(`Error in ${context} analysis:`, error);
     throw error;
   }
-
-  // this is mainly for use with ai generation flow.
-  async analyzePrayerWithEmbeddings(
-    content: string,
-    hasTranscription: boolean,
-    isAiEnabled: boolean,
-  ): Promise<AIAnalysis & { embedding: number[] }> {
-    // Initial OpenAI analysis
-    const analysis = await this.analyzePrayerContent(
-      content,
-      hasTranscription,
-      isAiEnabled,
-    );
-
-    // Use cleaned content for embedding and get embedding.
-    const inputForEmbedding = analysis.cleanedTranscription || content.trim();
-
-    const embedding = await this.getVectorEmbeddings(inputForEmbedding);
-
-    return {
-      ...analysis,
-      embedding,
-    };
-  }
 }

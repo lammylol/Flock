@@ -75,7 +75,8 @@ export interface PrayerPoint extends BasePrayerEntity {
   linkedTopics?: LinkedTopicInPrayerDTO[] | FieldValue; // linked topics. id/title of topic.
   recipientName: string;
   recipientId?: string;
-  embedding?: number[] | FieldValue;
+  contextAsStrings?: string | FieldValue;
+  contextAsEmbeddings?: number[] | FieldValue;
 }
 
 export interface PrayerTopic extends BasePrayerEntity {

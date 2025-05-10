@@ -5,6 +5,7 @@ import {
   PrayerPoint,
   PrayerPointInTopicJourneyDTO,
   PrayerTopic,
+  UpdatePrayerPointDTO,
   UpdatePrayerTopicDTO,
 } from '@/types/firebase';
 import { EntityType } from './PrayerSubtypes';
@@ -56,9 +57,12 @@ export function validateContextFields(dto: unknown): boolean {
 
   // Only allow valid embeddings or strings if they exist
   const noInvalidEmbedding =
-    !('contextAsEmbeddings' in updateDTO) || hasEmbeddings;
+    !('contextAsEmbeddings' in updateDTO) ||
+    (updateDTO.contextAsEmbeddings !== null && hasEmbeddings);
 
-  const noInvalidString = !('contextAsStrings' in updateDTO) || hasStrings;
+  const noInvalidString =
+    !('contextAsStrings' in updateDTO) ||
+    (updateDTO.contextAsStrings !== null && hasStrings);
 
   return noInvalidEmbedding && noInvalidString;
 }
@@ -72,6 +76,7 @@ export function validateLinkedTopicField(dto: unknown): boolean {
   const hasValidLinkedTopics =
     'linkedTopics' in updateDTO &&
     Array.isArray(updateDTO.linkedTopics) &&
+    updateDTO.linkedTopics !== null &&
     updateDTO.linkedTopics.every(
       (item: unknown) =>
         typeof item === 'object' &&
@@ -113,6 +118,7 @@ export function isPrayerTopic(obj: unknown): obj is PrayerTopic {
   return getEntityType(obj) === EntityType.PrayerTopic;
 }
 
+// checks for mandatory fields in prayer topic.
 export function isValidCreateTopicDTO(
   dto: unknown,
   aiOptIn: boolean,
@@ -143,18 +149,33 @@ export function isValidCreateTopicDTO(
     if (!hasValidEmbeddings && !hasValidStrings) return false;
   }
 
-  return validateJourneyField(dto);
+  if ('journey' in createDTO && !validateJourneyField(createDTO.journey)) {
+    return false;
+  }
+  return true;
 }
 
+// update topic check to make sure if the fields are added, they are valid.
 export function isValidUpdateTopicDTO(
   dto: unknown,
 ): dto is UpdatePrayerTopicDTO {
   if (typeof dto !== 'object' || dto === null) return false;
 
   const updateDTO = dto as UpdatePrayerTopicDTO;
-  return validateJourneyField(updateDTO) && validateContextFields(updateDTO);
+  if ('journey' in dto && !validateJourneyField(updateDTO)) {
+    return false;
+  }
+
+  if ('contextAsEmbeddings' in updateDTO || 'contextAsStrings' in updateDTO) {
+    if (!validateContextFields(updateDTO)) {
+      return false; // Return false if validation fails
+    }
+  }
+
+  return true; // Return true if all validations pass
 }
 
+// prayer in journey must have all these fields.
 export function isValidPrayerPointInJourneyDTO(
   obj: unknown,
 ): obj is PrayerPointInTopicJourneyDTO {
@@ -171,6 +192,7 @@ export function isValidPrayerPointInJourneyDTO(
   );
 }
 
+// this checks to make sure prayer point has the right fields.
 export function isValidCreatePrayerPointDTO(
   dto: unknown,
 ): dto is CreatePrayerPointDTO {
@@ -187,21 +209,35 @@ export function isValidCreatePrayerPointDTO(
   const hasValidTitle =
     typeof createDTO.title === 'string' && createDTO.title.trim() !== '';
 
-  const contextIsValid = validateContextFields(createDTO);
-  const linkedTopicsValid = validateLinkedTopicField(createDTO);
+  // these are both optional fields for prayer points.
+  if ('contextAsEmbeddings' in dto || 'contextAsStrings' in dto) {
+    if (!validateContextFields(dto)) {
+      return false; // Return false if validation fails
+    }
+  }
+  if ('linkedTopics' in dto) {
+    if (!validateLinkedTopicField(dto)) {
+      return false; // Return false if validation fails
+    }
+  }
 
-  return (
-    hasValidAuthor &&
-    hasValidContent &&
-    hasValidTitle &&
-    contextIsValid &&
-    linkedTopicsValid
-  );
+  return hasValidAuthor && hasValidContent && hasValidTitle;
 }
 
 export function isValidUpdatePrayerPointDTO(
-  dto: unknown,
-): dto is CreatePrayerPointDTO {
-  // Use the reusable context validation function
-  return validateContextFields(dto), validateLinkedTopicField(dto);
+  dto: UpdatePrayerPointDTO,
+): dto is UpdatePrayerPointDTO {
+  if ('linkedTopics' in dto) {
+    if (!validateLinkedTopicField(dto)) {
+      return false; // Return false if validation fails
+    }
+  }
+
+  if ('contextAsEmbeddings' in dto || 'contextAsStrings' in dto) {
+    if (!validateContextFields(dto)) {
+      return false; // Return false if validation fails
+    }
+  }
+  // Return true if all validations pass
+  return true;
 }

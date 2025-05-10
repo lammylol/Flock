@@ -4,7 +4,6 @@ import {
   FlatPrayerTopicDTO,
   LinkedPrayerEntity,
   PrayerPoint,
-  PrayerPointInTopicJourneyDTO,
   UpdatePrayerPointDTO,
 } from '@/types/firebase';
 import OpenAiService from '@/services/ai/openAIService';
@@ -12,13 +11,14 @@ import { User } from 'firebase/auth';
 import { prayerLinkingService } from './prayerLinkingService';
 import { EntityType } from '@/types/PrayerSubtypes';
 import { Alert } from 'react-native';
-import { deleteField } from 'firebase/firestore';
+import { deleteField, Timestamp } from 'firebase/firestore';
 import { prayerPointService } from './prayerPointService';
 import {
   isValidCreatePrayerPointDTO,
-  isValidPrayerPointInJourneyDTO,
   isValidUpdatePrayerPointDTO,
 } from '@/types/typeGuards';
+import { getContextFieldsIfEmbeddingsExist } from './sharedPrayerServices';
+import { getDateString } from '@/utils/dateUtils';
 
 export interface ISubmitOperationsService {
   createPrayerPoint: (
@@ -34,6 +34,7 @@ export interface ISubmitOperationsService {
     prayerTopicDTO,
     user,
     embedding,
+    aiOptIn,
     handlePrayerPointUpdate,
   }: {
     formState: { isEditMode: boolean };
@@ -42,12 +43,14 @@ export interface ISubmitOperationsService {
     prayerTopicDTO?: FlatPrayerTopicDTO | undefined;
     user: User;
     embedding: number[] | undefined;
+    aiOptIn: boolean;
     handlePrayerPointUpdate: (p: PrayerPoint) => void;
   }) => Promise<PrayerPoint>;
 }
 
 class SubmitOperationsService implements ISubmitOperationsService {
   openAiService = OpenAiService.getInstance();
+  now = Timestamp.now();
 
   // requires parameter to be passed in to avoid possible useState delay.
   createPrayerPoint = async (
@@ -55,17 +58,29 @@ class SubmitOperationsService implements ISubmitOperationsService {
     user: User,
     aiOptIn: boolean,
   ): Promise<PrayerPoint> => {
-    let embeddingInput = (data.embedding as number[]) || undefined;
+    if (!user?.uid) throw new Error('User not authenticated');
 
-    // only generate embedding if not already present (in cases where
-    // user edits and creates before embeddings are generated).
-    // Do not generate if new prayer point is linked to a topic.
-    if (!embeddingInput && !data.linkedTopics && aiOptIn) {
-      const input = `${data.title} ${data.content}`.trim();
-      embeddingInput = await this.openAiService.getVectorEmbeddings(input);
+    let contextAsEmbeddings = data.contextAsEmbeddings as number[] | undefined;
+    let contextAsStrings = data.contextAsStrings as string | undefined;
+
+    // Only generate embeddings if not present AND user opted in AND not linked to topics
+    const shouldGenerateEmbeddings =
+      !contextAsEmbeddings && !data.linkedTopics && aiOptIn;
+
+    if (shouldGenerateEmbeddings) {
+      const dateStr = data.createdAt
+        ? getDateString(data.createdAt)
+        : getDateString(this.now);
+      contextAsStrings = `${dateStr}, ${data.title}, ${data.content}`.trim();
+      contextAsEmbeddings =
+        await this.openAiService.getVectorEmbeddings(contextAsStrings);
     }
 
-    if (!user?.uid) throw new Error('User not authenticated');
+    // Final validation + fallback cleanup
+    const contextFields = getContextFieldsIfEmbeddingsExist(
+      contextAsEmbeddings,
+      contextAsStrings,
+    );
 
     const prayerPointData: CreatePrayerPointDTO = {
       title: data.title?.trim() ?? '',
@@ -78,12 +93,11 @@ class SubmitOperationsService implements ISubmitOperationsService {
       authorName: user.displayName || 'unknown',
       recipientName: data.recipientName || 'unknown',
       recipientId: data.recipientId || 'unknown',
-      ...(Array.isArray(embeddingInput) && embeddingInput.length > 0
-        ? { embedding: embeddingInput }
-        : {}), // ensures no NaN or empty array is sent to firebase.
+      contextAsEmbeddings: contextFields.contextAsEmbeddings,
+      contextAsStrings: contextFields.contextAsStrings,
       ...(Array.isArray(data.linkedTopics) && data.linkedTopics.length > 0
         ? { linkedTopics: data.linkedTopics }
-        : {}), // ensures no NaN or empty array is sent to firebase.
+        : undefined), // ensures no NaN or empty array is sent to firebase.
     };
 
     if (!isValidCreatePrayerPointDTO(prayerPointData))
@@ -101,18 +115,27 @@ class SubmitOperationsService implements ISubmitOperationsService {
   // requires parameter to be passed in to avoid possible useState delay.
   updatePrayerPoint = async (id: string, data: UpdatePrayerPointDTO) => {
     if (!id) throw new Error('No prayer point ID provided');
+    const { contextAsEmbeddings, contextAsStrings } =
+      getContextFieldsIfEmbeddingsExist(
+        data.contextAsEmbeddings as number[],
+        data.contextAsStrings as string,
+      );
+
     const updateData: UpdatePrayerPointDTO = {
-      title: data.title?.trim(),
-      content: data.content,
+      title: data.title?.trim() ?? '', // even if user doesn't enter title, it must be passed.
+      content: data.content?.trim() ?? '', // even if user doesn't enter content, it must be passed.
       privacy: data.privacy ?? 'private',
       tags: data.tags,
       prayerType: data.prayerType,
-      embedding: data.embedding == null ? deleteField() : data.embedding,
+      contextAsEmbeddings,
+      contextAsStrings,
       linkedTopics:
         data.linkedTopics == null ? deleteField() : data.linkedTopics,
     };
-    if (!isValidUpdatePrayerPointDTO(data))
+
+    if (!isValidUpdatePrayerPointDTO(updateData))
       throw new Error('Invalid prayer point data');
+
     await prayerPointService.updatePrayerPoint(id, updateData);
   };
 
@@ -166,14 +189,20 @@ class SubmitOperationsService implements ISubmitOperationsService {
       } else if (aiOptIn && !embedding) {
         // if AI is opted in and embedding is not present, generate embedding.
         try {
+          const dateStr = prayerPoint.createdAt
+            ? getDateString(prayerPoint.createdAt)
+            : getDateString(this.now);
+          const contextAsStrings =
+            `${dateStr}, ${prayerPoint.title}, ${prayerPoint.content}`.trim();
           // invalid embedding is handled in the service.
-          embedding = await this.openAiService.getVectorEmbeddings(
-            `${prayerPoint.title} ${prayerPoint.content}`.trim(),
-          );
+          embedding =
+            await this.openAiService.getVectorEmbeddings(contextAsStrings);
 
           updatedPrayerPointDTO = {
             ...updatedPrayerPointDTO,
-            embedding: embedding == null ? deleteField() : embedding,
+            contextAsEmbeddings: embedding == null ? deleteField() : embedding,
+            contextAsStrings:
+              embedding == null ? deleteField() : contextAsStrings,
           };
         } catch (error) {
           console.error('Error generating embedding:', error);

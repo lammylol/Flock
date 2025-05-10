@@ -1,17 +1,14 @@
 import {
-  FlatPrayerTopicDTO,
   LinkedPrayerEntity,
   PartialLinkedPrayerEntity,
   PrayerPoint,
-  PrayerTopic,
 } from '@/types/firebase';
 import { IPrayerPointsService, prayerPointService } from './prayerPointService';
 import { IPrayerService, prayerService } from './prayerService';
 import OpenAiService from '@/services/ai/openAIService';
-import { User } from 'firebase/auth';
-import { prayerLinkingService } from './prayerLinkingService';
-import { isValidCreateTopicDTO, isValidUpdateTopicDTO } from '@/types/typeGuards';
-import { EntityType } from '@/types/PrayerSubtypes';
+import { validateContextFields } from '@/types/typeGuards';
+import { Timestamp } from 'firebase/firestore';
+import { getDateString } from '@/utils/dateUtils';
 
 export interface IComplexPrayerOperations {
   getEmbeddingsAndFindSimilarPrayerPoints(
@@ -53,6 +50,7 @@ class ComplexPrayerOperations implements IComplexPrayerOperations {
   }
 
   openService = OpenAiService.getInstance();
+  now = Timestamp.now();
 
   getEmbeddingsAndFindSimilarPrayerPoints = async (
     prayerPoint: PrayerPoint,
@@ -63,27 +61,45 @@ class ComplexPrayerOperations implements IComplexPrayerOperations {
     prayerPointWithEmbedding: PrayerPoint;
   }> => {
     try {
-      let embeddingInput = (prayerPoint.embedding as number[]) || undefined;
-      if (!embeddingInput) {
-        const input = `${prayerPoint.title} ${prayerPoint.content}`.trim();
-        embeddingInput = await this.openService.getVectorEmbeddings(input);
+      let contextAsEmbeddings =
+        (prayerPoint.contextAsEmbeddings as number[]) || undefined;
+      let contextAsStrings = prayerPoint.contextAsStrings || undefined;
+      if (!contextAsEmbeddings) {
+        const dateStr = prayerPoint.createdAt
+          ? getDateString(prayerPoint.createdAt)
+          : getDateString(this.now);
+        contextAsStrings =
+          `${dateStr}, ${prayerPoint.title}, ${prayerPoint.content} `.trim();
+        contextAsEmbeddings =
+          await this.openService.getVectorEmbeddings(contextAsStrings);
       }
-      if (embeddingInput.length === 0) {
+      if (contextAsEmbeddings.length === 0) {
         console.error('Empty embedding array');
         return { similarPrayers: [], prayerPointWithEmbedding: prayerPoint };
       }
 
       const similarPrayers = await this.prayerService.findRelatedPrayers(
-        embeddingInput,
+        contextAsEmbeddings,
         userId,
         prayerPoint.id,
         topK,
       );
 
-      const prayerPointWithEmbedding = {
-        ...prayerPoint,
-        ...(embeddingInput && { embedding: embeddingInput }),
-      };
+      let prayerPointWithEmbedding = prayerPoint;
+
+      if (!validateContextFields({ contextAsEmbeddings, contextAsStrings })) {
+        console.error('Invalid prayer point context fields');
+      } else {
+        prayerPointWithEmbedding = {
+          ...prayerPoint,
+          ...(contextAsEmbeddings && {
+            contextAsEmbeddings: contextAsEmbeddings,
+          }),
+          ...(contextAsStrings && {
+            contextAsStrings: contextAsStrings,
+          }),
+        };
+      }
 
       return { similarPrayers, prayerPointWithEmbedding };
     } catch (error) {

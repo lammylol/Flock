@@ -10,7 +10,6 @@ import { router, Stack } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedScrollView } from '@/components/ThemedScrollView';
-import { FlatPrayerTopicDTO, PrayerPoint } from '@/types/firebase';
 import PrayerContent from '@/components/Prayer/PrayerViews/PrayerContent';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { ThemedKeyboardAvoidingView } from '@/components/ThemedKeyboardAvoidingView';
@@ -24,6 +23,8 @@ import { submitOperationsService } from '@/services/prayer/submitOperationsServi
 import { useSimilarPrayers } from '@/hooks/prayerScreens/useSimilarPrayers';
 import { auth } from '@/firebase/firebaseConfig';
 import { usePrayerCollection } from '@/context/PrayerCollectionContext';
+import { PrayerPoint } from '@/types/firebase';
+import { useAiOptIn } from '@/hooks/useUserContext';
 
 interface PrayerPointEditorProps {
   editMode: EditMode;
@@ -69,7 +70,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
     loadPrayerPoint,
     loadPrayerPointFromPassingContent,
   } = usePrayerPointHandler({
-    id: id,
+    id: id!,
     privacy: formState.privacy,
   });
 
@@ -137,9 +138,10 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
             formState,
             prayerPoint: updatedPrayerPoint,
             originPrayer: originPrayer as PrayerPoint | undefined,
-            topicTitle: prayerTopicDTO as FlatPrayerTopicDTO | undefined,
+            topicTitle: prayerTopicDTO as string | undefined,
             user,
             embedding,
+            aiOptIn: useAiOptIn,
           },
         );
 

@@ -29,9 +29,7 @@ interface PrayerMetadataState {
 const initialState: PrayerMetadataState = {
   prayer: {
     id: '', // only temporary
-    title: '',
     content: '',
-    tags: [],
     createdAt: new Date(),
     updatedAt: new Date(),
     authorName: 'unknown',

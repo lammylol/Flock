@@ -166,7 +166,7 @@ export default function PrayerMetadataScreen() {
     }
     return {
       prayerPoint: point,
-      embedding: point.embedding || undefined,
+      embedding: point.contextAsEmbeddings || undefined,
       originPrayer: undefined,
       topicDTO: undefined,
     };
@@ -216,11 +216,10 @@ export default function PrayerMetadataScreen() {
                   originPrayer: linkedData.originPrayer as
                     | LinkedPrayerEntity
                     | undefined,
-                  topicTitle: linkedData.topicDTO as
-                    | FlatPrayerTopicDTO
-                    | undefined,
+                  topicTitle: linkedData.topicDTO as string | undefined,
                   user,
                   embedding: linkedData.embedding as number[] | undefined,
+                  aiOptIn: userOptInFlags.optInAI,
                 },
               );
             updateCollection(
