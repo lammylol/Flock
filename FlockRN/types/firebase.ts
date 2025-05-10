@@ -52,43 +52,42 @@ export interface Group {
 // ===== Base Type =====
 export interface BasePrayerEntity {
   id: string;
-  title?: string;
   content: string;
   createdAt: Date;
   updatedAt: Date;
   authorId: string;
   authorName: string;
-  privacy?: Privacy;
-  tags?: PrayerType[];
+  privacy: Privacy;
   entityType: EntityType;
 }
 
 // ===== Specific Entities =====
 export interface Prayer extends BasePrayerEntity {
-  prayerPoints: string[];
+  prayerPoints?: string[]; // could have no prayer points
   // title is optional already in Base
 }
 
 export interface PrayerPoint extends BasePrayerEntity {
+  title: string;
   prayerId?: string | string[];
   prayerType: PrayerType;
-  tags?: PrayerType[];
+  tags: PrayerType[];
   linkedTopics?: LinkedTopicInPrayerDTO[] | FieldValue; // linked topics. id/title of topic.
-  status?: Status;
-  recipientName?: string;
+  recipientName: string;
   recipientId?: string;
   embedding?: number[] | FieldValue;
 }
 
 export interface PrayerTopic extends BasePrayerEntity {
+  title: string;
   endDate?: Date;
-  prayerTypes?: PrayerType[];
-  status?: Status;
+  prayerTypes: PrayerType[];
+  status: Status;
   recipientName?: string;
   recipientId?: string;
-  journey: PrayerPointInPrayerTopicDTO[] | FieldValue; // prayer points in this topic
-  contextAsStrings: string | FieldValue; // context strings
-  contextAsEmbeddings: number[] | FieldValue; // context embeddings
+  journey: PrayerPointInTopicJourneyDTO[] | FieldValue; // prayer points in this topic
+  contextAsStrings?: string | FieldValue; // context strings - optional without AI
+  contextAsEmbeddings?: number[] | FieldValue; // context embeddings - optional without AI
 }
 
 // ===== Other Types =====
@@ -133,7 +132,7 @@ export type UpdatePrayerTopicDTO = Partial<
 >;
 
 // may want to refactor this in the future if document becomes too large.
-export type PrayerPointInPrayerTopicDTO = Pick<
+export type PrayerPointInTopicJourneyDTO = Pick<
   PrayerPoint,
   | 'id'
   | 'prayerType'
@@ -148,6 +147,7 @@ export type PrayerPointInPrayerTopicDTO = Pick<
 export type LinkedTopicInPrayerDTO = Pick<PrayerPoint, 'id' | 'title'>;
 
 export type FlatPrayerTopicDTO = CreatePrayerTopicDTO | UpdatePrayerTopicDTO;
+export type FlatPrayerPointDTO = CreatePrayerPointDTO | UpdatePrayerPointDTO;
 export type AnyPrayerEntity = PrayerTopic | PrayerPoint | Prayer;
 export type LinkedPrayerEntity = PrayerTopic | PrayerPoint;
 export type PartialLinkedPrayerEntity =

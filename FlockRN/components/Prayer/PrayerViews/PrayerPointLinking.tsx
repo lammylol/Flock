@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import {
   PartialLinkedPrayerEntity,
   LinkedPrayerEntity,
@@ -13,6 +13,7 @@ import PrayerCardWithButtons from './PrayerCardWithButtons';
 import LinkPrayerModal from './LinkPrayerModal';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { usePrayerMetadataContext } from '@/context/PrayerMetadataContext';
+import { ThemedText } from '@/components/ThemedText';
 
 export function PrayerPointLinking({
   backgroundColor,
@@ -34,7 +35,6 @@ export function PrayerPointLinking({
   const titleColor = useThemeColor({}, 'textPrimary');
   const [showLinkSection, setShowLinkSection] = useState(true);
   const { linkedPrayerPairs } = usePrayerMetadataContext();
-  setShowLinkSection(false); // temp
 
   const linkedPrayer = linkedPrayerPairs.find(
     (pair) => pair.prayerPoint.id === prayerPoint.id,
@@ -83,9 +83,22 @@ export function PrayerPointLinking({
         { backgroundColor: backgroundColor, borderColor: Colors.grey1 },
       ]}
     >
+      <View style={styles.modalHeader}>
+        <ThemedText style={{ ...styles.modalTitle, color: titleColor }}>
+          Link to an Existing Prayer
+        </ThemedText>
+        <TouchableOpacity
+          onPress={() => setShowLinkSection(!showLinkSection)}
+        >
+          <ThemedText style={{ ...styles.expandTitle, color: Colors.link }}>
+            {showLinkSection ? 'Hide' : 'Show'}
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
+
       {showLinkSection &&
-      (similarPrayers.length > 0 || prayerPoint.linkedTopics) &&
-      linkedPrayer ? (
+        (similarPrayers.length > 0 || prayerPoint.linkedTopics) &&
+        linkedPrayer ? (
         <PrayerCardWithButtons
           key={prayerPoint.id}
           prayer={linkedPrayer}
@@ -157,6 +170,19 @@ export function PrayerPointLinking({
 }
 
 const styles = StyleSheet.create({
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  expandTitle: {
+    color: Colors.link,
+    fontSize: 18,
+    fontWeight: '400',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '500',
+  },
   searchInput: {
     borderWidth: 1,
     padding: 8,

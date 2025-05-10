@@ -216,7 +216,7 @@ export default function PrayerMetadataScreen() {
                   originPrayer: linkedData.originPrayer as
                     | LinkedPrayerEntity
                     | undefined,
-                  prayerTopicDTO: linkedData.topicDTO as
+                  topicTitle: linkedData.topicDTO as
                     | FlatPrayerTopicDTO
                     | undefined,
                   user,

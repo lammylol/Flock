@@ -19,7 +19,7 @@ export default class OpenAiService {
   private static instance: OpenAiService; // Static instance to hold the singleton
 
   // Private constructor ensures that this class cannot be instantiated directly
-  private constructor() {}
+  private constructor() { }
 
   // Method to get the singleton instance
   public static getInstance(): OpenAiService {
@@ -162,12 +162,21 @@ export default class OpenAiService {
       });
 
       const embedding = completion.data?.[0]?.embedding;
-      if (!embedding)
+
+      // Ensure embedding is a valid non-empty array and doesn't consist of all zeroes
+      if (
+        !Array.isArray(embedding) ||
+        embedding.length === 0 ||
+        embedding.every((val) => val === 0)
+      ) {
         throw new Error('Invalid vector embedding response format');
+      }
 
       return embedding;
     } catch (error) {
-      this.handleOpenAiError(error, 'vector');
+      // Handle the error (e.g., log it, rethrow with more context, etc.)
+      console.error('Error while retrieving embeddings:', error);
+      this.handleOpenAiError(error, 'vector'); // Ensure this method handles or logs the error properly
     }
   }
 

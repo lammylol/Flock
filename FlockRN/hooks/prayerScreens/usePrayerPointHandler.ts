@@ -51,13 +51,12 @@ export function usePrayerPointHandler({
   const loadPrayerPoint = useCallback(async () => {
     const contextPrayerPoint = userPrayerPoints.find((p) => p.id === id);
     if (contextPrayerPoint) {
-      console.log('Found prayer point in context:', contextPrayerPoint);
+      console.log('Found prayer point in context:', contextPrayerPoint.id);
       setUpdatedPrayerPoint({ ...contextPrayerPoint });
       return;
     }
     try {
       const fetchedPrayer = await prayerPointService.getPrayerPoint(id);
-      console.log('Fetched prayer point:', fetchedPrayer);
       if (fetchedPrayer) {
         setUpdatedPrayerPoint({ ...fetchedPrayer });
       }

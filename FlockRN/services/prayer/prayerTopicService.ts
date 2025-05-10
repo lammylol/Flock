@@ -24,9 +24,16 @@ import {
 } from 'firebase/firestore';
 import { firestoreSafety } from './firestoreSafety';
 import { db } from '@/firebase/firebaseConfig';
+import {
+  isValidCreateTopicDTO,
+  isValidUpdateTopicDTO,
+} from '@/types/typeGuards';
 
 export interface IPrayerTopicService {
-  createPrayerTopic(data: CreatePrayerTopicDTO): Promise<string>;
+  createPrayerTopic(
+    data: CreatePrayerTopicDTO,
+    aiOptIn: boolean,
+  ): Promise<string>;
   updatePrayerTopic(
     prayerTopicId: string,
     data: Partial<UpdatePrayerTopicDTO>,
@@ -47,10 +54,13 @@ class PrayerTopicService implements IPrayerTopicService {
     );
   }
 
-  async createPrayerTopic(data: CreatePrayerTopicDTO): Promise<string> {
-    if (!data || !data.title) {
-      console.error('Missing title in prayer topic');
-      throw new Error('Missing title in prayer topic');
+  async createPrayerTopic(
+    data: CreatePrayerTopicDTO,
+    aiOptIn: boolean,
+  ): Promise<string> {
+    if (!data || !isValidCreateTopicDTO(data, aiOptIn)) {
+      console.error('Invalid data in prayer topic');
+      throw new Error('Missing data in prayer topic');
     }
 
     try {
@@ -77,7 +87,7 @@ class PrayerTopicService implements IPrayerTopicService {
     data: Partial<UpdatePrayerTopicDTO>,
   ): Promise<void> {
     try {
-      if (!prayerTopicId || !data) {
+      if (!prayerTopicId || !isValidUpdateTopicDTO(data)) {
         console.error('Missing data for updating prayer topic');
         return;
       }

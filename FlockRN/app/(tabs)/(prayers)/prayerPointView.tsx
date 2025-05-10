@@ -72,8 +72,6 @@ const PrayerPointView = () => {
   const handleEdit = () => {
     if (!prayerPoint) return;
 
-    console.log('Preparing to edit prayer point:', prayerPoint.id);
-
     try {
       // Be explicit with the complete path to the specific file
       router.push({
@@ -141,7 +139,7 @@ const PrayerPointView = () => {
       prayerPoint.createdAt instanceof Date
         ? prayerPoint.createdAt
         : typeof prayerPoint.createdAt === 'object' &&
-            'seconds' in prayerPoint.createdAt
+          'seconds' in prayerPoint.createdAt
           ? new Date(prayerPoint.createdAt.seconds * 1000)
           : new Date(prayerPoint.createdAt);
 

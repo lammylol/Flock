@@ -137,7 +137,7 @@ export default function PrayerPointEditor(props: PrayerPointEditorProps) {
             formState,
             prayerPoint: updatedPrayerPoint,
             originPrayer: originPrayer as PrayerPoint | undefined,
-            prayerTopicDTO: prayerTopicDTO as FlatPrayerTopicDTO | undefined,
+            topicTitle: prayerTopicDTO as FlatPrayerTopicDTO | undefined,
             user,
             embedding,
           },
