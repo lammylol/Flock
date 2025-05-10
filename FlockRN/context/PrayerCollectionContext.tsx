@@ -15,6 +15,7 @@ import { prayerService } from '@/services/prayer/prayerService';
 import useAuth from '@/hooks/useAuth';
 import { prayerPointService } from '@/services/prayer/prayerPointService';
 import { prayerTopicService } from '@/services/prayer/prayerTopicService';
+import { normalizeDate } from '@/utils/dateUtils';
 
 interface PrayerCollectionContextType {
   userPrayers: Prayer[];
@@ -67,7 +68,13 @@ export const PrayerCollectionProvider = ({
   const loadPrayerTopics = useCallback(async () => {
     if (!user) return;
     const prayerTopics = await prayerTopicService.getUserPrayerTopics(user.uid);
-    setUserPrayerTopics(prayerTopics);
+    setUserPrayerTopics(
+      prayerTopics.sort(
+        (a, b) =>
+          normalizeDate(b.updatedAt).getTime() -
+          normalizeDate(a.updatedAt).getTime(),
+      ),
+    );
     setFilteredUserPrayerTopics(prayerTopics);
   }, [user]);
 
@@ -150,7 +157,7 @@ export const PrayerCollectionProvider = ({
       const searchText = text.trim().toLowerCase();
       setFilteredUserPrayers(
         userPrayers.filter((prayer) =>
-          prayer.title?.toLowerCase().includes(searchText),
+          prayer.content.toLowerCase().includes(searchText),
         ),
       );
       setFilteredUserPrayerPoints(
